@@ -5,10 +5,10 @@
 #--------------------
 # change the program defaults here
 # CONDA: pre-defined in GitHub Actions workflow
-export CONDA=${CONDA:-/APSshare/miniconda/x86_64}
-export CONDA_ENVIRONMENT="${BLUESKY_CONDA_ENV:-training_2022}"
-export DATABROKER_CATALOG=${DATABROKER_CATALOG:-training}
-export QS_SERVER_HOST=$(hostname)  # or host (that passes $(hostname) test below)
+export CONDA="/APSshare/miniconda/x86_64"
+export CONDA_ENVIRONMENT="${BLUESKY_CONDA_ENV:-bluesky_2024_1}"
+export DATABROKER_CATALOG=${DATABROKER_CATALOG:-2iddnx}
+export QS_SERVER_HOST="sec2idd.xray.aps.anl.gov"
 export QS_UPDATE_PLANS_DEVICES=ENVIRONMENT_OPEN
 export QS_USER_GROUP_PERMISSIONS_FILE="./user_group_permissions.yaml"
 export QS_USER_GROUP_PERMISSIONS_RELOAD=ON_STARTUP

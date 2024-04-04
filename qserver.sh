@@ -5,7 +5,7 @@
 
 #--------------------
 # change the program defaults here
-DATABROKER_CATALOG=training  # also defined in _run_qs.sh
+DATABROKER_CATALOG=2iddnx  # also defined in _run_qs.sh
 DEFAULT_SESSION_NAME="bluesky_queueserver-${DATABROKER_CATALOG}"
 #--------------------
 
