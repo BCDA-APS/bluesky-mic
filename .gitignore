@@ -1,0 +1,30 @@
+# bluesky-queueserver
+existing_plans_and_devices.yaml
+
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*.egg-info/
+
+# Microsoft VisualStudio Code Editor
+.vscode/
+
+# log files
+.logs/
+
+# Jupyter notebook checkpoints
+.ipynb_checkpoints/
+
+# filewriter callback output files
+*.h5
+*.hdf
+*.dat
+
+# local developer content
+dev_*
+
+# Sphinx build products
+build/
+
+# Macintosh
+.DS_Store
