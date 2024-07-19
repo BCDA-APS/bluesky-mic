@@ -6,13 +6,13 @@
 ADSIM_IOC_PREFIX: "ad:"
 GP_IOC_PREFIX: "gp:"
 
-DATABROKER_CATALOG: &databroker_catalog EDIT_CATALOG_NAME_HERE
+DATABROKER_CATALOG: &databroker_catalog 19id_isn
 
 # default RunEngine metadata
 RUNENGINE_METADATA:
-  beamline_id: Bluesky_training
-  instrument_name: BCDA EPICS Bluesky training
-  proposal_id: training
+  beamline_id: 19ID-ISN
+  instrument_name: XSD 19-ID ISN
+  proposal_id: commissioning
   databroker_catalog: *databroker_catalog
 
 # Uncomment and edit to define a PV to use for the `scan_id`.
