@@ -103,11 +103,13 @@ def run_scan(scan_type="fly", trajectory="snake", loop1="2idsft:m1", loop2="2ids
     ready = True
 
     if ready:
-        caput(tmm.Acquire.pvname, 1) #begin acquiring tetramm
-        caput(xp3.Acquire.pvname, 1) #begin acquiring xspress3
-        pvput(postrm.start_.pvname, 1) #begin position stream
-        caput(sgz.send_pulses.pvname, 1) #begin sending pulses
-        caput(scan.exsc.pvname, 1) #begin profile move
+        yield from bps.mv(
+            tmm.Acquire, 1, #begin acquiring tetramm
+            xp3.Acquire, 1, #begin acquiring xspress3
+            postrm.start_, 1, #begin position stream
+            sgz.send_pulses, 1, #begin sending pulses
+        )
+        yield from bps.mv(scan.exsc, 1)  # begin profile move
 
     pm1.exsc.subscribe(watch_execute_scan) # i think this works
     yield from run_blocking_function(st.wait)
