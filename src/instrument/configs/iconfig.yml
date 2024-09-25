@@ -1,0 +1,56 @@
+# Configuration for the Bluesky instrument package.
+
+DATABROKER_CATALOG: &databroker_catalog
+
+# default RunEngine metadata
+RUNENGINE_METADATA:
+  beamline_id: 19ID-ISN
+  instrument_name: XSD 19-ID ISN
+  proposal_id: commissioning
+  databroker_catalog: *databroker_catalog
+
+# Uncomment and edit to define a PV to use for the `scan_id`.
+# The default behavior is to use `RE.md["scan_id"]`.
+# RUN_ENGINE_SCAN_ID_PV: f"{IOC}bluesky_scan_id"
+
+# permissions
+ALLOW_AREA_DETECTOR_WARMUP: false
+ENABLE_AREA_DETECTOR_IMAGE_PLUGIN: false
+USE_PROGRESS_BAR: false
+WRITE_NEXUS_DATA_FILES: false
+NEXUS_WARN_MISSING_CONTENT: false
+NEXUS_FILE_EXTENSION: hdf
+WRITE_SPEC_DATA_FILES: false
+
+# APS Data Management (Traditionally this is the path: "/home/dm/etc/dm.setup.sh")
+DM_SETUP_FILE:
+
+
+# Directory to "autosave" the RE.md dictionary (uses PersistentDict)
+RUNENGINE_MD_PATH:
+
+# Best Effort Callback Configurations
+BEC:
+  BASELINE: FALSE
+  PLOTS: FALSE
+# ----------------------------------
+
+# override default control layer for ophyd
+# if undefined, defaults to PyEpics
+# OPHYD_CONTROL_LAYER: PyEpics
+# OPHYD_CONTROL_LAYER: caproto
+
+# Uncomment any of these to override the defaults
+LOGGING:
+  # MAX_BYTES: 1000000
+  NUMBER_OF_PREVIOUS_BACKUPS: 9
+  LOG_PATH:
+  # If LOG_PATH undefined, this session will log into PWD/logs/
+  # where PWD is present working directory when session is started
+
+# default timeouts (seconds)
+PV_READ_TIMEOUT: &TIMEOUT 30
+PV_WRITE_TIMEOUT: *TIMEOUT
+PV_CONNECTION_TIMEOUT: 5
+
+XMODE_DEBUG_LEVEL: Minimal
