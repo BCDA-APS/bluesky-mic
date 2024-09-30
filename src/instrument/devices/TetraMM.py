@@ -9,6 +9,7 @@ import bluesky.plan_stubs as bps
 import logging
 logger = logging.getLogger(__name__)
 logger.info(__file__)
+#test
 
 class TetraMM(Device):
     Acquire = Component(EpicsSignal, 'Acquire')
