@@ -13,6 +13,30 @@ RUNENGINE_METADATA:
 # The default behavior is to use `RE.md["scan_id"]`.
 # RUN_ENGINE_SCAN_ID_PV: f"{IOC}bluesky_scan_id"
 
+DEVICES:
+  TETRAMM1_PV: "2idsft:TetrAMM1:"
+  TETRAMM2_PV: "2idsft:TetrAMM2:"
+  TETRAMM3_PV: "2idsft:TetrAMM3:"
+  PROFILE_MOVE: "2idsft:"
+  SAVE_DATA: "2idsft:saveData_"
+  SCAN1: "2idsft:scan1"
+  SCAN2: "2idsft:scan2"
+  SOFT_GLUE: "2idMZ1:"
+  POSITION_STREAM: "posvr:"
+  XSPRESS3: "XSP3_1Chan:"
+
+POSITIONERS: 
+  X_MOTOR: "2idsft:m1"
+  Y_MOTOR: "2idsft:m2"
+  Z_MOTOR: "2idsft:m3"
+  R_MOTOR: "2idsft:m4"
+  XZ_MOTOR: 
+    M1: "2idsft:m1"
+    M2: "2idsft:m3"
+  ENERGY: "2idsft:m5"
+  TEMPERATURE: "2idsft:m6"
+
+
 # permissions
 ALLOW_AREA_DETECTOR_WARMUP: false
 ENABLE_AREA_DETECTOR_IMAGE_PLUGIN: false
@@ -25,7 +49,7 @@ WRITE_SPEC_DATA_FILES: false
 # APS Data Management (Traditionally this is the path: "/home/dm/etc/dm.setup.sh")
 DM_SETUP_FILE:
 
-
+ 
 # Directory to "autosave" the RE.md dictionary (uses PersistentDict)
 RUNENGINE_MD_PATH:
 

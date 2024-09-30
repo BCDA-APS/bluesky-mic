@@ -24,6 +24,8 @@ user_groups:
     allowed_functions:
       - "function_sleep"  # Explicitly listed name
       - "test_function"
+      - "pause_scan"
+      - "resume_scan"
   test_user:  # Users with limited access capabilities
     allowed_plans:
       - ":^count"  # Use regular expression patterns

@@ -32,50 +32,6 @@ from ophyd.status import Status
 logger = logging.getLogger(__name__)
 logger.info(__file__)
 
-
-class ProfileMove:
-    # setup profile move device
-    def __init__(self, ioc, profilemove_name):
-        self.abort = EpicsSignal(f"{ioc}{profilemove_name}Abort")
-        self.num_points = EpicsSignal(f"{ioc}{profilemove_name}NumPoints")
-        self.timer_mode = EpicsSignal(f"{ioc}{profilemove_name}TimeMode")
-        self.accel = EpicsSignal(f"{ioc}{profilemove_name}Acceleration")
-        self.num_pulses = EpicsSignal(f"{ioc}{profilemove_name}NumPulses")
-        self.m1_arr = EpicsSignal(f"{ioc}{profilemove_name}M1Positions")
-        self.m1_proc = EpicsSignal(f"{ioc}{profilemove_name}M1Positions.PROC")
-        self.m1_use = EpicsSignal(f"{ioc}{profilemove_name}M1UseAxis")
-        self.m2_arr = EpicsSignal(f"{ioc}{profilemove_name}M2Positions")
-        self.m2_proc = EpicsSignal(f"{ioc}{profilemove_name}M2Positions.PROC")
-        self.m2_use = EpicsSignal(f"{ioc}{profilemove_name}M2UseAxis")
-        self.m3_arr = EpicsSignal(f"{ioc}{profilemove_name}M3Positions")
-        self.m3_proc = EpicsSignal(f"{ioc}{profilemove_name}M3Positions.PROC")
-        self.m3_use = EpicsSignal(f"{ioc}{profilemove_name}M3UseAxis")
-        self.m4_arr = EpicsSignal(f"{ioc}{profilemove_name}M4Positions")
-        self.m4_proc = EpicsSignal(f"{ioc}{profilemove_name}M4Positions.PROC")
-        self.m4_use = EpicsSignal(f"{ioc}{profilemove_name}M4UseAxis")
-        self.m5_arr = EpicsSignal(f"{ioc}{profilemove_name}M5Positions")
-        self.m5_proc = EpicsSignal(f"{ioc}{profilemove_name}M5Positions.PROC")
-        self.m5_use = EpicsSignal(f"{ioc}{profilemove_name}M5UseAxis")
-        self.m6_arr = EpicsSignal(f"{ioc}{profilemove_name}M6Positions")
-        self.m6_proc = EpicsSignal(f"{ioc}{profilemove_name}M6Positions.PROC")
-        self.m6_use = EpicsSignal(f"{ioc}{profilemove_name}M6UseAxis")
-        self.times = EpicsSignal(f"{ioc}{profilemove_name}Times")
-        self.fixed_time = EpicsSignal(f"{ioc}{profilemove_name}FixedTime")
-        self.build = EpicsSignal(f"{ioc}{profilemove_name}Build")
-        self.exsc = EpicsSignal(f"{ioc}{profilemove_name}Execute", kind="omitted")
-        self.readback = EpicsSignal(f"{ioc}{profilemove_name}Readback")
-        self.exsc_state = EpicsSignal(f"{ioc}{profilemove_name}ExecuteState")
-        self.move_mode = EpicsSignal(f"{ioc}{profilemove_name}MoveMode")
-
-    # TODO: reset function
-
-    def wait_for_connection(self):
-        time.sleep(3)
-        # TODO: this needs to be re-implemented for profile move, not sure how it's done for SscanRecord
-
-    print("exit in setup_scan function")
-
-
 def setup_profile_move(pm1, xarr, yarr, dwell_time):
     print("in setup_profile_move function")
     pm1.wait_for_connection()

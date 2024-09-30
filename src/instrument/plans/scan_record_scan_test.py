@@ -1,5 +1,16 @@
 """
 Creating a bluesky plan that interacts with Scan Record.
+
+EXAMPLE::
+
+    # Load this code in IPython or Jupyter notebook:
+    %run -i user/scan_record_scan.py
+
+    # Run the plan with the RunEngine:
+    RE(scan_record2(scanrecord_name = 'scan1', ioc = "2idsft:", m1_name = 'm1',
+                   m1_start = -0.5, m1_finish = 0.5,
+                   m2_name = 'm3', m2_start = -0.2 ,m2_finish = 0.2, 
+                   npts = 50, dwell_time = 0.1))
 """
 
 __all__ = """
@@ -18,24 +29,30 @@ import logging
 import time
 import os
 import sys
-import subprocess
 import pvaccess
-import pathlib
-
-from ..callbacks.trajectories import *
-from ..utils.misc import *
-from ..devices.softglue_zynq import *
-from ..devices.positioner_stream import *
-from ..devices.save_data import *
-from ..devices.scan_record import *
-from ..devices.xspress3 import *
-from ..devices.tetramm import *
+from instrument.utils.trajectories import *
+from instrument.utils.misc import *
+# from instrument.devices.SoftGlueZynq import *
+# from instrument.devices.PositionerStream import *
+# from instrument.devices.SaveData import *
+# from instrument.devices.setup_scanrecord import *
+from instrument.devices.xspress3 import xp3
+# from instrument.devices.TetraMM import *
 
 logger = logging.getLogger(__name__)
 logger.info(__file__)
 
 
 print("Creating RE plan that uses scan record")
+
+
+def scan_record_isn_2(scan_type="fly", trajectory="snake", loop1="2idsft:m1", loop2="2idsft:m2", sample_name="sample_name",
+                        xp3_on = False, tetramm_on = False, softglue_on = False, eiger_on = False, dets = ["xp3", "tetramm", "eiger"]):
+        devices = {v.replace("_on", ""):eval(v.replace("_on", "")) for v in ["xp3_on", "tetramm_on", "softglue_on", "eiger_on"] if eval(v) == True}
+        
+    pass
+
+
 
 def scan_record_isn(scan_type="fly", trajectory="snake", loop1="2idsft:m1", loop2="2idsft:m2", sample_name="sample_name", 
              pi_directory="/mnt/micdata1/save_dev/", comments="", devices=["xspress3", "tetramm", "scanrecord", "softglue", "positions"],

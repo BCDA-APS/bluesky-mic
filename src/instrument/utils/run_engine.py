@@ -9,7 +9,6 @@ from bluesky.utils import PersistentDict
 from bluesky.utils import ProgressBarManager
 from ophydregistry import ComponentNotFound
 from ophydregistry import Registry
-
 from .iconfig_loader import iconfig
 
 log = logging.getLogger(__name__)

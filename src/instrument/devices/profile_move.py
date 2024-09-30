@@ -3,7 +3,6 @@
 
 __all__ = """
     pm1
-    setup_profile_move
 """.split()
 
 from bluesky import plan_stubs as bps

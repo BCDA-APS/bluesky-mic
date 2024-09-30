@@ -5,7 +5,7 @@ __all__ = """
 """.split()
 
 from ophyd import Device, EpicsSignal, Component
-from ..utils import run_subprocess
+from ..utils.misc import run_subprocess
 
 class PositionerStream(Device):
   reset_ = Component(EpicsSignal, 'reset')
