@@ -1,9 +1,9 @@
 
 __all__ = """
-    tmm
-    setup_tetramm
+    tmm1
 """.split()
 
+from .. import iconfig
 from ophyd import Device, EpicsSignal, Component
 import bluesky.plan_stubs as bps
 import logging
@@ -35,36 +35,37 @@ class TetraMM(Device):
     WriteStatus = Component(EpicsSignal, 'netCDF1:WriteStatus')
     FilePathExists_RBV = Component(EpicsSignal, 'netCDF1:FilePathExists_RBV')
     
-def setup_tetramm(tmm, npts, sample_name, save_path, dwell_time, trigger_mode, scanNumber, reset_counter=False):
-    print("in setup_tetramm function")
-    tmm.wait_for_connection()
-    # yield from run_blocking_function(pm1.abort) # TODO: re-implement reset function for profile move
-    yield from bps.sleep(0.2)  # arbitrary wait for EPICS to finish the reset.
-    
-    if tmm.Capture.value==1:
-        yield from bps.mv(tmm.Capture, 0)
-    if tmm.Acquire.value==1:
-        yield from bps.mv(tmm.Acquire, 0)
-    if reset_counter: 
-        yield from bps.mv(tmm.FileNumber, 0)
+    def setup_tetramm(self, npts, sample_name, save_path, dwell_time, trigger_mode, scanNumber, reset_counter=False):
+        print("in setup_tetramm function")
+        self.wait_for_connection()
+        # yield from run_blocking_function(pm1.abort) # TODO: re-implement reset function for profile move
+        yield from bps.sleep(0.2)  # arbitrary wait for EPICS to finish the reset.
+        
+        if self.Capture.value==1:
+            yield from bps.mv(self.Capture, 0)
+        if self.Acquire.value==1:
+            yield from bps.mv(self.Acquire, 0)
+        if reset_counter: 
+            yield from bps.mv(self.FileNumber, 0)
 
-    yield from bps.mv(
-        tmm.TriggerMode, trigger_mode,
-        tmm.NumAcquire, npts,
-        tmm.NumCapture, npts, 
-        tmm.EmptyFreeList, 1,
-        tmm.ValuesPerRead, int(100000*dwell_time - 1), #100,000/dwell_time(ms)
-        tmm.AveragingTime, dwell_time, 
-        tmm.FastAveragingTime, dwell_time,
-        tmm.AutoIncrement, 0,
-        tmm.FileNumber, scanNumber,
-        tmm.AutoSave, 1,
-        tmm.FileWriteMode, 2,
-        tmm.FilePath, save_path,
-        tmm.FileName, sample_name,
-        tmm.FileTemplate, f"%s%s_%05d.nc",
-        tmm.Capture, 1,
-        tmm.Acquire, 1, 
-        )
-
-tmm = TetraMM("2idsft:TetrAMM1:", name="tmm") 
+        yield from bps.mv(
+            self.TriggerMode, trigger_mode,
+            self.NumAcquire, npts,
+            self.NumCapture, npts, 
+            self.EmptyFreeList, 1,
+            self.ValuesPerRead, int(100000*dwell_time - 1), #100,000/dwell_time(ms)
+            self.AveragingTime, dwell_time, 
+            self.FastAveragingTime, dwell_time,
+            self.AutoIncrement, 0,
+            self.FileNumber, scanNumber,
+            self.AutoSave, 1,
+            self.FileWriteMode, 2,
+            self.FilePath, save_path,
+            self.FileName, sample_name,
+            self.FileTemplate, f"%s%s_%05d.nc",
+            self.Capture, 1,
+            self.Acquire, 1, 
+            )
+        
+pv1 = iconfig.get("TETRAMM1")
+tmm1 = TetraMM(pv1, name="tmm1") 

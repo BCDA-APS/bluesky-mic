@@ -1,9 +1,9 @@
 
 __all__ = """
     sgz
-    setup_softgluezynq
 """.split()
 
+from .. import iconfig
 from ophyd import Device, EpicsSignal, Component
 from epics import caput, caget
 import bluesky.plan_stubs as bps
@@ -26,25 +26,26 @@ class SoftGlueZynq(Device):
     rst_buffer = Component(EpicsSignal, 'SG:BUFFER-1_IN_Signal.PROC')
     send_pulses = Component(EpicsSignal, 'SG:plsTrn-1_Inp_Signal.PROC')
     
-def setup_softgluezynq(sgz, npts, period): 
-    print("in setup_softgluezinq function")
-    clk_f = int(20E6) # master clock
-    period = int(period*clk_f) #period in number of clock cycles 
-    width = int(period/2) #duty cycle 50%
+    def setup_softgluezynq(sgz, npts, period): 
+        print("in setup_softgluezinq function")
+        clk_f = int(20E6) # master clock
+        period = int(period*clk_f) #period in number of clock cycles 
+        width = int(period/2) #duty cycle 50%
 
-    caput(sgz.usrclk_enable.pvname, "0") #disable user clock 
-    caput(sgz.enbl_dma.pvname, 0) #disable user clock 
+        caput(sgz.usrclk_enable.pvname, "0") #disable user clock 
+        caput(sgz.enbl_dma.pvname, 0) #disable user clock 
+            
+        yield from bps.mv(
+            sgz.npts, npts,       #set npts
+            sgz.period, period,   #set period in # of clock cycles
+            sgz.width, width,     #pulse width in # of clock cycles
+            sgz.clr1_proc, 1,     #clear interferometer 1
+            sgz.clr2_proc, 1,     #clear interfoerometer 2
+            sgz.clr_D, 1,         #clears plots
+            sgz.enbl_dma, 1,      #enables position collection
+            )
         
-    yield from bps.mv(
-        sgz.npts, npts,       #set npts
-        sgz.period, period,   #set period in # of clock cycles
-        sgz.width, width,     #pulse width in # of clock cycles
-        sgz.clr1_proc, 1,     #clear interferometer 1
-        sgz.clr2_proc, 1,     #clear interfoerometer 2
-        sgz.clr_D, 1,         #clears plots
-        sgz.enbl_dma, 1,      #enables position collection
-        )
-    
-    caput(sgz.usrclk_enable.pvname, "0") #enables user clock 
+        caput(sgz.usrclk_enable.pvname, "0") #enables user clock 
 
-sgz = SoftGlueZynq("2idMZ1:", name = "sgz")
+pv = iconfig.get("SOFT_GLUE")
+sgz = SoftGlueZynq(pv, name = "sgz")

@@ -1,9 +1,9 @@
 
 __all__ = """
     xp3
-    setup_xspress3
 """.split()
 
+from .. import iconfig
 from ophyd import Device, EpicsSignal, Component
 import bluesky.plan_stubs as bps
 import logging
@@ -30,33 +30,35 @@ class Xspress3(Device):
     AutoSave = Component(EpicsSignal, 'HDF1:AutoSave')
     NumCaptured_RBV = Component(EpicsSignal, 'HDF1:NumCaptured_RBV')
 
-def setup_xspress3(xp3, npts, sample_name, save_path, dwell_time, trigger_mode, scanNumber, reset_counter=False):
-    print("in setup_xspress3 function")
-    xp3.wait_for_connection()
-    yield from bps.sleep(0.2)  # arbitrary wait for EPICS to finish the reset.
+    def setup_xspress3(self, npts, sample_name, save_path, dwell_time, trigger_mode, scanNumber, reset_counter=False):
+        print("in setup_xspress3 function")
+        self.wait_for_connection()
+        yield from bps.sleep(0.2)  # arbitrary wait for EPICS to finish the reset.
 
-    if xp3.Capture.value==1:
-        yield from bps.mv(xp3.Capture, 0)
-    if xp3.Acquire.value==1:
-        yield from bps.mv(xp3.Acquire, 0)
-    if reset_counter: 
-        yield from bps.mv(xp3.FileNumber, 0)
+        if self.Capture.value==1:
+            yield from bps.mv(self.Capture, 0)
+        if self.Acquire.value==1:
+            yield from bps.mv(self.Acquire, 0)
+        if reset_counter: 
+            yield from bps.mv(self.FileNumber, 0)
 
-    yield from bps.mv(
-        xp3.ERASE, 1,
-        xp3.NumImages, npts,
-        xp3.AcquireTime, dwell_time,
-        xp3.EraseOnStart, 0,
-        xp3.TriggerMode, trigger_mode, 
-        xp3.EnableCallbacks, 1, 
-        xp3.AutoIncrement, 0,
-        xp3.FileNumber, scanNumber,
-        xp3.AutoSave, 1,
-        xp3.FileWriteMode, 2,
-        xp3.FilePath, save_path,
-        xp3.FileName, sample_name,
-        xp3.FileTemplate, f"%s%s_%05d.h5",
-        xp3.Capture, 1,
-        xp3.Acquire, 1, 
-        )
-xp3 = Xspress3("XSP3_1Chan:", name="tmm") 
+        yield from bps.mv(
+            self.ERASE, 1,
+            self.NumImages, npts,
+            self.AcquireTime, dwell_time,
+            self.EraseOnStart, 0,
+            self.TriggerMode, trigger_mode, 
+            self.EnableCallbacks, 1, 
+            self.AutoIncrement, 0,
+            self.FileNumber, scanNumber,
+            self.AutoSave, 1,
+            self.FileWriteMode, 2,
+            self.FilePath, save_path,
+            self.FileName, sample_name,
+            self.FileTemplate, f"%s%s_%05d.h5",
+            self.Capture, 1,
+            self.Acquire, 1, 
+            )
+        
+pv = iconfig.get("XSPRESS3")
+xp3 = Xspress3(pv, name="xp3") 
