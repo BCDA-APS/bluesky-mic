@@ -5,13 +5,13 @@ __all__ = """
     pm1
 """.split()
 
+from .. import iconfig
 from bluesky import plan_stubs as bps
 from epics import caput  # FIXME: refactor with bps.mv
 from ophyd import Component
 from ophyd import Device
 from ophyd import EpicsSignal
 from ophyd import EpicsSignalRO
-
 
 class ProfileMove(Device):
     abort = Component(EpicsSignal, 'Abort')
@@ -67,4 +67,5 @@ class ProfileMove(Device):
             )
         print("exit in setup_profile_move function")
 
-pm1 = ProfileMove("2idsft:", name="pm1")
+pv = iconfig.get("PROFILE_MOVE")
+pm1 = ProfileMove(pv, name="pm1")

@@ -3,6 +3,8 @@ __all__ = """
     scan2
     setup_scanrecord
 """.split()
+
+
 from apstools.synApps import SscanRecord
 from ophyd import Device, EpicsSignal, Component
 from apstools.plans import run_blocking_function
@@ -12,12 +14,19 @@ import logging
 logger = logging.getLogger(__name__)
 logger.info(__file__)
 
-def setup_scanrecord(scan1, scan2, scan_type, m1_name, m2_name, xarr, yarr, dwell_time, loop1_npts, trigger1="", trigger2="", trigger3="", trigger4="",):
+
+class myScanRecord(SscanRecord):
+    def __init__(): 
+        pass
+
+    
+
+def setup_scanrecord(scan1, scan2, scan_type, m1_name, m2_name, xarr, yarr, dwell_time, trigger1="", trigger2="", trigger3="", trigger4=""):
     
     print("in setup_scan function")
     scan1.wait_for_connection()
     scan2.wait_for_connection()
-    # yield from bps.mv(scaler1.preset_time, ct)  # counting time/point
+
     yield from run_blocking_function(scan1.reset)
     yield from run_blocking_function(scan2.reset)
     yield from bps.sleep(0.2)  # arbitrary wait for EPICS to finish the reset.
@@ -45,6 +54,10 @@ def setup_scanrecord(scan1, scan2, scan_type, m1_name, m2_name, xarr, yarr, dwel
         scan2.triggers.t3.trigger_pv, trigger3,
         scan2.triggers.t4.trigger_pv, trigger4,
     )
+
+
+pv = iconfig.get("SAVE_DATA")
+savedata = SaveData(pv, name="savedata")
 
 scan1 = SscanRecord("2idsft:scan1", name="scan1")
 scan2 = SscanRecord("2idsft:scan2", name="scan2")
