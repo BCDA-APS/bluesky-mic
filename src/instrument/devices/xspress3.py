@@ -3,7 +3,7 @@ __all__ = """
     xp3
 """.split()
 
-from .. import iconfig
+from ..utils.iconfig_loader import iconfig
 from ophyd import Device, EpicsSignal, Component
 import bluesky.plan_stubs as bps
 import logging
@@ -60,5 +60,5 @@ class Xspress3(Device):
             self.Acquire, 1, 
             )
         
-pv = iconfig.get("XSPRESS3")
+pv = iconfig.get("DEVICES")["XSPRESS3"]
 xp3 = Xspress3(pv, name="xp3") 

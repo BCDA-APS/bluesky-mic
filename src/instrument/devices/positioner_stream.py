@@ -6,6 +6,7 @@ __all__ = """
 from ophyd import Device, EpicsSignal, Component
 import subprocess
 from ..utils.misc import run_subprocess
+from ..utils.iconfig_loader import iconfig
 
 class PositionerStream(Device):
     reset_ = Component(EpicsSignal, 'reset')
@@ -29,6 +30,7 @@ class PositionerStream(Device):
             pass
         return result
 
-
-
-postrm = PositionerStream("posvr:", name="postrm")
+pv = iconfig.get("DEVICES")["POSITION_STREAM"]
+print(pv)
+print(pv)
+postrm = PositionerStream(pv, name="postrm")

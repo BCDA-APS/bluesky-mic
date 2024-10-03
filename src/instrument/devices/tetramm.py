@@ -3,7 +3,7 @@ __all__ = """
     tmm1
 """.split()
 
-from .. import iconfig
+from ..utils.iconfig_loader import iconfig
 from ophyd import Device, EpicsSignal, Component
 import bluesky.plan_stubs as bps
 import logging
@@ -67,5 +67,5 @@ class TetraMM(Device):
             self.Acquire, 1, 
             )
         
-pv1 = iconfig.get("TETRAMM1")
+pv1 = iconfig.get("DEVICES")["TETRAMM1"]
 tmm1 = TetraMM(pv1, name="tmm1") 

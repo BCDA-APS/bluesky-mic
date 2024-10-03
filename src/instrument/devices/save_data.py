@@ -2,7 +2,7 @@ __all__ = """
     savedata
 """.split()
 
-from .. import iconfig
+from ..utils.iconfig_loader import iconfig
 from ophyd import Device, EpicsSignal, Component
 import bluesky.plan_stubs as bps
 import logging
@@ -38,5 +38,5 @@ class SaveData(Device):
             self.base_name, f"/{base_name}",  
         )
 
-pv = iconfig.get("SAVE_DATA")
+pv = iconfig.get("DEVICES")["SAVE_DATA"]
 savedata = SaveData(pv, name="savedata")

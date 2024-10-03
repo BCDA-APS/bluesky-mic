@@ -34,19 +34,17 @@ from ..devices.tetramm import *
 logger = logging.getLogger(__name__)
 logger.info(__file__)
 
-
 print("Creating RE plan that uses scan record")
-
-def scan_record_isn(scan_type="fly", trajectory="snake", loop1="2idsft:m1", loop2="2idsft:m2", sample_name="sample_name", 
+def scan_record_isn(scan_type="fly", trajectory="snake", loop1="x_motor", loop2="y_motor", sample_name="sample_name", 
              pi_directory="/mnt/micdata1/save_dev/", comments="", devices=["xspress3", "tetramm", "scanrecord", "softglue", "positions"],
              l1_center=0, l1_size=0.01, l1_width=0.5, l2_center=0, l2_size=0.01, l2_width=0.5, dwell_time=10, reset_counter=False,
              ):
         
     """parse parameters""" 
     if trajectory == "snake":
-        x, y, t = snake(dwell_time, l1_size, l1_center, l2_center, l1_width, l2_width)
+        x, y, t, npts_tot = snake(dwell_time, l1_size, l1_center, l2_center, l1_width, l2_width)
     elif trajectory == "raster":
-        x, y, npts_line, npts_tot = raster_sr(dwell_time, l1_size, l1_center, l2_center, l1_width, l2_width)
+        x, y, npts_line, npts_tot = raster(dwell_time, l1_size, l1_center, l2_center, l1_width, l2_width)
     elif trajectory == "spiral":
         pass
     elif trajectory == "lissajous":
@@ -66,7 +64,7 @@ def scan_record_isn(scan_type="fly", trajectory="snake", loop1="2idsft:m1", loop
     if "softglue" in devices:
         use_softglue_triggers=True
         trigger2 = sgz.send_pulses.pvname
-        yield from setup_softgluezynq(sgz, npts_line, dwell)
+        yield from sgz.setup_softgluezynq(sgz, npts_line, dwell)
     else:
         use_softglue_triggers=False
         trigger2=""
@@ -77,8 +75,9 @@ def scan_record_isn(scan_type="fly", trajectory="snake", loop1="2idsft:m1", loop
         trigger1 = scan1.execute_scan.pvname
         scanNumber = int(savedata.scanNumber.value)
         formated_number = "{:04d}".format(scanNumber)
-        yield from setup_scanrecord(scan1, scan2, scan_type, loop1, loop2, x, y, dwell, npts_line, trigger1=trigger1, trigger2=trigger2)
-        yield from setup_savedata(savedata, pi_directory, sample_name, reset_counter=False)
+        yield from scan1.setup_scan1(scan_type, loop1, x, dwell_time)
+        yield from scan2.setup_scan2(scan1, loop2, y, trigger1="", trigger2="", trigger3="", trigger4="")
+        yield from savedata(savedata, pi_directory, sample_name, reset_counter=False)
     else:
         print("scanrecord not specified, cannot scan")
         return
@@ -91,7 +90,7 @@ def scan_record_isn(scan_type="fly", trajectory="snake", loop1="2idsft:m1", loop
         else: 
             trigger_mode = 1 #internal
         savepath = f"{save_path}flyXRF"
-        yield from setup_xspress3(xp3, npts_tot, sample_name, savepath, dwell, trigger_mode, scanNumber, reset_counter=False)
+        yield from xp3.setup_xspress3(xp3, npts_tot, sample_name, savepath, dwell, trigger_mode, scanNumber, reset_counter=False)
     
     if "tetramm"in devices:
         mkdir(os.path.join(save_path,"tetramm"))
@@ -101,12 +100,12 @@ def scan_record_isn(scan_type="fly", trajectory="snake", loop1="2idsft:m1", loop
         else: 
             trigger_mode = 0 #internal
         savepath = f"{save_path}tetramm"
-        yield from setup_tetramm(tmm, npts_tot, sample_name, savepath, dwell, trigger_mode, scanNumber, reset_counter=False)
+        yield from tmm1.setup_tetramm(npts_tot, sample_name, save_path, dwell_time, trigger_mode, scanNumber, reset_counter=False)
         
     if "positions" in devices:
         mkdir(os.path.join(save_path,"positions"))
         subdirs.append("positions")
-        setup_positionstream(f"positions_{formated_number}.h5", f"{save_path}positions") 
+        postrm.setup_positionstream(f"positions_{formated_number}.h5", f"{save_path}positions") 
     else: 
         print("file number not tracked. Not sure how else to set file name if not based on another detector's filenumber")
 

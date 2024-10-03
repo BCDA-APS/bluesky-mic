@@ -5,7 +5,7 @@ __all__ = """
     pm1
 """.split()
 
-from .. import iconfig
+from ..utils.iconfig_loader import iconfig
 from bluesky import plan_stubs as bps
 from epics import caput  # FIXME: refactor with bps.mv
 from ophyd import Component
@@ -67,5 +67,5 @@ class ProfileMove(Device):
             )
         print("exit in setup_profile_move function")
 
-pv = iconfig.get("PROFILE_MOVE")
+pv = iconfig.get("DEVICES")["PROFILE_MOVE"]
 pm1 = ProfileMove(pv, name="pm1")

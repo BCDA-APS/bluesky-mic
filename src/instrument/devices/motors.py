@@ -17,7 +17,7 @@ import logging
 logger = logging.getLogger(__name__)
 logger.info(__file__)
 
-from .. import iconfig
+from ..utils.iconfig_loader import iconfig
 from ophyd import EpicsMotor, Component, EpicsSignal
 from ophyd import MotorBundle, EpicsMotor
 from ophyd import Component as Cpt
@@ -25,7 +25,6 @@ from ophyd import Component as Cpt
 
 positioners = iconfig.get("POSITIONERS")
 __all__ = [positioner.lower() for positioner in positioners.keys()]
-
 
 class myBundle(MotorBundle):
     def __init__(self, value):
