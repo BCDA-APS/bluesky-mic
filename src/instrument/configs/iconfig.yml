@@ -15,17 +15,29 @@ RUNENGINE_METADATA:
 
 STORAGE_PATH: "/mnt/micdata1/2idd/"
 
-DEVICES:
-  TETRAMM1: "2idsft:TetrAMM1:"
-  TETRAMM2: "2idsft:TetrAMM2:"
-  TETRAMM3: "2idsft:TetrAMM3:"
+DETECTORS:
+  TETRAMM1: 
+    pv: "2idsft:TetrAMM1:"
+    type: "picoammeter: bpm"
+  TETRAMM2: 
+    pv: "2idsft:TetrAMM2:"
+    type: "picoammeter: ion chambers"
+  TETRAMM3: 
+    pv: "2idsft:TetrAMM3:"
+    type: "picoammeter: extra"
+  POSITION_STREAM:
+    pv: "posvr:"
+    type: "position capture"
+  XSPRESS3: 
+    pv: "XSP3_1Chan:"
+    type: "xrf"
+
+DEVICES: 
   PROFILE_MOVE: "2idsft:"
-  SAVE_DATA: "2idsft:saveData_"
   SCAN1: "2idsft:scan1"
   SCAN2: "2idsft:scan2"
+  SAVE_DATA: "2idsft:saveData_"
   SOFT_GLUE: "2idMZ1:"
-  POSITION_STREAM: "posvr:"
-  XSPRESS3: "XSP3_1Chan:"
 
 POSITIONERS: 
   X_MOTOR: "2idsft:m1"

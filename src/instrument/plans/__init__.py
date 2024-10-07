@@ -10,3 +10,4 @@ Custom Plan Definitions & Instatiations
 from .test_plan import test_plan
 from .profile_move_scan import profile_move_isn
 from .scan_record_scan import scan_record_isn
+from .fly2d_2idsft import fly2d

@@ -255,18 +255,6 @@ existing_devices:
     is_movable: false
     is_readable: true
     module: isn_bs_instrument.devices.save_data
-  scan1:
-    classname: myScanRecord
-    is_flyable: false
-    is_movable: true
-    is_readable: true
-    module: isn_bs_instrument.devices.scan_record
-  scan2:
-    classname: myScanRecord
-    is_flyable: false
-    is_movable: true
-    is_readable: true
-    module: isn_bs_instrument.devices.scan_record
   sgz:
     classname: SoftGlueZynq
     components:
@@ -625,6 +613,12 @@ existing_devices:
     is_readable: true
     module: isn_bs_instrument.devices.xspress3
 existing_plans:
+  fly2d:
+    module: isn_bs_instrument.plans.fly2d_2idsft
+    name: fly2d
+    parameters: []
+    properties:
+      is_generator: true
   profile_move_isn:
     description: Simple bluesky plan for demonstrating 2D raster scan.
     module: isn_bs_instrument.plans.profile_move_scan
