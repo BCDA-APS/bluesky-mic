@@ -31,5 +31,5 @@ To start (it only launches the Redis server)
 To view the Bluesky Queue GUI:
 
 ```
-queue-monitor &
+queue-monitor &  
 ```
