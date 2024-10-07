@@ -13,6 +13,8 @@ RUNENGINE_METADATA:
 # The default behavior is to use `RE.md["scan_id"]`.
 # RUN_ENGINE_SCAN_ID_PV: f"{IOC}bluesky_scan_id"
 
+STORAGE_PATH: "/mnt/micdata1/2idd/"
+
 DEVICES:
   TETRAMM1: "2idsft:TetrAMM1:"
   TETRAMM2: "2idsft:TetrAMM2:"

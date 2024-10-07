@@ -5,7 +5,6 @@ __all__ = [
     "pvput",
     "pause_scan",
     "resume_scan",
-    "resume_scan",
     "abort_scan",
     "run_subprocess",
     "scan_number_in_list",
@@ -53,27 +52,31 @@ def run_subprocess(command_list):
     return result 
 
 def pause_scan():
-    # from ..devices.setup_scanrecord import scan2
-    # wcnt = scan2.wcnt.get()
-    # if wcnt == 0:
-    #     scan2.wcnt.put(1)
-    # elif wcnt > 1:
-    #     for i in range(wcnt-1):
-    #         scan2.wcnt.put(0)
+    from ..devices.scan_record import scan2
+    wcnt = scan2.wcnt.get()
+    if wcnt == 0:
+        scan2.wcnt.put(1)
+    elif wcnt > 1:
+        for i in range(wcnt-1):
+            scan2.wcnt.put(0)
     print("pausing scan")
 
 def resume_scan():
-    # from ..devices.setup_scanrecord import scan2
-    # wcnt = scan2.wcnt.get()
-    # if wcnt >=1:
-    #     for i in range(wcnt):
-    #         scan2.wcnt.put(0)
-    print("resuming scan")
+    from ..devices.scan_record import scan2
+    wcnt = scan2.wcnt.get()
+    if wcnt >=1:
+        for i in range(wcnt):
+            scan2.wcnt.put(0)
+    print("resuming scan...")
 
 
 def abort_scan():
     pause_scan()
-    pass
+    from ..devices.scan_record import scan2
+    scan2.AbortScan2.put(1)
+    scan2.AbortScan2.put(1)
+    scan2.AbortScan2.put(1)
+    print("aborting scan...")
 
 def scan_number_in_list(lst, partial_str):
     matches = [s for s in lst if partial_str in s]
