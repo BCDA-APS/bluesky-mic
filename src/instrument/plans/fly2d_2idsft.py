@@ -18,19 +18,25 @@ __all__ = """
 """.split()
 
 import logging
+
 # import bluesky
 import bluesky.plan_stubs as bps
+
 # from ophyd import Device, EpicsSignal, EpicsSignalRO, Component, EpicsMotor
 from apstools.plans import run_blocking_function
 from ophyd.status import Status
 import numpy as np
+
 # from epics import caput, caget
 import logging
+
 # import time
 # import os
 # import sys
 # import pvaccess
 from ..callbacks.trajectories import raster
+from ..utils.iconfig_loader import iconfig
+
 # from ..devices.softglue_zynq
 
 # from instrument.utils.misc import *
@@ -39,6 +45,10 @@ from ..callbacks.trajectories import raster
 # from instrument.devices.SaveData import *
 # from instrument.devices.setup_scanrecord import *
 from ..devices.xspress3 import xp3
+from ..devices.tetramm import tmm1
+from ..devices.softglue_zynq import sgz
+from ..devices.scan_record import ScanRecord
+
 # from instrument.devices.TetraMM import *
 
 logger = logging.getLogger(__name__)
@@ -46,41 +56,135 @@ logger.info(__file__)
 
 
 print("Creating RE plan that uses scan record to do 2D fly scan")
+print("Getting list of avaliable detectors")
 
 
-def fly2d(samplename = "smp1", width = 0, height = 0, x_center = None, 
-          y_center = None, stepsize_x = 0, stepsize_y = 0, dwell = 0, 
-          smp_theta = None, xrf_on = True, ptycho_on = False, 
-          position_stream_on = False, tretramm_on = False):
-    
-    
-    if xrf_on:
-        xp3.wait_for_connection()
-        logger.info("XRF (xpress3) is ready")
-        xp3.init_xspress3
+det_name_mapping = {
+    "xrf": xp3,
+    "preamp": tmm1,
+    "fpga": sgz,
+    # "ptycho":"eiger"
+}
+
+
+def selected_dets(**kwargs):
+    dets = []
+    for k, v in kwargs.items():
+        if all([v, isinstance(v, bool)]):
+            det_str = k.split("_")[0]
+            dets.append(det_name_mapping[det_str])
+    return dets
+
+
+def detectors_init(dets: list):
+    for d in dets:
+        logger.info(f"Initializing detector {d.name}")
+        yield from d.initialize()
+
+
+def detectors_setup(dets: list, dwell=0, num_frames=0):
+    for d in dets:
+        logger.info(
+            f"Assigning detector {d.name} to have dwell time \
+                of {dwell} and # frames of {num_frames}"
+        )
+
+
+def scanrecord_2id_setup(
+    outter: ScanRecord,
+    inner: ScanRecord,
+    x_center: float,
+    width: float,
+    y_center: float,
+    height: float,
+):
+    """
+    Configuring scan record for 2ID beamlines.
+
+    This function assumes x moving motion is in fly mode,
+    and y motion is in step mode. Thus the x_center and width
+    will be used to set up the inner ScanRecord, while y_center
+    and height are used for outter ScanRecord. 
+    """
+
+    # TODO Need to check what is the desired behavior for AFTER SCAN field
+    pass
+
+
+def fly2d(
+    samplename="smp1",
+    user_comments="",
+    scanrecord1_pv="2idsft:scan1",
+    scanrecord2_pv="2idsft:scan2",
+    width=0,
+    height=0,
+    x_center=None,
+    y_center=None,
+    stepsize_x=0,
+    stepsize_y=0,
+    dwell=0,
+    smp_theta=None,
+    xrf_on=True,
+    ptycho_on=False,
+    preamp_on=False,
+    fpga_on=False,
+    position_stream=False,
+    eta=0,
+):
+
+    print(
+        f"Creating ophyd object of scan records:\n \
+            Outter scan loop PV: {scanrecord1_pv} \n \
+            Inner scan loop PV: {scanrecord2_pv} \n"
+    )
+    scanrecord1 = ScanRecord(scanrecord1_pv)
+    scanrecord2 = ScanRecord(scanrecord2_pv)
+
+    if all([scanrecord1.connected, scanrecord2.connected]):
+        if "2id" in scanrecord1_pv:
+            print(
+                f"Based on the {scanrecord1_pv=}, this is beamline 2-ID. \
+                  Thus, this plan assumes x motion has a flying motor and \
+                  y motoion has a stepper motor."
+            )
+
+        print("Determining which detectors are selected")
+        dets = selected_dets(**locals())
+        yield from detectors_init(dets)
+
+        yield from bps.sleep(5)
+        print("end of plan")
     else:
-        logger.error("Not able to perform the desired scan due to hardware connection")
+        logger.error(
+            f"Having issue connecting to scan records: {scanrecord1_pv}, {scanrecord2_pv}"
+        )
 
-    
-    yield from bps.sleep(1)
-    print("end of plan")
 
-    
+#     if xrf_on:
+#         xp3.initialize()
+#         dets.append(xp3)
+#         logger.info("XRF (xpress3) is ready")
+#     else:
+# #         logger.error("Not able to perform the desired scan due to hardware connection")
+
+
+#     yield from bps.sleep(1)
+#     print("end of plan")
+
 
 # def scan_record_isn_2(scan_type="fly", trajectory="snake", loop1="2idsft:m1", loop2="2idsft:m2", sample_name="sample_name",
 #                         xp3_on = False, tetramm_on = False, softglue_on = False, eiger_on = False, dets = ["xp3", "tetramm", "eiger"]):
 #         devices = {v.replace("_on", ""):eval(v.replace("_on", "")) for v in ["xp3_on", "tetramm_on", "softglue_on", "eiger_on"] if eval(v) == True}
-        
+
 #     pass
 
 
-
-# def scan_record_isn(scan_type="fly", trajectory="snake", loop1="2idsft:m1", loop2="2idsft:m2", sample_name="sample_name", 
+# def scan_record_isn(scan_type="fly", trajectory="snake", loop1="2idsft:m1", loop2="2idsft:m2", sample_name="sample_name",
 #              pi_directory="/mnt/micdata1/save_dev/", comments="", devices=["xspress3", "tetramm", "scanrecord", "softglue", "positions"],
 #              l1_center=0, l1_size=0.01, l1_width=0.5, l2_center=0, l2_size=0.01, l2_width=0.5, dwell_time=10, reset_counter=False,
 #              ):
-        
-#     """parse parameters""" 
+
+#     """parse parameters"""
 #     if trajectory == "snake":
 #         x, y, t = snake(dwell_time, l1_size, l1_center, l2_center, l1_width, l2_width)
 #     elif trajectory == "raster":
@@ -91,14 +195,14 @@ def fly2d(samplename = "smp1", width = 0, height = 0, x_center = None,
 #         pass
 #     elif trajectory == "custom":
 #         pass
-    
-#     dwell = dwell_time/1000    
+
+#     dwell = dwell_time/1000
 #     folder_name = sample_name.strip("_")
 #     save_path = f"{pi_directory}{folder_name}/"
 #     mkdir(save_path)
 #     subdirs = []
 #     """Set up positioners (move to starting pos)"""
-#     #TODO: of the parameters in loop1-loop4, figure out which are motors somehow or hardcode them in the devices folder and then import them here. 
+#     #TODO: of the parameters in loop1-loop4, figure out which are motors somehow or hardcode them in the devices folder and then import them here.
 
 #     """setup devices"""
 #     if "softglue" in devices:
@@ -120,32 +224,32 @@ def fly2d(samplename = "smp1", width = 0, height = 0, x_center = None,
 #     else:
 #         print("scanrecord not specified, cannot scan")
 #         return
-    
+
 #     if "xspress3" in devices:
 #         mkdir(os.path.join(save_path,"flyXRF"))
 #         subdirs.append("flyXRF")
-#         if use_softglue_triggers: 
+#         if use_softglue_triggers:
 #             trigger_mode = 3 #ext trigger
-#         else: 
+#         else:
 #             trigger_mode = 1 #internal
 #         savepath = f"{save_path}flyXRF"
 #         yield from setup_xspress3(xp3, npts_tot, sample_name, savepath, dwell, trigger_mode, scanNumber, reset_counter=False)
-    
+
 #     if "tetramm"in devices:
 #         mkdir(os.path.join(save_path,"tetramm"))
 #         subdirs.append("tetramm")
-#         if use_softglue_triggers: 
+#         if use_softglue_triggers:
 #             trigger_mode = 1 #ext trigger
-#         else: 
+#         else:
 #             trigger_mode = 0 #internal
 #         savepath = f"{save_path}tetramm"
 #         yield from setup_tetramm(tmm, npts_tot, sample_name, savepath, dwell, trigger_mode, scanNumber, reset_counter=False)
-        
+
 #     if "positions" in devices:
 #         mkdir(os.path.join(save_path,"positions"))
 #         subdirs.append("positions")
-#         setup_positionstream(f"positions_{formated_number}.h5", f"{save_path}positions") 
-#     else: 
+#         setup_positionstream(f"positions_{formated_number}.h5", f"{save_path}positions")
+#     else:
 #         print("file number not tracked. Not sure how else to set file name if not based on another detector's filenumber")
 
 #     """setup motors"""
@@ -160,16 +264,16 @@ def fly2d(samplename = "smp1", width = 0, height = 0, x_center = None,
 #         m2.move(y[0], wait=True)
 #         vel = l1_size/dwell #vel is in mm/s
 #         yield from bps.mv(m1.velocity, vel)
-        
-#     else: 
+
+#     else:
 #         yield from bps.mv(m1.velocity, 3, m1.acceleration, 0.1, m2.velocity, 3, m2.acceleration, 0.1)
 #         m1.move(x[0], wait=True)
 #         m2.move(y[0], wait=True)
-    
+
 #     """Start executing scan"""
 #     print("Done setting up scan, about to start scan")
 #     st = Status()
-#     #TODO: needs monitoring function incase detectors stall or one of teh iocs crashes. 
+#     #TODO: needs monitoring function incase detectors stall or one of teh iocs crashes.
 #     # monitor trigger count and compare against detector saved frames count. s
 #     def watch_execute_scan(old_value, value, **kwargs):
 #         # Watch for scan1.EXSC to change from 1 to 0 (when the scan ends).
@@ -179,13 +283,13 @@ def fly2d(samplename = "smp1", width = 0, height = 0, x_center = None,
 #             # Remove the subscription.
 #             scan2.execute_scan.clear_sub(watch_execute_scan)
 
-#     # TODO need some way to check if devices are ready before proceeding. timeout and exit with a warning if something is missing. 
-#     # if motors.inpos and pm1.isready and tmm.isready and xp3.isready and sgz.isready and postrm.isready: 
+#     # TODO need some way to check if devices are ready before proceeding. timeout and exit with a warning if something is missing.
+#     # if motors.inpos and pm1.isready and tmm.isready and xp3.isready and sgz.isready and postrm.isready:
 #     time.sleep(2)
-#     ready = True 
+#     ready = True
 #     while not ready:
 #         time.sleep(1)
-    
+
 #     print("executing scan")
 #     start_ = pvaccess.Channel(postrm.start_.pvname)
 #     start_.put(1)
@@ -198,5 +302,11 @@ def fly2d(samplename = "smp1", width = 0, height = 0, x_center = None,
 #     """Set up masterFile"""
 #     # print(save_path, sample_name, formated_number, subdirs)
 #     create_master_file(save_path, sample_name, formated_number, subdirs)
-    
+
 #     print("end of plan\n")
+
+
+# import sys, bluesky
+# RE = bluesky.RunEngine()
+# sys.path.append("/home/beams8/USER2IDD/bluesky_gyl/bluesky-mic")
+# from src.instrument.plans.fly2d_2idsft import fly2d

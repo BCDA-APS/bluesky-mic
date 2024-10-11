@@ -18,12 +18,12 @@ import numpy
 import ophyd
 import pyRestTable
 import spec2nexus
-from isn_bs_instrument.callbacks import *  # noqa
-from isn_bs_instrument.data_collection import *  # noqa
-from isn_bs_instrument.utils.catalog import load_catalog
-from isn_bs_instrument.utils.epics_tools import set_control_layer
-from isn_bs_instrument.utils.iconfig_loader import iconfig
-from isn_bs_instrument.utils.run_engine import run_engine
+from instrument_2idd.callbacks import *  # noqa
+from instrument_2idd.data_collection import *  # noqa
+from instrument_2idd.utils.catalog import load_catalog
+from instrument_2idd.utils.epics_tools import set_control_layer
+from instrument_2idd.utils.iconfig_loader import iconfig
+from instrument_2idd.utils.run_engine import run_engine
 
 # guides choice of module to import cat
 

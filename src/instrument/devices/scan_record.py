@@ -11,13 +11,38 @@ from epics import PV
 from epics import caput, caget
 import bluesky.plan_stubs as bps
 import logging
+
 logger = logging.getLogger(__name__)
 logger.info(__file__)
 
-class myScanRecord(SscanRecord):
-    def __init__(self, pvname, name = None):
-        self.pvname = pvname
-        self.P1PA = PV(f"{self.pvname}.P1PA")
+
+class ScanRecord(SscanRecord):
+    P1SM = Component(EpicsSignal, ".P1SM")
+    P1AR = Component(EpicsSignal, ".P1AR")
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.P1PA = PV(f"{self.prefix}.P1PA")
+
+    def set_scan_mode(self, mode):
+        describe = self.P1SM.describe().popitem()
+        states = describe[1]["enum_strs"]
+        mode = mode.upper()
+        if mode in states:
+            idx = states.index(mode)
+            yield from bps.mv(self.P1SM, idx)
+            logger.info(f"Assigning scan mode in {self.prefix} to {mode}.")
+        else:
+            logger.error(
+                f"Not able to find the desired scan mode {mode} in {self.prefix}"
+            )
+
+    # def set_scan_range()
+
+    # def __init__(self, pvname, name = None):
+    #     self.pvname = pvname
+    #     self.P1PA = PV(f"{self.pvname}.P1PA")
+
     # p1pa = EpicsSignal(name="positions_array")
 
     # def setup_scan1(self, scan_type, m1_name, arr, dwell_time):
@@ -28,9 +53,9 @@ class myScanRecord(SscanRecord):
 
     #     if scan_type=="fly": #for scan1 only
     #         yield from bps.mv(self.positioner_delay, 0) #if fly scanning, positioner move at speed=step_size/dwell_time, no delay needed
-    #     else: 
+    #     else:
     #         yield from bps.mv(self.positioner_delay, dwell_time) #if step scanning, positioners move at 'fast' speed and dwell for specified dwell time at each position.
-        
+
     #     caput(f"{self.pvname}.P1PA", list(arr))
     #     yield from bps.mv(
     #         # self.p1pa,list(arr),
@@ -58,7 +83,10 @@ class myScanRecord(SscanRecord):
     #         self.triggers.t4.trigger_pv, trigger4,
     #     )
 
-scan1_pv = iconfig.get("DEVICES")["SCAN1"]
-scan2_pv = iconfig.get("DEVICES")["SCAN2"]
-scan1 = myScanRecord(scan1_pv, name="scan1")
-scan2 = myScanRecord(scan2_pv, name="scan2")
+
+# scan1_pv = iconfig.get("DEVICES")["SCAN1"]
+# scan2_pv = iconfig.get("DEVICES")["SCAN2"]
+# scan1 = myScanRecord(scan1_pv)
+# scan2 = myScanRecord(scan2_pv)
+# # scan1 = myScanRecord(scan1_pv, name="scan1")
+# # scan2 = myScanRecord(scan2_pv, name="scan2")

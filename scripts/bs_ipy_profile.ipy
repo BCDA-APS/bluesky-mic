@@ -4,8 +4,8 @@ Replacement for ipython profile
 
 import time
 
-from isn_bs_instrument.utils.iconfig_loader import iconfig
-from isn_bs_instrument.utils.session_logs import logger
+from instrument_2idd.utils.iconfig_loader import iconfig
+from instrument_2idd.utils.session_logs import logger
 from bluesky.magics import BlueskyMagics
 from IPython import get_ipython
 import matplotlib.pyplot as plt

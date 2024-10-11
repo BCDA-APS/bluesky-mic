@@ -186,7 +186,7 @@ existing_devices:
     is_flyable: false
     is_movable: false
     is_readable: true
-    module: isn_bs_instrument.devices.profile_move
+    module: instrument_2idd.devices.profile_move
   postrm:
     classname: PositionerStream
     components:
@@ -223,7 +223,7 @@ existing_devices:
     is_flyable: false
     is_movable: false
     is_readable: true
-    module: isn_bs_instrument.devices.positioner_stream
+    module: instrument_2idd.devices.positioner_stream
   savedata:
     classname: SaveData
     components:
@@ -254,7 +254,7 @@ existing_devices:
     is_flyable: false
     is_movable: false
     is_readable: true
-    module: isn_bs_instrument.devices.save_data
+    module: instrument_2idd.devices.save_data
   sgz:
     classname: SoftGlueZynq
     components:
@@ -357,7 +357,7 @@ existing_devices:
     is_flyable: false
     is_movable: false
     is_readable: true
-    module: isn_bs_instrument.devices.softglue_zynq
+    module: instrument_2idd.devices.softglue_zynq
   tmm1:
     classname: TetraMM
     components:
@@ -496,7 +496,7 @@ existing_devices:
     is_flyable: false
     is_movable: false
     is_readable: true
-    module: isn_bs_instrument.devices.tetramm
+    module: instrument_2idd.devices.tetramm
   xp3:
     classname: Xspress3
     components:
@@ -531,6 +531,12 @@ existing_devices:
         is_readable: true
         module: ophyd.signal
       Capture:
+        classname: EpicsSignal
+        is_flyable: false
+        is_movable: true
+        is_readable: true
+        module: ophyd.signal
+      Capture_RBV:
         classname: EpicsSignal
         is_flyable: false
         is_movable: true
@@ -608,20 +614,96 @@ existing_devices:
         is_movable: true
         is_readable: true
         module: ophyd.signal
+      WriteFile_RBV:
+        classname: EpicsSignal
+        is_flyable: false
+        is_movable: true
+        is_readable: true
+        module: ophyd.signal
     is_flyable: false
     is_movable: false
     is_readable: true
-    module: isn_bs_instrument.devices.xspress3
+    module: instrument_2idd.devices.xspress3
 existing_plans:
   fly2d:
-    module: isn_bs_instrument.plans.fly2d_2idsft
+    module: instrument_2idd.plans.fly2d_2idsft
     name: fly2d
-    parameters: []
+    parameters:
+    - default: '''smp1'''
+      kind:
+        name: POSITIONAL_OR_KEYWORD
+        value: 1
+      name: samplename
+    - default: '0'
+      kind:
+        name: POSITIONAL_OR_KEYWORD
+        value: 1
+      name: width
+    - default: '0'
+      kind:
+        name: POSITIONAL_OR_KEYWORD
+        value: 1
+      name: height
+    - default: None
+      kind:
+        name: POSITIONAL_OR_KEYWORD
+        value: 1
+      name: x_center
+    - default: None
+      kind:
+        name: POSITIONAL_OR_KEYWORD
+        value: 1
+      name: y_center
+    - default: '0'
+      kind:
+        name: POSITIONAL_OR_KEYWORD
+        value: 1
+      name: stepsize_x
+    - default: '0'
+      kind:
+        name: POSITIONAL_OR_KEYWORD
+        value: 1
+      name: stepsize_y
+    - default: '0'
+      kind:
+        name: POSITIONAL_OR_KEYWORD
+        value: 1
+      name: dwell
+    - default: None
+      kind:
+        name: POSITIONAL_OR_KEYWORD
+        value: 1
+      name: smp_theta
+    - default: 'True'
+      kind:
+        name: POSITIONAL_OR_KEYWORD
+        value: 1
+      name: xrf_on
+    - default: 'False'
+      kind:
+        name: POSITIONAL_OR_KEYWORD
+        value: 1
+      name: ptycho_on
+    - default: 'False'
+      kind:
+        name: POSITIONAL_OR_KEYWORD
+        value: 1
+      name: preamp_on
+    - default: 'False'
+      kind:
+        name: POSITIONAL_OR_KEYWORD
+        value: 1
+      name: fpga_on
+    - default: 'False'
+      kind:
+        name: POSITIONAL_OR_KEYWORD
+        value: 1
+      name: position_stream
     properties:
       is_generator: true
   profile_move_isn:
     description: Simple bluesky plan for demonstrating 2D raster scan.
-    module: isn_bs_instrument.plans.profile_move_scan
+    module: instrument_2idd.plans.profile_move_scan
     name: profile_move_isn
     parameters:
     - default: '''2idsft:'''
@@ -688,7 +770,7 @@ existing_plans:
       is_generator: true
   scan_record_isn:
     description: parse parameters
-    module: isn_bs_instrument.plans.scan_record_scan
+    module: instrument_2idd.plans.scan_record_scan
     name: scan_record_isn
     parameters:
     - default: '''fly'''
@@ -774,7 +856,7 @@ existing_plans:
     properties:
       is_generator: true
   test_plan:
-    module: isn_bs_instrument.plans.test_plan
+    module: instrument_2idd.plans.test_plan
     name: test_plan
     parameters:
     - default: '10'

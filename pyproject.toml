@@ -1,5 +1,5 @@
 [project]
-name = "isn_bs_instrument"
+name = "instrument_2idd"
 version = "0.0.1"
 description='isn Beamline Bluesky Instrument Control'
 authors = [
@@ -39,7 +39,7 @@ requires = ["setuptools >= 62.0"]
 build-backend = "setuptools.build_meta"
 
 [tool.setuptools]
-package-dir = {"isn_bs_instrument" = "src/instrument"}
+package-dir = {"instrument_2idd" = "src/instrument"}
 
 [tool.setuptools.package-data]
 "*" = ["*.txt", "*.yml"]
