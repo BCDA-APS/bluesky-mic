@@ -104,11 +104,15 @@ def scanrecord_2id_setup(
     This function assumes x moving motion is in fly mode,
     and y motion is in step mode. Thus the x_center and width
     will be used to set up the inner ScanRecord, while y_center
-    and height are used for outter ScanRecord. 
+    and height are used for outter ScanRecord.
     """
 
     # TODO Need to check what is the desired behavior for AFTER SCAN field
-    pass
+    outter.set_scan_mode("linear")
+    outter.set_rel_abs_motion("relative")
+
+    inner.set_scan_mode("fly")
+    inner.set_rel_abs_motion("relative")
 
 
 def fly2d(
@@ -132,44 +136,42 @@ def fly2d(
     eta=0,
 ):
 
-    print(
-        f"Creating ophyd object of scan records:\n \
-            Outter scan loop PV: {scanrecord1_pv} \n \
-            Inner scan loop PV: {scanrecord2_pv} \n"
-    )
-    scanrecord1 = ScanRecord(scanrecord1_pv)
-    scanrecord2 = ScanRecord(scanrecord2_pv)
+    # print(
+    #     f"Creating ophyd object of scan records:\n \
+    #         Outter scan loop PV: {scanrecord1_pv} \n \
+    #         Inner scan loop PV: {scanrecord2_pv} \n"
+    # )
+    # scanrecord1 = ScanRecord(scanrecord1_pv)
+    # scanrecord2 = ScanRecord(scanrecord2_pv)
 
-    if all([scanrecord1.connected, scanrecord2.connected]):
-        if "2id" in scanrecord1_pv:
-            print(
-                f"Based on the {scanrecord1_pv=}, this is beamline 2-ID. \
-                  Thus, this plan assumes x motion has a flying motor and \
-                  y motoion has a stepper motor."
-            )
+    # if all([scanrecord1.connected, scanrecord2.connected]):
+    #     if "2id" in scanrecord1_pv:
+    #         print(
+    #             f"Based on the {scanrecord1_pv=}, this is beamline 2-ID. \
+    #               Thus, this plan assumes x motion has a flying motor and \
+    #               y motoion has a stepper motor."
+    #         )
 
-        print("Determining which detectors are selected")
-        dets = selected_dets(**locals())
-        yield from detectors_init(dets)
+    #     print("Determining which detectors are selected")
+    #     dets = selected_dets(**locals())
+    #     yield from detectors_init(dets)
 
-        yield from bps.sleep(5)
-        print("end of plan")
-    else:
-        logger.error(
-            f"Having issue connecting to scan records: {scanrecord1_pv}, {scanrecord2_pv}"
-        )
+    #     yield from bps.sleep(5)
+    #     print("end of plan")
+    # else:
+    #     logger.error(
+    #         f"Having issue connecting to scan records: {scanrecord1_pv}, {scanrecord2_pv}"
+    #     )
 
+    #     if xrf_on:
+    #         xp3.initialize()
+    #         dets.append(xp3)
+    #         logger.info("XRF (xpress3) is ready")
+    #     else:
+    # #         logger.error("Not able to perform the desired scan due to hardware connection")
 
-#     if xrf_on:
-#         xp3.initialize()
-#         dets.append(xp3)
-#         logger.info("XRF (xpress3) is ready")
-#     else:
-# #         logger.error("Not able to perform the desired scan due to hardware connection")
-
-
-#     yield from bps.sleep(1)
-#     print("end of plan")
+    yield from bps.sleep(1)
+    print("end of plan")
 
 
 # def scan_record_isn_2(scan_type="fly", trajectory="snake", loop1="2idsft:m1", loop2="2idsft:m2", sample_name="sample_name",

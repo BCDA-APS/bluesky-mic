@@ -1,14 +1,11 @@
-__all__ = """
-    scan1
-    scan2
-""".split()
+# __all__ = """
+#     scan1
+#     scan2
+# """.split()
 
-from ..utils.iconfig_loader import iconfig
 from apstools.synApps import SscanRecord
-from ophyd import Device, EpicsSignal, Component
-from apstools.plans import run_blocking_function
+from ophyd import EpicsSignal, Component
 from epics import PV
-from epics import caput, caget
 import bluesky.plan_stubs as bps
 import logging
 
@@ -19,6 +16,9 @@ logger.info(__file__)
 class ScanRecord(SscanRecord):
     P1SM = Component(EpicsSignal, ".P1SM")
     P1AR = Component(EpicsSignal, ".P1AR")
+    P1CP = Component(EpicsSignal, ".P1CP")
+    P1SI = Component(EpicsSignal, ".P1SI")
+    P1WD = Component(EpicsSignal, ".P1WD")
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -34,7 +34,39 @@ class ScanRecord(SscanRecord):
             logger.info(f"Assigning scan mode in {self.prefix} to {mode}.")
         else:
             logger.error(
-                f"Not able to find the desired scan mode {mode} in {self.prefix}"
+                f"Not able to find the desired scan mode: {mode} in {self.prefix}"
+            )
+
+    def set_rel_abs_motion(self, mode):
+        describe = self.P1AR.describe().popitem()
+        states = describe[1]["enum_strs"]
+        mode = mode.upper()
+        if mode in states:
+            idx = states.index(mode)
+            yield from bps.mv(self.P1AR, idx)
+            logger.info(f"Assigning scan motion in {self.prefix} to {mode}.")
+        else:
+            logger.error(
+                f"Not able to find the desired scan motion: {mode} in {self.prefix}"
+            )
+
+    def set_center_width_stepsize(self, center: float, width: float, ss: float):
+        try:
+            yield from bps.mv(
+                self.P1CP,
+                center,
+                self.P1SI,
+                ss,
+                self.P1WD,
+                width,
+            )
+            logger.info(
+                f"Setting scan record {self.prefix} to have {center=}, {width=}, stepsize={ss}"
+            )
+        except Exception as e:
+            logger.error(
+                f"{e} \n "
+                + f"Setting scan record {self.prefix} to have {center=}, {width=}, stepsize={ss}"
             )
 
     # def set_scan_range()

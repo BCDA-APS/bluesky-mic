@@ -1,6 +1,6 @@
-'''
+"""
 Replacement for ipython profile
-'''
+"""
 
 import time
 
@@ -23,10 +23,10 @@ if _ip is not None:
     logger.info("xmode exception level: '%s'", _xmode_level)
 
 
-#start timer
+# start timer
 t0 = time.monotonic()
 
-from isn_bs_instrument.initialize_bs_tools import (  # noqa: F401
+from instrument_2idd.initialize_bs_tools import (  # noqa: F401
     RE,
     bec,
     cat,
@@ -34,7 +34,7 @@ from isn_bs_instrument.initialize_bs_tools import (  # noqa: F401
     peaks,
     sd,
 )
-from isn_bs_instrument.data_collection import *  # noqa
+from instrument_2idd.data_collection import *  # noqa
 
 print(f"Finished initalization in {time.monotonic() - t0:.2f} seconds.")
 
