@@ -1,78 +1,152 @@
+[build-system]
+requires = ["setuptools>=64.0", "setuptools_scm[toml]>=8.0"]
+build-backend = "setuptools.build_meta"
+
+[tool.copyright]
+copyright = "2014-2024, APS"
+
 [project]
-name = "instrument_2idd"
-version = "0.0.1"
-description='isn Beamline Bluesky Instrument Control'
+name = "isn_instrument"
+dynamic = ["version"]
+description = "ISN Bluesky Data Acquisition Instrument in console, notebook, & queueserver."
 authors = [
-    {name = "Eric Codrea", email = "ecodrea@anl.gov"},
+    { name = "Eric Codrea", email = "ecodrea@anl.gov" },
+    { name = "Pete Jemian", email = "prjemian+instrument@gmail.com" },
+    { name = "Rafael Vescovi", email = "rvescovi@anl.gov" },
 ]
-requires-python = ">=3.10"
+maintainers = [
+    { name = "Eric Codrea", email = "ecodrea@anl.gov" },
+    { name = "Pete Jemian", email = "prjemian+instrument@gmail.com" },
+    { name = "Rafael Vescovi", email = "rvescovi@anl.gov" },
+]
 readme = "README.md"
-license = {text = "MIT"}
+requires-python = ">=3.9"
+keywords = ['bluesky', 'queueserver']
+license = { file = "src/instrument/LICENSE" }
+classifiers = [
+    "Development Status :: 6 - Mature",
+    "Environment :: Console",
+    "Intended Audience :: Developers",
+    "License :: CC0 1.0 Universal (CC0 1.0) Public Domain Dedication",
+    "License :: Freely Distributable",
+    "License :: Public Domain",
+    "Programming Language :: Python",
+    "Programming Language :: Python :: 3",
+    "Topic :: Utilities",
+]
 dependencies = [
     "apstools",
-    "bluesky",
     "bluesky-queueserver",
-    "ophyd",
-    "ophyd-registry",
+    "bluesky-queueserver-api",
+    "bluesky",
+    "bluesky-widgets",
+    "databroker ==1.2.5",
     "ipython",
-    "hdf5plugin",
-    "jupyterlab"
+    "jupyterlab",
+    "ophyd-registry",
+    "ophyd",
+    "pysumreg",
+    "qtpy",
+    "PyQt5>5.15",
 ]
 
 [project.optional-dependencies]
-dev = [
-    "build",
-    "mypy",
-    "pre-commit",
-    "pytest>=7.4.4",
-    "ruff",
-    "isort",
+dev = ["build", "isort", "mypy", "pre-commit", "pytest", "ruff"]
+
+# doc: conda install conda-forge::pandoc
+doc = [
+    "babel",
+    "ipykernel",
+    "jinja2",
+    "markupsafe",
+    "myst_parser",
+    "nbsphinx",
+    "pygments-ipython-console",
+    "pygments",
+    "sphinx-design",
+    "sphinx-tabs",
+    "sphinx",
 ]
 
+all = ["instrument[dev,doc]"]
 
-######################
-# Build Info + Tools #
-######################
+[project.urls]
+"Homepage" = "https://grace227.github.io/isn_instrument/"
+"Bug Tracker" = "https://github.com/grace227/isn_instrument/issues"
 
-[build-system]
-requires = ["setuptools >= 62.0"]
-build-backend = "setuptools.build_meta"
+# [project.scripts]
+# instrument = "instrument.app:main"
 
-[tool.setuptools]
-package-dir = {"instrument_2idd" = "src/instrument"}
+[tool.black]
+line-length = 115
+target-version = ['py311']
+include = '\.pyi?$'
+exclude = '''
 
-[tool.setuptools.package-data]
-"*" = ["*.txt", "*.yml"]
+(
+  /(
+      \.eggs         # exclude a few common directories in the
+    | \.git          # root of the project
+    | \.hg
+    | \.mypy_cache
+    | \.tox
+    | \.venv
+    | \.pytest_cache
+    | _build
+    | build
+    | dist
+    | docs
+  )/
+)
+'''
 
-#####################
-# Development Tools #
-#####################
+
+[tool.flake8]
+max-line-length = 115
+extend-ignore = [
+    "E203", # See https://github.com/PyCQA/pycodestyle/issues/373
+    "E402", # module level import not at top of file (for cansas.py)
+    "E501",
+    "F401", # imported but unused
+    "F405", # symbol may be undefined, or defined from star imports
+    "F722", # allow Annotated[typ, some_func("some string")]
+    "F811", # support typing.overload decorator
+    "W503",
+    "W504",
+]
+
+[tool.isort]
+force_single_line = true
+# multi_line_output = 1
+line_length = 88
+include_trailing_comma = true
+
+[tool.pytest.ini_options]
+# https://docs.pytest.org/en/stable/customize.html
+addopts = ["--import-mode=importlib", "-x"]
+junit_family = "xunit1"
+filterwarnings = [
+    "ignore::DeprecationWarning",
+    "ignore::PendingDeprecationWarning",
+]
 
 [tool.ruff]
 # https://docs.astral.sh/ruff/configuration/
 
 # Exclude a variety of commonly ignored directories.
 exclude = [
-    ".bzr",
-    ".direnv",
     ".eggs",
     ".git",
     ".git-rewrite",
-    ".hg",
     ".mypy_cache",
-    ".nox",
-    ".pants.d",
     ".pytype",
     ".ruff_cache",
-    ".svn",
     ".tox",
     ".venv",
     "__pypackages__",
     "_build",
-    "buck-out",
     "build",
     "dist",
-    "node_modules",
     "venv",
     ".venv",
     "docs",
@@ -103,12 +177,16 @@ select = [
     # Warning
     "W",
     # pydocstyle
-    "D100", "D101", "D102", "D103", "D104", "D105", "D106", "D107",
+    "D100",
+    "D101",
+    "D102",
+    "D103",
+    "D104",
+    "D105",
+    "D106",
+    "D107",
     # ruff
     # "RUF"
-]
-ignore = [
-    "E501" # Line too long
 ]
 
 # Allow fix for all enabled rules (when `--fix`) is provided.
@@ -118,8 +196,13 @@ unfixable = []
 # Allow unused variables when underscore-prefixed.
 dummy-variable-rgx = "^(_+|(_+[a-zA-Z0-9_]*[a-zA-Z0-9]+?))$"
 
+[tool.ruff.lint.per-file-ignores]
+"*.ipynb" = [
+    "F405", # symbol may be undefined, or defined from star imports
+]
+
 [tool.ruff.lint.isort]
-force-single-line = true  # Enforces single-line imports
+force-single-line = true # Enforces single-line imports
 
 [tool.ruff.format]
 # Like Black, use double quotes for strings.
@@ -134,11 +217,11 @@ skip-magic-trailing-comma = false
 # Like Black, automatically detect the appropriate line ending.
 line-ending = "auto"
 
-[tool.pytest.ini_options]
-# https://docs.pytest.org/en/stable/customize.html
-addopts = "-x"
-junit_family="xunit1"
-filterwarnings = [
-    "ignore::DeprecationWarning",
-    "ignore::pottery.exceptions.InefficientAccessWarning",
-]
+[tool.setuptools]
+package-dir = {"isn_instrument" = "src/instrument"}
+
+[tool.setuptools.package-data]
+"*" = ["*.yml"]
+
+[tool.setuptools_scm]
+write_to = "src/instrument/_version.py"

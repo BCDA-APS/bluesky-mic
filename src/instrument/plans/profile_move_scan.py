@@ -17,12 +17,10 @@ __all__ = """
 """.split()
 
 import logging
-import time
 
 import bluesky.plan_stubs as bps
 import numpy as np
 from epics import caput
-from ophyd import EpicsSignal
 from ophyd.status import Status
 
 # from ophyd import Component as Cpt
@@ -31,6 +29,7 @@ from ophyd.status import Status
 
 logger = logging.getLogger(__name__)
 logger.info(__file__)
+
 
 def setup_profile_move(pm1, xarr, yarr, dwell_time):
     print("in setup_profile_move function")

@@ -9,7 +9,7 @@ EXAMPLE::
     # # Run the plan with the RunEngine:
     # RE(scan_record2(scanrecord_name = 'scan1', ioc = "2idsft:", m1_name = 'm1',
     #                m1_start = -0.5, m1_finish = 0.5,
-    #                m2_name = 'm3', m2_start = -0.2 ,m2_finish = 0.2, 
+    #                m2_name = 'm3', m2_start = -0.2 ,m2_finish = 0.2,
     #                npts = 50, dwell_time = 0.1))
 """
 
@@ -17,37 +17,28 @@ __all__ = """
     fly2d
 """.split()
 
+# from epics import caput, caget
 import logging
 
 # import bluesky
 import bluesky.plan_stubs as bps
 
 # from ophyd import Device, EpicsSignal, EpicsSignalRO, Component, EpicsMotor
-from apstools.plans import run_blocking_function
-from ophyd.status import Status
-import numpy as np
-
-# from epics import caput, caget
-import logging
-
 # import time
 # import os
 # import sys
 # import pvaccess
-from ..callbacks.trajectories import raster
-from ..utils.iconfig_loader import iconfig
+from ..devices.scan_record import ScanRecord
+from ..devices.softglue_zynq import sgz
+from ..devices.tetramm import tmm1
 
 # from ..devices.softglue_zynq
-
 # from instrument.utils.misc import *
 # from instrument.devices.SoftGlueZynq import *
 # from instrument.devices.PositionerStream import *
 # from instrument.devices.SaveData import *
 # from instrument.devices.setup_scanrecord import *
 from ..devices.xspress3 import xp3
-from ..devices.tetramm import tmm1
-from ..devices.softglue_zynq import sgz
-from ..devices.scan_record import ScanRecord
 
 # from instrument.devices.TetraMM import *
 
@@ -135,7 +126,6 @@ def fly2d(
     position_stream=False,
     eta=0,
 ):
-
     # print(
     #     f"Creating ophyd object of scan records:\n \
     #         Outter scan loop PV: {scanrecord1_pv} \n \

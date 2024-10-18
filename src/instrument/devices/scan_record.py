@@ -3,11 +3,13 @@
 #     scan2
 # """.split()
 
-from apstools.synApps import SscanRecord
-from ophyd import EpicsSignal, Component
-from epics import PV
-import bluesky.plan_stubs as bps
 import logging
+
+import bluesky.plan_stubs as bps
+from apstools.synApps import SscanRecord
+from epics import PV
+from ophyd import Component
+from ophyd import EpicsSignal
 
 logger = logging.getLogger(__name__)
 logger.info(__file__)

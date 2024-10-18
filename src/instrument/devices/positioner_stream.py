@@ -1,25 +1,25 @@
-
-__all__ = """
-    postrm
-""".split()
-
-from ophyd import Device, EpicsSignal, Component
 import subprocess
+
+from ophyd import Component
+from ophyd import Device
+from ophyd import EpicsSignal
+
+from ..utils.config_loaders import iconfig
 from ..utils.misc import run_subprocess
-from ..utils.iconfig_loader import iconfig
+
 
 class PositionerStream(Device):
-    reset_ = Component(EpicsSignal, 'reset')
-    start_ = Component(EpicsSignal, 'start')
-    stop_ = Component(EpicsSignal, 'stop')
-    status = Component(EpicsSignal, 'status')
-    outputFile = Component(EpicsSignal, 'outputFile')
+    reset_ = Component(EpicsSignal, "reset")
+    start_ = Component(EpicsSignal, "start")
+    stop_ = Component(EpicsSignal, "stop")
+    status = Component(EpicsSignal, "status")
+    outputFile = Component(EpicsSignal, "outputFile")
 
     def setup_positionstream(sefl, filename, filepath):
         print("in setup_positionstream function")
-        cmd = f"pvput -r \"filePath\" posvr:outputFile \'{{\"filePath\":\"{filepath}\"}}\'"
+        cmd = f'pvput -r "filePath" posvr:outputFile \'{{"filePath":"{filepath}"}}\''
         print(run_subprocess(cmd)[1])
-        cmd = f"pvput -r \"fileName\" posvr:outputFile \'{{\"fileName\":\"{filename}\"}}\'"
+        cmd = f'pvput -r "fileName" posvr:outputFile \'{{"fileName":"{filename}"}}\''
         print(run_subprocess(cmd)[1])
 
     def run_subprocess(self, command_list):
@@ -29,6 +29,7 @@ class PositionerStream(Device):
             result = e
             pass
         return result
+
 
 pv = iconfig.get("DEVICES")["POSITION_STREAM"]
 print(pv)

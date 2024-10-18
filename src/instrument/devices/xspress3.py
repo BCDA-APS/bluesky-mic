@@ -2,11 +2,15 @@ __all__ = """
     xp3
 """.split()
 
-from ..utils.iconfig_loader import iconfig
-from ophyd import Device, EpicsSignal, Component
-import bluesky.plan_stubs as bps
 import logging
 import os
+
+import bluesky.plan_stubs as bps
+from ophyd import Component
+from ophyd import Device
+from ophyd import EpicsSignal
+
+from ..utils.config_loaders import iconfig
 
 logger = logging.getLogger(__name__)
 logger.info(__file__)
@@ -67,7 +71,7 @@ class Xspress3(Device):
     def reset_capture_state(self):
         if self.Capture_RBV.get():
             yield from bps.mv(self.Capture, 0)
-            logger.info(f"Resetting xspress3's Capture state")
+            logger.info("Resetting xspress3's Capture state")
 
     def initialize(
         self,
@@ -77,7 +81,6 @@ class Xspress3(Device):
         file_format="%s%s_%05d.h5",
         trigger_mode=3,
     ):
-
         logger.info("Initialzing xspress3 hardware for XRF data collection")
         try:
             self.wait_for_connection()
@@ -111,7 +114,6 @@ class Xspress3(Device):
             self.update_status()
 
     def setup_xspress3(self, npts, dwell_time):
-
         self.update_status()
         if not any([self.status == "Idle", self.status == "Aborted"]):
             yield from bps.mv(self.Acquire, 0)

@@ -9,7 +9,7 @@ EXAMPLE::
     # Run the plan with the RunEngine:
     RE(scan_record2(scanrecord_name = 'scan1', ioc = "2idsft:", m1_name = 'm1',
                    m1_start = -0.5, m1_finish = 0.5,
-                   m2_name = 'm3', m2_start = -0.2 ,m2_finish = 0.2, 
+                   m2_name = 'm3', m2_start = -0.2 ,m2_finish = 0.2,
                    npts = 50, dwell_time = 0.1))
 """
 
@@ -49,17 +49,17 @@ print("Creating RE plan that uses scan record")
 def scan_record_isn_2(scan_type="fly", trajectory="snake", loop1="2idsft:m1", loop2="2idsft:m2", sample_name="sample_name",
                         xp3_on = False, tetramm_on = False, softglue_on = False, eiger_on = False, dets = ["xp3", "tetramm", "eiger"]):
         devices = {v.replace("_on", ""):eval(v.replace("_on", "")) for v in ["xp3_on", "tetramm_on", "softglue_on", "eiger_on"] if eval(v) == True}
-        
+
     pass
 
 
 
-def scan_record_isn(scan_type="fly", trajectory="snake", loop1="2idsft:m1", loop2="2idsft:m2", sample_name="sample_name", 
+def scan_record_isn(scan_type="fly", trajectory="snake", loop1="2idsft:m1", loop2="2idsft:m2", sample_name="sample_name",
              pi_directory="/mnt/micdata1/save_dev/", comments="", devices=["xspress3", "tetramm", "scanrecord", "softglue", "positions"],
              l1_center=0, l1_size=0.01, l1_width=0.5, l2_center=0, l2_size=0.01, l2_width=0.5, dwell_time=10, reset_counter=False,
              ):
-        
-    """parse parameters""" 
+
+    """parse parameters"""
     if trajectory == "snake":
         x, y, t = snake(dwell_time, l1_size, l1_center, l2_center, l1_width, l2_width)
     elif trajectory == "raster":
@@ -70,14 +70,14 @@ def scan_record_isn(scan_type="fly", trajectory="snake", loop1="2idsft:m1", loop
         pass
     elif trajectory == "custom":
         pass
-    
-    dwell = dwell_time/1000    
+
+    dwell = dwell_time/1000
     folder_name = sample_name.strip("_")
     save_path = f"{pi_directory}{folder_name}/"
     mkdir(save_path)
     subdirs = []
     """Set up positioners (move to starting pos)"""
-    #TODO: of the parameters in loop1-loop4, figure out which are motors somehow or hardcode them in the devices folder and then import them here. 
+    #TODO: of the parameters in loop1-loop4, figure out which are motors somehow or hardcode them in the devices folder and then import them here.
 
     """setup devices"""
     if "softglue" in devices:
@@ -99,32 +99,32 @@ def scan_record_isn(scan_type="fly", trajectory="snake", loop1="2idsft:m1", loop
     else:
         print("scanrecord not specified, cannot scan")
         return
-    
+
     if "xspress3" in devices:
         mkdir(os.path.join(save_path,"flyXRF"))
         subdirs.append("flyXRF")
-        if use_softglue_triggers: 
+        if use_softglue_triggers:
             trigger_mode = 3 #ext trigger
-        else: 
+        else:
             trigger_mode = 1 #internal
         savepath = f"{save_path}flyXRF"
         yield from setup_xspress3(xp3, npts_tot, sample_name, savepath, dwell, trigger_mode, scanNumber, reset_counter=False)
-    
+
     if "tetramm"in devices:
         mkdir(os.path.join(save_path,"tetramm"))
         subdirs.append("tetramm")
-        if use_softglue_triggers: 
+        if use_softglue_triggers:
             trigger_mode = 1 #ext trigger
-        else: 
+        else:
             trigger_mode = 0 #internal
         savepath = f"{save_path}tetramm"
         yield from setup_tetramm(tmm, npts_tot, sample_name, savepath, dwell, trigger_mode, scanNumber, reset_counter=False)
-        
+
     if "positions" in devices:
         mkdir(os.path.join(save_path,"positions"))
         subdirs.append("positions")
-        setup_positionstream(f"positions_{formated_number}.h5", f"{save_path}positions") 
-    else: 
+        setup_positionstream(f"positions_{formated_number}.h5", f"{save_path}positions")
+    else:
         print("file number not tracked. Not sure how else to set file name if not based on another detector's filenumber")
 
     """setup motors"""
@@ -139,16 +139,16 @@ def scan_record_isn(scan_type="fly", trajectory="snake", loop1="2idsft:m1", loop
         m2.move(y[0], wait=True)
         vel = l1_size/dwell #vel is in mm/s
         yield from bps.mv(m1.velocity, vel)
-        
-    else: 
+
+    else:
         yield from bps.mv(m1.velocity, 3, m1.acceleration, 0.1, m2.velocity, 3, m2.acceleration, 0.1)
         m1.move(x[0], wait=True)
         m2.move(y[0], wait=True)
-    
+
     """Start executing scan"""
     print("Done setting up scan, about to start scan")
     st = Status()
-    #TODO: needs monitoring function incase detectors stall or one of teh iocs crashes. 
+    #TODO: needs monitoring function incase detectors stall or one of teh iocs crashes.
     # monitor trigger count and compare against detector saved frames count. s
     def watch_execute_scan(old_value, value, **kwargs):
         # Watch for scan1.EXSC to change from 1 to 0 (when the scan ends).
@@ -158,13 +158,13 @@ def scan_record_isn(scan_type="fly", trajectory="snake", loop1="2idsft:m1", loop
             # Remove the subscription.
             scan2.execute_scan.clear_sub(watch_execute_scan)
 
-    # TODO need some way to check if devices are ready before proceeding. timeout and exit with a warning if something is missing. 
-    # if motors.inpos and pm1.isready and tmm.isready and xp3.isready and sgz.isready and postrm.isready: 
+    # TODO need some way to check if devices are ready before proceeding. timeout and exit with a warning if something is missing.
+    # if motors.inpos and pm1.isready and tmm.isready and xp3.isready and sgz.isready and postrm.isready:
     time.sleep(2)
-    ready = True 
+    ready = True
     while not ready:
         time.sleep(1)
-    
+
     print("executing scan")
     start_ = pvaccess.Channel(postrm.start_.pvname)
     start_.put(1)
@@ -177,5 +177,5 @@ def scan_record_isn(scan_type="fly", trajectory="snake", loop1="2idsft:m1", loop
     """Set up masterFile"""
     # print(save_path, sample_name, formated_number, subdirs)
     create_master_file(save_path, sample_name, formated_number, subdirs)
-    
+
     print("end of plan\n")

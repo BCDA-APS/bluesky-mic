@@ -1,3 +1,1 @@
-"""
-Test functions to ensure your bluesky framework works
-"""
+"""Test code for minimal instrument package."""
