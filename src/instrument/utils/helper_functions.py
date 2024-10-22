@@ -69,5 +69,5 @@ def mpl_setup():
     """
     if not running_in_queueserver():
         if not is_notebook():
-            mpl.use("qtAgg")  # Set the backend early
+            mpl.use("Agg")  # Set the backend early
             plt.ion()

@@ -5,8 +5,8 @@ Model of a Bluesky Data Acquisition Instrument in console, notebook, & queueserv
 ## Installation
 Clone the repository
 ```bash
-git clone git@github.com:BCDA-APS/bs_model_instrument.git
-cd bs_model_instrument
+git clone git@github.com:grace227/bluesky-mic.git
+cd bluesky_mic
 ```
 
 Set up the development environment.
@@ -25,7 +25,7 @@ ipython
 ```
 Inside the ipython console execute
 ```py
-from instrument.startup import *
+from mic_instrument.startup import *
 ```
 
 ## Jupyter notebook
@@ -35,7 +35,7 @@ Start JupyterLab, a Jupyter notebook server, or a notebook, VSCode.
 Start the data acquisition:
 
 ```py
-from instrument.startup import *
+from mic_instrument.startup import *
 ```
 
 ## Sim Plan Demo

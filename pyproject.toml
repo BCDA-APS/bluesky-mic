@@ -6,9 +6,9 @@ build-backend = "setuptools.build_meta"
 copyright = "2014-2024, APS"
 
 [project]
-name = "isn_instrument"
+name = "mic_instrument"
 dynamic = ["version"]
-description = "ISN Bluesky Data Acquisition Instrument in console, notebook, & queueserver."
+description = "Bluesky Data Acquisition Instrument in console, notebook, & queueserver for the Microscopy group at APS."
 authors = [
     { name = "Eric Codrea", email = "ecodrea@anl.gov" },
     { name = "Pete Jemian", email = "prjemian+instrument@gmail.com" },
@@ -219,7 +219,7 @@ skip-magic-trailing-comma = false
 line-ending = "auto"
 
 [tool.setuptools]
-package-dir = {"isn_instrument" = "src/instrument"}
+package-dir = {"mic_instrument" = "src/instrument"}
 
 [tool.setuptools.package-data]
 "*" = ["*.yml"]
