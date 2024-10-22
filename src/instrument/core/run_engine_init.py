@@ -17,7 +17,7 @@ from ..utils.controls_setup import connect_scan_id_pv
 from ..utils.controls_setup import set_control_layer
 from ..utils.controls_setup import set_timeouts
 
-# from ..utils.metadata import MD_PATH
+# from ..utils.metadata import MD_PATH TODO: Metadata
 # from ..utils.metadata import re_metadata
 from .best_effort_init import bec
 from .catalog_init import cat

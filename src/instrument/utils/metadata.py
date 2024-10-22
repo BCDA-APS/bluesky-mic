@@ -19,7 +19,7 @@ import apstools
 import bluesky
 import databroker
 import epics
-import h5py
+import h5py  # noqa: F401
 import intake
 import matplotlib
 import numpy
