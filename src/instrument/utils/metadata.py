@@ -36,6 +36,7 @@ logger.bsdev(__file__)
 re_config = iconfig.get("RUN_ENGINE", {})
 
 DEFAULT_MD_PATH = pathlib.Path.home() / ".config" / "Bluesky_RunEngine_md"
+pathlib.Path.mkdir(DEFAULT_MD_PATH , exist_ok=True)
 HOSTNAME = socket.gethostname() or "localhost"
 USERNAME = getpass.getuser() or "Bluesky user"
 VERSIONS = dict(
@@ -43,7 +44,7 @@ VERSIONS = dict(
     bluesky=bluesky.__version__,
     databroker=databroker.__version__,
     epics=epics.__version__,
-    h5py=h5py.__version__,
+    # h5py=h5py.__version__,
     intake=intake.__version__,
     matplotlib=matplotlib.__version__,
     numpy=numpy.__version__,

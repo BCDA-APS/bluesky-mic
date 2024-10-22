@@ -48,6 +48,7 @@ dependencies = [
     "pysumreg",
     "qtpy",
     "PyQt5>5.15",
+    "h5py",
 ]
 
 [project.optional-dependencies]

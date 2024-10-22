@@ -16,8 +16,9 @@ from ..utils.config_loaders import iconfig
 from ..utils.controls_setup import connect_scan_id_pv
 from ..utils.controls_setup import set_control_layer
 from ..utils.controls_setup import set_timeouts
-from ..utils.metadata import MD_PATH
-from ..utils.metadata import re_metadata
+
+# from ..utils.metadata import MD_PATH
+# from ..utils.metadata import re_metadata
 from .best_effort_init import bec
 from .catalog_init import cat
 
@@ -30,10 +31,10 @@ RE = bluesky.RunEngine()
 """The bluesky RunEngine object."""
 
 # Save/restore RE.md dictionary, in this precise order.
-if MD_PATH is not None:
-    RE.md = bluesky.utils.PersistentDict(MD_PATH)
-RE.md.update(re_metadata(cat))  # programmatic metadata
-RE.md.update(re_config.get("DEFAULT_METADATA", {}))
+# if MD_PATH is not None:
+#     RE.md = bluesky.utils.PersistentDict(MD_PATH)
+# RE.md.update(re_metadata(cat))  # programmatic metadata
+# RE.md.update(re_config.get("DEFAULT_METADATA", {}))
 
 sd = bluesky.SupplementalData()
 """Baselines & monitors for ``RE``."""
