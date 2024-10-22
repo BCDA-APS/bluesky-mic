@@ -3,6 +3,9 @@ import numpy as np
 
 
 def snake(dwell, step_size, x_center, y_center, x_width, y_width):
+    """
+    snake function callback
+    """
     rows = int(np.ceil(y_width / step_size))
     cols = int(np.ceil(x_width / step_size))
     ypts = np.linspace(y_center - y_width / 2, x_center + y_width / 2, int(rows + 1))
@@ -35,6 +38,9 @@ def snake(dwell, step_size, x_center, y_center, x_width, y_width):
 
 
 def raster(dwell, step_size, x_center, y_center, x_width, y_width, x_return_vel):
+    """
+    raster function callback
+    """
     rows = int(np.ceil(y_width / step_size))
     cols = int(np.ceil(x_width / step_size))
     ypts = np.linspace(y_center - y_width / 2, y_center + y_width / 2, int(rows + 1))
@@ -60,6 +66,9 @@ def raster(dwell, step_size, x_center, y_center, x_width, y_width, x_return_vel)
 
 
 def raster_times(x, y, dt, return_vel):
+    """
+    raster times callback
+    """
     times = np.ones_like(x)
     # find index where y changes.
     # calculate time for return velocity
@@ -69,6 +78,9 @@ def raster_times(x, y, dt, return_vel):
 
 
 def spiral(dwell, r_step_size, step_size, x_center, y_center, diameter):
+    """
+    spiral function callback
+    """
     arc_num = int(np.ceil(diameter / r_step_size))
     start = x_center, y_center + r_step_size
     end = x_center, y_center - r_step_size
@@ -91,6 +103,9 @@ def spiral(dwell, r_step_size, step_size, x_center, y_center, diameter):
 
 
 def semi_circle(start, end, R, step):
+    """
+    semi_circle function callback
+    """
     xc = np.round((start[0] + end[0]) / 2, 5)
     yc = np.round((start[1] + end[1]) / 2, 5)
     d = np.round(np.sqrt((end[0] - start[0]) ** 2 + (end[1] - start[1]) ** 2), 5)
@@ -121,6 +136,9 @@ def lissajous(
     x_freq=7.7,
     y_freq=10,
 ):
+    """
+    lissajous function callback
+    """
     npts = int(np.ceil(x_width / step_size) * cycles)
     pts = np.linspace(0, 2 * np.pi * cycles, npts)
     x = x_center + x_width * np.cos(x_freq * pts) / 2
@@ -132,12 +150,18 @@ def lissajous(
 
 
 def noise(size, arr):
+    """
+    noise function callback
+    """
     pts = np.shape(arr)[0]
     noise = (np.random.rand(pts) * 2 - 1) * size
     return arr + noise
 
 
 def trigger_events(center, x_width, y_width, res, x, y):
+    """
+    callback to trigger events
+    """
     x_bounds = int(np.ceil(x_width / res) + 1)
     x_edge = np.linspace(
         center[0] - x_width / 2, center[0] + x_width / 2, int(x_bounds)
@@ -186,6 +210,9 @@ def trigger_events(center, x_width, y_width, res, x, y):
 
 
 def custom_plot(x, y, noise_x, noise_y, trig_idx, title="scan"):
+    """
+    create custom plot
+    """
     plt.figure()
     plt.plot(x, y)
     # plt.scatter(noise_x, noise_y, marker=".", c="brown")
@@ -199,6 +226,9 @@ def custom_plot(x, y, noise_x, noise_y, trig_idx, title="scan"):
 
 
 def equidistant(x, y, dt):
+    """
+    equidistant trajectory callback
+    """
     pts = len(x)
     d_arr = np.asarray(
         [

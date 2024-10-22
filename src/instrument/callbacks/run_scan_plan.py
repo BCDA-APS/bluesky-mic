@@ -8,6 +8,10 @@ Usage: ``%run -i run_scan_plan.py``
     code is added by ``%run``.
 """
 
+import numpy as np
+
+from .trajectories import snake
+
 
 def run_scan(
     scan_type="fly",

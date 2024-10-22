@@ -14,13 +14,13 @@ example motors
 
 import logging
 
-logger = logging.getLogger(__name__)
-logger.info(__file__)
-
 from ophyd import EpicsMotor
 from ophyd import MotorBundle
 
 from ..utils.config_loaders import iconfig
+
+logger = logging.getLogger(__name__)
+logger.bsdev(__file__)
 
 positioners = iconfig.get("POSITIONERS")
 __all__ = [positioner.lower() for positioner in positioners.keys()]

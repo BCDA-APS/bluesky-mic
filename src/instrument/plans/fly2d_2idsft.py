@@ -194,9 +194,9 @@ def fly2d(
 #     mkdir(save_path)
 #     subdirs = []
 #     """Set up positioners (move to starting pos)"""
-#     #TODO: of the parameters in loop1-loop4, figure out which are motors somehow or hardcode them in the devices folder and then import them here.
+#     #TODO: of the parameters in loop1-loop4, figure out which are motors somehow or
+#            hardcode them in the devices folder and then import them here.
 
-#     """setup devices"""
 #     if "softglue" in devices:
 #         use_softglue_triggers=True
 #         trigger2 = sgz.send_pulses.pvname
