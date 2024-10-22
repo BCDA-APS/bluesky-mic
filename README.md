@@ -69,6 +69,11 @@ process. Using the below command the process runs in the background.
 ./qs/qs_host.sh restart
 ```
 
+For a good practice, it will be good to double check if the qs is running after executing the command above with the following command
+```bash
+./qs/qs_host.sh status
+```
+
 ### Run a queueserver client GUI
 To run the gui client for the queueserver you can use the below command inside the terminal
 ```bash
