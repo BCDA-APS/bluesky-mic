@@ -18,25 +18,25 @@ __all__ = """
 """.split()
 
 import logging
-import bluesky
-import bluesky.plan_stubs as bps
-from ophyd import Device, EpicsSignal, EpicsSignalRO, Component, EpicsMotor
-from apstools.plans import run_blocking_function
-from ophyd.status import Status
-import numpy as np
-from epics import caput, caget
-import logging
-import time
 import os
-import sys
+import time
+
+import bluesky.plan_stubs as bps
 import pvaccess
-from instrument.utils.trajectories import *
-from instrument.utils.misc import *
+from apstools.plans import run_blocking_function
+from ophyd import EpicsMotor
+from ophyd.status import Status
+
+from ..callbacks.trajectories import snake
+from ..devices.softglue_zynq import setup_softgluezynq
+
 # from instrument.devices.SoftGlueZynq import *
 # from instrument.devices.PositionerStream import *
 # from instrument.devices.SaveData import *
 # from instrument.devices.setup_scanrecord import *
-from instrument.devices.xspress3 import xp3
+from ..devices.xspress3 import xp3
+from ..utils.misc import mkdir
+
 # from instrument.devices.TetraMM import *
 
 logger = logging.getLogger(__name__)
@@ -46,24 +46,51 @@ logger.info(__file__)
 print("Creating RE plan that uses scan record")
 
 
-def scan_record_isn_2(scan_type="fly", trajectory="snake", loop1="2idsft:m1", loop2="2idsft:m2", sample_name="sample_name",
-                        xp3_on = False, tetramm_on = False, softglue_on = False, eiger_on = False, dets = ["xp3", "tetramm", "eiger"]):
-        devices = {v.replace("_on", ""):eval(v.replace("_on", "")) for v in ["xp3_on", "tetramm_on", "softglue_on", "eiger_on"] if eval(v) == True}
-
+def scan_record_isn_2(
+    scan_type="fly",
+    trajectory="snake",
+    loop1="2idsft:m1",
+    loop2="2idsft:m2",
+    sample_name="sample_name",
+    xp3_on=False,
+    tetramm_on=False,
+    softglue_on=False,
+    eiger_on=False,
+    dets=["xp3", "tetramm", "eiger"],
+):  # noqa: B006
+    devices = {
+        v.replace("_on", ""): eval(v.replace("_on", ""))
+        for v in ["xp3_on", "tetramm_on", "softglue_on", "eiger_on"]
+        if eval(v) == True
+    }
     pass
 
 
-
-def scan_record_isn(scan_type="fly", trajectory="snake", loop1="2idsft:m1", loop2="2idsft:m2", sample_name="sample_name",
-             pi_directory="/mnt/micdata1/save_dev/", comments="", devices=["xspress3", "tetramm", "scanrecord", "softglue", "positions"],
-             l1_center=0, l1_size=0.01, l1_width=0.5, l2_center=0, l2_size=0.01, l2_width=0.5, dwell_time=10, reset_counter=False,
-             ):
-
+def scan_record_isn(
+    scan_type="fly",
+    trajectory="snake",
+    loop1="2idsft:m1",
+    loop2="2idsft:m2",
+    sample_name="sample_name",
+    pi_directory="/mnt/micdata1/save_dev/",
+    comments="",
+    devices=["xspress3", "tetramm", "scanrecord", "softglue", "positions"],
+    l1_center=0,
+    l1_size=0.01,
+    l1_width=0.5,
+    l2_center=0,
+    l2_size=0.01,
+    l2_width=0.5,
+    dwell_time=10,
+    reset_counter=False,
+):
     """parse parameters"""
     if trajectory == "snake":
         x, y, t = snake(dwell_time, l1_size, l1_center, l2_center, l1_width, l2_width)
     elif trajectory == "raster":
-        x, y, npts_line, npts_tot = raster_sr(dwell_time, l1_size, l1_center, l2_center, l1_width, l2_width)
+        x, y, npts_line, npts_tot = raster_sr(
+            dwell_time, l1_size, l1_center, l2_center, l1_width, l2_width
+        )
     elif trajectory == "spiral":
         pass
     elif trajectory == "lissajous":
@@ -71,84 +98,124 @@ def scan_record_isn(scan_type="fly", trajectory="snake", loop1="2idsft:m1", loop
     elif trajectory == "custom":
         pass
 
-    dwell = dwell_time/1000
+    dwell = dwell_time / 1000
     folder_name = sample_name.strip("_")
     save_path = f"{pi_directory}{folder_name}/"
     mkdir(save_path)
     subdirs = []
     """Set up positioners (move to starting pos)"""
-    #TODO: of the parameters in loop1-loop4, figure out which are motors somehow or hardcode them in the devices folder and then import them here.
+    # TODO: of the parameters in loop1-loop4, figure out which are motors somehow or
+    # hardcode them in the devices folder and then import them here.
 
     """setup devices"""
     if "softglue" in devices:
-        use_softglue_triggers=True
+        use_softglue_triggers = True
         trigger2 = sgz.send_pulses.pvname
         yield from setup_softgluezynq(sgz, npts_line, dwell)
     else:
-        use_softglue_triggers=False
-        trigger2=""
+        use_softglue_triggers = False
+        trigger2 = ""
 
     if "scanrecord" in devices:
-        mkdir(os.path.join(save_path,"mda"))
+        mkdir(os.path.join(save_path, "mda"))
         subdirs.append("mda")
         trigger1 = scan1.execute_scan.pvname
         scanNumber = int(savedata.scanNumber.value)
         formated_number = "{:04d}".format(scanNumber)
-        yield from setup_scanrecord(scan1, scan2, scan_type, loop1, loop2, x, y, dwell, npts_line, trigger1=trigger1, trigger2=trigger2)
-        yield from setup_savedata(savedata, pi_directory, sample_name, reset_counter=False)
+        yield from setup_scanrecord(
+            scan1,
+            scan2,
+            scan_type,
+            loop1,
+            loop2,
+            x,
+            y,
+            dwell,
+            npts_line,
+            trigger1=trigger1,
+            trigger2=trigger2,
+        )
+        yield from setup_savedata(
+            savedata, pi_directory, sample_name, reset_counter=False
+        )
     else:
         print("scanrecord not specified, cannot scan")
         return
 
     if "xspress3" in devices:
-        mkdir(os.path.join(save_path,"flyXRF"))
+        mkdir(os.path.join(save_path, "flyXRF"))
         subdirs.append("flyXRF")
         if use_softglue_triggers:
-            trigger_mode = 3 #ext trigger
+            trigger_mode = 3  # ext trigger
         else:
-            trigger_mode = 1 #internal
+            trigger_mode = 1  # internal
         savepath = f"{save_path}flyXRF"
-        yield from setup_xspress3(xp3, npts_tot, sample_name, savepath, dwell, trigger_mode, scanNumber, reset_counter=False)
+        yield from setup_xspress3(
+            xp3,
+            npts_tot,
+            sample_name,
+            savepath,
+            dwell,
+            trigger_mode,
+            scanNumber,
+            reset_counter=False,
+        )
 
-    if "tetramm"in devices:
-        mkdir(os.path.join(save_path,"tetramm"))
+    if "tetramm" in devices:
+        mkdir(os.path.join(save_path, "tetramm"))
         subdirs.append("tetramm")
         if use_softglue_triggers:
-            trigger_mode = 1 #ext trigger
+            trigger_mode = 1  # ext trigger
         else:
-            trigger_mode = 0 #internal
+            trigger_mode = 0  # internal
         savepath = f"{save_path}tetramm"
-        yield from setup_tetramm(tmm, npts_tot, sample_name, savepath, dwell, trigger_mode, scanNumber, reset_counter=False)
+        yield from setup_tetramm(
+            tmm,
+            npts_tot,
+            sample_name,
+            savepath,
+            dwell,
+            trigger_mode,
+            scanNumber,
+            reset_counter=False,
+        )
 
     if "positions" in devices:
-        mkdir(os.path.join(save_path,"positions"))
+        mkdir(os.path.join(save_path, "positions"))
         subdirs.append("positions")
         setup_positionstream(f"positions_{formated_number}.h5", f"{save_path}positions")
     else:
-        print("file number not tracked. Not sure how else to set file name if not based on another detector's filenumber")
+        print(
+            "file number not tracked. Not sure how else to set file name if not based on another detector's filenumber"
+        )
 
     """setup motors"""
     m1 = EpicsMotor(loop1, name="m1")
     m2 = EpicsMotor(loop2, name="m2")
     if scan_type == "fly":
-        #TODO: add component to epics motor to get maximum velocity and acceleration
-        #TODO: add and setup additional motors if other loops are motors.. somehow.
-        #set motor velocity = sep_size/dwell_time
-        yield from bps.mv(m1.velocity, 3, m1.acceleration, 0.1, m2.velocity, 3, m2.acceleration, 0.1)
+        # TODO: add component to epics motor to get maximum velocity and acceleration
+        # TODO: add and setup additional motors if other loops are motors.. somehow.
+        # set motor velocity = sep_size/dwell_time
+        yield from bps.mv(
+            m1.velocity, 3, m1.acceleration, 0.1, m2.velocity, 3, m2.acceleration, 0.1
+        )
         m1.move(x[0], wait=True)
         m2.move(y[0], wait=True)
-        vel = l1_size/dwell #vel is in mm/s
+        vel = l1_size / dwell  # vel is in mm/s
         yield from bps.mv(m1.velocity, vel)
 
     else:
-        yield from bps.mv(m1.velocity, 3, m1.acceleration, 0.1, m2.velocity, 3, m2.acceleration, 0.1)
+        yield from bps.mv(
+            m1.velocity, 3, m1.acceleration, 0.1, m2.velocity, 3, m2.acceleration, 0.1
+        )
         m1.move(x[0], wait=True)
         m2.move(y[0], wait=True)
 
     """Start executing scan"""
     print("Done setting up scan, about to start scan")
     st = Status()
-    #TODO: needs monitoring function incase detectors stall or one of teh iocs crashes.
+
+    # TODO: needs monitoring function incase detectors stall or one of teh iocs crashes.
     # monitor trigger count and compare against detector saved frames count. s
     def watch_execute_scan(old_value, value, **kwargs):
         # Watch for scan1.EXSC to change from 1 to 0 (when the scan ends).

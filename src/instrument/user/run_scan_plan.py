@@ -19,7 +19,7 @@ def run_scan(
     loop1="2idsft:m1",
     loop2="2idsft:m2",
     dwell_time="10",
-    devices={
+    devices={  # noqa: B006
         "flyXRF": "XSP3_1Chan:",
         "tetramm:": "2idsft:TetrAMM1",
         "profilemove": "2idsft:pm1",

@@ -2,6 +2,7 @@
 
 # identify the version of this iconfig.yml file
 ICONFIG_VERSION: 2.0.0
+BEAMLINE: name
 
 # Add additional configuration for use with your instrument.
 
@@ -27,16 +28,15 @@ RUN_ENGINE:
 
     ### The progress bar is nice to see,
     ### except when it clutters the output in Jupyter notebooks.
-    ### Default: True
     USE_PROGRESS_BAR: false
 
 ### Best Effort Callback Configurations
 ### Defaults: all true (except no plots in queueserver)
-# BEC:
-#     BASELINE: false
-#     HEADING: false
-#     PLOTS: false
-#     TABLE: false
+BEC:
+    BASELINE: True
+    HEADING: True
+    PLOTS: True
+    TABLE: True
 
 STORAGE_PATH: "/mnt/micdata1/2idd/"
 
@@ -80,11 +80,12 @@ AREA_DETECTOR:
 ### Support for known output file formats.
 ### Uncomment to use.  If undefined, will not write that type of file.
 ### Each callback should apply its configuration from here.
-# NEXUS_DATA_FILES:
-#     FILE_EXTENSION: hdf
-#     WARN_MISSING_CONTENT: true
-SPEC_DATA_FILES:
-    FILE_EXTENSION: dat
+NEXUS_DATA_FILES:
+    FILE_EXTENSION: hdf
+    WARN_MISSING_CONTENT: true
+
+# SPEC_DATA_FILES:
+#     FILE_EXTENSION: dat
 
 ### APS Data Management
 ### Use bash shell, deactivate all conda environments, source this file:

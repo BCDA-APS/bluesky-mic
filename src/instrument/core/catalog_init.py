@@ -17,7 +17,9 @@ logger.bsdev(__file__)
 
 TEMPORARY_CATALOG_NAME = "temp"
 
-catalog_name = iconfig.get("DATABROKER_CATALOG", TEMPORARY_CATALOG_NAME) #TODO: Catalog
+catalog_name = iconfig.get(
+    "DATABROKER_CATALOG", TEMPORARY_CATALOG_NAME
+)  # TODO: Catalog
 if catalog_name == TEMPORARY_CATALOG_NAME:
     _cat = databroker.temp().v2
 else:

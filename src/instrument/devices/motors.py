@@ -2,16 +2,6 @@
 example motors
 """
 
-# __all__ = """
-#     x_motor
-#     y_motor
-#     z_motor
-#     r_motor
-#     xz_motor
-#     energy
-#     temperature
-# """.split()
-
 import logging
 
 from ophyd import EpicsMotor
@@ -31,8 +21,10 @@ class myBundle(MotorBundle):
         self.name = "name"
 
 
-# get all configured motors from config file, if group of motors: create motor bundle. else: create regular epics motor
-# dynamically set variable names to these motors based on config file. TODO: see if you cen dynamically populate the __all__ string
+# get all configured motors from config file, if group of motors: create motor bundle.
+# else: create regular epics motor
+# dynamically set variable names to these motors based on config file.
+# TODO: see if you cen dynamically populate the __all__ string
 for positioner in positioners:
     # convert AXIS_MOTOR to lowercase axis_motor
     posnr = positioners.lower()

@@ -6,7 +6,7 @@ Model of a Bluesky Data Acquisition Instrument in console, notebook, & queueserv
 Clone the repository
 ```bash
 git clone git@github.com:BCDA-APS/bs_model_instrument.git
-cd bs_model_instrument
+cd bluesky-mic
 ```
 
 Set up the development environment.
@@ -66,7 +66,7 @@ is running) and then starts it.  This is the usual way to (re)start the QS host
 process. Using the below command the process runs in the background.
 
 ```bash
-./qs/qs_host.sh restart
+./qserver/qs_host.sh restart
 ```
 
 ### Run a queueserver client GUI
@@ -77,7 +77,7 @@ queue-monitor &
 
 ### Shell script explained
 
-A [shell script](./qs/qs_host.sh) is used to start the QS host process. Below are all the command options, and what they do.
+A [shell script](./qserver/qs_host.sh) is used to start the QS host process. Below are all the command options, and what they do.
 ```bash
 (bstest) $ ./qs/qs_host.sh help
 Usage: qs_host.sh {start|stop|restart|status|checkup|console|run} [NAME]

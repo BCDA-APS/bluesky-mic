@@ -1,9 +1,5 @@
 """Profile Move Interface."""
 
-__all__ = """
-    pm1
-""".split()
-
 from bluesky import plan_stubs as bps
 from epics import caput  # FIXME: refactor with bps.mv
 from ophyd import Component
@@ -15,6 +11,10 @@ from ..utils.config_loaders import iconfig
 
 
 class ProfileMove(Device):
+    """
+    Profile move ophyd device class
+    """
+
     abort = Component(EpicsSignal, "Abort")
     num_points = Component(EpicsSignal, "NumPoints")
     timer_mode = Component(EpicsSignal, "TimeMode")
@@ -47,9 +47,13 @@ class ProfileMove(Device):
     move_mode = Component(EpicsSignal, "MoveMode")
 
     def setup_profile_move(self, xarr, yarr, dwell_time):
+        """
+        Setup profile move pv x, y, and dwell time
+        """
         print("in setup_profile_move function")
         self.wait_for_connection()
-        # yield from run_blocking_function(pm1.abort) # TODO: re-implement reset function for profile move
+        # yield from run_blocking_function(pm1.abort)
+        # TODO: re-implement reset function for profile move
         yield from bps.sleep(0.2)  # arbitrary wait for EPICS to finish the reset.
         caput(self.m1_arr.pvname, list(xarr))  # FIXME: replace with yield from bps.mv()
         caput(self.m2_arr.pvname, list(yarr))

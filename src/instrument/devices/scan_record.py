@@ -1,8 +1,3 @@
-# __all__ = """
-#     scan1
-#     scan2
-# """.split()
-
 import logging
 
 import bluesky.plan_stubs as bps
@@ -63,12 +58,12 @@ class ScanRecord(SscanRecord):
                 width,
             )
             logger.info(
-                f"Setting scan record {self.prefix} to have {center=}, {width=}, stepsize={ss}"
+                f"Setting scan record {self.prefix} to have {center=}, {width=}, stepsize={ss}"  # noqa: E501
             )
         except Exception as e:
             logger.error(
                 f"{e} \n "
-                + f"Setting scan record {self.prefix} to have {center=}, {width=}, stepsize={ss}"
+                + f"Setting scan record {self.prefix} to have {center=}, {width=}, stepsize={ss}"  # noqa: E501
             )
 
     # def set_scan_range()
@@ -86,9 +81,9 @@ class ScanRecord(SscanRecord):
     #     yield from bps.sleep(0.2)  # arbitrary wait for EPICS to finish the reset.
 
     #     if scan_type=="fly": #for scan1 only
-    #         yield from bps.mv(self.positioner_delay, 0) #if fly scanning, positioner move at speed=step_size/dwell_time, no delay needed
+    #         yield from bps.mv(self.positioner_delay, 0) #if fly scanning, positioner move at speed=step_size/dwell_time, no delay needed  # noqa: E501
     #     else:
-    #         yield from bps.mv(self.positioner_delay, dwell_time) #if step scanning, positioners move at 'fast' speed and dwell for specified dwell time at each position.
+    #         yield from bps.mv(self.positioner_delay, dwell_time) #if step scanning, positioners move at 'fast' speed and dwell for specified dwell time at each position.  # noqa: E501
 
     #     caput(f"{self.pvname}.P1PA", list(arr))
     #     yield from bps.mv(
@@ -99,7 +94,7 @@ class ScanRecord(SscanRecord):
     #         self.number_points, len(arr),
     #     )
 
-    # def setup_scan2(self, m2_name, arr, trigger1="", trigger2="", trigger3="", trigger4=""):
+    # def setup_scan2(self, m2_name, arr, trigger1="", trigger2="", trigger3="", trigger4=""):  # noqa: E501
     #     print("in setup_scan function")
     #     self.wait_for_connection()
 
