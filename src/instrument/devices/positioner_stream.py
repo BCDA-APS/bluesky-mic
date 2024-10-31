@@ -8,8 +8,8 @@ from ophyd import Component
 from ophyd import Device
 from ophyd import EpicsSignal
 
+from ..user.misc import run_subprocess
 from ..utils.config_loaders import iconfig
-from ..utils.misc import run_subprocess
 
 
 class PositionerStream(Device):

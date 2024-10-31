@@ -1,3 +1,7 @@
+"""
+Scan Record Ophyd Device Class & Instatiation
+"""
+
 import logging
 
 import bluesky.plan_stubs as bps
@@ -11,6 +15,10 @@ logger.info(__file__)
 
 
 class ScanRecord(SscanRecord):
+    """
+    Scan Record Device Class
+    """
+
     P1SM = Component(EpicsSignal, ".P1SM")
     P1AR = Component(EpicsSignal, ".P1AR")
     P1CP = Component(EpicsSignal, ".P1CP")
@@ -18,10 +26,16 @@ class ScanRecord(SscanRecord):
     P1WD = Component(EpicsSignal, ".P1WD")
 
     def __init__(self, *args, **kwargs):
+        """
+        Init Device parent class and instatiate P1PA PV
+        """
         super().__init__(*args, **kwargs)
         self.P1PA = PV(f"{self.prefix}.P1PA")
 
     def set_scan_mode(self, mode):
+        """
+        set scan mode
+        """
         describe = self.P1SM.describe().popitem()
         states = describe[1]["enum_strs"]
         mode = mode.upper()
@@ -35,6 +49,9 @@ class ScanRecord(SscanRecord):
             )
 
     def set_rel_abs_motion(self, mode):
+        """
+        set relative absolute motion
+        """
         describe = self.P1AR.describe().popitem()
         states = describe[1]["enum_strs"]
         mode = mode.upper()
@@ -48,6 +65,9 @@ class ScanRecord(SscanRecord):
             )
 
     def set_center_width_stepsize(self, center: float, width: float, ss: float):
+        """
+        set center width stepsize
+        """
         try:
             yield from bps.mv(
                 self.P1CP,
