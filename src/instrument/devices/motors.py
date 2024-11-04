@@ -17,7 +17,7 @@ __all__ = [positioner.lower() for positioner in positioners.keys()]
 
 
 class myBundle(MotorBundle):
-    def __init__(self, value):
+    def __init__(self):
         self.name = "name"
 
 
@@ -27,15 +27,21 @@ class myBundle(MotorBundle):
 # TODO: see if you cen dynamically populate the __all__ string
 for positioner in positioners:
     # convert AXIS_MOTOR to lowercase axis_motor
-    posnr = positioners.lower()
+    posnr = positioner.lower()
+    print(posnr)
     # if motor group
     if isinstance(positioners[positioner], dict):
         # set the lower-case name as a local variable
+        print(positioners[positioner])
         locals()[posnr] = myBundle()
         # assign individual motors to mtorbundle
-        for motor in positioner.keys():
+        for motor in positioners[positioner]:
+            print(posnr)
+            print(motor)
+            print(positioners[positioner])
             setattr(posnr, motor, positioners[positioner][motor])
     else:
+        print("it was an else")
         # if single motor, assign it to an EpicsMotor, dynamically specify PV and name
         locals()[posnr] = EpicsMotor(
             f"{positioners[positioner]}", name=f"{posnr}", labels=("motor",)

@@ -53,15 +53,15 @@ DEVICES:
   XSPRESS3: "XSP3_1Chan:"
 
 POSITIONERS:
-  X_MOTOR: "2idsft:m1"
-  Y_MOTOR: "2idsft:m2"
-  Z_MOTOR: "2idsft:m3"
-  R_MOTOR: "2idsft:m4"
+  # X_MOTOR: "2idsft:m1"
+  # Y_MOTOR: "2idsft:m2"
+  # Z_MOTOR: "2idsft:m3"
+  # R_MOTOR: "2idsft:m4"
   XZ_MOTOR:
     M1: "2idsft:m1"
     M2: "2idsft:m3"
-  ENERGY: "2idsft:m5"
-  TEMPERATURE: "2idsft:m6"
+  # ENERGY: "2idsft:m5"
+  # TEMPERATURE: "2idsft:m6"
 
 AREA_DETECTOR:
     ### General configuration for area detectors.
