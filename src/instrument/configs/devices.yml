@@ -1,0 +1,22 @@
+DEVICES:
+  TETRAMM1: "2idsft:TetrAMM1:"
+  TETRAMM2: "2idsft:TetrAMM2:"
+  TETRAMM3: "2idsft:TetrAMM3:"
+  PROFILE_MOVE: "2idsft:"
+  SAVE_DATA: "2idsft:saveData_"
+  SCAN1: "2idsft:scan1"
+  SCAN2: "2idsft:scan2"
+  SOFT_GLUE: "2idMZ1:"
+  POSITION_STREAM: "posvr:"
+  XSPRESS3: "XSP3_1Chan:"
+
+POSITIONERS:
+  X_MOTOR: "2idsft:m1"
+  Y_MOTOR: "2idsft:m2"
+  Z_MOTOR: "2idsft:m3"
+  R_MOTOR: "2idsft:m4"
+  XZ_MOTOR:
+    M1: "2idsft:m1"
+    M2: "2idsft:m3"
+  ENERGY: "2idsft:m5"
+  TEMPERATURE: "2idsft:m6"

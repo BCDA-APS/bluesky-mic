@@ -1,6 +1,6 @@
-__all__ = """
-    xp3
-""".split()
+"""
+Xspress3 object device class & instatiation
+"""
 
 import logging
 import os
@@ -17,6 +17,10 @@ logger.info(__file__)
 
 
 class Xspress3(Device):
+    """
+    Xspress3 Ophyd Object device class
+    """
+
     ERASE = Component(EpicsSignal, "det1:ERASE")
     Acquire = Component(EpicsSignal, "det1:Acquire")
     AcquireTime = Component(EpicsSignal, "det1:AcquireTime")
@@ -44,6 +48,9 @@ class Xspress3(Device):
     status = "Idle"
 
     def get_formatted_scan_num(self):
+        """
+        getting formatted scan number
+        """
         file_format = self.FileTemplate.get()
         file_path = self.FilePath.get() + "/"
         file_name = self.FileName.get()
@@ -52,9 +59,13 @@ class Xspress3(Device):
         self.next_scan_name = os.path.basename(self.next_filepath)
 
     def update_status(self):
+        """update status of detector"""
         self.status = self.DetectorState_RBV.get(as_string=True)
 
     def change_scan_parameters(self, dwell_time=0, num_frames=0):
+        """
+        change scan parameters
+        """
         try:
             yield from bps.mv(self.AcquireTime, dwell_time)
             logger.info(f"Updating {self.AcquireTime.pvname} to {dwell_time}")
@@ -69,6 +80,9 @@ class Xspress3(Device):
             )
 
     def reset_capture_state(self):
+        """
+        reset capture state
+        """
         if self.Capture_RBV.get():
             yield from bps.mv(self.Capture, 0)
             logger.info("Resetting xspress3's Capture state")
@@ -81,6 +95,9 @@ class Xspress3(Device):
         file_format="%s%s_%05d.h5",
         trigger_mode=3,
     ):
+        """
+        initialize ophyd device
+        """
         logger.info("Initialzing xspress3 hardware for XRF data collection")
         try:
             self.wait_for_connection()
@@ -114,6 +131,9 @@ class Xspress3(Device):
             self.update_status()
 
     def setup_xspress3(self, npts, dwell_time):
+        """
+        setup xspress3 ophyd device
+        """
         self.update_status()
         if not any([self.status == "Idle", self.status == "Aborted"]):
             yield from bps.mv(self.Acquire, 0)

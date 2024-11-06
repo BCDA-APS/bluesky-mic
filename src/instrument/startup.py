@@ -9,6 +9,7 @@ Includes:
 * Bluesky queueserver
 """
 
+# TODO: load user folder or not
 # logging setup first
 import logging
 

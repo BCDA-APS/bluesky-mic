@@ -1,3 +1,7 @@
+"""
+Callback to write Master H5 file
+"""
+
 import os
 
 import h5py
@@ -8,10 +12,13 @@ def write_master_h5(
     basedir: str,
     sample_name: str,
     master_path: str = None,
-    det_names: list = ["xspress3", "tetramm", "positions"],
-    det_file_ext: list = [".h5", ".nc", ".h5"],
-    det_key: list = ["/entry", None, "/stream"],
+    det_names: list = ["xspress3", "tetramm", "positions"],  # noqa: B006
+    det_file_ext: list = [".h5", ".nc", ".h5"],  # noqa: B006
+    det_key: list = ["/entry", None, "/stream"],  # noqa: B006
 ):
+    """
+    function to write master h5 file
+    """
     if master_path is None:
         master_path = os.path.join(
             os.path.join(basedir, sample_name), f"{sample_name}_{master_filename}"
@@ -25,7 +32,7 @@ def write_master_h5(
             det_dir = os.path.join(*[basedir, sample_name, det_name])
             files = [fn for fn in os.listdir(det_dir) if file_ext in fn]
             if file_ext != ".nc":
-                for i, fn in enumerate(files):
+                for _, fn in enumerate(files):
                     group[f"{fn}"] = h5py.ExternalLink(
                         os.path.join(*[basedir, sample_name, det_name, fn]), det_k
                     )
@@ -36,7 +43,9 @@ def write_master_h5(
 
 
 # ## Example to call the function
-# write_master_h5(master_filename="master_2.h5", basedir=basedir, sample_name=sample_name)
+# write_master_h5(master_filename="master_2.h5",
+#                 basedir=basedir,
+#                 sample_name=sample_name)
 
 # ## Example to view the content
 # mpath = "/mnt/micdata1/save_dev/test_sam/test_sam_master_2.h5"

@@ -1,10 +1,14 @@
+"""
+Set of trajectories to be used throughout plans as callbacks
+"""
+
 import matplotlib.pyplot as plt
 import numpy as np
 
 
 def snake(dwell, step_size, x_center, y_center, x_width, y_width):
     """
-    snake function callback
+    Snake trajectory function callback
     """
     rows = int(np.ceil(y_width / step_size))
     cols = int(np.ceil(x_width / step_size))
@@ -25,7 +29,8 @@ def snake(dwell, step_size, x_center, y_center, x_width, y_width):
         else:
             x += xpts[::-1]
         y += list(np.ones_like(xpts) * ypts[i])
-        # curve_x, curve_y = semi_circle((xpts[-1],ypts[i]), (xpts[-1],ypts[i]+step), step, step/2)
+        # curve_x, curve_y = semi_circle((xpts[-1],ypts[i]), (xpts[-1],ypts[i]+step),
+        # step, step/2)
         # x += list(curve_x*-1)
         # y += list(curve_y)
     x = np.asarray(x)
@@ -39,7 +44,7 @@ def snake(dwell, step_size, x_center, y_center, x_width, y_width):
 
 def raster(dwell, step_size, x_center, y_center, x_width, y_width, x_return_vel):
     """
-    raster function callback
+    Raster trajectory function callback
     """
     rows = int(np.ceil(y_width / step_size))
     cols = int(np.ceil(x_width / step_size))
@@ -60,7 +65,6 @@ def raster(dwell, step_size, x_center, y_center, x_width, y_width, x_return_vel)
     x = np.asarray(x)
     y = np.asarray(y)
 
-    dt = dwell
     times = raster_times(x, y, dwell, x_return_vel)
     return x, y, times
 
@@ -79,7 +83,7 @@ def raster_times(x, y, dt, return_vel):
 
 def spiral(dwell, r_step_size, step_size, x_center, y_center, diameter):
     """
-    spiral function callback
+    Spiral trajectory function callback
     """
     arc_num = int(np.ceil(diameter / r_step_size))
     start = x_center, y_center + r_step_size
@@ -104,7 +108,7 @@ def spiral(dwell, r_step_size, step_size, x_center, y_center, diameter):
 
 def semi_circle(start, end, R, step):
     """
-    semi_circle function callback
+    semi_circle trajectory function callback
     """
     xc = np.round((start[0] + end[0]) / 2, 5)
     yc = np.round((start[1] + end[1]) / 2, 5)
@@ -113,7 +117,8 @@ def semi_circle(start, end, R, step):
     arc_length = np.round(2 * R * np.arcsin(d / (2 * R)), 5)
     try:
         npts = int(np.ceil(arc_length / step))
-    except:
+    except Exception as ex:
+        print(f"\nThis is the exception: {ex}\n")
         print("why")
     t0 = np.arctan2(start[1] - yc, start[0] - xc)
     t1 = np.arctan2(end[1] - yc, end[0] - xc)
@@ -137,14 +142,14 @@ def lissajous(
     y_freq=10,
 ):
     """
-    lissajous function callback
+    lissajous trajectory function callback
     """
     npts = int(np.ceil(x_width / step_size) * cycles)
     pts = np.linspace(0, 2 * np.pi * cycles, npts)
     x = x_center + x_width * np.cos(x_freq * pts) / 2
     y = y_center + y_width * np.cos(y_freq * pts) / 2
     # TODO: consider passing coordinared through equidistant()
-    times = np.ones_like(x) * dwell
+    np.ones_like(x) * dwell
 
     return x, y
 

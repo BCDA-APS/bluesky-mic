@@ -1,6 +1,6 @@
-__all__ = """
-    tmm1
-""".split()
+"""
+tetramm object device class & instatiation
+"""
 
 import logging
 
@@ -17,6 +17,10 @@ logger.info(__file__)
 
 
 class TetraMM(Device):
+    """
+    Tetram Ophyd Object device class
+    """
+
     Acquire = Component(EpicsSignal, "Acquire")
     AcquireMode = Component(EpicsSignal, "AcquireMode")
     Range = Component(EpicsSignal, "Range")
@@ -50,9 +54,13 @@ class TetraMM(Device):
         scanNumber,
         reset_counter=False,
     ):
+        """
+        setup for tetramm ophyd device
+        """
         print("in setup_tetramm function")
         self.wait_for_connection()
-        # yield from run_blocking_function(pm1.abort) # TODO: re-implement reset function for profile move
+        # yield from run_blocking_function(pm1.abort) # TODO: re-implement reset
+        # function for profile move
         yield from bps.sleep(0.2)  # arbitrary wait for EPICS to finish the reset.
 
         if self.Capture.value == 1:

@@ -1,6 +1,6 @@
-__all__ = """
-    savedata
-""".split()
+"""
+Save data ophyd device class creation & instatiation
+"""
 
 import logging
 
@@ -16,6 +16,10 @@ logger.info(__file__)
 
 
 class SaveData(Device):
+    """
+    Save data ophyd device class creation
+    """
+
     file_system = Component(EpicsSignal, "fileSystem", string=True)
     subdirectory = Component(EpicsSignal, "subDir", string=True)
     base_name = Component(
@@ -24,6 +28,9 @@ class SaveData(Device):
     scanNumber = Component(EpicsSignal, "scanNumber")
 
     def setup_savedata(self, file_system, base_name, reset_counter=False):
+        """
+        function to setup save data device file system and base name pv
+        """
         print("in setup_savedata function")
         # savedata.wait_for_connection()
         # yield from bps.mv(scaler1.preset_time, ct)  # counting time/point

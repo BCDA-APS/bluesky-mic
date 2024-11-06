@@ -6,7 +6,7 @@ build-backend = "setuptools.build_meta"
 copyright = "2014-2024, APS"
 
 [project]
-name = "isn_instrument"
+name = "mic_instrument"
 dynamic = ["version"]
 description = "ISN Bluesky Data Acquisition Instrument in console, notebook, & queueserver."
 authors = [
@@ -20,7 +20,7 @@ maintainers = [
     { name = "Rafael Vescovi", email = "rvescovi@anl.gov" },
 ]
 readme = "README.md"
-requires-python = ">=3.9"
+requires-python = ">=3.11"
 keywords = ['bluesky', 'queueserver']
 license = { file = "src/instrument/LICENSE" }
 classifiers = [
@@ -157,8 +157,8 @@ exclude = [
 line-length = 88
 indent-width = 4
 
-# Assume Python 3.10
-target-version = "py310"
+# Assume Python 3.11
+target-version = "py311"
 
 [tool.ruff.lint]
 # Enable Pyflakes (`F`) and a subset of the pycodestyle (`E`)  codes by default.
@@ -219,7 +219,7 @@ skip-magic-trailing-comma = false
 line-ending = "auto"
 
 [tool.setuptools]
-package-dir = {"isn_instrument" = "src/instrument"}
+package-dir = {"mic_instrument" = "src/instrument"}
 
 [tool.setuptools.package-data]
 "*" = ["*.yml"]

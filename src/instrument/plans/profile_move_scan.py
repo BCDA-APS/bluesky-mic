@@ -8,8 +8,8 @@ EXAMPLE::
 
     # Run the plan with the RunEngine:
     RE(profile_move_isn(profilemove_name = 'pm1:', ioc = "2idsft:",
-                     m1_name = 'm1', m1_start = -0.5, m1_finish = 0.5,
-                     m2_name = 'm2', m2_start = -0.2 ,m2_finish = 0.2, dwell_time = 0.1))
+                    m1_name = 'm1', m1_start = -0.5, m1_finish = 0.5,
+                    m2_name = 'm2', m2_start = -0.2 ,m2_finish = 0.2, dwell_time = 0.1))
 """
 
 __all__ = """
@@ -23,6 +23,8 @@ import numpy as np
 from epics import caput
 from ophyd.status import Status
 
+from ..devices.profile_move import ProfileMove
+
 # from ophyd import Component as Cpt
 # from bluesky import plans as bp
 
@@ -34,7 +36,8 @@ logger.info(__file__)
 def setup_profile_move(pm1, xarr, yarr, dwell_time):
     print("in setup_profile_move function")
     pm1.wait_for_connection()
-    # yield from run_blocking_function(pm1.abort) # TODO: re-implement reset function for profile move
+    # yield from run_blocking_function(pm1.abort)
+    # # TODO: re-implement reset function for profile move
     yield from bps.sleep(0.2)  # arbitrary wait for EPICS to finish the reset.
     yield from bps.mv(pm1.m1_use, 1, pm1.m2_use, 1)
 
@@ -88,8 +91,8 @@ def profile_move_isn(
         "dwell_time",
     ]
 
-    for l in param_labels:
-        print(f"plan starts with {l}={eval(l)}")
+    for label in param_labels:
+        print(f"plan starts with {label}={eval(label)}")
 
     """Set up profile move"""
     print("in profile_move function")
@@ -130,6 +133,6 @@ def profile_move_isn(
 
 # RE(profile_move_isn(pm1, m1_start = -0.5, m1_finish = 0.5, m2_start = -0.2 ,
 # m2_finish = 0.2, dwell_time = 0.1, xpts = 12, ypts=12))
-# RE(setup_profile_move(pm1=pm1, profilemove_name=profilemove_name, ioc=ioc, m1_name=m1_name, m2_name=m2_name,
+# RE(setup_profile_move(pm1=pm1, profilemove_name=profilemove_name, ioc=ioc, m1_name=m1_name, m2_name=m2_name,  # noqa: E501
 #                 m1_start=m1_start, m1_finish=m1_finish, m2_start=m2_start,
 #                 m2_finish=m2_finish, npts=npts, dwell_time=dwell_time))

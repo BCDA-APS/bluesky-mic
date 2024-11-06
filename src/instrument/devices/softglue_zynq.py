@@ -1,6 +1,6 @@
-__all__ = """
-    sgz
-""".split()
+"""
+Soft Glue Zynq Device Class & Instantiation
+"""
 
 import bluesky.plan_stubs as bps
 from epics import caput
@@ -12,6 +12,10 @@ from ..utils.config_loaders import iconfig
 
 
 class SoftGlueZynq(Device):
+    """
+    Soft Glue Zynq Ophyd object device
+    """
+
     npts = Component(EpicsSignal, "SG:plsTrn-1_NPULSES")
     period = Component(EpicsSignal, "SG:plsTrn-1_PERIOD")
     width = Component(EpicsSignal, "SG:plsTrn-1_WIDTH")
@@ -30,6 +34,9 @@ class SoftGlueZynq(Device):
     send_pulses = Component(EpicsSignal, "SG:plsTrn-1_Inp_Signal.PROC")
 
     def setup_softgluezynq(sgz, npts, period):
+        """
+        setup for soft glue zynq device
+        """
         print("in setup_softgluezinq function")
         clk_f = int(20e6)  # master clock
         period = int(period * clk_f)  # period in number of clock cycles

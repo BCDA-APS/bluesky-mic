@@ -19,7 +19,7 @@ import apstools
 import bluesky
 import databroker
 import epics
-import h5py
+import h5py  # noqa: F401
 import intake
 import matplotlib
 import numpy
@@ -36,7 +36,7 @@ logger.bsdev(__file__)
 re_config = iconfig.get("RUN_ENGINE", {})
 
 DEFAULT_MD_PATH = pathlib.Path.home() / ".config" / "Bluesky_RunEngine_md"
-pathlib.Path.mkdir(DEFAULT_MD_PATH , exist_ok=True)
+pathlib.Path.mkdir(DEFAULT_MD_PATH, exist_ok=True)
 HOSTNAME = socket.gethostname() or "localhost"
 USERNAME = getpass.getuser() or "Bluesky user"
 VERSIONS = dict(

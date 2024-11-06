@@ -8,8 +8,22 @@ Usage: ``%run -i run_scan_plan.py``
     code is added by ``%run``.
 """
 
-import numpy as np
+import time
 
+import bluesky.plan_stubs as bps
+import numpy as np
+from apstools.plans import run_blocking_function
+from ophyd.status import Status
+
+from ..devices.positioner_stream import PositionerStream
+from ..devices.profile_move import ProfileMove
+from ..devices.softglue_zynq import SoftGlueZynq
+from ..devices.tetramm import TetraMM
+from ..devices.xspress3 import Xspress3
+from ..user.misc import create_master_file
+from ..user.misc import mkdir
+from ..user.misc import mksubdirs
+from ..user.misc import pvput
 from .trajectories import snake
 
 
@@ -19,7 +33,7 @@ def run_scan(
     loop1="2idsft:m1",
     loop2="2idsft:m2",
     dwell_time="10",
-    devices={
+    devices={  # noqa: B006
         "flyXRF": "XSP3_1Chan:",
         "tetramm:": "2idsft:TetrAMM1",
         "profilemove": "2idsft:pm1",
@@ -38,9 +52,9 @@ def run_scan(
 ):
     """parse parameters"""
     if trajectory == "snake":
-        x, y, t = snake(dwell_time, l1_size, m1_center, l2_center, l1_width, m2_width)
+        x, y, t = snake(dwell_time, l1_size, l1_center, l2_center, l1_width, l2_size)
     elif trajectory == "raster":
-        x, y, t = snake(dwell_time, l1_size, m1_center, l2_center, l1_width, m2_width)
+        x, y, t = snake(dwell_time, l1_size, l1_center, l2_center, l1_width, l2_size)
     elif trajectory == "spiral":
         pass
     elif trajectory == "lissajous":
@@ -65,7 +79,8 @@ def run_scan(
     ]
     mksubdirs(save_path, subdirs)
     """Set up positioners (move to starting pos)"""
-    # TODO: of the parameters in loop1-loop4, figure out which are motors somehow or hardcode them in the devices folder and then import them here.
+    # TODO: of the parameters in loop1-loop4, figure out which are motors somehow or
+    # hardcode them in the devices folder and then import them here.
 
     """trigger source"""
     use_softglue_triggers = "softglue" in devices
@@ -118,9 +133,10 @@ def run_scan(
             if "xspress3" in devices:
                 filenumber = "{:05d}".format(xp3.FileNumber - 1)
             else:
-                # TODO: figure out a way to increment softglue filenumber whvery time it closes and a way to reset counter.
+                # TODO: figure out a way to increment softglue filenumber
+                # whvery time it closes and a way to reset counter.
                 print(
-                    "file number not tracked. Not sure how else to set file name if not based on another detector's filenumber"
+                    "file number not tracked. Not sure how else to set file name if not based on another detector's filenumber"  # noqa: E501
                 )
             postrm = PositionerStream(devices[device], name="postrm")
             filename = f"positions_{filenumber}.h5"
@@ -142,8 +158,9 @@ def run_scan(
                 # Remove the subscription.
                 pm1.exsc.clear_sub(watch_execute_scan)
 
-    # TODO need some way to check if devices are ready before proceeding. timeout and exit with a warning if something is missing.
-    # if motors.inpos and pm1.isready and tmm.isready and xp3.isready and sgz.isready and postrm.isready:
+    # TODO need some way to check if devices are ready before proceeding. timeout and
+    # exit with a warning if something is missing.
+    # if motors.inpos and pm1.isready and tmm.isready and xp3.isready and sgz.isready and postrm.isready:  # noqa: E501
     time.sleep(1)
     ready = True
 

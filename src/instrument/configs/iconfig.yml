@@ -2,10 +2,12 @@
 
 # identify the version of this iconfig.yml file
 ICONFIG_VERSION: 2.0.0
+BEAMLINE: name
 
 # Add additional configuration for use with your instrument.
 
 ### The short name for the databroker catalog.
+USE_DATABROKER: True
 DATABROKER_CATALOG: &databroker_catalog temp
 
 ### RunEngine configuration
@@ -26,16 +28,15 @@ RUN_ENGINE:
 
     ### The progress bar is nice to see,
     ### except when it clutters the output in Jupyter notebooks.
-    ### Default: True
-    USE_PROGRESS_BAR: false
+    USE_PROGRESS_BAR: True
 
 ### Best Effort Callback Configurations
 ### Defaults: all true (except no plots in queueserver)
-# BEC:
-#     BASELINE: false
-#     HEADING: false
-#     PLOTS: false
-#     TABLE: false
+BEC:
+    BASELINE: True
+    HEADING: True
+    PLOTS: True
+    TABLE: True
 
 STORAGE_PATH: "/mnt/micdata1/2idd/"
 
@@ -52,15 +53,15 @@ DEVICES:
   XSPRESS3: "XSP3_1Chan:"
 
 POSITIONERS:
-  X_MOTOR: "2idsft:m1"
-  Y_MOTOR: "2idsft:m2"
-  Z_MOTOR: "2idsft:m3"
-  R_MOTOR: "2idsft:m4"
+  # X_MOTOR: "2idsft:m1"
+  # Y_MOTOR: "2idsft:m2"
+  # Z_MOTOR: "2idsft:m3"
+  # R_MOTOR: "2idsft:m4"
   XZ_MOTOR:
     M1: "2idsft:m1"
     M2: "2idsft:m3"
-  ENERGY: "2idsft:m5"
-  TEMPERATURE: "2idsft:m6"
+  # ENERGY: "2idsft:m5"
+  # TEMPERATURE: "2idsft:m6"
 
 AREA_DETECTOR:
     ### General configuration for area detectors.
@@ -79,11 +80,12 @@ AREA_DETECTOR:
 ### Support for known output file formats.
 ### Uncomment to use.  If undefined, will not write that type of file.
 ### Each callback should apply its configuration from here.
-# NEXUS_DATA_FILES:
-#     FILE_EXTENSION: hdf
-#     WARN_MISSING_CONTENT: true
-SPEC_DATA_FILES:
-    FILE_EXTENSION: dat
+NEXUS_DATA_FILES:
+    FILE_EXTENSION: hdf
+    WARN_MISSING_CONTENT: true
+
+# SPEC_DATA_FILES:
+#     FILE_EXTENSION: dat
 
 ### APS Data Management
 ### Use bash shell, deactivate all conda environments, source this file:
