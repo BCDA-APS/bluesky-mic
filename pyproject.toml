@@ -219,7 +219,7 @@ skip-magic-trailing-comma = false
 line-ending = "auto"
 
 [tool.setuptools]
-package-dir = {"isn_instrument" = "src/instrument"}
+package-dir = {"mic_instrument" = "src/instrument"}
 
 [tool.setuptools.package-data]
 "*" = ["*.yml"]
