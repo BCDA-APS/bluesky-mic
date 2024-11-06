@@ -25,7 +25,7 @@ ipython
 ```
 Inside the ipython console execute
 ```py
-from instrument.startup import *
+from mic_instrument.startup import *
 ```
 
 ## Jupyter notebook
@@ -35,7 +35,7 @@ Start JupyterLab, a Jupyter notebook server, or a notebook, VSCode.
 Start the data acquisition:
 
 ```py
-from instrument.startup import *
+from mic_instrument.startup import *
 ```
 
 ## Sim Plan Demo

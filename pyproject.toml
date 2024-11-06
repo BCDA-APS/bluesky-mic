@@ -6,7 +6,7 @@ build-backend = "setuptools.build_meta"
 copyright = "2014-2024, APS"
 
 [project]
-name = "isn_instrument"
+name = "mic_instrument"
 dynamic = ["version"]
 description = "ISN Bluesky Data Acquisition Instrument in console, notebook, & queueserver."
 authors = [

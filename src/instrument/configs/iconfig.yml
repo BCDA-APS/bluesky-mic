@@ -28,7 +28,7 @@ RUN_ENGINE:
 
     ### The progress bar is nice to see,
     ### except when it clutters the output in Jupyter notebooks.
-    USE_PROGRESS_BAR: false
+    USE_PROGRESS_BAR: True
 
 ### Best Effort Callback Configurations
 ### Defaults: all true (except no plots in queueserver)
