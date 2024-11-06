@@ -39,7 +39,7 @@ def sim_print_plan():
 
 def sim_rel_scan_plan(
     span: float = 5,
-    num: int = 11,
+    num: int = 60,
     imax: float = 10_000,
     center: float = 0,
     sigma: float = 1,
