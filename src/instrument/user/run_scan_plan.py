@@ -175,7 +175,7 @@ def run_scan(
             sgz.send_pulses,
             1,  # begin sending pulses
         )
-        yield from bps.mv(scan.exsc, 1)  # begin profile move
+        # yield from bps.mv(scan.exsc, 1)  # begin profile move
 
     pm1.exsc.subscribe(watch_execute_scan)  # i think this works
     yield from run_blocking_function(st.wait)

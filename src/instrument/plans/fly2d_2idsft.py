@@ -17,27 +17,16 @@ __all__ = """
     fly2d
 """.split()
 
-# from epics import caput, caget
 import logging
+import time
 
-# import bluesky
 import bluesky.plan_stubs as bps
+from apstools.plans import run_blocking_function
+from ophyd.status import Status
 
-# from ophyd import Device, EpicsSignal, EpicsSignalRO, Component, EpicsMotor
-# import time
-# import os
-# import sys
-# import pvaccess
 from ..devices.scan_record import ScanRecord
 from ..devices.softglue_zynq import sgz
 from ..devices.tetramm import tmm1
-
-# from ..devices.softglue_zynq
-# from instrument.utils.misc import *
-# from instrument.devices.SoftGlueZynq import *
-# from instrument.devices.PositionerStream import *
-# from instrument.devices.SaveData import *
-# from instrument.devices.setup_scanrecord import *
 from ..devices.xspress3 import xp3
 
 # from instrument.devices.TetraMM import *
@@ -126,41 +115,84 @@ def fly2d(
     position_stream=False,
     eta=0,
 ):
-    # print(
-    #     f"Creating ophyd object of scan records:\n \
-    #         Outter scan loop PV: {scanrecord1_pv} \n \
-    #         Inner scan loop PV: {scanrecord2_pv} \n"
-    # )
-    # scanrecord1 = ScanRecord(scanrecord1_pv)
-    # scanrecord2 = ScanRecord(scanrecord2_pv)
+    # Create fly2d_scan_function
+    # Create ScanRecord Device, check if online
+    print(
+        f"Creating ophyd object of scan records:\n \
+            Outter scan loop PV: {scanrecord1_pv} \n \
+            Inner scan loop PV: {scanrecord2_pv} \n"
+    )
+    scanrecord1 = ScanRecord(scanrecord1_pv)
+    scanrecord2 = ScanRecord(scanrecord2_pv)
 
-    # if all([scanrecord1.connected, scanrecord2.connected]):
-    #     if "2id" in scanrecord1_pv:
-    #         print(
-    #             f"Based on the {scanrecord1_pv=}, this is beamline 2-ID. \
-    #               Thus, this plan assumes x motion has a flying motor and \
-    #               y motoion has a stepper motor."
-    #         )
+    if all([scanrecord1.connected, scanrecord2.connected]):
+        if "2id" in scanrecord1_pv:
+            print(
+                f"Based on the {scanrecord1_pv=}, this is beamline 2-ID. \
+                  Thus, this plan assumes x motion has a flying motor and \
+                  y motion has a stepper motor."
+            )
 
-    #     print("Determining which detectors are selected")
-    #     dets = selected_dets(**locals())
-    #     yield from detectors_init(dets)
+        print("Determining which detectors are selected")
+        dets = selected_dets(**locals())
+        yield from detectors_init(dets)
 
-    #     yield from bps.sleep(5)
-    #     print("end of plan")
-    # else:
-    #     logger.error(
-    #         f"Having issue connecting to scan records: {scanrecord1_pv}, {scanrecord2_pv}"  # noqa: E501
-    #     )
+        yield from bps.sleep(5)
+        print("end of plan")
+    else:
+        logger.error(
+            f"Having issue connecting to scan records: {scanrecord1_pv}, {scanrecord2_pv}"  # noqa: E501
+        )
 
-    #     if xrf_on:
-    #         xp3.initialize()
-    #         dets.append(xp3)
-    #         logger.info("XRF (xpress3) is ready")
-    #     else:
-    #         logger.error("Not able to perform the desired scan due to hardware connection")  # noqa: E501
+        if xrf_on:
+            xp3.initialize()
+            dets.append(xp3)
+            logger.info("XRF (xpress3) is ready")
+        else:
+            logger.error(
+                "Not able to perform the desired scan due to hardware connection"
+            )  # noqa: E501
 
     yield from bps.sleep(1)
+
+    """Start executing scan"""
+    print("Done setting up scan, about to start scan")
+
+    st = Status()
+
+    # TODO: needs monitoring function incase detectors stall or one of teh iocs crashes
+    # monitor trigger count and compare against detector saved frames count. s
+
+    def watch_execute_scan(old_value, value, **kwargs):
+        # Watch for scan1.EXSC to change from 1 to 0 (when the scan ends).
+        if old_value == 1 and value == 0:
+            # mark as finished (successfully).
+            st.set_finished()
+            # Remove the subscription.
+            scanrecord2.execute_scan.clear_sub(watch_execute_scan)
+
+    # TODO need some way to check if devices are ready before proceeding. timeout and
+    #   exit with a warning if something is missing.
+    # if motors.inpos and pm1.isready and tmm.isready and xp3.isready and sgz.isready and postrm.isready:  # noqa: E501
+
+    time.sleep(2)
+    ready = True
+    while not ready:
+        time.sleep(1)
+
+    print("executing scan")
+
+    scanrecord2.execute_scan.subscribe(watch_execute_scan)
+
+    yield from bps.mv(scanrecord2.execute_scan, 1)
+
+    ######### Desired logic for below
+    # while yield from run_blocking_function(st.wait)
+    #     print("test")
+    #########
+
+    yield from run_blocking_function(st.wait)
+
     print("end of plan")
 
 
@@ -203,8 +235,7 @@ def fly2d(
 #     """parse parameters"""
 #     if trajectory == "snake":
 #         x, y, t = snake(dwell_time, l1_size, l1_center, l2_center, l1_width, l2_width)
-#     elif trajectory == "raster":
-# x, y, npts_line, npts_tot = raster_sr(dwell_time,
+#     elif trajectory == "raster": x, y, npts_line, npts_tot = raster_sr(dwell_time,
 #                                       l1_size,
 #                                       l1_center,
 #                                       l2_center,
@@ -224,7 +255,7 @@ def fly2d(
 #     subdirs = []
 #     """Set up positioners (move to starting pos)"""
 #     #TODO: of the parameters in loop1-loop4, figure out which are motors somehow or
-#            hardcode them in the devices folder and then import them here.
+#     #    hardcode them in the devices folder and then import them here.
 
 #     if "softglue" in devices:
 #         use_softglue_triggers=True
@@ -240,21 +271,22 @@ def fly2d(
 #         trigger1 = scan1.execute_scan.pvname
 #         scanNumber = int(savedata.scanNumber.value)
 #         formated_number = "{:04d}".format(scanNumber)
-# yield from setup_scanrecord(scan1,
-#                             scan2,
-#                             scan_type,
-#                             loop1,
-#                             loop2,
-#                             x,
-#                             y,
-#                             dwell,
-#                             npts_line,
-#                             trigger1=trigger1,
-#                             trigger2=trigger2)
-# yield from setup_savedata(savedata,
-#                           pi_directory,
-#                           sample_name,
-#                           reset_counter=False)
+
+#         yield from setup_scanrecord(scan1,
+#                                     scan2,
+#                                     scan_type,
+#                                     loop1,
+#                                     loop2,
+#                                     x,
+#                                     y,
+#                                     dwell,
+#                                     npts_line,
+#                                     trigger1=trigger1,
+#                                     trigger2=trigger2)
+#         yield from setup_savedata(savedata,
+#                                 pi_directory,
+#                                 sample_name,
+#                                 reset_counter=False)
 #     else:
 #         print("scanrecord not specified, cannot scan")
 #         return
@@ -267,14 +299,15 @@ def fly2d(
 #         else:
 #             trigger_mode = 1 #internal
 #         savepath = f"{save_path}flyXRF"
-# yield from setup_xspress3(xp3,
-#                           npts_tot,
-#                           sample_name,
-#                           savepath,
-#                           dwell,
-#                           trigger_mode,
-#                           scanNumber,
-#                           reset_counter=False)
+
+#         yield from setup_xspress3(xp3,
+#                                 npts_tot,
+#                                 sample_name,
+#                                 savepath,
+#                                 dwell,
+#                                 trigger_mode,
+#                                 scanNumber,
+#                                 reset_counter=False)
 
 #     if "tetramm"in devices:
 #         mkdir(os.path.join(save_path,"tetramm"))
@@ -284,14 +317,15 @@ def fly2d(
 #         else:
 #             trigger_mode = 0 #internal
 #         savepath = f"{save_path}tetramm"
-# yield from setup_tetramm(tmm,
-#                          npts_tot,
-#                          sample_name,
-#                          savepath,
-#                          dwell,
-#                          trigger_mode,
-#                          scanNumber,
-#                          reset_counter=False)
+
+#         yield from setup_tetramm(tmm,
+#                                 npts_tot,
+#                                 sample_name,
+#                                 savepath,
+#                                 dwell,
+#                                 trigger_mode,
+#                                 scanNumber,
+#                                 reset_counter=False)
 
 #     if "positions" in devices:
 #         mkdir(os.path.join(save_path,"positions"))
@@ -307,28 +341,28 @@ def fly2d(
 #         #TODO: add component to epics motor to get maximum velocity and acceleration
 #         #TODO: add and setup additional motors if other loops are motors.. somehow.
 #         #set motor velocity = sep_size/dwell_time
-# yield from bps.mv(m1.velocity,
-#                   3,
-#                   m1.acceleration,
-#                   0.1,
-#                   m2.velocity,
-#                   3,
-#                   m2.acceleration,
-#                   0.1)
+#         yield from bps.mv(m1.velocity,
+#                         3,
+#                         m1.acceleration,
+#                         0.1,
+#                         m2.velocity,
+#                         3,
+#                         m2.acceleration,
+#                         0.1)
 #         m1.move(x[0], wait=True)
 #         m2.move(y[0], wait=True)
 #         vel = l1_size/dwell #vel is in mm/s
 #         yield from bps.mv(m1.velocity, vel)
 
 #     else:
-# yield from bps.mv(m1.velocity,
-#                   3,
-#                   m1.acceleration,
-#                   0.1,
-#                   m2.velocity,
-#                   3,
-#                   m2.acceleration,
-#                   0.1)
+#         yield from bps.mv(m1.velocity,
+#                         3,
+#                         m1.acceleration,
+#                         0.1,
+#                         m2.velocity,
+#                         3,
+#                         m2.acceleration,
+#                         0.1)
 #         m1.move(x[0], wait=True)
 #         m2.move(y[0], wait=True)
 
@@ -346,7 +380,7 @@ def fly2d(
 #             scan2.execute_scan.clear_sub(watch_execute_scan)
 
 #     # TODO need some way to check if devices are ready before proceeding. timeout and
-#       exit with a warning if something is missing.
+#     #   exit with a warning if something is missing.
 #     # if motors.inpos and pm1.isready and tmm.isready and xp3.isready and sgz.isready and postrm.isready:  # noqa: E501
 #     time.sleep(2)
 #     ready = True
