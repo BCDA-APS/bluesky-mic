@@ -98,6 +98,8 @@ def scanrecord_2id_setup(
 def fly2d(
     samplename="smp1",
     user_comments="",
+    # scanrecord1_pv="2idsft:scan1",
+    # scanrecord2_pv="2idsft:scan2",
     scanrecord1_pv="2idsft:scan1",
     scanrecord2_pv="2idsft:scan2",
     width=0,
