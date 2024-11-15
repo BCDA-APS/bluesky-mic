@@ -3,7 +3,12 @@ import time
 import bluesky.plan_stubs as bps
 from apstools.plans import run_blocking_function
 from bluesky import plans as bp
+from ophyd import Component as Cpt
+from ophyd.device import Device
+from ophyd import EpicsSignalRO
 from ophyd.status import Status
+from collections import deque
+
 
 from ..devices.scan_record import ScanRecord
 
@@ -63,27 +68,31 @@ def fly(
 
     scanrecord1.execute_scan.subscribe(watch_execute_scan)
 
-    noisy_det = SynGauss(
-        "noisy_det",
-        motor,
-        "motor",
-        center=0,
-        Imax=1,
-        noise="uniform",
-        sigma=1,
-        noise_multiplier=0.1,
-        labels={"detectors"},
-    )
+    def accumulate(value, old_value, timestamp, **kwargs):
+        readings.append({"counter": {"value": value, "timestamp": timestamp}})
+    readings = deque(maxlen=5)
 
     yield from bps.mv(scanrecord1.execute_scan, 1)
 
     ######### Desired logic for below
     # while yield from run_blocking_function(st.wait)
     #     print("test")
-    yield from bp.count([scanrecord1.current_point.value])
+    def monitor_x_for(duration):
+        yield from bps.monitor(counter, name="x_monitor")
+        yield from bps.sleep(duration)  # Wait for readings to accumulate.
+        yield from bps.unmonitor(counter)
+        yield from bps.close_run()
+    # pvdet = PVdet("eac99:scan1", name="pvdet")
+    # yield from bp.count([pvdet],)
+    # counter= scanrecord1.current_point
+    counter = EpicsSignalRO("eac99:scan1.CPT", name = "counter")
+    # counter.subscribe(accumulate)
 
+    # yield from bp.count([counter], num=100,delay=0.05)
+    yield from monitor_x_for(1)
     #########
 
     yield from run_blocking_function(st.wait)
 
     print("end of plan")
+

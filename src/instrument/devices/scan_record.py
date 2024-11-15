@@ -8,7 +8,7 @@ import bluesky.plan_stubs as bps
 from apstools.synApps import SscanRecord
 from epics import PV
 from ophyd import Component
-from ophyd import EpicsSignal
+from ophyd import EpicsSignal, EpicsSignalRO
 
 logger = logging.getLogger(__name__)
 logger.info(__file__)
@@ -24,6 +24,8 @@ class ScanRecord(SscanRecord):
     P1CP = Component(EpicsSignal, ".P1CP")
     P1SI = Component(EpicsSignal, ".P1SI")
     P1WD = Component(EpicsSignal, ".P1WD")
+    current_point = Component(EpicsSignal, ".CPT", name="current_point")
+
     # number_of_points_readback = Component(EpicsSignal, ".P1WD") #TODO: Add as area detector
     # number_of_points_readback = Component(EpicsSignal, ".P1WD")
 
