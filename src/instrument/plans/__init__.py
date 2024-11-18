@@ -12,5 +12,6 @@ from .sim_plans import sim_rel_scan_plan  # noqa: F401
 ## Plans designed for ISN
 # from .test import test_plan  # noqa: F401
 from .fl1d import fly # noqa: F401
+from .fl1d import fly_plan
 # TODO: listobjects get run when loading plans
 # TODO: add small documentations
