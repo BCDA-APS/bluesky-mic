@@ -24,7 +24,6 @@ class ScanRecord(SscanRecord):
     P1CP = Component(EpicsSignal, ".P1CP")
     P1SI = Component(EpicsSignal, ".P1SI")
     P1WD = Component(EpicsSignal, ".P1WD")
-    current_point = Component(EpicsSignal, ".CPT", name="current_point")
 
     # number_of_points_readback = Component(EpicsSignal, ".P1WD") #TODO: Add as area detector
     # number_of_points_readback = Component(EpicsSignal, ".P1WD")

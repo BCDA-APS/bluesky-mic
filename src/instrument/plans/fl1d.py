@@ -1,23 +1,19 @@
 import time
+from collections import deque
 
 import bluesky.plan_stubs as bps
 from apstools.plans import run_blocking_function
-from bluesky import plans as bp
-from ophyd import Component as Cpt
-from ophyd.device import Device
+from bluesky import preprocessors as bpp
 from ophyd import EpicsSignalRO
+from ophyd import Signal
 from ophyd.status import Status
-from collections import deque
 
-from bluesky.callbacks import LiveTable
 from ..devices.scan_record import ScanRecord
 
-from bluesky import preprocessors as bpp
-from ophyd import Signal
-from ophyd.scaler import ScalerChannel
-
+# Create Required Devices for Fly Scan
+scanrecord1 = ScanRecord("eac99:scan1", name="er_test")
+flag = Signal(name="flag", value=True)
 counter = EpicsSignalRO("eac99:scan1.CPT", name = "counter")
-
 
 
 def fly(
@@ -42,32 +38,40 @@ def fly(
     eta=0,
 ):
 
-    scanrecord1 = ScanRecord(scanrecord1_pv, name="er_test")
+    def watch_execute_scan(old_value, value, **kwargs):
+        if old_value == 1 and value == 0:
 
+            st.set_finished()
+            scanrecord1.execute_scan.clear_sub(watch_execute_scan)
+
+    def watch_counter(value=None, **kwargs):
+        flag.put(True)  # new value available
+
+    def take_reading():
+        yield from bps.create(name="primary")
+        try:
+            yield from bps.read(counter)
+        except Exception as reason:
+            print(reason)
+        yield from bps.save()
+
+    @bpp.run_decorator(md={})
+    def count_subscriber():
+        counter.subscribe(watch_counter) # Collect a new event each time the scaler updates
+        while counter.value <= 11:
+            if flag.get():
+                yield from take_reading()
+                yield from bps.mv(flag, False)  # reset the flag
+                if counter.value == 11:
+                    break
+            yield from bps.sleep(0.1)
+
+        counter.unsubscribe(watch_counter)
 
     """Start executing scan"""
     print("Done setting up scan, about to start scan")
 
     st = Status()
-
-    # TODO: needs monitoring function incase detectors stall or one of teh iocs crashes
-    # monitor trigger count and compare against detector saved frames count. s
-
-    def watch_execute_scan(old_value, value, **kwargs):
-        # Watch for scan1.EXSC to change from 1 to 0 (when the scan ends).
-
-        if old_value == 1 and value == 0:
-            # mark as finished (successfully).
-            # yield from bp.count([counter], num=100,delay=0.05)
-
-            st.set_finished()
-            # Remove the subscription.
-            scanrecord1.execute_scan.clear_sub(watch_execute_scan)
-
-
-    # TODO need some way to check if devices are ready before proceeding. timeout and
-    #   exit with a warning if something is missing.
-    # if motors.inpos and pm1.isready and tmm.isready and xp3.isready and sgz.isready and postrm.isready:  # noqa: E501
 
     time.sleep(2)
     ready = True
@@ -76,81 +80,14 @@ def fly(
 
     print("executing scan")
 
-    scanrecord1.execute_scan.subscribe(watch_execute_scan)
+    scanrecord1.execute_scan.subscribe(watch_execute_scan) # Subscribe to the scan
+                                                           # executor
 
-
-    yield from bps.mv(scanrecord1.execute_scan, 1)
-
-    flag = Signal(name="flag", value=True)
-    counter = EpicsSignalRO("eac99:scan1.CPT", name = "counter")
-    # counter = ScalerChannel("eac99:scan1.CPT", name="scaler")
-
-    def watcher(value=None, **kwargs):
-        # print(f"{value=:.3f}")
-        flag.put(True)  # new value available
-
-    def take_reading():
-        # print(m1.read())
-        yield from bps.create(name="primary")
-        try:
-            yield from bps.read(counter)
-        except Exception as reason:
-            print(reason)
-        yield from bps.save()
-
-    @bpp.run_decorator(md={})
-    def _fly_it():
-        # Collect a new event each time the scaler updates
-        counter.subscribe(watcher)
-        # yield from bps.mv(counter.count, 1)  # push the Count button
-        while counter.value != 11:
-            if flag.get():
-                yield from take_reading()
-                yield from bps.mv(flag, False)  # reset the flag
-            yield from bps.sleep(0.1)
-        counter.unsubscribe(watcher)
-
-    # yield from bps.mv(counter.preset_time, scan_time)
-    yield from bps.sleep(1)  # empirical, for the IOC
-
-    yield from _fly_it()
+    yield from bps.mv(scanrecord1.execute_scan, 1) # Start scan
+    yield from bps.sleep(1)  # Empirical, for the IOC
+    yield from count_subscriber() # Counter Subscriber
 
     yield from run_blocking_function(st.wait)
 
     print("end of plan")
 
-
-def fly_plan(motion_offset=10, scan_time=10, period=0.1, velocity=0.1):
-    flag = Signal(name="flag", value=True)
-    counter = EpicsSignalRO("eac99:scan1.CPT", name = "counter")
-    # counter = ScalerChannel("eac99:scan1.CPT", name="scaler")
-
-    def watcher(value=None, **kwargs):
-        # print(f"{value=:.3f}")
-        flag.put(True)  # new value available
-
-    def take_reading():
-        # print(m1.read())
-        yield from bps.create(name="primary")
-        try:
-            yield from bps.read(counter)
-        except Exception as reason:
-            print(reason)
-        yield from bps.save()
-
-    @bpp.run_decorator(md={})
-    def _fly_it():
-        # Collect a new event each time the scaler updates
-        counter.subscribe(watcher)
-        # yield from bps.mv(counter.count, 1)  # push the Count button
-        while counter.value != 12:
-            if flag.get():
-                yield from take_reading()
-                yield from bps.mv(flag, False)  # reset the flag
-            yield from bps.sleep(period)
-        counter.unsubscribe(watcher)
-
-    # yield from bps.mv(counter.preset_time, scan_time)
-    yield from bps.sleep(1)  # empirical, for the IOC
-
-    yield from _fly_it()

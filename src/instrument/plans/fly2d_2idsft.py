@@ -22,6 +22,9 @@ import time
 
 import bluesky.plan_stubs as bps
 from apstools.plans import run_blocking_function
+from bluesky import preprocessors as bpp
+from ophyd import EpicsSignalRO
+from ophyd import Signal
 from ophyd.status import Status
 
 from ..devices.scan_record import ScanRecord
@@ -117,13 +120,46 @@ def fly2d(
     position_stream=False,
     eta=0,
 ):
-    # Create fly2d_scan_function
-    # Create ScanRecord Device, check if online
+    def watch_execute_scan(old_value, value, **kwargs):
+        # Watch for scan1.EXSC to change from 1 to 0 (when the scan ends).
+        if old_value == 1 and value == 0:
+            # mark as finished (successfully).
+            st.set_finished()
+            # Remove the subscription.
+            scanrecord2.execute_scan.clear_sub(watch_execute_scan)
+
+    def watch_counter(value=None, **kwargs):
+        flag.put(True)  # new value available
+
+    def take_reading():
+        yield from bps.create(name="primary")
+        try:
+            yield from bps.read(counter)
+        except Exception as reason:
+            print(reason)
+        yield from bps.save()
+
+    @bpp.run_decorator(md={})
+    def count_subscriber():
+        counter.subscribe(watch_counter) # Collect a new event each time the scaler updates
+        while counter.value <= 11:
+            if flag.get():
+                yield from take_reading()
+                yield from bps.mv(flag, False)  # reset the flag
+                if counter.value == 11:
+                    break
+            yield from bps.sleep(0.1)
+
+        counter.unsubscribe(watch_counter)
+
     print(
         f"Creating ophyd object of scan records:\n \
             Outter scan loop PV: {scanrecord1_pv} \n \
             Inner scan loop PV: {scanrecord2_pv} \n"
     )
+
+    flag = Signal(name="flag", value=True)
+    counter = EpicsSignalRO("eac99:scan1.CPT", name = "counter")
     scanrecord1 = ScanRecord(scanrecord1_pv)
     scanrecord2 = ScanRecord(scanrecord2_pv)
 
@@ -162,16 +198,8 @@ def fly2d(
 
     st = Status()
 
-    # TODO: needs monitoring function incase detectors stall or one of teh iocs crashes
+    # TODO: needs monitoring function incase detectors stall or one of the iocs crashes
     # monitor trigger count and compare against detector saved frames count. s
-
-    def watch_execute_scan(old_value, value, **kwargs):
-        # Watch for scan1.EXSC to change from 1 to 0 (when the scan ends).
-        if old_value == 1 and value == 0:
-            # mark as finished (successfully).
-            st.set_finished()
-            # Remove the subscription.
-            scanrecord2.execute_scan.clear_sub(watch_execute_scan)
 
     # TODO need some way to check if devices are ready before proceeding. timeout and
     #   exit with a warning if something is missing.
@@ -184,13 +212,13 @@ def fly2d(
 
     print("executing scan")
 
-    scanrecord2.execute_scan.subscribe(watch_execute_scan)
-
-    yield from bps.mv(scanrecord2.execute_scan, 1)
+    scanrecord2.execute_scan.subscribe(watch_execute_scan) # Subscribe to the scan
+                                                           # executor
 
     ######### Desired logic for below
-    # while yield from run_blocking_function(st.wait)
-    #     print("test")
+    yield from bps.mv(scanrecord2.execute_scan, 1) # Start scan
+    yield from bps.sleep(1)  # Empirical, for the IOC
+    yield from count_subscriber() # Counter Subscriber
     #########
 
     yield from run_blocking_function(st.wait)
