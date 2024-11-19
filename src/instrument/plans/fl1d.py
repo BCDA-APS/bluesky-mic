@@ -58,11 +58,11 @@ def fly(
     @bpp.run_decorator(md={})
     def count_subscriber():
         counter.subscribe(watch_counter) # Collect a new event each time the scaler updates
-        while counter.value <= 11:
+        while counter.value <= scanrecord1.number_points.value:
             if flag.get():
                 yield from take_reading()
                 yield from bps.mv(flag, False)  # reset the flag
-                if counter.value == 11:
+                if counter.value == scanrecord1.number_points.value:
                     break
             yield from bps.sleep(0.1)
 

@@ -141,12 +141,13 @@ def fly2d(
 
     @bpp.run_decorator(md={})
     def count_subscriber():
-        counter.subscribe(watch_counter) # Collect a new event each time the scaler updates
-        while counter.value <= 11:
+        counter.subscribe(watch_counter) # Collect a new event each time the scaler
+                                         # updates
+        while counter.value <= scanrecord2.number_points.value:
             if flag.get():
                 yield from take_reading()
                 yield from bps.mv(flag, False)  # reset the flag
-                if counter.value == 11:
+                if counter.value == scanrecord2.number_points.value:
                     break
             yield from bps.sleep(0.1)
 
@@ -158,8 +159,10 @@ def fly2d(
             Inner scan loop PV: {scanrecord2_pv} \n"
     )
 
+    counter_pv = scanrecord2_pv+".CPT"
+
     flag = Signal(name="flag", value=True)
-    counter = EpicsSignalRO("eac99:scan1.CPT", name = "counter")
+    counter = EpicsSignalRO(counter_pv, name = "counter")
     scanrecord1 = ScanRecord(scanrecord1_pv)
     scanrecord2 = ScanRecord(scanrecord2_pv)
 
@@ -179,7 +182,8 @@ def fly2d(
         print("end of plan")
     else:
         logger.error(
-            f"Having issue connecting to scan records: {scanrecord1_pv}, {scanrecord2_pv}"  # noqa: E501
+            f"Having issue connecting to scan records: "
+            f"{scanrecord1_pv}, {scanrecord2_pv}"
         )
 
         if xrf_on:
@@ -189,22 +193,22 @@ def fly2d(
         else:
             logger.error(
                 "Not able to perform the desired scan due to hardware connection"
-            )  # noqa: E501
+            )
 
     yield from bps.sleep(1)
-
-    """Start executing scan"""
-    print("Done setting up scan, about to start scan")
-
-    st = Status()
 
     # TODO: needs monitoring function incase detectors stall or one of the iocs crashes
     # monitor trigger count and compare against detector saved frames count. s
 
     # TODO need some way to check if devices are ready before proceeding. timeout and
     #   exit with a warning if something is missing.
-    # if motors.inpos and pm1.isready and tmm.isready and xp3.isready and sgz.isready and postrm.isready:  # noqa: E501
+    # if motors.inpos and pm1.isready and tmm.isready and xp3.isready and sgz.isready
+    # and postrm.isready:
 
+    """Start executing scan"""
+    print("Done setting up scan, about to start scan")
+
+    st = Status()
     time.sleep(2)
     ready = True
     while not ready:
@@ -215,11 +219,9 @@ def fly2d(
     scanrecord2.execute_scan.subscribe(watch_execute_scan) # Subscribe to the scan
                                                            # executor
 
-    ######### Desired logic for below
     yield from bps.mv(scanrecord2.execute_scan, 1) # Start scan
     yield from bps.sleep(1)  # Empirical, for the IOC
     yield from count_subscriber() # Counter Subscriber
-    #########
 
     yield from run_blocking_function(st.wait)
 
