@@ -41,7 +41,6 @@ logger.bsdev(__file__)
 print("Creating RE plan that uses scan record to do 2D fly scan")
 print("Getting list of avaliable detectors")
 
-
 det_name_mapping = {
     "xrf": xp3,
     "preamp": tmm1,
@@ -49,6 +48,15 @@ det_name_mapping = {
     # "ptycho":"eiger"
 }
 
+#Initializing PVs here so that it is only done once
+scanrecord1_pv="2idsft:scan1",
+scanrecord2_pv="2idsft:scan2",
+
+counter_pv = scanrecord2_pv + ".CPT"
+
+counter = EpicsSignalRO(counter_pv, name = "counter")
+scanrecord1 = ScanRecord(scanrecord1_pv)
+scanrecord2 = ScanRecord(scanrecord2_pv)
 
 def selected_dets(**kwargs):
     dets = []
@@ -103,8 +111,8 @@ def fly2d(
     user_comments="",
     # scanrecord1_pv="2idsft:scan1",
     # scanrecord2_pv="2idsft:scan2",
-    scanrecord1_pv="2idsft:scan1",
-    scanrecord2_pv="2idsft:scan2",
+    # scanrecord1_pv="2idsft:scan1",
+    # scanrecord2_pv="2idsft:scan2",
     width=0,
     height=0,
     x_center=None,
@@ -135,12 +143,6 @@ def fly2d(
             Outter scan loop PV: {scanrecord1_pv} \n \
             Inner scan loop PV: {scanrecord2_pv} \n"
     )
-
-    counter_pv = scanrecord2_pv + ".CPT"
-
-    counter = EpicsSignalRO(counter_pv, name = "counter")
-    scanrecord1 = ScanRecord(scanrecord1_pv)
-    scanrecord2 = ScanRecord(scanrecord2_pv)
 
     if all([scanrecord1.connected, scanrecord2.connected]):
         if "2id" in scanrecord1_pv:

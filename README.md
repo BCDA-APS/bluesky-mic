@@ -127,13 +127,6 @@ Use this command to run the test suite locally:
 pytest -vvv --lf ./src
 ```
 
-# Warnings
-##  For the Bluesky Queueserver.
-
-The QS host process writes files into the qs directory. This directory can be
-relocated. However, it should not be moved into the instrument package since
-that might be installed into a read-only directory.
-
 ## DM Workflow Example
 
 ```python
@@ -170,3 +163,11 @@ len(api.listProcessingJobs())
 # Which jobs have not finished?
 RE(dm_list_processing_jobs())
 ```
+
+
+# Warnings
+##  For the Bluesky Queueserver.
+
+The QS host process writes files into the qs directory. This directory can be
+relocated. However, it should not be moved into the instrument package since
+that might be installed into a read-only directory.
