@@ -8,7 +8,7 @@ import bluesky.plan_stubs as bps
 from apstools.synApps import SscanRecord
 from epics import PV
 from ophyd import Component
-from ophyd import EpicsSignal, EpicsSignalRO
+from ophyd import EpicsSignal
 
 logger = logging.getLogger(__name__)
 logger.bsdev(__file__)

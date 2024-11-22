@@ -14,7 +14,7 @@ from .softglue_zynq import sgz  # noqa: F401
 from .tetramm import tmm1  # noqa: F401
 from .xspress3 import xp3  # noqa: F401
 
-eac = ScanRecord("eac99:scan1", name ="eac")
+eac = ScanRecord("eac99:scan1", name="eac")
 
 
 if host_on_aps_subnet():

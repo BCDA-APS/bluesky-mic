@@ -141,8 +141,8 @@ def fly2d(
 
     @bpp.run_decorator(md={})
     def count_subscriber():
-        counter.subscribe(watch_counter) # Collect a new event each time the scaler
-                                         # updates
+        counter.subscribe(watch_counter)  # Collect a new event each time the scaler
+        # updates
         while counter.value <= scanrecord2.number_points.value:
             if flag.get():
                 yield from take_reading()
@@ -159,10 +159,10 @@ def fly2d(
             Inner scan loop PV: {scanrecord2_pv} \n"
     )
 
-    counter_pv = scanrecord2_pv+".CPT"
+    counter_pv = scanrecord2_pv + ".CPT"
 
     flag = Signal(name="flag", value=True)
-    counter = EpicsSignalRO(counter_pv, name = "counter")
+    counter = EpicsSignalRO(counter_pv, name="counter")
     scanrecord1 = ScanRecord(scanrecord1_pv)
     scanrecord2 = ScanRecord(scanrecord2_pv)
 
@@ -216,12 +216,12 @@ def fly2d(
 
     print("executing scan")
 
-    scanrecord2.execute_scan.subscribe(watch_execute_scan) # Subscribe to the scan
-                                                           # executor
+    scanrecord2.execute_scan.subscribe(watch_execute_scan)  # Subscribe to the scan
+    # executor
 
-    yield from bps.mv(scanrecord2.execute_scan, 1) # Start scan
+    yield from bps.mv(scanrecord2.execute_scan, 1)  # Start scan
     yield from bps.sleep(1)  # Empirical, for the IOC
-    yield from count_subscriber() # Counter Subscriber
+    yield from count_subscriber()  # Counter Subscriber
 
     yield from run_blocking_function(st.wait)
 

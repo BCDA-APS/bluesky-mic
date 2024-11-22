@@ -1,5 +1,4 @@
 import time
-from collections import deque
 
 import bluesky.plan_stubs as bps
 from apstools.plans import run_blocking_function
@@ -13,7 +12,7 @@ from ..devices.scan_record import ScanRecord
 # Create Required Devices for Fly Scan
 scanrecord1 = ScanRecord("eac99:scan1", name="er_test")
 flag = Signal(name="flag", value=True)
-counter = EpicsSignalRO("eac99:scan1.CPT", name = "counter")
+counter = EpicsSignalRO("eac99:scan1.CPT", name="counter")
 
 
 def fly(
@@ -37,10 +36,8 @@ def fly(
     position_stream=False,
     eta=0,
 ):
-
     def watch_execute_scan(old_value, value, **kwargs):
         if old_value == 1 and value == 0:
-
             st.set_finished()
             scanrecord1.execute_scan.clear_sub(watch_execute_scan)
 
@@ -57,7 +54,9 @@ def fly(
 
     @bpp.run_decorator(md={})
     def count_subscriber():
-        counter.subscribe(watch_counter) # Collect a new event each time the scaler updates
+        counter.subscribe(
+            watch_counter
+        )  # Collect a new event each time the scaler updates
         while counter.value <= scanrecord1.number_points.value:
             if flag.get():
                 yield from take_reading()
@@ -80,14 +79,13 @@ def fly(
 
     print("executing scan")
 
-    scanrecord1.execute_scan.subscribe(watch_execute_scan) # Subscribe to the scan
-                                                           # executor
+    scanrecord1.execute_scan.subscribe(watch_execute_scan)  # Subscribe to the scan
+    # executor
 
-    yield from bps.mv(scanrecord1.execute_scan, 1) # Start scan
+    yield from bps.mv(scanrecord1.execute_scan, 1)  # Start scan
     yield from bps.sleep(1)  # Empirical, for the IOC
-    yield from count_subscriber() # Counter Subscriber
+    yield from count_subscriber()  # Counter Subscriber
 
     yield from run_blocking_function(st.wait)
 
     print("end of plan")
-
