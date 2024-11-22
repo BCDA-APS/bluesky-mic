@@ -22,15 +22,15 @@ import time
 
 import bluesky.plan_stubs as bps
 from apstools.plans import run_blocking_function
-from bluesky import preprocessors as bpp
 from ophyd import EpicsSignalRO
-from ophyd import Signal
 from ophyd.status import Status
 
 from ..devices.scan_record import ScanRecord
 from ..devices.softglue_zynq import sgz
 from ..devices.tetramm import tmm1
 from ..devices.xspress3 import xp3
+from .plan_blocks import count_subscriber
+from .plan_blocks import watch_counter
 
 # from instrument.devices.TetraMM import *
 
@@ -127,31 +127,8 @@ def fly2d(
             st.set_finished()
             # Remove the subscription.
             scanrecord2.execute_scan.clear_sub(watch_execute_scan)
-
-    def watch_counter(value=None, **kwargs):
-        flag.put(True)  # new value available
-
-    def take_reading():
-        yield from bps.create(name="primary")
-        try:
-            yield from bps.read(counter)
-        except Exception as reason:
-            print(reason)
-        yield from bps.save()
-
-    @bpp.run_decorator(md={})
-    def count_subscriber():
-        counter.subscribe(watch_counter)  # Collect a new event each time the scaler
-        # updates
-        while counter.value <= scanrecord2.number_points.value:
-            if flag.get():
-                yield from take_reading()
-                yield from bps.mv(flag, False)  # reset the flag
-                if counter.value == scanrecord2.number_points.value:
-                    break
-            yield from bps.sleep(0.1)
-
         counter.unsubscribe(watch_counter)
+
 
     print(
         f"Creating ophyd object of scan records:\n \
@@ -161,8 +138,7 @@ def fly2d(
 
     counter_pv = scanrecord2_pv + ".CPT"
 
-    flag = Signal(name="flag", value=True)
-    counter = EpicsSignalRO(counter_pv, name="counter")
+    counter = EpicsSignalRO(counter_pv, name = "counter")
     scanrecord1 = ScanRecord(scanrecord1_pv)
     scanrecord2 = ScanRecord(scanrecord2_pv)
 
@@ -221,7 +197,7 @@ def fly2d(
 
     yield from bps.mv(scanrecord2.execute_scan, 1)  # Start scan
     yield from bps.sleep(1)  # Empirical, for the IOC
-    yield from count_subscriber()  # Counter Subscriber
+    yield from count_subscriber(counter, scanrecord2) # Counter Subscriber
 
     yield from run_blocking_function(st.wait)
 

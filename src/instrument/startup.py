@@ -41,9 +41,9 @@ if iconfig.get("SPEC_DATA_FILES") is not None:
 if running_in_queueserver():
     ### To make all the standard plans available in QS, import by '*', otherwise import
     ### plan by plan.
-    from apstools.plans import lineup2  # noqa: F401
-    from bluesky.plans import *  # noqa: F403
-
+    # from apstools.plans import lineup2  # noqa: F401
+    # from bluesky.plans import *  # noqa: F403
+    pass
 else:
     # Import bluesky plans and stubs with prefixes set by common conventions.
     # The apstools plans and utils are imported by '*'.
