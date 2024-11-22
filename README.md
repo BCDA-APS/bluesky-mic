@@ -9,11 +9,20 @@ git clone git@github.com:BCDA-APS/bs_model_instrument.git
 cd bluesky-mic
 ```
 
-Set up the development environment.
+Set up the development environment on non APS network machine.
 
 ```bash
 export ENV_NAME=bs_model_env
 conda create -y -n $ENV_NAME python=3.11 pyepics
+conda activate $ENV_NAME
+pip install -e ."[all]"
+```
+
+Set up the development environment on APS network machine.
+
+```bash
+export ENV_NAME=bs_model_env
+conda create -y -n $ENV_NAME python=3.11 pyepics apsu::aps-dm-api
 conda activate $ENV_NAME
 pip install -e ."[all]"
 ```
@@ -116,6 +125,43 @@ pytest -vvv --lf ./src
 The QS host process writes files into the qs directory. This directory can be
 relocated. However, it should not be moved into the instrument package since
 that might be installed into a read-only directory.
+
+## DM Workflow Example
+
+```python
+# Using plans from https://github.com/BCDA-APS/bs_model_instrument/blob/main/src/instrument/plans/dm_plans.py
+
+from apstools.utils import dm_setup, dm_api_proc
+import dm  # conda install apsu::aps-dm-api
+from mic_instrument.plans.dm_plans import dm_submit_workflow_job
+
+# Usually called when the instrument package starts
+dm_setup("/home/dm_id/etc/dm.setup.sh")
+
+# Get DM Processing API to make direct calls (diagnostic purposes).
+api = dm_api_proc()
+
+dir(api)
+len(api.listWorkflows("user19id"))
+api.listWorkflows("user19id")
+api.username
+
+# Start a dictionary for the workflow parameters.
+WORKFLOW = "xrf-maps"  # api.listWorkflows(api.username)[0]
+argsDict = dict(filePath="README.md", experimentName="Bluesky202411")
+
+# Start a job by calling the DM processing API directly
+job = api.startProcessingJob(api.username, WORKFLOW, argsDict)
+
+# Same thing from a bluesky plan
+RE(dm_submit_workflow_job(WORKFLOW, argsDict))
+
+# How many jobs have been submitted?
+len(api.listProcessingJobs())
+
+# Which jobs have not finished?
+RE(dm_list_processing_jobs())
+```
 
 # OLD Stuff
 ## Installation Instructions

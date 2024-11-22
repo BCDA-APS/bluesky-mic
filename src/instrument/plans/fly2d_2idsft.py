@@ -35,7 +35,7 @@ from ..devices.xspress3 import xp3
 # from instrument.devices.TetraMM import *
 
 logger = logging.getLogger(__name__)
-logger.info(__file__)
+logger.bsdev(__file__)
 
 
 print("Creating RE plan that uses scan record to do 2D fly scan")

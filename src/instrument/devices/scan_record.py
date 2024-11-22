@@ -11,7 +11,7 @@ from ophyd import Component
 from ophyd import EpicsSignal, EpicsSignalRO
 
 logger = logging.getLogger(__name__)
-logger.info(__file__)
+logger.bsdev(__file__)
 
 
 class ScanRecord(SscanRecord):

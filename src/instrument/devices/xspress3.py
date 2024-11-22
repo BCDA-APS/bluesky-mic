@@ -13,7 +13,7 @@ from ophyd import EpicsSignal
 from ..utils.config_loaders import iconfig
 
 logger = logging.getLogger(__name__)
-logger.info(__file__)
+logger.bsdev(__file__)
 
 
 class Xspress3(Device):

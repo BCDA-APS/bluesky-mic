@@ -30,7 +30,7 @@ from ..devices.profile_move import ProfileMove
 
 
 logger = logging.getLogger(__name__)
-logger.info(__file__)
+logger.bsdev(__file__)
 
 
 def setup_profile_move(pm1, xarr, yarr, dwell_time):
