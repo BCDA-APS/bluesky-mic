@@ -128,6 +128,7 @@ def fly2d(
     position_stream=False,
     eta=0,
 ):
+
     def watch_execute_scan(old_value, value, **kwargs):
         # Watch for scan1.EXSC to change from 1 to 0 (when the scan ends).
         if old_value == 1 and value == 0:
@@ -172,6 +173,7 @@ def fly2d(
             logger.error(
                 "Not able to perform the desired scan due to hardware connection"
             )
+
 
     yield from bps.sleep(1)
 
@@ -245,7 +247,9 @@ def fly2d(
 #     """parse parameters"""
 #     if trajectory == "snake":
 #         x, y, t = snake(dwell_time, l1_size, l1_center, l2_center, l1_width, l2_width)
+
 #     elif trajectory == "raster": x, y, npts_line, npts_tot = raster_sr(dwell_time,
+
 #                                       l1_size,
 #                                       l1_center,
 #                                       l2_center,
@@ -282,6 +286,7 @@ def fly2d(
 #         scanNumber = int(savedata.scanNumber.value)
 #         formated_number = "{:04d}".format(scanNumber)
 
+
 #         yield from setup_scanrecord(scan1,
 #                                     scan2,
 #                                     scan_type,
@@ -297,6 +302,7 @@ def fly2d(
 #                                 pi_directory,
 #                                 sample_name,
 #                                 reset_counter=False)
+
 #     else:
 #         print("scanrecord not specified, cannot scan")
 #         return
@@ -309,6 +315,7 @@ def fly2d(
 #         else:
 #             trigger_mode = 1 #internal
 #         savepath = f"{save_path}flyXRF"
+
 
 #         yield from setup_xspress3(xp3,
 #                                 npts_tot,
@@ -328,6 +335,7 @@ def fly2d(
 #             trigger_mode = 0 #internal
 #         savepath = f"{save_path}tetramm"
 
+
 #         yield from setup_tetramm(tmm,
 #                                 npts_tot,
 #                                 sample_name,
@@ -336,6 +344,7 @@ def fly2d(
 #                                 trigger_mode,
 #                                 scanNumber,
 #                                 reset_counter=False)
+
 
 #     if "positions" in devices:
 #         mkdir(os.path.join(save_path,"positions"))
@@ -351,6 +360,7 @@ def fly2d(
 #         #TODO: add component to epics motor to get maximum velocity and acceleration
 #         #TODO: add and setup additional motors if other loops are motors.. somehow.
 #         #set motor velocity = sep_size/dwell_time
+
 #         yield from bps.mv(m1.velocity,
 #                         3,
 #                         m1.acceleration,
@@ -359,12 +369,14 @@ def fly2d(
 #                         3,
 #                         m2.acceleration,
 #                         0.1)
+
 #         m1.move(x[0], wait=True)
 #         m2.move(y[0], wait=True)
 #         vel = l1_size/dwell #vel is in mm/s
 #         yield from bps.mv(m1.velocity, vel)
 
 #     else:
+
 #         yield from bps.mv(m1.velocity,
 #                         3,
 #                         m1.acceleration,
@@ -373,6 +385,7 @@ def fly2d(
 #                         3,
 #                         m2.acceleration,
 #                         0.1)
+
 #         m1.move(x[0], wait=True)
 #         m2.move(y[0], wait=True)
 
@@ -390,7 +403,9 @@ def fly2d(
 #             scan2.execute_scan.clear_sub(watch_execute_scan)
 
 #     # TODO need some way to check if devices are ready before proceeding. timeout and
-#     #   exit with a warning if something is missing.
+
+#       exit with a warning if something is missing.
+
 #     # if motors.inpos and pm1.isready and tmm.isready and xp3.isready and sgz.isready and postrm.isready:  # noqa: E501
 #     time.sleep(2)
 #     ready = True
