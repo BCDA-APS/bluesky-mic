@@ -9,7 +9,7 @@ EXAMPLE::
     # # Run the plan with the RunEngine:
     # RE(scan_record2(scanrecord_name = 'scan1', ioc = "2idsft:", m1_name = 'm1',
     #                m1_start = -0.5, m1_finish = 0.5,
-    #                m2_name = 'm3', m2_start = -0.2 ,m2_finish = 0.2,
+    #                m2_name = 'm3', m2_start = -0.2 ,m2_finish = 0.2, 
     #                npts = 50, dwell_time = 0.1))
 """
 
@@ -17,34 +17,36 @@ __all__ = """
     fly2d
 """.split()
 
-# from epics import caput, caget
 import logging
 
 # import bluesky
 import bluesky.plan_stubs as bps
 
 # from ophyd import Device, EpicsSignal, EpicsSignalRO, Component, EpicsMotor
+from apstools.plans import run_blocking_function
+from ophyd.status import Status
+import numpy as np
+
+# from epics import caput, caget
+import logging
+
 # import time
 # import os
 # import sys
 # import pvaccess
-from ..devices.scan_record import ScanRecord
-from ..devices.softglue_zynq import sgz
-from ..devices.tetramm import tmm1
-
-# from ..devices.softglue_zynq
-# from instrument.utils.misc import *
-# from instrument.devices.SoftGlueZynq import *
-# from instrument.devices.PositionerStream import *
-# from instrument.devices.SaveData import *
-# from instrument.devices.setup_scanrecord import *
+from ..callbacks.trajectories import raster
+from ..utils.config_loaders import iconfig
 from ..devices.xspress3 import xp3
+from ..devices.tetramm import tmm1
+from mic_instrument.configs.device_config_2id import scan1, scan2
 
+# from ..devices.softglue_zynq import sgz
+# from ..devices.scan_record import ScanRecord
 # from instrument.devices.TetraMM import *
 
 logger = logging.getLogger(__name__)
 logger.info(__file__)
-
+SCAN_OVERHEAD = 0.3
 
 print("Creating RE plan that uses scan record to do 2D fly scan")
 print("Getting list of avaliable detectors")
@@ -53,7 +55,7 @@ print("Getting list of avaliable detectors")
 det_name_mapping = {
     "xrf": xp3,
     "preamp": tmm1,
-    "fpga": sgz,
+    # "fpga": sgz,
     # "ptycho":"eiger"
 }
 
@@ -81,36 +83,9 @@ def detectors_setup(dets: list, dwell=0, num_frames=0):
         )
 
 
-def scanrecord_2id_setup(
-    outter: ScanRecord,
-    inner: ScanRecord,
-    x_center: float,
-    width: float,
-    y_center: float,
-    height: float,
-):
-    """
-    Configuring scan record for 2ID beamlines.
-
-    This function assumes x moving motion is in fly mode,
-    and y motion is in step mode. Thus the x_center and width
-    will be used to set up the inner ScanRecord, while y_center
-    and height are used for outter ScanRecord.
-    """
-
-    # TODO Need to check what is the desired behavior for AFTER SCAN field
-    outter.set_scan_mode("linear")
-    outter.set_rel_abs_motion("relative")
-
-    inner.set_scan_mode("fly")
-    inner.set_rel_abs_motion("relative")
-
-
 def fly2d(
     samplename="smp1",
     user_comments="",
-    scanrecord1_pv="2idsft:scan1",
-    scanrecord2_pv="2idsft:scan2",
     width=0,
     height=0,
     x_center=None,
@@ -126,6 +101,41 @@ def fly2d(
     position_stream=False,
     eta=0,
 ):
+
+    ##TODO Close shutter while setting up scan parameters
+
+    print(f"Using {scan1.prefix} as the outter scanRecord and {scan2.prefix} as inner scanRecord")
+    if all([scan1.connected, scan2.connected]):
+        print(f"{scan1.prefix} and {scan2.prefix} are connected")
+
+        """Set up scan parameters and get estimated time of a scan"""
+        yield from scan2.set_center_width_stepsize(y_center, height, stepsize_y)
+        yield from scan1.set_center_width_stepsize(x_center, width, stepsize_x)
+        numpts_y = scan2.number_points.value
+        numpts_x = scan1.number_points.value
+        eta = numpts_x * numpts_y * dwell * (1 + SCAN_OVERHEAD)
+        print(f"Number_points in Y: {numpts_y}")
+        print(f"Number_points in X: {numpts_x}")
+        print(f"Estimated_time for this scan is {eta}")
+
+        """Check which detectors to trigger"""
+        print("Determining which detectors are selected")
+        dets = selected_dets(**locals())
+        yield from detectors_init(dets)
+
+        ##TODO Create folder for the desire data structure
+        
+        ##TODO Based on the selected detector, setup DetTriggers in inner scanRecord
+        for i, d in enumerate(dets):
+            cmd = f"yield from bps.mv(scan1.triggers.t{i}.trigger_pv, {d.Acquire.pvname}"
+            eval(cmd)
+
+        ##TODO Assign the proper data path to the detector IOCs     
+        
+
+    else:
+        print(f"Having issue connecting to scan records: {scan1.prefix}, {scan2.prefix}")
+
     # print(
     #     f"Creating ophyd object of scan records:\n \
     #         Outter scan loop PV: {scanrecord1_pv} \n \
@@ -149,9 +159,6 @@ def fly2d(
     #     yield from bps.sleep(5)
     #     print("end of plan")
     # else:
-    #     logger.error(
-    #         f"Having issue connecting to scan records: {scanrecord1_pv}, {scanrecord2_pv}"
-    #     )
 
     #     if xrf_on:
     #         xp3.initialize()
@@ -194,9 +201,9 @@ def fly2d(
 #     mkdir(save_path)
 #     subdirs = []
 #     """Set up positioners (move to starting pos)"""
-#     #TODO: of the parameters in loop1-loop4, figure out which are motors somehow or
-#            hardcode them in the devices folder and then import them here.
+#     #TODO: of the parameters in loop1-loop4, figure out which are motors somehow or hardcode them in the devices folder and then import them here.
 
+#     """setup devices"""
 #     if "softglue" in devices:
 #         use_softglue_triggers=True
 #         trigger2 = sgz.send_pulses.pvname

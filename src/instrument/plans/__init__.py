@@ -2,6 +2,7 @@
 
 # from .scan_record_scan import scan_record_isn
 from .fly2d_2idsft import fly2d  # noqa: F401
+from .fly1d import fly1d
 from .profile_move_scan import profile_move_isn  # noqa: F401
 
 # Simulated plans to test out installation

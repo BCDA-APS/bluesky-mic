@@ -31,7 +31,7 @@ class PositionerStream(Device):
         return result
 
 
-pv = iconfig.get("DEVICES")["POSITION_STREAM"]
-print(pv)
-print(pv)
-postrm = PositionerStream(pv, name="postrm")
+# pv = iconfig.get("DEVICES")["POSITION_STREAM"]
+# print(pv)
+# print(pv)
+# postrm = PositionerStream(pv, name="postrm")

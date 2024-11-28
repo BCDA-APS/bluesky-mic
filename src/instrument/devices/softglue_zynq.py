@@ -58,5 +58,5 @@ class SoftGlueZynq(Device):
         caput(sgz.usrclk_enable.pvname, "0")  # enables user clock
 
 
-pv = iconfig.get("DEVICES")["SOFT_GLUE"]
-sgz = SoftGlueZynq(pv, name="sgz")
+# pv = iconfig.get("DEVICES")["SOFT_GLUE"]
+# sgz = SoftGlueZynq(pv, name="sgz")
