@@ -51,13 +51,9 @@ def scan_record_isn(
 ):
     """parse parameters"""
     if trajectory == "snake":
-        x, y, t, npts_tot = snake(
-            dwell_time, l1_size, l1_center, l2_center, l1_width, l2_width
-        )
+        x, y, t, npts_tot = snake(dwell_time, l1_size, l1_center, l2_center, l1_width, l2_width)
     elif trajectory == "raster":
-        x, y, npts_line, npts_tot = raster(
-            dwell_time, l1_size, l1_center, l2_center, l1_width, l2_width
-        )
+        x, y, npts_line, npts_tot = raster(dwell_time, l1_size, l1_center, l2_center, l1_width, l2_width)
     elif trajectory == "spiral":
         pass
     elif trajectory == "lissajous":
@@ -89,9 +85,7 @@ def scan_record_isn(
         scanNumber = int(savedata.scanNumber.value)
         formated_number = "{:04d}".format(scanNumber)
         yield from scan1.setup_scan1(scan_type, loop1, x, dwell_time)
-        yield from scan2.setup_scan2(
-            scan1, loop2, y, trigger1="", trigger2="", trigger3="", trigger4=""
-        )
+        yield from scan2.setup_scan2(scan1, loop2, y, trigger1="", trigger2="", trigger3="", trigger4="")
         yield from savedata(savedata, pi_directory, sample_name, reset_counter=False)
     else:
         print("scanrecord not specified, cannot scan")
@@ -137,9 +131,7 @@ def scan_record_isn(
     if "positions" in devices:
         mkdir(os.path.join(save_path, "positions"))
         subdirs.append("positions")
-        postrm.setup_positionstream(
-            f"positions_{formated_number}.h5", f"{save_path}positions"
-        )
+        postrm.setup_positionstream(f"positions_{formated_number}.h5", f"{save_path}positions")
     else:
         print(
             "file number not tracked. Not sure how else to set file name if not based on another detector's filenumber"
@@ -152,18 +144,14 @@ def scan_record_isn(
         # TODO: add component to epics motor to get maximum velocity and acceleration
         # TODO: add and setup additional motors if other loops are motors.. somehow.
         # set motor velocity = sep_size/dwell_time
-        yield from bps.mv(
-            m1.velocity, 3, m1.acceleration, 0.1, m2.velocity, 3, m2.acceleration, 0.1
-        )
+        yield from bps.mv(m1.velocity, 3, m1.acceleration, 0.1, m2.velocity, 3, m2.acceleration, 0.1)
         m1.move(x[0], wait=True)
         m2.move(y[0], wait=True)
         vel = l1_size / dwell  # vel is in mm/s
         yield from bps.mv(m1.velocity, vel)
 
     else:
-        yield from bps.mv(
-            m1.velocity, 3, m1.acceleration, 0.1, m2.velocity, 3, m2.acceleration, 0.1
-        )
+        yield from bps.mv(m1.velocity, 3, m1.acceleration, 0.1, m2.velocity, 3, m2.acceleration, 0.1)
         m1.move(x[0], wait=True)
         m2.move(y[0], wait=True)
 

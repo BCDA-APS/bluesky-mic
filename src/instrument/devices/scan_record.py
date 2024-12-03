@@ -71,8 +71,8 @@ class ScanRecord(SscanRecord):
     stepsize = Component(EpicsSignal, ".P1SI")
     width = Component(EpicsSignal, ".P1WD")
     number_points_rbv = Component(EpicsSignal, ".CPT")
-    filesystem = Component(EpicsSignal, ".saveData_fileSystem")
-    basename = Component(EpicsSignal, ".saveData_baseName")
+    # filesystem = Component(EpicsSignal, ".saveData_fileSystem")
+    # basename = Component(EpicsSignal, ".saveData_baseName")
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)

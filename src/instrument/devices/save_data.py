@@ -18,9 +18,7 @@ logger.info(__file__)
 class SaveData(Device):
     file_system = Component(EpicsSignal, "fileSystem", string=True)
     subdirectory = Component(EpicsSignal, "subDir", string=True)
-    base_name = Component(
-        EpicsSignal, "baseName", string=True
-    )  # basename needs _ at teh end
+    base_name = Component(EpicsSignal, "baseName", string=True)  # basename needs _ at teh end
     scanNumber = Component(EpicsSignal, "scanNumber")
 
     def setup_savedata(self, file_system, base_name, reset_counter=False):

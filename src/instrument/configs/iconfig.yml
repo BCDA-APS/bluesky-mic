@@ -11,8 +11,8 @@ DATABROKER_CATALOG: &databroker_catalog temp
 ### RunEngine configuration
 RUN_ENGINE:
     DEFAULT_METADATA:
-        beamline_id: 2IDD
-        instrument_name: XSD 2-IDD 
+        beamline_id: 19IDE
+        instrument_name: XSD 19-IDE 
         proposal_id: commissioning
         databroker_catalog: *databroker_catalog
 
@@ -26,27 +26,28 @@ RUN_ENGINE:
 #     PLOTS: false
 #     TABLE: false
 
-STORAGE_PATH: "/mnt/micdata1/2idd/"
+STORAGE_PATH: "/net/s19data/export/ISN/bluesky_dev"
 
 DEVICES:
-  TETRAMM1: "2id_bs_sft:TetrAMM1:"
-  SAVE_DATA: "2id_bs_sft:saveData_"
-  SCAN1: "2id_bs_sft:scan1"
-  SCAN2: "2id_bs_sft:scan2"
-  XSPRESS3: "XSP3_1Chan:"
-  SIMDET_CAM: "2idsimdet:cam1"
-  SIMDET_HDF5: "2idsimdet:HDF1"
+  TETRAMM1: "19idBPM:C:T4U"
+  SAVE_DATA: "19idBLUE:saveData_"
+  SCAN1: "19idBLUE:scan1"
+  SCAN2: "19idBLUE:scan2"
+  # XSPRESS3_1: "XSP3_8Chan:det1"
+  # XSPRESS3_1_HDF5: "XSP3_8Chan:HDF1"
+  # SIMDET_CAM: "2idsimdet:cam1"
+  # SIMDET_HDF5: "2idsimdet:HDF1"
 
 POSITIONERS:
-  X_MOTOR: "2id_bs_sft:m1"
-  Y_MOTOR: "2id_bs_sft:m2"
-  Z_MOTOR: "2id_bs_ft:m3"
-  R_MOTOR: "2id_bs_ft:m4"
+  X_MOTOR: "19idBLUE:m1"
+  Y_MOTOR: "19idBLUE:m2"
+  Z_MOTOR: "19idBLUE:m3"
+  R_MOTOR: "19idBLUE:m4"
   XZ_MOTOR:
-    M1: "2id_bs_sft:m1"
-    M2: "2id_bs_sft:m3"
-  ENERGY: "2id_bs_sft:m5"
-  TEMPERATURE: "2id_bs_sft:m6"
+    M1: "19idBLUE:m1"
+    M2: "19idBLUE:m3"
+  ENERGY: "19idBLUE:m5"
+  TEMPERATURE: "19idBLUE:m6"
 
 AREA_DETECTOR:
     ### General configuration for area detectors.
@@ -54,6 +55,23 @@ AREA_DETECTOR:
     BLUESKY_FILES_ROOT: &BLUESKY_DATA_ROOT "/path/to/data/"
     IMAGE_DIR: "sub/directory/path"
     HDF5_FILE_TEMPLATE: "%s%s_%6.6d.h5"
+  
+    AD_XSP3_8Chan:
+      NAME: xrf_me7
+      PV_PREFIX: "XSP3_8Chan:det1"
+
+    AD_XSP3_12Chan:
+      NAME: xrf_bse
+      PV_PREFIX: "XSP3_12Chan:det1"
+
+    AD_EIGER_PTYCHO:
+      NAME: eiger_ptycho
+      PV_PREFIX: "temp"
+
+    AD_EIGER_DIFFRACTION:
+      NAME: eigher_xrd
+      PV_PREFIX: "temp"
+
     ### Add configuration for specific detector(s).
     ### Suggestion:
     # ADSIM_16M:
@@ -68,8 +86,8 @@ AREA_DETECTOR:
 # NEXUS_DATA_FILES:
 #     FILE_EXTENSION: hdf
 #     WARN_MISSING_CONTENT: true
-SPEC_DATA_FILES:
-    FILE_EXTENSION: dat
+# SPEC_DATA_FILES:
+#     FILE_EXTENSION: dat
 
 ### APS Data Management
 ### Use bash shell, deactivate all conda environments, source this file:

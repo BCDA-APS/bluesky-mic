@@ -26,22 +26,24 @@ import bluesky.plan_stubs as bps
 from apstools.plans import run_blocking_function
 from .plan_blocks import watch_counter, count_subscriber
 from ophyd.status import Status
-from ..devices.xspress3 import xp3
-from ..devices.tetramm import tmm1
-from mic_instrument.configs.device_config_2id import scan1, simdet
+# from apstools.utils import listobjects
+
+# from ..devices.xspress3 import xp3
+# from ..devices.tetramm import tmm1
+from ..configs.device_config_19id import scan1, xrf_me7
 
 logger = logging.getLogger(__name__)
 logger.info(__file__)
 SCAN_OVERHEAD = 0.3
 
-print("Creating RE plan that uses scan record to do 2D fly scan")
+print("Creating RE plan that uses scan record to do 1D fly scan")
 print("Getting list of avaliable detectors")
 
 
 det_name_mapping = {
-    "simdet": simdet,
-    "xrf": xp3,
-    "preamp": tmm1,
+    # "simdet": simdet,
+    "xrf": xrf_me7,
+    # "preamp": tmm1,
     # "fpga": sgz,
     # "ptycho":"eiger"
 }
@@ -78,8 +80,8 @@ def fly1d(
     stepsize_x=0,
     dwell=0,
     smp_theta=None,
-    simdet_on=True,
-    xrf_on=False,
+    simdet_on=False,
+    xrf_on=True,
     ptycho_on=False,
     preamp_on=False,
     fpga_on=False,

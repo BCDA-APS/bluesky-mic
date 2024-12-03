@@ -143,5 +143,5 @@ class Xspress3(Device):
             logger.warning("Xspress3 not able to change state")
 
 
-pv = iconfig.get("DEVICES")["XSPRESS3"]
-xp3 = Xspress3(pv, name="xp3")
+# pv = iconfig.get("DEVICES")["XSPRESS3"]
+# xp3 = Xspress3(pv, name="xp3")

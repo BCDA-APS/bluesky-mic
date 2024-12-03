@@ -13,9 +13,7 @@ def snake(dwell, step_size, x_center, y_center, x_width, y_width):
     for i in range(rows):
         xpts = list(
             np.round(
-                np.linspace(
-                    x_center - x_width / 2, x_center + x_width / 2, int(cols + 1)
-                ),
+                np.linspace(x_center - x_width / 2, x_center + x_width / 2, int(cols + 1)),
                 5,
             )
         )
@@ -48,9 +46,7 @@ def raster(dwell, step_size, x_center, y_center, x_width, y_width, x_return_vel)
     for i in range(rows):
         xpts = list(
             np.round(
-                np.linspace(
-                    x_center - x_width / 2, x_center + x_width / 2, int(cols + 1)
-                ),
+                np.linspace(x_center - x_width / 2, x_center + x_width / 2, int(cols + 1)),
                 5,
             )
         )
@@ -163,9 +159,7 @@ def trigger_events(center, x_width, y_width, res, x, y):
     callback to trigger events
     """
     x_bounds = int(np.ceil(x_width / res) + 1)
-    x_edge = np.linspace(
-        center[0] - x_width / 2, center[0] + x_width / 2, int(x_bounds)
-    )
+    x_edge = np.linspace(center[0] - x_width / 2, center[0] + x_width / 2, int(x_bounds))
     x_trig = []
     for i in range(x_bounds):
         edge = x_edge[i]
@@ -181,9 +175,7 @@ def trigger_events(center, x_width, y_width, res, x, y):
                 x_trig.append(p)
 
     y_bounds = int(np.ceil(y_width / res) + 1)
-    y_edge = np.linspace(
-        center[1] - y_width / 2, center[1] + y_width / 2, int(y_bounds)
-    )
+    y_edge = np.linspace(center[1] - y_width / 2, center[1] + y_width / 2, int(y_bounds))
     y_trig = []
     for i in range(y_bounds):
         edge = y_edge[i]
@@ -230,12 +222,7 @@ def equidistant(x, y, dt):
     equidistant trajectory callback
     """
     pts = len(x)
-    d_arr = np.asarray(
-        [
-            np.sqrt((x[i] - x[i - 1]) ** 2 + (y[i] - y[i - 1]) ** 2)
-            for i in range(1, pts)
-        ]
-    )
+    d_arr = np.asarray([np.sqrt((x[i] - x[i - 1]) ** 2 + (y[i] - y[i - 1]) ** 2) for i in range(1, pts)])
     ctr = 0
     trig_idx = []
     for idx, d in enumerate(d_arr):

@@ -124,14 +124,13 @@ def fly2d(
         yield from detectors_init(dets)
 
         ##TODO Create folder for the desire data structure
-        
+
         ##TODO Based on the selected detector, setup DetTriggers in inner scanRecord
         for i, d in enumerate(dets):
             cmd = f"yield from bps.mv(scan1.triggers.t{i}.trigger_pv, {d.Acquire.pvname}"
             eval(cmd)
 
-        ##TODO Assign the proper data path to the detector IOCs     
-        
+        ##TODO Assign the proper data path to the detector IOCs
 
     else:
         print(f"Having issue connecting to scan records: {scan1.prefix}, {scan2.prefix}")
