@@ -58,11 +58,13 @@ AREA_DETECTOR:
   
     AD_XSP3_8Chan:
       NAME: xrf_me7
-      PV_PREFIX: "XSP3_8Chan:det1"
+      PV_PREFIX: "XSP3_8Chan:det1:"
+      HDF5_PV_PREFIX: "XSP3_8Chan:HDF1:"
 
     AD_XSP3_12Chan:
       NAME: xrf_bse
-      PV_PREFIX: "XSP3_12Chan:det1"
+      PV_PREFIX: "XSP3_12Chan:det1:"
+      HDF5_PV_PREFIX: "XSP3_12Chan:HDF1:"
 
     AD_EIGER_PTYCHO:
       NAME: eiger_ptycho
@@ -91,7 +93,7 @@ AREA_DETECTOR:
 
 ### APS Data Management
 ### Use bash shell, deactivate all conda environments, source this file:
-DM_SETUP_FILE: "/home/dm/etc/dm.setup.sh"
+DM_SETUP_FILE: "/home/dm_id/etc/dm.setup.sh"
 
 # ----------------------------------
 

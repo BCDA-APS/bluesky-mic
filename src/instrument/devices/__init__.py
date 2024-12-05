@@ -4,7 +4,7 @@ from ophyd.sim import motor as sim_motor  # noqa: F401
 from ophyd.sim import noisy_det as sim_det  # noqa: F401
 
 from ..utils.aps_functions import host_on_aps_subnet
-from .save_data import savedata  # noqa: F401
+from .save_data import SaveDataMic  # noqa: F401
 
 # from .tetramm import tmm1  # noqa: F401
 from .xspress3 import Xspress3  # noqa: F401

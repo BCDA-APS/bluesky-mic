@@ -1,67 +1,22 @@
-# __all__ = """
-#     scan1
-#     scan2
-# """.split()
+# -*- coding: utf-8 -*-
+"""
+Created on Oct 16 2024
+
+@author: yluo (grace227)
+"""
+
+
 
 from apstools.synApps import SscanRecord
 from ophyd import EpicsSignal, Component
 from epics import PV
-from functools import wraps
+from ..devices.utils import mode_setter, value_setter
 import bluesky.plan_stubs as bps
 import logging
 
 
 logger = logging.getLogger(__name__)
 logger.info(__file__)
-
-
-def mode_setter(attribute_name):
-    """Decorator to set mode for EpicsSignal component using enum states."""
-
-    def decorator(func):
-        @wraps(func)
-        def wrapper(self, mode):
-            # Retrieve the EpicsSignal component
-            signal = getattr(self, attribute_name)
-            try:
-                describe = signal.describe().popitem()
-                states = describe[1]["enum_strs"]
-                mode = mode.upper()
-
-                # Check if the mode is valid and perform the set operation
-                if mode in states:
-                    idx = states.index(mode)
-                    yield from bps.mv(signal, idx)
-                    logger.info(f"Assigned {attribute_name} in {self.prefix} to {mode}.")
-                else:
-                    logger.error(
-                        f"Invalid mode: {mode} for {attribute_name} in {self.prefix}. "
-                        f"Available states: {states}"
-                    )
-            except Exception as e:
-                logger.error(f"Error setting mode for {attribute_name} in {self.prefix}: {e}")
-
-        return wrapper
-
-    return decorator
-
-
-def value_setter(attribute_name):
-    """Decorator to set value for EpicsSignal component."""
-
-    def decorator(func):
-        @wraps(func)
-        def wrapper(self, value):
-            signal = getattr(self, attribute_name)
-            try:
-                yield from bps.mv(signal, value)
-                logger.info(f"Assigned {attribute_name} in {self.prefix} to {value}.")
-            except Exception as e:
-                logger.error(f"Error setting {attribute_name} to {value} in {self.prefix}: {e}")
-
-        return wrapper
-
-    return decorator
 
 
 class ScanRecord(SscanRecord):

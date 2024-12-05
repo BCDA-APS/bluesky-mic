@@ -1,6 +1,8 @@
 """
 Creating a bluesky plan that interacts with Scan Record.
 
+@author: yluo(grace227)
+
 EXAMPLE::
 
     # Load this code in IPython or Jupyter notebook:
@@ -11,6 +13,7 @@ EXAMPLE::
     #                m1_start = -0.5, m1_finish = 0.5,
     #                m2_name = 'm3', m2_start = -0.2 ,m2_finish = 0.2, 
     #                npts = 50, dwell_time = 0.1))
+
 """
 
 __all__ = """
@@ -18,19 +21,14 @@ __all__ = """
 """.split()
 
 import logging
-
-# import bluesky
+import os
 import bluesky.plan_stubs as bps
-
-# from ophyd import Device, EpicsSignal, EpicsSignalRO, Component, EpicsMotor
 from apstools.plans import run_blocking_function
 from .plan_blocks import watch_counter, count_subscriber
 from ophyd.status import Status
-# from apstools.utils import listobjects
-
-# from ..devices.xspress3 import xp3
-# from ..devices.tetramm import tmm1
-from ..configs.device_config_19id import scan1, xrf_me7
+from ..configs.device_config_19id import scan1, savedata, xrf_me7, xrf_me7_hdf
+from .workflow_plan import run_workflow
+from ..utils.dm_utils import dm_upload_wait
 
 logger = logging.getLogger(__name__)
 logger.info(__file__)
@@ -41,35 +39,37 @@ print("Getting list of avaliable detectors")
 
 
 det_name_mapping = {
-    # "simdet": simdet,
-    "xrf": xrf_me7,
-    # "preamp": tmm1,
-    # "fpga": sgz,
-    # "ptycho":"eiger"
+    "simdet": {"cam":None, "hdf":None},
+    "xrf_me7": {"cam":xrf_me7, "hdf":xrf_me7_hdf},
+    "preamp": {"cam":None, "hdf":None},
+    "fpga": {"cam":None, "hdf":None},
+    "ptycho": {"cam":None, "hdf":None},
 }
 
 
 def selected_dets(**kwargs):
-    dets = []
+    dets = {}
+    rm_str = "_on"
     for k, v in kwargs.items():
         if all([v, isinstance(v, bool)]):
-            det_str = k.split("_")[0]
-            dets.append(det_name_mapping[det_str])
+            det_str = k[:-len(rm_str)]
+            dets.update({det_str: det_name_mapping[det_str]})
+    #         dets.append(det_name_mapping[det_str])
     return dets
 
 
-def detectors_init(dets: list):
-    for d in dets:
-        logger.info(f"Initializing detector {d.name}")
-        yield from d.initialize()
+# def detectors_init(dets: list):
+#     for d in dets:
+#         logger.info(f"Initializing detector {d.name}")
+#         yield from d.initialize()
 
 
-def detectors_setup(dets: list, dwell=0, num_frames=0):
-    for d in dets:
-        logger.info(
-            f"Assigning detector {d.name} to have dwell time \
-                of {dwell} and # frames of {num_frames}"
-        )
+# def detectors_setup(dets: list, dwell=0, num_frames=0):
+#     for d in dets:
+#         logger.info(
+#             f"Assigning detector {d.name} to have dwell time \
+#                 of {dwell} and # frames of {num_frames}"
+#         )
 
 
 def fly1d(
@@ -81,11 +81,12 @@ def fly1d(
     dwell=0,
     smp_theta=None,
     simdet_on=False,
-    xrf_on=True,
+    xrf_me7_on=True,
     ptycho_on=False,
     preamp_on=False,
     fpga_on=False,
     position_stream=False,
+    wf_run=False,
     eta=0,
 ):
 
@@ -93,21 +94,27 @@ def fly1d(
 
     print(f"Using {scan1.prefix} as the outter scanRecord")
     if scan1.connected:
-        print(f"{scan1.prefix} is connected")
+        logger.info(f"{scan1.prefix} is connected")
 
         """Set up scan parameters and get estimated time of a scan"""
         yield from scan1.set_center_width_stepsize(x_center, width, stepsize_x)
         numpts_x = scan1.number_points.value
         eta = numpts_x * dwell * (1 + SCAN_OVERHEAD)
-        print(f"Number_points in X: {numpts_x}")
-        print(f"Estimated_time for this scan is {eta}")
+        logger.info(f"Number_points in X: {numpts_x}")
+        logger.info(f"Estimated_time for this scan is {eta}")
 
         """Check which detectors to trigger"""
-        print("Determining which detectors are selected")
+        logger.info("Determining which detectors are selected")
         dets = selected_dets(**locals())
         # yield from detectors_init(dets)
 
         ##TODO Create folder for the desire file/data structure
+        basepath = savedata.get().file_system
+        for det_name, det_var in dets.items():
+            det_path = os.path.join(basepath, det_name)
+            logger.info(f"Setting up {det_name} to have data saved at {det_path}")
+            hdf = det_var['hdf']
+            hdf.set_filepath(det_path)
 
         # ##TODO Based on the selected detector, setup DetTriggers in inner scanRecord
         # for i, d in enumerate(dets):
@@ -134,6 +141,23 @@ def fly1d(
         yield from count_subscriber(scan1.number_points_rbv, scan1.number_points.get())  # Counter Subscriber
         yield from run_blocking_function(st.wait)
 
+        #############################
+        # START THE APS DM WORKFLOW #
+        #############################
+
+        if wf_run:
+            yield from dm_upload_wait(upload_info["id"])
+
+            yield from run_workflow(
+                bluesky_id=uid,
+                dm_concise=dm_concise,
+                dm_reporting_period=dm_reporting_period,
+                dm_reporting_time_limit=dm_reporting_time_limit,
+                settings_file_path=wf_settings_file_path,
+                **wf_kwargs
+            )
+
+        logger.info("DM workflow Finished!")
         print("end of plan")
 
     else:
