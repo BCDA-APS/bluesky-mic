@@ -16,7 +16,9 @@ from pathlib import Path
 from time import time
 from bluesky.plan_stubs import sleep, null
 from ..devices.data_management import dm_workflow
-from ._logging_setup import logger
+import logging
+
+logger = logging.getLogger(__name__)
 logger.info(__file__)
 
 __all__ = """

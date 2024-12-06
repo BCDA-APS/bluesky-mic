@@ -1,6 +1,8 @@
 from apstools.devices import DM_WorkflowConnector
+from apstools.utils.aps_data_management import dm_setup
 from apstools.utils import dm_api_proc
 from ophyd import Signal
+from mic_instrument.utils.config_loaders import iconfig
 # from ..utils import logger
 import logging
 logger = logging.getLogger(__name__)
@@ -11,7 +13,7 @@ __all__ = """
     dm_workflow
 """.split()
 
-
+dm_setup(iconfig["DM_SETUP_FILE"])
 dm_workflow = DM_WorkflowConnector(name="dm_workflow", labels=("dm",))
 dm_workflow.owner.put(dm_api_proc().username)
 
