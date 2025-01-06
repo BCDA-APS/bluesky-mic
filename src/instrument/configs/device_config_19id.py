@@ -9,6 +9,8 @@ from mic_instrument.devices.scan_record import ScanRecord
 from mic_instrument.devices.save_data import SaveDataMic
 from mic_instrument.devices.area_det_hdf import DetHDF5
 from mic_instrument.utils.config_loaders import iconfig
+from mic_instrument.utils.config_loaders import load_config_yaml
+import pathlib
 
 # from mic_instrument.devices.simdet import SimDet, SimDetHDF5
 from mic_instrument.devices.xspress3 import Xspress3
@@ -28,3 +30,13 @@ xrf_me7_hdf = DetHDF5(
 
 # simdet = SimDet(iconfig.get("DEVICES")["SIMDET_CAM"], name="simdet")
 # simdeth5file = SimDetHDF5(iconfig.get("DEVICES")["SIMDET_HDF5"], name="simdet_hdf5")
+
+## DM workflow config ##
+instrument_path = pathlib.Path(__file__).parent.parent
+xrf_workflow_yaml_path = instrument_path / "configs" / "xrf_workflow.yml"
+ptychoxrf_workflow_yaml_path = instrument_path / "configs" / "ptycho_xrf_workflow.yml"
+ptychodus_workflow_yaml_path = instrument_path / "configs" / "ptychodus_workflow.yml"
+xrf_dm_args = load_config_yaml(xrf_workflow_yaml_path)
+ptychoxrf_dm_args = load_config_yaml(ptychoxrf_workflow_yaml_path)
+ptychodus_dm_args = load_config_yaml(ptychodus_workflow_yaml_path)
+

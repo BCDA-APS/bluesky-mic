@@ -1,27 +1,12 @@
 # Configuration file example for the ptycho-xrf workflow
 
-workflow : ptycho-xrf
-experimentName :  s19iddm_ptycho_xrf_test
-fit : roi,nnls
-filePath : 003003.h5
-dataDir : sample1/xspress3
-# nthreads : all
-quantifyWith : None
-detectors : 3
-generateAvgH5 : False
-addv9Layout : False
-addExchange : False
-exportCSV : False
-updateTheta : None
-updateAmps : None
-updateQuantAmps : None
-quickAndDirty : False
-optimizeFitOverrideParams : None
-optimizer : None
+workflow : ptychodus
+experimentName :  s19iddm_ptychodus_test
+filePath : scan_003003_eiger1m_master.hdf5
+scanFilePath : 003003.h5
 analysisMachine : mona2
 name : "003003"
 sampleName : sample1
-ptychoFilePath : scan_003003_eiger1m.hdf5
 ptychoDetectorName : eiger
 cropCenterXInPixels : 546
 cropCenterYInPixels : 736

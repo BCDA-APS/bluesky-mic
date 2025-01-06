@@ -1,6 +1,6 @@
 # Configuration file example for the ptycho-xrf workflow
 
-workflow : ptycho-xrf
+workflow : xrf
 experimentName :  s19iddm_ptycho_xrf_test
 fit : roi,nnls
 filePath : 003003.h5
@@ -19,17 +19,4 @@ quickAndDirty : False
 optimizeFitOverrideParams : None
 optimizer : None
 analysisMachine : mona2
-name : "003003"
-sampleName : sample1
-ptychoFilePath : scan_003003_eiger1m.hdf5
-ptychoDetectorName : eiger
-cropCenterXInPixels : 546
-cropCenterYInPixels : 736
-cropExtentXInPixels : 128
-cropExtentYInPixels : 128
-numGpus : 0
-probeEnergyInElectronVolts : 6722.0
-detectorDistanceInMeters : 3.63
-preprocessingMachine : mona2
-settings : /home/beams/USER19ID/ptychodusDefaults/nanomax3003.ini
 demand : True

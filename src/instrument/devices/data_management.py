@@ -14,6 +14,7 @@ __all__ = """
 """.split()
 
 dm_setup(iconfig["DM_SETUP_FILE"])
+api = dm_api_proc()
 dm_workflow = DM_WorkflowConnector(name="dm_workflow", labels=("dm",))
 dm_workflow.owner.put(dm_api_proc().username)
 

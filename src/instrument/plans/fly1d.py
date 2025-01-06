@@ -25,10 +25,15 @@ import os
 import bluesky.plan_stubs as bps
 from apstools.plans import run_blocking_function
 from .plan_blocks import watch_counter, count_subscriber
+from .dm_plans import dm_submit_workflow_job
 from ophyd.status import Status
-from ..configs.device_config_19id import scan1, savedata, xrf_me7, xrf_me7_hdf
+from ..configs.device_config_19id import scan1, savedata, xrf_me7, xrf_me7_hdf, xrf_dm_args, ptychoxrf_dm_args,  ptychodus_dm_args
 from .workflow_plan import run_workflow
 from ..utils.dm_utils import dm_upload_wait
+from ..devices.data_management import api
+from apstools.devices import DM_WorkflowConnector
+
+
 
 logger = logging.getLogger(__name__)
 logger.info(__file__)
@@ -51,7 +56,7 @@ def selected_dets(**kwargs):
     dets = {}
     rm_str = "_on"
     for k, v in kwargs.items():
-        if all([v, isinstance(v, bool)]):
+        if all([v, isinstance(v, bool), rm_str in k]):
             det_str = k[:-len(rm_str)]
             dets.update({det_str: det_name_mapping[det_str]})
     #         dets.append(det_name_mapping[det_str])
@@ -87,6 +92,7 @@ def fly1d(
     fpga_on=False,
     position_stream=False,
     wf_run=False,
+    analysisMachine="mona2",
     eta=0,
 ):
 
@@ -114,7 +120,8 @@ def fly1d(
             det_path = os.path.join(basepath, det_name)
             logger.info(f"Setting up {det_name} to have data saved at {det_path}")
             hdf = det_var['hdf']
-            hdf.set_filepath(det_path)
+            if hdf is not None:
+                hdf.set_filepath(det_path)
 
         # ##TODO Based on the selected detector, setup DetTriggers in inner scanRecord
         # for i, d in enumerate(dets):
@@ -146,16 +153,24 @@ def fly1d(
         #############################
 
         if wf_run:
-            yield from dm_upload_wait(upload_info["id"])
+            dm_workflow = DM_WorkflowConnector(name=samplename, labels=("dm",))
 
-            yield from run_workflow(
-                bluesky_id=uid,
-                dm_concise=dm_concise,
-                dm_reporting_period=dm_reporting_period,
-                dm_reporting_time_limit=dm_reporting_time_limit,
-                settings_file_path=wf_settings_file_path,
-                **wf_kwargs
-            )
+            if all([xrf_me7_on, ptycho_on]):
+                WORKFLOW = "ptycho-xrf"
+                argsDict = ptychoxrf_dm_args.copy()
+            elif xrf_me7_on:
+                WORKFLOW = "xrf-maps"
+                argsDict = xrf_dm_args.copy()
+            else:
+                WORKFLOW = "ptychodus"
+                argsDict = ptychodus_dm_args.copy()
+            
+            ##TODO Modify argsDict accordingly based on the scan parameters
+            argsDict['analysisMachine'] = analysisMachine
+
+            yield from dm_submit_workflow_job(WORKFLOW, argsDict)
+            logger.info(f"{len(api.listProcessingJobs())=!r}")
+
 
         logger.info("DM workflow Finished!")
         print("end of plan")
