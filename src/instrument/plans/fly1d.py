@@ -128,34 +128,39 @@ def fly1d(
 
 
         def watch_counter(old_value, value, **kwargs):
-            # print(kwargs)
             if type(old_value) is not object:
-                if all([value > 0, value > old_value]):
+                if all([value > 0, value > old_value, value < numpts_x]):
                     prog = round(100 * value / numpts_x, 2)
                     logger.info(f"Scan progress: {prog}% done, scanned {value}/{numpts_x}")
 
         def watch_execute_scan(old_value, value, **kwargs):
+            logger.info(f"{old_value=}, {value=}")
             if old_value == 1 and value == 0:
-                # print(kwargs)
-                st.set_finished()
-                scan1.number_points_rbv.unsubscribe(watch_counter)
+                print(f"{st=}")
                 scan1.execute_scan.clear_sub(watch_execute_scan)
-
-            scan1.number_points_rbv.unsubscribe(watch_counter)
+                scan1.number_points_rbv.unsubscribe(watch_counter)
+                st.set_finished()
+                print(f"{st=}")
+            elif old_value == 1 and value == 1:
+                # This will be the case when a previous scan is successfully exited
+                scan1.number_points_rbv.unsubscribe_all()
+                scan1.number_points_rbv.subscribe(watch_counter)
 
 
         """Start executing scan"""
         logger.info("Done setting up scan, about to start scan")
         st = Status()
-
-        scan1.number_points_rbv.subscribe(watch_counter)
-        scan1.execute_scan.subscribe(watch_execute_scan)  # Subscribe to the scan
         
         yield from bps.mv(scan1.execute_scan, 1)  # Start scan
+        scan1.execute_scan.subscribe(watch_execute_scan)  # Subscribe to the scan
+        yield from bps.sleep(1)
+        yield from run_blocking_function(st.wait)
+
+        # scan1.number_points_rbv.unsubscribe(watch_counter)
         # yield from bps.sleep(1)  # Empirical, for the IOC
         # yield from count_subscriber(scan1.number_points_rbv, scan1.number_points.get())  # Counter Subscriber
-        yield from run_blocking_function(st.wait)
-                
+    
+        # scan1.number_points_rbv.unsubscribe_all()
 
         #############################
         # START THE APS DM WORKFLOW #
