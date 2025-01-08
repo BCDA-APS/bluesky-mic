@@ -24,8 +24,6 @@ import logging
 import os
 import bluesky.plan_stubs as bps
 from apstools.plans import run_blocking_function
-# from ..utils.monitoring import watch_counter
-# from .plan_blocks import watch_counter, count_subscriber
 from .dm_plans import dm_submit_workflow_job
 from ophyd.status import Status
 from ..configs.device_config_19id import scan1, savedata, xrf_me7, xrf_me7_hdf, xrf_dm_args, ptychoxrf_dm_args,  ptychodus_dm_args
@@ -136,12 +134,11 @@ def fly1d(
         def watch_execute_scan(old_value, value, **kwargs):
             logger.info(f"{old_value=}, {value=}")
             if old_value == 1 and value == 0:
-                print(f"{st=}")
                 scan1.execute_scan.clear_sub(watch_execute_scan)
                 scan1.number_points_rbv.unsubscribe(watch_counter)
                 st.set_finished()
-                print(f"{st=}")
-            elif old_value == 1 and value == 1:
+    
+            elif old_value == 1 and value == 1: 
                 # This will be the case when a previous scan is successfully exited
                 scan1.number_points_rbv.unsubscribe_all()
                 scan1.number_points_rbv.subscribe(watch_counter)
@@ -150,17 +147,13 @@ def fly1d(
         """Start executing scan"""
         logger.info("Done setting up scan, about to start scan")
         st = Status()
-        
+
         yield from bps.mv(scan1.execute_scan, 1)  # Start scan
+
         scan1.execute_scan.subscribe(watch_execute_scan)  # Subscribe to the scan
         yield from bps.sleep(1)
         yield from run_blocking_function(st.wait)
 
-        # scan1.number_points_rbv.unsubscribe(watch_counter)
-        # yield from bps.sleep(1)  # Empirical, for the IOC
-        # yield from count_subscriber(scan1.number_points_rbv, scan1.number_points.get())  # Counter Subscriber
-    
-        # scan1.number_points_rbv.unsubscribe_all()
 
         #############################
         # START THE APS DM WORKFLOW #
