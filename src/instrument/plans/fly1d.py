@@ -24,7 +24,8 @@ import logging
 import os
 import bluesky.plan_stubs as bps
 from apstools.plans import run_blocking_function
-from .plan_blocks import watch_counter, count_subscriber
+# from ..utils.monitoring import watch_counter
+# from .plan_blocks import watch_counter, count_subscriber
 from .dm_plans import dm_submit_workflow_job
 from ophyd.status import Status
 from ..configs.device_config_19id import scan1, savedata, xrf_me7, xrf_me7_hdf, xrf_dm_args, ptychoxrf_dm_args,  ptychodus_dm_args
@@ -37,12 +38,8 @@ from apstools.devices import DM_WorkflowConnector
 
 logger = logging.getLogger(__name__)
 logger.info(__file__)
+
 SCAN_OVERHEAD = 0.3
-
-print("Creating RE plan that uses scan record to do 1D fly scan")
-print("Getting list of avaliable detectors")
-
-
 det_name_mapping = {
     "simdet": {"cam":None, "hdf":None},
     "xrf_me7": {"cam":xrf_me7, "hdf":xrf_me7_hdf},
@@ -98,7 +95,7 @@ def fly1d(
 
     ##TODO Close shutter while setting up scan parameters
 
-    print(f"Using {scan1.prefix} as the outter scanRecord")
+    logger.info(f"Using {scan1.prefix} as the outter scanRecord")
     if scan1.connected:
         logger.info(f"{scan1.prefix} is connected")
 
@@ -112,7 +109,6 @@ def fly1d(
         """Check which detectors to trigger"""
         logger.info("Determining which detectors are selected")
         dets = selected_dets(**locals())
-        # yield from detectors_init(dets)
 
         ##TODO Create folder for the desire file/data structure
         basepath = savedata.get().file_system
@@ -130,23 +126,36 @@ def fly1d(
 
         ##TODO Assign the proper data path to the detector IOCs
 
+
+        def watch_counter(old_value, value, **kwargs):
+            # print(kwargs)
+            if type(old_value) is not object:
+                if all([value > 0, value > old_value]):
+                    prog = round(100 * value / numpts_x, 2)
+                    logger.info(f"Scan progress: {prog}% done, scanned {value}/{numpts_x}")
+
         def watch_execute_scan(old_value, value, **kwargs):
             if old_value == 1 and value == 0:
+                # print(kwargs)
                 st.set_finished()
+                scan1.number_points_rbv.unsubscribe(watch_counter)
                 scan1.execute_scan.clear_sub(watch_execute_scan)
 
             scan1.number_points_rbv.unsubscribe(watch_counter)
 
-        """Start executing scan"""
-        print("Done setting up scan, about to start scan")
-        st = Status()
-        scan1.execute_scan.subscribe(watch_execute_scan)  # Subscribe to the scan
-        # executor
 
+        """Start executing scan"""
+        logger.info("Done setting up scan, about to start scan")
+        st = Status()
+
+        scan1.number_points_rbv.subscribe(watch_counter)
+        scan1.execute_scan.subscribe(watch_execute_scan)  # Subscribe to the scan
+        
         yield from bps.mv(scan1.execute_scan, 1)  # Start scan
-        yield from bps.sleep(1)  # Empirical, for the IOC
-        yield from count_subscriber(scan1.number_points_rbv, scan1.number_points.get())  # Counter Subscriber
+        # yield from bps.sleep(1)  # Empirical, for the IOC
+        # yield from count_subscriber(scan1.number_points_rbv, scan1.number_points.get())  # Counter Subscriber
         yield from run_blocking_function(st.wait)
+                
 
         #############################
         # START THE APS DM WORKFLOW #
@@ -170,13 +179,12 @@ def fly1d(
 
             yield from dm_submit_workflow_job(WORKFLOW, argsDict)
             logger.info(f"{len(api.listProcessingJobs())=!r}")
+            logger.info("DM workflow Finished!")
 
-
-        logger.info("DM workflow Finished!")
-        print("end of plan")
+        logger.info("end of plan")
 
     else:
-        print(f"Having issue connecting to scan record: {scan1.prefix}")
+        logger.info(f"Having issue connecting to scan record: {scan1.prefix}")
 
     # yield from bps.sleep(1)
     # print("end of plan")

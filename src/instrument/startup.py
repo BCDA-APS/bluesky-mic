@@ -30,6 +30,7 @@ from apstools.utils import listplans, listobjects
 
 logger = logging.getLogger(__name__)
 logger.bsdev(__file__)
+# logger.info(__file__)
 
 # Configure the session with callbacks, devices, and plans.
 if iconfig.get("NEXUS_DATA_FILES") is not None:
