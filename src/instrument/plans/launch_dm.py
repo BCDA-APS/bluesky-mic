@@ -24,7 +24,7 @@ import logging
 import os
 import bluesky.plan_stubs as bps
 from .dm_plans import dm_submit_workflow_job
-from ..configs.device_config_19id import xrf_dm_args, ptychoxrf_dm_args,  ptychodus_dm_args
+from ..configs.device_config_19id import xrf_dm_args, ptychoxrf_dm_args, ptychodus_dm_args
 from .workflow_plan import run_workflow
 from ..devices.data_management import api
 from apstools.devices import DM_WorkflowConnector
@@ -32,10 +32,16 @@ from apstools.devices import DM_WorkflowConnector
 logger = logging.getLogger(__name__)
 logger.info(__file__)
 
-def run_dm_analysis(samplename = "sample1", filePath="003003.h5", 
-                    workflow = "xrf-maps", experimentName="s19iddm_ptycho_xrf_test",
-                    dataDir = "sample1/xspress3", detectors=3,
-                    analysisMahine="mona2"):
+
+def run_dm_analysis(
+    samplename="sample1",
+    filePath="003003.h5",
+    workflow="xrf-maps",
+    experimentName="s19iddm_ptycho_xrf_test",
+    dataDir="sample1/xspress3",
+    detectors=3,
+    analysisMahine="mona2",
+):
 
     dm_workflow = DM_WorkflowConnector(name=samplename, labels=("dm",))
 

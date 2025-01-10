@@ -6,6 +6,7 @@ import logging
 logger = logging.getLogger(__name__)
 logger.info(__file__)
 
+
 def mode_setter(attribute_name):
     """Decorator to set mode for EpicsSignal component using enum states."""
 

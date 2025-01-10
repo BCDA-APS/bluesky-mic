@@ -6,7 +6,6 @@ Created on Oct 16 2024
 """
 
 
-
 from apstools.synApps import SscanRecord
 from ophyd import EpicsSignal, Component
 from epics import PV
@@ -21,6 +20,8 @@ logger.info(__file__)
 
 class ScanRecord(SscanRecord):
     scan_mode = Component(EpicsSignal, ".P1SM")
+    pos_drive = Component(EpicsSignal, ".P1PV")
+    pos_readback = Component(EpicsSignal, ".R1PV")
     scan_movement = Component(EpicsSignal, ".P1AR")
     center = Component(EpicsSignal, ".P1CP")
     stepsize = Component(EpicsSignal, ".P1SI")
@@ -63,4 +64,12 @@ class ScanRecord(SscanRecord):
 
     @value_setter("number_points")
     def set_numpts(self, numpts):
+        pass
+
+    @value_setter("pos_drive")
+    def set_positioner_drive(self, positioner_pv):
+        pass
+
+    @value_setter("pos_readback")
+    def set_positioner_readback(sefl, positioner_rbv):
         pass

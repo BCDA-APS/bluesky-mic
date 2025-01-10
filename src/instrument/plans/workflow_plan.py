@@ -7,10 +7,12 @@ from apstools.utils import share_bluesky_metadata_with_dm
 from databroker.core import BlueskyRun
 from pathlib import Path
 from yaml import load as yload, Loader as yloader
+
 # from .local_scans import mv
 from bluesky.plan_stubs import mv
 import logging
 from ..devices.data_management import dm_workflow, dm_experiment
+
 # from ..utils._logging_setup import logger
 # from ..utils.catalog import full_cat
 
@@ -35,7 +37,7 @@ EXPECTED_KWARGS["ptychodus"] = [
     "numGpus",
     "settings",
     "demand",
-    "name"
+    "name",
 ]
 
 EXPECTED_KWARGS["ptycho-xrf"] = [
@@ -122,12 +124,12 @@ def run_workflow(
     # internal kwargs ----------------------------------------------------------
     dm_concise: bool = False,
     dm_wait: bool = False,
-    dm_reporting_period: float = 10*60,
+    dm_reporting_period: float = 10 * 60,
     dm_reporting_time_limit: float = 10**6,
     # Option to import DM workflow kwargs from a file --------------------------
     settings_file_path: str = None,
     # Or you can enter the kwargs that will be just be passed to the workflow --
-    **_kwargs
+    **_kwargs,
 ):
 
     # Option to import workflow parameters from file.
@@ -135,9 +137,7 @@ def run_workflow(
     if settings_file_path is not None:
         path = Path(settings_file_path)
         if not path.exists():
-            raise FileExistsError(
-                f"Configuration file '{path}' does not exist."
-            )
+            raise FileExistsError(f"Configuration file '{path}' does not exist.")
         kwargs = yload(open(path, "r").read(), yloader)
 
     # kwargs given in function call will have priority.
@@ -149,13 +149,10 @@ def run_workflow(
     # Check if kwargs have all argumnents needed.
     workflow = kwargs.get("workflow", None)
     if workflow is None:
-        raise ValueError(
-            "The 'workflow'  argument is required, but was not found."
-        )
+        raise ValueError("The 'workflow'  argument is required, but was not found.")
     if workflow not in EXPECTED_KWARGS.keys():
         raise ValueError(
-            f"The 'workflow' argument must be one of {EXPECTED_KWARGS.keys()}, "
-            f"but {workflow} was entered."
+            f"The 'workflow' argument must be one of {EXPECTED_KWARGS.keys()}, " f"but {workflow} was entered."
         )
 
     missing = []
@@ -165,8 +162,8 @@ def run_workflow(
 
     if len(missing) > 0:
         raise ValueError(
-            "The following arguments were not found, but are required for the "
-            f"{workflow} workflow: {missing}.")
+            "The following arguments were not found, but are required for the " f"{workflow} workflow: {missing}."
+        )
 
     # # Check that the bluesky_id works.
     # if isinstance(bluesky_id, (str, int)):
@@ -187,20 +184,16 @@ def run_workflow(
     #     run = None
 
     # Start workflow
-    logger.info(
-        f"DM workflow {workflow}."
-    )
+    logger.info(f"DM workflow {workflow}.")
 
     yield from mv(
-        dm_workflow.concise_reporting, dm_concise,
-        dm_workflow.reporting_period, dm_reporting_period,
+        dm_workflow.concise_reporting,
+        dm_concise,
+        dm_workflow.reporting_period,
+        dm_reporting_period,
     )
 
-    yield from dm_workflow.run_as_plan(
-        wait=dm_wait,
-        timeout=dm_reporting_time_limit,
-        **kwargs
-    )
+    yield from dm_workflow.run_as_plan(wait=dm_wait, timeout=dm_reporting_time_limit, **kwargs)
 
     yield from sleep(0.1)
     logger.info(f"dm_workflow id: {dm_workflow.job_id.get()}")

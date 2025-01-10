@@ -4,7 +4,6 @@ Created on Dec 04 2024
 @author: yluo (grace227)
 """
 
-
 import logging
 from apstools.synApps import SaveData
 from ..devices.utils import value_setter
@@ -31,5 +30,3 @@ class SaveDataMic(SaveData):
     @value_setter("base_name")
     def set_basename(self, basename):
         pass
-
-

@@ -3,13 +3,9 @@ Setup new user in Bluesky.
 """
 
 from apstools.utils import dm_api_ds, dm_api_proc, dm_api_daq
-from apstools.utils.aps_data_management import (
-    DEFAULT_UPLOAD_TIMEOUT, DEFAULT_UPLOAD_POLL_PERIOD
-)
+from apstools.utils.aps_data_management import DEFAULT_UPLOAD_TIMEOUT, DEFAULT_UPLOAD_POLL_PERIOD
 
-from dm import (
-    EsafApsDbApi, BssApsDbApi, ExperimentDsApi, UserDsApi, ObjectAlreadyExists
-)
+from dm import EsafApsDbApi, BssApsDbApi, ExperimentDsApi, UserDsApi, ObjectAlreadyExists
 from datetime import datetime
 from numpy import unique
 from pathlib import Path
@@ -48,9 +44,7 @@ def get_processing_job_status(id=None, owner="user4idd"):
 
 
 def dm_upload(experiment_name, folder_path, **daqInfo):
-    return dm_api_daq().upload(
-        experiment_name, folder_path, daqInfo
-    )
+    return dm_api_daq().upload(experiment_name, folder_path, daqInfo)
 
 
 def dm_upload_info(id):
@@ -87,9 +81,7 @@ def dm_upload_wait(
         else:
             return
 
-    raise TimeoutError(
-        f"DM upload timed out after {time()-t0 :.1f} s."
-    )
+    raise TimeoutError(f"DM upload timed out after {time()-t0 :.1f} s.")
 
 
 def list_esafs(year=datetime.now().year, sector="04"):
@@ -112,9 +104,7 @@ def get_current_run():
     return bss_api.getCurrentRun()
 
 
-def dm_experiment_setup(
-    experiment_name, esaf_id=None, users_name_list: list = [], **kwargs
-):
+def dm_experiment_setup(experiment_name, esaf_id=None, users_name_list: list = [], **kwargs):
     # Gets the users from the ESAF.
     if esaf_id is not None:
         badges = get_esaf_users_badge(esaf_id)
@@ -128,18 +118,14 @@ def dm_experiment_setup(
     if kwargs.get("startDate", None) is None:
         kwargs["startDate"] = datetime.now().strftime("%d-%b-%y")
     if kwargs.get("endDate", None) is None:
-        kwargs["endDate"] = datetime.fromisoformat(
-            get_current_run()["endTime"]
-        ).strftime("%d-%b-%y")
+        kwargs["endDate"] = datetime.fromisoformat(get_current_run()["endTime"]).strftime("%d-%b-%y")
 
     exp = create_dm_experiment(experiment_name, **kwargs)
     users = add_dm_users(experiment_name, users_name_list)
     return exp, users
 
 
-def create_dm_experiment(
-    experiment_name, description="", rootPath=None, startDate=None, endDate=None
-):
+def create_dm_experiment(experiment_name, description="", rootPath=None, startDate=None, endDate=None):
     if rootPath is None:
         rootPath = get_current_run()["name"]
     return exp_api.addExperiment(
@@ -148,7 +134,7 @@ def create_dm_experiment(
         description=description,
         rootPath=rootPath,
         startDate=startDate,
-        endDate=endDate
+        endDate=endDate,
     )
 
 
@@ -157,9 +143,9 @@ def add_dm_users(experiment_name, users_name_list):
     output = []
     for user in ulist:
         try:
-            output.append(user_api.addUserExperimentRole(
-                username=user, roleName="User", experimentName=experiment_name
-            ))
+            output.append(
+                user_api.addUserExperimentRole(username=user, roleName="User", experimentName=experiment_name)
+            )
         except ObjectAlreadyExists:
             pass
     return output

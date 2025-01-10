@@ -24,16 +24,24 @@ import logging
 import os
 import bluesky.plan_stubs as bps
 from apstools.plans import run_blocking_function
+
 # from ..utils.monitoring import watch_counter
 # from .plan_blocks import watch_counter, count_subscriber
 from .dm_plans import dm_submit_workflow_job
 from ophyd.status import Status
-from ..configs.device_config_19id import scan1, savedata, xrf_me7, xrf_me7_hdf, xrf_dm_args, ptychoxrf_dm_args,  ptychodus_dm_args
+from ..configs.device_config_19id import (
+    scan1,
+    savedata,
+    xrf_me7,
+    xrf_me7_hdf,
+    xrf_dm_args,
+    ptychoxrf_dm_args,
+    ptychodus_dm_args,
+)
 from .workflow_plan import run_workflow
 from ..utils.dm_utils import dm_upload_wait
 from ..devices.data_management import api
 from apstools.devices import DM_WorkflowConnector
-
 
 
 logger = logging.getLogger(__name__)
@@ -41,11 +49,11 @@ logger.info(__file__)
 
 SCAN_OVERHEAD = 0.3
 det_name_mapping = {
-    "simdet": {"cam":None, "hdf":None},
-    "xrf_me7": {"cam":xrf_me7, "hdf":xrf_me7_hdf},
-    "preamp": {"cam":None, "hdf":None},
-    "fpga": {"cam":None, "hdf":None},
-    "ptycho": {"cam":None, "hdf":None},
+    "simdet": {"cam": None, "hdf": None},
+    "xrf_me7": {"cam": xrf_me7, "hdf": xrf_me7_hdf},
+    "preamp": {"cam": None, "hdf": None},
+    "fpga": {"cam": None, "hdf": None},
+    "ptycho": {"cam": None, "hdf": None},
 }
 
 
@@ -54,7 +62,7 @@ def selected_dets(**kwargs):
     rm_str = "_on"
     for k, v in kwargs.items():
         if all([v, isinstance(v, bool), rm_str in k]):
-            det_str = k[:-len(rm_str)]
+            det_str = k[: -len(rm_str)]
             dets.update({det_str: det_name_mapping[det_str]})
     #         dets.append(det_name_mapping[det_str])
     return dets
@@ -92,12 +100,16 @@ def fly1d(
     analysisMachine="mona2",
     eta=0,
 ):
+    """1D Bluesky plan that drives the flyable sample motor using ScanRecord"""
 
     ##TODO Close shutter while setting up scan parameters
 
-    logger.info(f"Using {scan1.prefix} as the outter scanRecord")
+    logger.info(f"Using {scan1.prefix} as the scanRecord")
     if scan1.connected:
         logger.info(f"{scan1.prefix} is connected")
+
+        """Set up scan mode to be FLY """
+        yield from scan1.set_scan_mode("FLY")
 
         """Set up scan parameters and get estimated time of a scan"""
         yield from scan1.set_center_width_stepsize(x_center, width, stepsize_x)
@@ -110,12 +122,12 @@ def fly1d(
         logger.info("Determining which detectors are selected")
         dets = selected_dets(**locals())
 
-        ##TODO Create folder for the desire file/data structure
+        """Create folder for the desire file/data structure"""
         basepath = savedata.get().file_system
         for det_name, det_var in dets.items():
             det_path = os.path.join(basepath, det_name)
             logger.info(f"Setting up {det_name} to have data saved at {det_path}")
-            hdf = det_var['hdf']
+            hdf = det_var["hdf"]
             if hdf is not None:
                 hdf.set_filepath(det_path)
 
@@ -126,41 +138,33 @@ def fly1d(
 
         ##TODO Assign the proper data path to the detector IOCs
 
+        # scan_active = False
+        # st = Status()
+        # monitor_progress = watch_counter(numpts_x)
 
-        def watch_counter(old_value, value, **kwargs):
-            if type(old_value) is not object:
-                if all([value > 0, value > old_value, value < numpts_x]):
-                    prog = round(100 * value / numpts_x, 2)
-                    logger.info(f"Scan progress: {prog}% done, scanned {value}/{numpts_x}")
+        # def watch_execute_scan(old_value, value, **kwargs):
+        #     logger.info(f"{scan_active=} {old_value=} {value=}")
+        #     if scan_active and old_value == 1 and value == 0:
+        #         st.set_finished()
+        #         print(f"FINISHED: {st=}")
+        #     elif scan_active and old_value == 1 and value == 1:
+        #         scan1.number_points_rbv.unsubscribe_all()
+        #         scan1.number_points_rbv.subscribe(monitor_progress)
 
-        def watch_execute_scan(old_value, value, **kwargs):
-            logger.info(f"{old_value=}, {value=}")
-            if old_value == 1 and value == 0:
-                print(f"{st=}")
-                scan1.execute_scan.clear_sub(watch_execute_scan)
-                scan1.number_points_rbv.unsubscribe(watch_counter)
-                st.set_finished()
-                print(f"{st=}")
-            elif old_value == 1 and value == 1:
-                # This will be the case when a previous scan is successfully exited
-                scan1.number_points_rbv.unsubscribe_all()
-                scan1.number_points_rbv.subscribe(watch_counter)
+        # """Start executing scan"""
+        # logger.info("Done setting up scan, about to start scan")
 
+        # logger.info("Start executing scan")
 
-        """Start executing scan"""
-        logger.info("Done setting up scan, about to start scan")
-        st = Status()
-        
-        yield from bps.mv(scan1.execute_scan, 1)  # Start scan
-        scan1.execute_scan.subscribe(watch_execute_scan)  # Subscribe to the scan
-        yield from bps.sleep(1)
-        yield from run_blocking_function(st.wait)
-
-        # scan1.number_points_rbv.unsubscribe(watch_counter)
-        # yield from bps.sleep(1)  # Empirical, for the IOC
-        # yield from count_subscriber(scan1.number_points_rbv, scan1.number_points.get())  # Counter Subscriber
-    
-        # scan1.number_points_rbv.unsubscribe_all()
+        # scan1.execute_scan.subscribe(watch_execute_scan)  # Subscribe to the scan
+        # try:
+        #     yield from bps.mv(scan1.execute_scan, 1)  # Start scan
+        #     scan_active = True
+        #     yield from run_blocking_function(st.wait)
+        # finally:
+        #     scan1.number_points_rbv.unsubscribe_all()
+        #     scan1.execute_scan.unsubscribe_all()
+        # logger.info("Done executing scan")
 
         #############################
         # START THE APS DM WORKFLOW #
@@ -178,9 +182,9 @@ def fly1d(
             else:
                 WORKFLOW = "ptychodus"
                 argsDict = ptychodus_dm_args.copy()
-            
+
             ##TODO Modify argsDict accordingly based on the scan parameters
-            argsDict['analysisMachine'] = analysisMachine
+            argsDict["analysisMachine"] = analysisMachine
 
             yield from dm_submit_workflow_job(WORKFLOW, argsDict)
             logger.info(f"{len(api.listProcessingJobs())=!r}")
