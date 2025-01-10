@@ -12,6 +12,7 @@ __all__ = """
 
 import logging
 import os
+from ..utils.scan_monitor import execute_scan
 import bluesky.plan_stubs as bps
 from apstools.plans import run_blocking_function
 from .dm_plans import dm_submit_workflow_job
@@ -69,7 +70,7 @@ def selected_dets(kwargs):
 #         )
 
 
-def generalized_scan_1d(scanrecord, positioner, scanmode="LINEAR", **kwargs):
+def generalized_scan_1d(scanrecord, positioner, scanmode="LINEAR", exec_plan=False, **kwargs):
     logger.info(f"Using {scanrecord.prefix} as the scanRecord")
     logger.info(f"Using {positioner.prefix} as the motor")
     if scanrecord.connected and positioner.connected:
@@ -110,33 +111,9 @@ def generalized_scan_1d(scanrecord, positioner, scanmode="LINEAR", **kwargs):
 
     #     ##TODO Assign the proper data path to the detector IOCs
 
-    #     # scan_active = False
-    #     # st = Status()
-    #     # monitor_progress = watch_counter(numpts_x)
-
-    #     # def watch_execute_scan(old_value, value, **kwargs):
-    #     #     logger.info(f"{scan_active=} {old_value=} {value=}")
-    #     #     if scan_active and old_value == 1 and value == 0:
-    #     #         st.set_finished()
-    #     #         print(f"FINISHED: {st=}")
-    #     #     elif scan_active and old_value == 1 and value == 1:
-    #     #         scan1.number_points_rbv.unsubscribe_all()
-    #     #         scan1.number_points_rbv.subscribe(monitor_progress)
-
-    #     # """Start executing scan"""
-    #     # logger.info("Done setting up scan, about to start scan")
-
-    #     # logger.info("Start executing scan")
-
-    #     # scan1.execute_scan.subscribe(watch_execute_scan)  # Subscribe to the scan
-    #     # try:
-    #     #     yield from bps.mv(scan1.execute_scan, 1)  # Start scan
-    #     #     scan_active = True
-    #     #     yield from run_blocking_function(st.wait)
-    #     # finally:
-    #     #     scan1.number_points_rbv.unsubscribe_all()
-    #     #     scan1.execute_scan.unsubscribe_all()
-    #     # logger.info("Done executing scan")
+        """Start executing scan"""
+        if exec_plan:
+            yield from execute_scan(scanrecord, scanrecord.number_points.value)
 
     #     #############################
     #     # START THE APS DM WORKFLOW #

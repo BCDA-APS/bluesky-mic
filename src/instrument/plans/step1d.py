@@ -19,16 +19,7 @@ from ..utils.dm_utils import dm_upload_wait
 from ..devices.data_management import api
 from apstools.devices import DM_WorkflowConnector
 from .dm_plans import dm_submit_workflow_job
-from ..configs.device_config_19id import (
-    scan1,
-    samx,
-    savedata,
-    xrf_me7,
-    xrf_me7_hdf,
-    xrf_dm_args,
-    ptychoxrf_dm_args,
-    ptychodus_dm_args,
-)
+from ..configs.device_config_19id import scan1, samx
 
 
 logger = logging.getLogger(__name__)
