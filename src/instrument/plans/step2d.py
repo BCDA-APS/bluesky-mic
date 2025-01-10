@@ -7,31 +7,36 @@ Creating a bluesky plan that interacts with Scan Record.
 """
 
 __all__ = """
-    step1d
+    step2d
 """.split()
 
 import logging
 import os
 from .generallized_scan_1d import generalized_scan_1d
-from ..utils.scan_monitor import execute_scan_1d
+from ..utils.scan_monitor import execute_scan_2d
 from .workflow_plan import run_workflow
 from ..utils.dm_utils import dm_upload_wait
 from ..devices.data_management import api
 from apstools.devices import DM_WorkflowConnector
 from .dm_plans import dm_submit_workflow_job
-from ..configs.device_config_19id import scan1, samx, savedata
+from ..configs.device_config_19id import scan1, scan2, samx, samy, savedata
 
 
 logger = logging.getLogger(__name__)
 logger.info(__file__)
 
+scanmode = "LINEAR"
 
-def step1d(
+
+def step2d(
     samplename="smp1",
     user_comments="",
     width=0,
     x_center=None,
     stepsize_x=0,
+    height=0,
+    y_center=None,
+    stepsize_y=0,
     dwell=0,
     smp_theta=None,
     simdet_on=False,
@@ -44,15 +49,21 @@ def step1d(
     analysisMachine="mona2",
     eta=0,
 ):
-    """1D Bluesky plan that drives the a sample motor in stepping mode using ScanRecord"""
+    """2D Bluesky plan that drives the x- and y- sample motors in stepping mode using ScanRecord"""
 
     ##TODO Close shutter while setting up scan parameters
 
-    """Set up scan record based on the scan types and parameters"""
-    yield from generalized_scan_1d(scan1, samx, scanmode="LINEAR", **locals())
+    """Set up the inner loop scan record based on the scan types and parameters"""
+    yield from generalized_scan_1d(scan1, samx, scanmode=scanmode, **locals())
+
+    """Set up the outter loop scan record"""
+    yield from scan2.set_scan_mode(scanmode)
+    yield from scan2.set_positioner_drive(f"{samy.prefix}.VAL")
+    yield from scan2.set_positioner_readback(f"{samy.prefix}.RBV")
+    yield from scan2.set_center_width_stepsize(y_center, height, stepsize_y)
 
     """Start executing scan"""
-    yield from execute_scan_1d(scan1, scan_name=savedata.get().full_name)
+    yield from execute_scan_2d(scan1, scan2, scan_name=savedata.get().full_name)
 
     #     #############################
     #     # START THE APS DM WORKFLOW #

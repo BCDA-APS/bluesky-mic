@@ -12,7 +12,7 @@ __all__ = """
 
 import logging
 import os
-from ..utils.scan_monitor import execute_scan
+from ..utils.scan_monitor import execute_scan_1d
 import bluesky.plan_stubs as bps
 from apstools.plans import run_blocking_function
 from .dm_plans import dm_submit_workflow_job
@@ -104,16 +104,16 @@ def generalized_scan_1d(scanrecord, positioner, scanmode="LINEAR", exec_plan=Fal
             if hdf is not None:
                 hdf.set_filepath(det_path)
 
-    #     # ##TODO Based on the selected detector, setup DetTriggers in inner scanRecord
-    #     # for i, d in enumerate(dets):
-    #     #     cmd = f"yield from bps.mv(scan1.triggers.t{i}.trigger_pv, {d.Acquire.pvname}"
-    #     #     eval(cmd)
+    # #     # ##TODO Based on the selected detector, setup DetTriggers in inner scanRecord
+    # #     # for i, d in enumerate(dets):
+    # #     #     cmd = f"yield from bps.mv(scan1.triggers.t{i}.trigger_pv, {d.Acquire.pvname}"
+    # #     #     eval(cmd)
 
-    #     ##TODO Assign the proper data path to the detector IOCs
+    # #     ##TODO Assign the proper data path to the detector IOCs
 
-        """Start executing scan"""
-        if exec_plan:
-            yield from execute_scan(scanrecord, scanrecord.number_points.value)
+    #     """Start executing scan"""
+    #     if exec_plan:
+    #         yield from execute_scan(scanrecord, scanrecord.number_points.value)
 
     #     #############################
     #     # START THE APS DM WORKFLOW #

@@ -4,6 +4,8 @@
 # from .fly2d_2idsft import fly2d  # noqa: F401
 from .fly1d import fly1d
 from .step1d import step1d
+from .step2d import step2d
+from .dummy_plan import dummy_testing
 from .generallized_scan_1d import generalized_scan_1d
 from .launch_dm import run_dm_analysis
 from .profile_move_scan import profile_move_isn  # noqa: F401

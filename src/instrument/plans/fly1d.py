@@ -23,17 +23,18 @@ __all__ = """
 import logging
 import os
 from .generallized_scan_1d import generalized_scan_1d
-from ..utils.scan_monitor import execute_scan
+from ..utils.scan_monitor import execute_scan_1d
 from .workflow_plan import run_workflow
 from ..utils.dm_utils import dm_upload_wait
 from ..devices.data_management import api
 from apstools.devices import DM_WorkflowConnector
 from .dm_plans import dm_submit_workflow_job
-from ..configs.device_config_19id import scan1, samx
+from ..configs.device_config_19id import scan1, samx, savedata
 
 
 logger = logging.getLogger(__name__)
 logger.info(__file__)
+
 
 def fly1d(
     samplename="smp1",
@@ -61,8 +62,7 @@ def fly1d(
     yield from generalized_scan_1d(scan1, samx, scanmode="FLY", **locals())
 
     """Start executing scan"""
-    yield from execute_scan(scan1, scan1.number_points.value)
-
+    yield from execute_scan_1d(scan1, scan_name=savedata.get().full_name)
 
     #     #############################
     #     # START THE APS DM WORKFLOW #
