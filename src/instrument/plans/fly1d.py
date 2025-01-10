@@ -25,8 +25,6 @@ import os
 import bluesky.plan_stubs as bps
 from apstools.plans import run_blocking_function
 
-# from ..utils.monitoring import watch_counter
-# from .plan_blocks import watch_counter, count_subscriber
 from .dm_plans import dm_submit_workflow_job
 from ophyd.status import Status
 from ..configs.device_config_19id import (
