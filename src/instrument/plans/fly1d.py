@@ -29,7 +29,7 @@ from ..utils.dm_utils import dm_upload_wait
 from ..devices.data_management import api
 from apstools.devices import DM_WorkflowConnector
 from .dm_plans import dm_submit_workflow_job
-from ..configs.device_config_19id import scan1, samx, savedata
+from ..configs.device_config_2idduprobe import fscanh, fscanh_samx, savedata
 
 
 logger = logging.getLogger(__name__)
@@ -59,11 +59,13 @@ def fly1d(
     ##TODO Close shutter while setting up scan parameters
 
     """Set up scan record based on the scan types and parameters"""
-    yield from generalized_scan_1d(scan1, samx, scanmode="FLY", **locals())
+    yield from generalized_scan_1d(fscanh, fscanh_samx, scanmode="FLY", **locals())
+    yield from fscanh.set_positioner_drive(f"{fscanh_samx.pvname}")
+    yield from fscanh.set_positioner_readback("")
 
     """Start executing scan"""
     savedata.update_next_file_name()
-    yield from execute_scan_1d(scan1, scan_name=savedata.next_file_name)
+    yield from execute_scan_1d(fscanh, scan_name=savedata.next_file_name)
 
     #     #############################
     #     # START THE APS DM WORKFLOW #

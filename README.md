@@ -18,6 +18,9 @@ conda activate $ENV_NAME
 pip install -e ."[all]"
 ```
 
+Install DM via conda
+`conda install apsu::aps-dm-api`
+
 ## IPython console
 To start the bluesky instrument session in a ipython execute the below command in a terminal
 ```bash

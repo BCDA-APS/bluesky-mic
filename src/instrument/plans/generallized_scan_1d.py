@@ -17,7 +17,7 @@ import bluesky.plan_stubs as bps
 from apstools.plans import run_blocking_function
 from .dm_plans import dm_submit_workflow_job
 from ophyd.status import Status
-from ..configs.device_config_19id import (
+from ..configs.device_config_2idduprobe import (
     scan1,
     savedata,
     xrf_me7,
@@ -72,17 +72,22 @@ def selected_dets(kwargs):
 
 def generalized_scan_1d(scanrecord, positioner, scanmode="LINEAR", exec_plan=False, **kwargs):
     logger.info(f"Using {scanrecord.prefix} as the scanRecord")
-    logger.info(f"Using {positioner.prefix} as the motor")
+    logger.info(f"Using {positioner} as the motor")
     if scanrecord.connected and positioner.connected:
         logger.info(f"{scanrecord.prefix} is connected")
-        logger.info(f"{positioner.prefix} is connected")
+        logger.info(f"{positioner} is connected")
 
         """Set up scan mode to be FLY """
         yield from scanrecord.set_scan_mode(scanmode)
 
         """Assign the desired positioner in scanrecord """
-        yield from scanrecord.set_positioner_drive(f"{positioner.prefix}.VAL")
-        yield from scanrecord.set_positioner_readback(f"{positioner.prefix}.RBV")
+        try:
+            yield from scanrecord.set_positioner_drive(f"{positioner.prefix}.VAL")
+            yield from scanrecord.set_positioner_readback(f"{positioner.prefix}.RBV")
+        except Exception as e:
+            logger.info(f"Fail to set positioner in {scanrecord.prefix} due to {e}")
+            yield from scanrecord.set_positioner_drive(f"{positioner.pvname}")
+            yield from scanrecord.set_positioner_readback(f"{positioner.pvname}")
 
         """Set up scan parameters and get estimated time of a scan"""
         yield from scanrecord.set_center_width_stepsize(kwargs["x_center"], kwargs["width"], kwargs["stepsize_x"])
@@ -100,8 +105,7 @@ def generalized_scan_1d(scanrecord, positioner, scanmode="LINEAR", exec_plan=Fal
             cam = det_var["cam"]
             if cam is not None:
                 try:
-                    yield from cam.scan_init(exposure_time = kwargs["dwell"], 
-                                            num_images = numpts_x)
+                    yield from cam.scan_init(exposure_time=kwargs["dwell"], num_images=numpts_x)
                 except Exception as e:
                     logger.error(f"Error occurs when setting up {cam.prefix}: {e}")
 
@@ -120,7 +124,6 @@ def generalized_scan_1d(scanrecord, positioner, scanmode="LINEAR", exec_plan=Fal
                     yield from hdf.set_filenumber(next_scan_number)
                 except Exception as e:
                     logger.error(f"Error occurs when setting up {savedata.prefix}: {e}")
-
 
     # #     # ##TODO Based on the selected detector, setup DetTriggers in inner scanRecord
     # #     # for i, d in enumerate(dets):
