@@ -58,8 +58,8 @@ AREA_DETECTOR:
   
     AD_XSP3_8Chan:
       NAME: xrf_me7
-      PV_PREFIX: "XSP3_8Chan:det1:"
-      HDF5_PV_PREFIX: "XSP3_8Chan:HDF1:"
+      PV_PREFIX: "XSP3_7Chan:det1:"
+      HDF5_PV_PREFIX: "XSP3_7Chan:HDF1:"
 
     AD_XSP3_12Chan:
       NAME: xrf_bse

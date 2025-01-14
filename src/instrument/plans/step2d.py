@@ -63,7 +63,8 @@ def step2d(
     yield from scan2.set_center_width_stepsize(y_center, height, stepsize_y)
 
     """Start executing scan"""
-    yield from execute_scan_2d(scan1, scan2, scan_name=savedata.get().full_name)
+    savedata.update_next_file_name()
+    yield from execute_scan_2d(scan1, scan2, scan_name=savedata.next_file_name)
 
     #     #############################
     #     # START THE APS DM WORKFLOW #

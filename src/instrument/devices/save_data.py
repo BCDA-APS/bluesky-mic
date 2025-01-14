@@ -15,9 +15,15 @@ logger.info(__file__)
 
 
 class SaveDataMic(SaveData):
+    next_file_name = ""
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
+
+    def update_next_file_name(self):
+        self.next_file_name = f"{self.get().base_name}{self.get().next_scan_number}.mda"
+        logger.info(f"Next mda file is: {self.next_file_name}")
+        
 
     @value_setter("file_system")
     def set_file_system(self, path):

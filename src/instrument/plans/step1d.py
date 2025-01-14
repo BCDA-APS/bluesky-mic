@@ -52,7 +52,8 @@ def step1d(
     yield from generalized_scan_1d(scan1, samx, scanmode="LINEAR", **locals())
 
     """Start executing scan"""
-    yield from execute_scan_1d(scan1, scan_name=savedata.get().full_name)
+    savedata.update_next_file_name()
+    yield from execute_scan_1d(scan1, scan_name=savedata.next_file_name)
 
     #     #############################
     #     # START THE APS DM WORKFLOW #

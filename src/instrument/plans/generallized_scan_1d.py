@@ -95,14 +95,32 @@ def generalized_scan_1d(scanrecord, positioner, scanmode="LINEAR", exec_plan=Fal
         logger.info("Determining which detectors are selected")
         dets = selected_dets(kwargs)
 
+        """Initialize detector with desired pts and exposure time """
+        for det_name, det_var in dets.items():
+            cam = det_var["cam"]
+            if cam is not None:
+                try:
+                    yield from cam.scan_init(exposure_time = kwargs["dwell"], 
+                                            num_images = numpts_x)
+                except Exception as e:
+                    logger.error(f"Error occurs when setting up {cam.prefix}: {e}")
+
         """Create folder for the desire file/data structure"""
         basepath = savedata.get().file_system
+        basename = savedata.get().base_name
+        next_scan_number = savedata.get().next_scan_number
         for det_name, det_var in dets.items():
             det_path = os.path.join(basepath, det_name)
             logger.info(f"Setting up {det_name} to have data saved at {det_path}")
             hdf = det_var["hdf"]
             if hdf is not None:
-                hdf.set_filepath(det_path)
+                try:
+                    yield from hdf.set_filepath(det_path)
+                    yield from hdf.set_filename(basename)
+                    yield from hdf.set_filenumber(next_scan_number)
+                except Exception as e:
+                    logger.error(f"Error occurs when setting up {savedata.prefix}: {e}")
+
 
     # #     # ##TODO Based on the selected detector, setup DetTriggers in inner scanRecord
     # #     # for i, d in enumerate(dets):
