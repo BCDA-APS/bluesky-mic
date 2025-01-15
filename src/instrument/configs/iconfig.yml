@@ -42,23 +42,18 @@ POSITIONERS:
   Z_MOTOR: "2idd:m36"
   ENERGY: "2ida2:BraggEAO"
 
-AREA_DETECTOR:
+DETECTOR:
     ### General configuration for area detectors.
-    ## Config for xmap + its hdf path
     ALLOW_PLUGIN_WARMUP: true
     BLUESKY_FILES_ROOT: &BLUESKY_DATA_ROOT "/path/to/data/"
     IMAGE_DIR: "sub/directory/path"
     HDF5_FILE_TEMPLATE: "%s%s_%6.6d.h5"
   
-    AD_XSP3_8Chan:
-      NAME: xrf_me7
-      PV_PREFIX: "XSP3_7Chan:det1:"
-      HDF5_PV_PREFIX: "XSP3_7Chan:HDF1:"
-
-    AD_XSP3_12Chan:
-      NAME: xrf_bse
-      PV_PREFIX: "XSP3_12Chan:det1:"
-      HDF5_PV_PREFIX: "XSP3_12Chan:HDF1:"
+    XMAP_1Chan:
+      NAME: xrf
+      PV_PREFIX: "2iddXMAP:"
+      NETCDF_PV_PREFIX: "2iddXMAP:netCDF1:"
+      NETCDF_BASEPATH: "W:\\2idd\\"
 
     AD_EIGER_PTYCHO:
       NAME: eiger_ptycho

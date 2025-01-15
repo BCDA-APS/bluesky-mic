@@ -13,15 +13,10 @@ __all__ = """
 import logging
 import os
 from ..utils.scan_monitor import execute_scan_1d
-import bluesky.plan_stubs as bps
-from apstools.plans import run_blocking_function
 from .dm_plans import dm_submit_workflow_job
-from ophyd.status import Status
-from ..configs.device_config_2idduprobe import (
-    scan1,
+from ..configs.device_config import (
     savedata,
-    xrf_me7,
-    xrf_me7_hdf,
+    xrf,
     xrf_dm_args,
     ptychoxrf_dm_args,
     ptychodus_dm_args,
@@ -37,11 +32,11 @@ logger.info(__file__)
 
 SCAN_OVERHEAD = 0.3
 det_name_mapping = {
-    "simdet": {"cam": None, "hdf": None},
-    "xrf_me7": {"cam": xrf_me7, "hdf": xrf_me7_hdf},
-    "preamp": {"cam": None, "hdf": None},
-    "fpga": {"cam": None, "hdf": None},
-    "ptycho": {"cam": None, "hdf": None},
+    "simdet": {"cam": None, "file_plugin": None},
+    "xrf": {"cam": xrf, "file_plugin": None},
+    "preamp": {"cam": None, "file_plugin": None},
+    "fpga": {"cam": None, "file_plugin": None},
+    "ptycho": {"cam": None, "file_plugin": None},
 }
 
 
@@ -116,25 +111,26 @@ def generalized_scan_1d(scanrecord, positioner, scanmode="LINEAR", exec_plan=Fal
         for det_name, det_var in dets.items():
             det_path = os.path.join(basepath, det_name)
             logger.info(f"Setting up {det_name} to have data saved at {det_path}")
-            hdf = det_var["hdf"]
-            if hdf is not None:
+            file_plugin = det_var["file_plugin"]
+            if file_plugin is not None:
                 try:
-                    yield from hdf.set_filepath(det_path)
-                    yield from hdf.set_filename(basename)
-                    yield from hdf.set_filenumber(next_scan_number)
+                    yield from file_plugin.set_filepath(det_path)
+                    yield from file_plugin.set_filename(basename)
+                    yield from file_plugin.set_filenumber(next_scan_number)
                 except Exception as e:
                     logger.error(f"Error occurs when setting up {savedata.prefix}: {e}")
 
-    # #     # ##TODO Based on the selected detector, setup DetTriggers in inner scanRecord
-    # #     # for i, d in enumerate(dets):
-    # #     #     cmd = f"yield from bps.mv(scan1.triggers.t{i}.trigger_pv, {d.Acquire.pvname}"
-    # #     #     eval(cmd)
+        # #     # ##TODO Based on the selected detector, setup DetTriggers in inner scanRecord
+        # #     # for i, d in enumerate(dets):
+        # #     #     cmd = f"yield from bps.mv(scan1.triggers.t{i}.trigger_pv, {d.Acquire.pvname}"
+        # #     #     eval(cmd)
 
-    # #     ##TODO Assign the proper data path to the detector IOCs
+        # #     ##TODO Assign the proper data path to the detector IOCs
 
-    #     """Start executing scan"""
-    #     if exec_plan:
-    #         yield from execute_scan(scanrecord, scanrecord.number_points.value)
+        """Start executing scan"""
+        if exec_plan:
+            savedata.update_next_file_name()
+            yield from execute_scan_1d(scanrecord, scan_name=savedata.next_file_name)
 
     #     #############################
     #     # START THE APS DM WORKFLOW #

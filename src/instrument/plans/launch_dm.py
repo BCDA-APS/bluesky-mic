@@ -24,7 +24,7 @@ import logging
 import os
 import bluesky.plan_stubs as bps
 from .dm_plans import dm_submit_workflow_job
-from ..configs.device_config_2idduprobe import xrf_dm_args, ptychoxrf_dm_args, ptychodus_dm_args
+from ..configs.device_config import xrf_dm_args, ptychoxrf_dm_args, ptychodus_dm_args
 from .workflow_plan import run_workflow
 from ..devices.data_management import api
 from apstools.devices import DM_WorkflowConnector
