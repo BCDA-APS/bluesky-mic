@@ -24,6 +24,7 @@ class ScanMonitor:
     line_time_out = 0
     line_delta = 0
     scan_time_remaining = 0
+    outter_print_msg = False
 
     def __init__(self, numpts_x=None, scan_name=None, numpts_y=0):
         self.scan_active = False
@@ -40,10 +41,16 @@ class ScanMonitor:
 
     def watch_counter_outter(self, old_value, value, **kwargs):
         if self.counter_active:
-            self.current_line = value
-            if value > 1:
+            if value >= 1:
                 self.update_eta()
                 self.scan_time_remaining = round((self.numpts_y - value) * self.line_delta, 2)
+                self.current_line = value
+                if self.outter_print_msg:
+                    prog = round(100 * value / self.numpts_y, 2)
+                    msg = f"Scan_progress: {self.scan_name}: {prog}% : "
+                    msg += f"scanned {value}/{self.numpts_y} : scan_remaining {self.scan_time_remaining} : "
+                    msg += f"line_eta {self.line_delta}"
+                    logger.info(msg)
 
     def watch_counter_inner(self, old_value, value, **kwargs):
         if self.counter_active and self.numpts_x is not None:
@@ -52,8 +59,8 @@ class ScanMonitor:
                     self.update_eta()
                     self.scan_time_remaining = round((self.numpts_x - value) * self.line_delta, 2)
                     prog = round(100 * value / self.numpts_x, 2)
-                    msg = f"Scan progress: {self.scan_name}: {prog}% : "
-                    msg += f"line 1/1 : scan remaining {self.scan_time_remaining} : "
+                    msg = f"Scan_progress: {self.scan_name}: {prog}% : "
+                    msg += f"line 1/1 : scan_remaining {self.scan_time_remaining} : "
                     msg += f"scanned {value}/{self.numpts_x}"
                     logger.info(msg)
                     # logger.info(f"Scan progress: {self.scan_name}: {prog}% :, scanned {value}/{self.numpts_x}")
@@ -61,9 +68,11 @@ class ScanMonitor:
                     prog = round(
                         100 * (self.numpts_x * self.current_line + value) / (self.numpts_x * self.numpts_y), 2
                     )
-                    msg = f"Scan progress: {self.scan_name}: {prog}% : "
-                    msg += f"line {self.current_line}/{self.numpts_y} : scan remaining {self.scan_time_remaining} : "
-                    msg += f"line eta {self.line_delta} : "
+                    msg = f"Scan_progress: {self.scan_name}: {prog}% : "
+                    msg += (
+                        f"line {self.current_line}/{self.numpts_y} : scan_remaining {self.scan_time_remaining} : "
+                    )
+                    msg += f"line_eta {self.line_delta} : "
                     msg += f"scanned {value}/{self.numpts_x}"
 
                     logger.info(msg)
@@ -96,10 +105,11 @@ def execute_scan_1d(scan1, scan_name=""):
     logger.info("Done executing scan")
 
 
-def execute_scan_2d(inner_scan, outter_scan, scan_name=""):
+def execute_scan_2d(inner_scan, outter_scan, print_outter_msg=False, scan_name=""):
     watcher = ScanMonitor(
         numpts_x=inner_scan.number_points.value, numpts_y=outter_scan.number_points.value, scan_name=scan_name
     )
+    watcher.outter_print_msg = print_outter_msg
 
     logger.info("Done setting up scan, about to start scan")
     logger.info("Start executing scan")
