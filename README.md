@@ -53,9 +53,10 @@ See this [example](./docs/source/demo.ipynb).
 
 ## Configuration files
 The files that can be configured to adhere to your preferences are:
-- `configs/iconfig.yml` - configuration for data collection
+- `configs/iconfig.yml` - configuration for data collection including beamline devices' PV names and other parameters
 - `configs/logging.yml` - configuration for session logging to console and/or files
 - `qs/qs-config.yml`    - contains all configuration of the QS host process. See the [documentation](https://blueskyproject.io/bluesky-queueserver/manager_config.html) for more details of the configuration.
+- `configs/device_config.py` - configuration for creating and importing device objects in Bluesky RE environment
 
 ## queueserver
 
