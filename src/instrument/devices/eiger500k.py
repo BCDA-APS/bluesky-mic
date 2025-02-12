@@ -2,7 +2,7 @@
 
 from ophyd import EigerDetectorCam
 from .utils import mode_setter, value_setter
-
+from ophyd import Component, EpicsSignal
 
 class Eiger500k(EigerDetectorCam):
     
@@ -13,6 +13,7 @@ class Eiger500k(EigerDetectorCam):
     save_files = Component(EpicsSignal, ".SaveFiles")
 
     def setup_external_enable_trigger(self):
+        pass
 
     def set_trigger_mode(self, mode):
         pass
