@@ -11,8 +11,8 @@ DATABROKER_CATALOG: &databroker_catalog temp
 ### RunEngine configuration
 RUN_ENGINE:
     DEFAULT_METADATA:
-        beamline_id: 2IDD
-        instrument_name: XSD 2IDD-microprobe
+        beamline_id: 2IDE
+        instrument_name: XSD 2IDE-microprobe
         proposal_id: commissioning
         databroker_catalog: *databroker_catalog
 
@@ -29,18 +29,19 @@ RUN_ENGINE:
 STORAGE_PATH: "//micdata/data1/2idd/2025-1"
 
 DEVICES:
-  TETRAMM1: "19idBPM:C:T4U"
-  SAVE_DATA: "2idd:saveData_"
-  SCAN1: "2idd:scan1"
-  SCAN2: "2idd:scan2"
-  FSCAN1: "2idd:Fscan1"
-  FSCANH: "2idd:FscanH"
+  TETRAMM1: "2ide:TMM1"
+  SAVE_DATA: "2xfmS1:saveData_"
+  SCAN1: "2xfmS1:scan1"
+  SCAN2: "2xfmS1:scan2"
+  FSCAN1: "2xfm:Fscan1"
+  FSCANH: "2xfm:FscanH"
 
 POSITIONERS:
-  X_MOTOR: "2idd:m40"
-  Y_MOTOR: "2idd:m39"
-  Z_MOTOR: "2idd:m36"
-  ENERGY: "2ida2:BraggEAO"
+  X_MOTOR: "2xfm:m57"
+  Y_MOTOR: "2xfm:m13"
+  Z_MOTOR: "2xfm:m59"
+  THETA_MOTOR: "2xfm:m60"
+  ENERGY: "2ide:BraggEAO"
 
 DETECTOR:
     ### General configuration for area detectors.
@@ -49,22 +50,29 @@ DETECTOR:
     IMAGE_DIR: "sub/directory/path"
     HDF5_FILE_TEMPLATE: "%s%s_%6.6d.h5"
   
-    XMAP_1Chan:
+    XMAP_4Chan:
       NAME: xrf
-      PV_PREFIX: "2iddXMAP:"
-      NETCDF_PV_PREFIX: "2iddXMAP:netCDF1:"
-      NETCDF_BASEPATH: "W:\\2idd\\"
+      PV_PREFIX: "dxpXMAP2xfm3:"
+      NETCDF_PV_PREFIX: "dxpXMAP2xfm3:netCDF1:"
+
+    SIS3820:
+      NAME: sis3820
+      PV_PREFIX: "2xfm:mcs:"
 
     AD_EIGER_PTYCHO:
       NAME: eiger_ptycho
-      PV_PREFIX: "temp"
+      PV_PREFIX: "2ideEGR:cam1:"
+      
 
-    AD_EIGER_DIFFRACTION:
-      NAME: eigher_xrd
-      PV_PREFIX: "temp"
 
 USERCALC:
-  FSCANH_POSITIONER: "2idd:userCalc9.A"
+  FSCANH_POSITIONER: "2xfm:FLYuserCalc10.A"
+  STEPSCAN_DWELL: "2xfm:userTran1.P"
+  FLYSCAN_DWELL: "2xfm:Flyscans:Setup:DwellTime.VAL"
+
+
+OTHER_SIGNALS:
+  HYDRA1_STARTPOSITION: "2xfm:Hydra1:StartPosition.VAL"
 
     ### Add configuration for specific detector(s).
     ### Suggestion:

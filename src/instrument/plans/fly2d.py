@@ -24,7 +24,7 @@ from ..configs.device_config import fscan1, fscanh, fscanh_samx, samy, savedata
 
 logger = logging.getLogger(__name__)
 logger.info(__file__)
-
+NETCDF_DELIMITER = "2ide"
 
 def fly2d(
     samplename="smp1",
@@ -52,7 +52,9 @@ def fly2d(
     ##TODO Close shutter while setting up scan parameters
 
     """Set up scan record based on the scan types and parameters"""
-    yield from generalized_scan_1d(fscanh, fscanh_samx, scanmode="FLY", **locals())
+    yield from generalized_scan_1d(fscanh, fscanh_samx, scanmode="FLY",
+                                   netcdf_delimiter=NETCDF_DELIMITER, 
+                                   **locals())
     yield from fscanh.set_positioner_drive(f"{fscanh_samx.pvname}")
     yield from fscanh.set_positioner_readback("")
 

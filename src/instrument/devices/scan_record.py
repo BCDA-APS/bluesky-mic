@@ -27,6 +27,7 @@ class ScanRecord(SscanRecord):
     stepsize = Component(EpicsSignal, ".P1SI")
     width = Component(EpicsSignal, ".P1WD")
     number_points_rbv = Component(EpicsSignal, ".CPT")
+    start_position = Component(EpicsSignal, ".P1SP")
     # filesystem = Component(EpicsSignal, ".saveData_fileSystem")
     # basename = Component(EpicsSignal, ".saveData_baseName")
 
@@ -71,5 +72,13 @@ class ScanRecord(SscanRecord):
         pass
 
     @value_setter("pos_readback")
-    def set_positioner_readback(sefl, positioner_rbv):
+    def set_positioner_readback(self, positioner_rbv):
+        pass
+
+    @value_setter("bspv")
+    def set_bspv(self, beforescan_pv):
+        pass
+
+    @value_setter("aspv")
+    def set_aspv(self, afterscan_pv):
         pass

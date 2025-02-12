@@ -19,12 +19,12 @@ from ..utils.dm_utils import dm_upload_wait
 from ..devices.data_management import api
 from apstools.devices import DM_WorkflowConnector
 from .dm_plans import dm_submit_workflow_job
-from ..configs.device_config import scan1, samx, savedata
+from ..configs.device_config import scan1, samx, savedata, xrf
 
 
 logger = logging.getLogger(__name__)
 logger.info(__file__)
-
+NETCDF_DELIMITER = "2ide"
 
 def step1d(
     samplename="smp1",
@@ -35,7 +35,7 @@ def step1d(
     dwell=0,
     smp_theta=None,
     simdet_on=False,
-    xrf_me7_on=True,
+    xrf_on=True,
     ptycho_on=False,
     preamp_on=False,
     fpga_on=False,
@@ -49,11 +49,18 @@ def step1d(
     ##TODO Close shutter while setting up scan parameters
 
     """Set up scan record based on the scan types and parameters"""
-    yield from generalized_scan_1d(scan1, samx, scanmode="LINEAR", **locals())
+    yield from generalized_scan_1d(scan1, samx, scanmode="LINEAR", 
+                                   netcdf_delimiter=NETCDF_DELIMITER,
+                                   **locals())
+    yield from scan1.set_bspv("")
+    yield from scan1.set_aspv("")
 
     """Start executing scan"""
     savedata.update_next_file_name()
     yield from execute_scan_1d(scan1, scan_name=savedata.next_file_name)
+
+    """Set up XRF XMAP after inner loop"""
+    yield from xrf.stepscan_after()
 
     #     #############################
     #     # START THE APS DM WORKFLOW #

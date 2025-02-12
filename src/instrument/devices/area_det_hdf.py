@@ -6,11 +6,9 @@ Created on Dec 03 2024
 """
 
 from ophyd.areadetector.plugins import HDF5Plugin
+from ophyd.areadetector.plugins import NetCDFPlugin
 from ..devices.utils import mode_setter, value_setter
 import os
-
-# import bluesky.plan_stubs as bps
-# from functools import wraps
 import logging
 
 
@@ -18,15 +16,25 @@ logger = logging.getLogger(__name__)
 logger.info(__file__)
 
 
-class DetHDF5(HDF5Plugin):
-
+class DetBase:
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
 
-    def set_filepath(self, path):
-        success = self._validate_path(path)
-        if success:
-            yield from self._filepath(path)
+    def sync_file_path(self, savedatapath, delimiter):
+        p1 = self.file_path.get()
+        p1_split = p1.split(delimiter)
+        p2_split = savedatapath.split(delimiter)
+        p1_new = p1_split[0] + delimiter + p2_split[-1]
+        return p1_new
+
+    # def set_filepath(self, path):
+    #     yield from self._filepath(path)
+    #     if self.file_path_exists.get():
+    #         logger.info(f"File path is set to {self.file_path.get()}")
+    #         return 1
+    #     else:
+    #         logger.info(f"File {self.file_path.get()} does not exist")
+    #         return 0
 
     @value_setter("file_name")
     def set_filename(self, filename):
@@ -36,24 +44,24 @@ class DetHDF5(HDF5Plugin):
     def set_filenumber(self, filenumber):
         pass
 
-    def _validate_path(self, path):
-        # Logic for path validation
-        try:
-            if not os.path.exists(path):
-                os.makedirs(path, exist_ok=True)
-                logger.info(f"Directory '{path}' created for {self.prefix}.")
-            else:
-                logger.info(f"Directory '{path}' already existed in {self.prefix}")
-            return 1
-
-        except Exception as e:
-                logger.error(f"Error creating directory {path} for {self.prefix}: {e}")
-                return 0
-
-
     @value_setter("file_path")
-    def _filepath(self, path):
+    def set_filepath(self, path):
         pass
 
-    
+    @value_setter("capture")
+    def set_capture(self, capture):
+        pass
 
+    @value_setter("num_capture")
+    def set_num_capture(self, num_capture):
+        pass
+
+
+class DetHDF5(DetBase, HDF5Plugin):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+
+
+class DetNetCDF(DetBase, NetCDFPlugin):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)

@@ -17,14 +17,18 @@ from .dm_plans import dm_submit_workflow_job
 from ..configs.device_config import (
     savedata,
     xrf,
+    xrf_netcdf,
+    stepdwell,
     xrf_dm_args,
     ptychoxrf_dm_args,
     ptychodus_dm_args,
 )
 from .workflow_plan import run_workflow
+from .before_after_fly import before_flyscan
 from ..utils.dm_utils import dm_upload_wait
 from ..devices.data_management import api
 from apstools.devices import DM_WorkflowConnector
+import bluesky.plan_stubs as bps
 
 
 logger = logging.getLogger(__name__)
@@ -33,7 +37,7 @@ logger.info(__file__)
 SCAN_OVERHEAD = 0.3
 det_name_mapping = {
     "simdet": {"cam": None, "file_plugin": None},
-    "xrf": {"cam": xrf, "file_plugin": None},
+    "xrf": {"cam": xrf, "file_plugin": xrf_netcdf},
     "preamp": {"cam": None, "file_plugin": None},
     "fpga": {"cam": None, "file_plugin": None},
     "ptycho": {"cam": None, "file_plugin": None},
@@ -65,14 +69,15 @@ def selected_dets(kwargs):
 #         )
 
 
-def generalized_scan_1d(scanrecord, positioner, scanmode="LINEAR", exec_plan=False, **kwargs):
+def generalized_scan_1d(scanrecord, positioner, scanmode="LINEAR", 
+                        exec_plan=False, netcdf_delimiter=None, **kwargs):
     logger.info(f"Using {scanrecord.prefix} as the scanRecord")
     logger.info(f"Using {positioner} as the motor")
     if scanrecord.connected and positioner.connected:
         logger.info(f"{scanrecord.prefix} is connected")
         logger.info(f"{positioner} is connected")
 
-        """Set up scan mode to be FLY """
+        """Set up scan mode to be either FLY or STEP """
         yield from scanrecord.set_scan_mode(scanmode)
 
         """Assign the desired positioner in scanrecord """
@@ -98,27 +103,56 @@ def generalized_scan_1d(scanrecord, positioner, scanmode="LINEAR", exec_plan=Fal
         """Initialize detector with desired pts and exposure time """
         for det_name, det_var in dets.items():
             cam = det_var["cam"]
+            file_plugin = det_var["file_plugin"]
             if cam is not None:
                 try:
-                    yield from cam.scan_init(exposure_time=kwargs["dwell"], num_images=numpts_x)
+                    # yield from cam.scan_init(exposure_time=kwargs["dwell"], num_images=numpts_x)
+                    if det_name == "xrf" and scanmode == "LINEAR":
+                        yield from cam.stepscan_before()
+                        yield from bps.mv(stepdwell, kwargs["dwell"])
+                    elif det_name == "xrf" and scanmode == "FLY":
+                        yield from before_flyscan(scanrecord.start_position.get(), 
+                                                  scanrecord.stepsize.get(),
+                                                  numpts_x, dets)
+        
                 except Exception as e:
                     logger.error(f"Error occurs when setting up {cam.prefix}: {e}")
 
-        """Create folder for the desire file/data structure"""
+        """Initialize detector file plugin"""
         basepath = savedata.get().file_system
-        basename = savedata.get().base_name
-        next_scan_number = savedata.get().next_scan_number
         for det_name, det_var in dets.items():
-            det_path = os.path.join(basepath, det_name)
-            logger.info(f"Setting up {det_name} to have data saved at {det_path}")
             file_plugin = det_var["file_plugin"]
-            if file_plugin is not None:
-                try:
-                    yield from file_plugin.set_filepath(det_path)
-                    yield from file_plugin.set_filename(basename)
-                    yield from file_plugin.set_filenumber(next_scan_number)
-                except Exception as e:
-                    logger.error(f"Error occurs when setting up {savedata.prefix}: {e}")
+            if all([det_name == "xrf", scanmode == "FLY", file_plugin is not None]):
+                det_path = os.path.join(basepath, det_name.upper())
+                logger.info(f"Setting up {det_name} to have data saved at {det_path}")
+                if not os.path.exists(det_path):
+                    os.makedirs(det_path, exist_ok=True)
+                    logger.info(f"Directory '{det_path}' created for {det_name}.")
+
+                newpath = file_plugin.sync_file_path(det_path, netcdf_delimiter)
+                yield from file_plugin.set_filepath(newpath)
+                if file_plugin.file_path_exists.get():
+                    logger.info(f"File path is set to {file_plugin.file_path.get()}")
+                else:
+                    logger.error(f"File path {file_plugin.file_path.get()} does not exist")
+            # if file_plugin is not None:
+            #     yield from file_plugin.initialize()
+        
+        # """Create folder for the desire file/data structure"""
+        # basepath = savedata.get().file_system
+        # basename = savedata.get().base_name
+        # next_scan_number = savedata.get().next_scan_number
+        # for det_name, det_var in dets.items():
+        #     det_path = os.path.join(basepath, det_name)
+        #     logger.info(f"Setting up {det_name} to have data saved at {det_path}")
+        #     file_plugin = det_var["file_plugin"]
+        #     if file_plugin is not None:
+        #         try:
+        #             yield from file_plugin.set_filepath(det_path)
+        #             yield from file_plugin.set_filename(basename)
+        #             yield from file_plugin.set_filenumber(next_scan_number)
+        #         except Exception as e:
+        #             logger.error(f"Error occurs when setting up {savedata.prefix}: {e}")
 
         # #     # ##TODO Based on the selected detector, setup DetTriggers in inner scanRecord
         # #     # for i, d in enumerate(dets):

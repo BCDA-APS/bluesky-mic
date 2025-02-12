@@ -26,6 +26,7 @@ logger = logging.getLogger(__name__)
 logger.info(__file__)
 
 scanmode = "LINEAR"
+NETCDF_DELIMITER = "2ide"
 
 
 def step2d(
@@ -54,13 +55,19 @@ def step2d(
     ##TODO Close shutter while setting up scan parameters
 
     """Set up the inner loop scan record based on the scan types and parameters"""
-    yield from generalized_scan_1d(scan1, samx, scanmode=scanmode, **locals())
+    yield from generalized_scan_1d(scan1, samx, scanmode=scanmode, 
+                                   netcdf_delimiter=NETCDF_DELIMITER,
+                                   **locals())
+    yield from scan1.set_bspv("")
+    yield from scan1.set_aspv("")
 
     """Set up the outter loop scan record"""
     yield from scan2.set_scan_mode(scanmode)
     yield from scan2.set_positioner_drive(f"{samy.prefix}.VAL")
     yield from scan2.set_positioner_readback(f"{samy.prefix}.RBV")
     yield from scan2.set_center_width_stepsize(y_center, height, stepsize_y)
+    yield from scan2.set_bspv("")
+    yield from scan2.set_aspv("")
 
     """Start executing scan"""
     savedata.update_next_file_name()
