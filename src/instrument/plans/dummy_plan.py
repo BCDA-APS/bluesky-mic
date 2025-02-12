@@ -36,7 +36,7 @@ def dummy_testing(
     dwell=0,
     smp_theta=None,
     simdet_on=False,
-    xrf_me7_on=True,
+    xrf_on=True,
     ptycho_on=False,
     preamp_on=False,
     fpga_on=False,
