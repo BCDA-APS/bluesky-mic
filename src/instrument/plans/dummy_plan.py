@@ -49,7 +49,13 @@ def dummy_testing(
 
     for i in range(stepsize_x):
         prog = round(i / stepsize_x * 100, 2)
-        logger.info(f"Scan progress: dummy_test: {prog}% :, scanned {i}/{stepsize_x}")
+        msg = "{"
+        msg += f"Filename: 2xfm_0001.mda, Scan_progress: {prog}%, "
+        msg += f"Line: 1/1, Scan_remaining: {(stepsize_x-i)*dwell}, "
+        msg += f"Scanned {i}/{stepsize_x}"
+        msg += "}"
+        logger.info(msg)
+        # logger.info(f"Scan progress: dummy_test: {prog}% :, scanned {i}/{stepsize_x}")
         yield from bps.sleep(dwell)
 
     logger.info("end of plan")
