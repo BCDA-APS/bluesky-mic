@@ -11,7 +11,7 @@ EXAMPLE::
     # # Run the plan with the RunEngine:
     # RE(scan_record2(scanrecord_name = 'scan1', ioc = "2idsft:", m1_name = 'm1',
     #                m1_start = -0.5, m1_finish = 0.5,
-    #                m2_name = 'm3', m2_start = -0.2 ,m2_finish = 0.2, 
+    #                m2_name = 'm3', m2_start = -0.2 ,m2_finish = 0.2,
     #                npts = 50, dwell_time = 0.1))
 
 """
@@ -37,6 +37,7 @@ logger.info(__file__)
 scanmode = "FLY"
 NETCDF_DELIMITER = "2ide"
 
+
 def fly1d(
     samplename="smp1",
     user_comments="",
@@ -60,9 +61,13 @@ def fly1d(
     ##TODO Close shutter while setting up scan parameters
 
     """Set up scan record based on the scan types and parameters"""
-    yield from generalized_scan_1d(fscanh, fscanh_samx, scanmode=scanmode,
-                                   netcdf_delimiter=NETCDF_DELIMITER,
-                                   **locals())
+    yield from generalized_scan_1d(
+        fscanh,
+        fscanh_samx,
+        scanmode=scanmode,
+        netcdf_delimiter=NETCDF_DELIMITER,
+        **locals(),
+    )
     yield from fscanh.set_positioner_drive(f"{fscanh_samx.pvname}")
     yield from fscanh.set_positioner_readback("")
 

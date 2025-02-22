@@ -42,6 +42,7 @@ POSITIONERS:
   Z_MOTOR: "2xfm:m59"
   THETA_MOTOR: "2xfm:m60"
   ENERGY: "2ide:BraggEAO"
+  SCAN_OVERHEAD: 0.3
 
 DETECTOR:
     ### General configuration for area detectors.
@@ -49,11 +50,13 @@ DETECTOR:
     BLUESKY_FILES_ROOT: &BLUESKY_DATA_ROOT "/path/to/data/"
     IMAGE_DIR: "sub/directory/path"
     HDF5_FILE_TEMPLATE: "%s%s_%6.6d.h5"
+    FILE_DELIMITER: "2ide"
   
     XMAP_4Chan:
       NAME: xrf
       PV_PREFIX: "dxpXMAP2xfm3:"
       NETCDF_PV_PREFIX: "dxpXMAP2xfm3:netCDF1:"
+      BUFFER: 124
 
     SIS3820:
       NAME: sis3820
@@ -62,6 +65,8 @@ DETECTOR:
     AD_EIGER_PTYCHO:
       NAME: eiger_ptycho
       PV_PREFIX: "2ideEGR:cam1:"
+      # HDF5_PV_PREFIX: ""
+      HDF5_PV_PREFIX: "2ideEGR:HDF1:"
       
 
 

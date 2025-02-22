@@ -60,7 +60,8 @@ def run_scan(
     subdirs = [
         detector
         for detector in devices
-        if detector == ("flyXRF" or "tetramm" or "positions" or "eiger" or "mda" or "xmap")
+        if detector
+        == ("flyXRF" or "tetramm" or "positions" or "eiger" or "mda" or "xmap")
     ]
     mksubdirs(save_path, subdirs)
     """Set up positioners (move to starting pos)"""

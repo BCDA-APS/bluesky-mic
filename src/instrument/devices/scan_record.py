@@ -28,8 +28,11 @@ class ScanRecord(SscanRecord):
     width = Component(EpicsSignal, ".P1WD")
     number_points_rbv = Component(EpicsSignal, ".CPT")
     start_position = Component(EpicsSignal, ".P1SP")
-    # filesystem = Component(EpicsSignal, ".saveData_fileSystem")
-    # basename = Component(EpicsSignal, ".saveData_baseName")
+
+    detTrigger_1 = Component(EpicsSignal, ".T1PV")
+    detTrigger_2 = Component(EpicsSignal, ".T2PV")
+    detTrigger_3 = Component(EpicsSignal, ".T3PV")
+    detTrigger_4 = Component(EpicsSignal, ".T4PV")
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -39,9 +42,27 @@ class ScanRecord(SscanRecord):
         """Set center, width, and stepsize in a single motion command."""
         try:
             yield from bps.mv(self.center, center, self.width, width, self.stepsize, ss)
-            logger.info(f"Set center to {center}, width to {width}, and stepsize to {ss} in {self.prefix}.")
+            logger.info(
+                f"Set center to {center}, width to {width}, and stepsize to {ss} in {self.prefix}."
+            )
         except Exception as e:
-            logger.error(f"Error setting center, width, and stepsize in {self.prefix}: {e}")
+            logger.error(
+                f"Error setting center, width, and stepsize in {self.prefix}: {e}"
+            )
+
+    def set_detTriggers(self, trigger_pvs):
+        """
+        Set detector triggers for the scan record.
+        """
+        trigger_list = [
+            self.detTrigger_1,
+            self.detTrigger_2,
+            self.detTrigger_3,
+            self.detTrigger_4,
+        ]
+        for detTri, pv_name in zip(trigger_list, trigger_pvs):
+            yield from bps.mv(detTri, pv_name)
+            logger.info(f"Set {detTri.pvname} to {pv_name} in {self.prefix}.")
 
     @mode_setter("scan_mode")
     def set_scan_mode(self, mode):

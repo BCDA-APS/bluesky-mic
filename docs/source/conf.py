@@ -35,7 +35,7 @@ extensions = """
 """.split()
 myst_enable_extensions = ["colon_fence"]
 
-templates_path = ['_templates']
+templates_path = ["_templates"]
 source_suffix = ".rst .md".split()
 exclude_patterns = ["**.ipynb_checkpoints"]
 
@@ -46,22 +46,21 @@ nbsphinx_allow_errors = True
 
 # autodoc
 autodoc_default_options = {
-    'members': True,
-    'private-members': True,
-    'member-order': True,
-    'special-members': '__init__',
-    'undoc-members': True,
-    'exclude-members': '__weakref__',
+    "members": True,
+    "private-members": True,
+    "member-order": True,
+    "special-members": "__init__",
+    "undoc-members": True,
+    "exclude-members": "__weakref__",
     "show-inheritance": True,
 }
-
 
 
 # -- Options for HTML output -------------------------------------------------
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#options-for-html-output
 
-html_theme = 'alabaster'
-html_static_path = ['_static']
+html_theme = "alabaster"
+html_static_path = ["_static"]
 html_title = project
 
 autodoc_mock_imports = """

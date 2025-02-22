@@ -72,5 +72,12 @@ class S19TetraMM(TetrAMM):
 
     def setup_scan(self, pts, dwell):
         values_per_reading = int(TETRAMMCLOCK * dwell - 1)
-        yield from bps.mv(self.avg_time, dwell, self.values_per_read, values_per_reading, self.num_acquire, pts)
+        yield from bps.mv(
+            self.avg_time,
+            dwell,
+            self.values_per_read,
+            values_per_reading,
+            self.num_acquire,
+            pts,
+        )
         yield from bps.mv(self.file_num_capture, pts)

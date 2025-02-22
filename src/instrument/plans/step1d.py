@@ -26,6 +26,7 @@ logger = logging.getLogger(__name__)
 logger.info(__file__)
 NETCDF_DELIMITER = "2ide"
 
+
 def step1d(
     samplename="smp1",
     user_comments="",
@@ -49,9 +50,9 @@ def step1d(
     ##TODO Close shutter while setting up scan parameters
 
     """Set up scan record based on the scan types and parameters"""
-    yield from generalized_scan_1d(scan1, samx, scanmode="LINEAR", 
-                                   netcdf_delimiter=NETCDF_DELIMITER,
-                                   **locals())
+    yield from generalized_scan_1d(
+        scan1, samx, scanmode="LINEAR", netcdf_delimiter=NETCDF_DELIMITER, **locals()
+    )
     yield from scan1.set_bspv("")
     yield from scan1.set_aspv("")
 

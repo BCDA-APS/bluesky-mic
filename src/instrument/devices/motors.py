@@ -45,4 +45,6 @@ for positioner in positioners:
             setattr(posnr, motor, positioners[positioner][motor])
     else:
         # if single motor, assign it to an EpicsMotor, dynamically specify PV and name
-        locals()[posnr] = EpicsMotor(f"{positioners[positioner]}", name=f"{posnr}", labels=("motor",))
+        locals()[posnr] = EpicsMotor(
+            f"{positioners[positioner]}", name=f"{posnr}", labels=("motor",)
+        )

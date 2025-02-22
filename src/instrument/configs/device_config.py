@@ -1,4 +1,4 @@
-""" Create scanrecords that are specific to 2idd-microprobe
+"""Create scanrecords that are specific to 2idd-microprobe
 
 Created on Jan 14 2025
 
@@ -8,7 +8,7 @@ Created on Jan 14 2025
 import pathlib
 from mic_instrument.devices.scan_record import ScanRecord
 from mic_instrument.devices.save_data import SaveDataMic
-from mic_instrument.devices.area_det_hdf import DetHDF5, DetNetCDF
+from mic_instrument.devices.ad_fileplugin import DetHDF5, DetNetCDF
 from mic_instrument.devices.xmap import XMAP
 from mic_instrument.devices.eiger500k import Eiger500k
 from mic_instrument.devices.sis3820 import SIS3820
@@ -24,19 +24,26 @@ scan2 = ScanRecord(iconfig.get("DEVICES")["SCAN2"], name="scan2")
 stepdwell = EpicsSignal(iconfig.get("USERCALC")["STEPSCAN_DWELL"], name="stepdwell")
 fscan1 = ScanRecord(iconfig.get("DEVICES")["FSCAN1"], name="fscan1")
 fscanh = ScanRecord(iconfig.get("DEVICES")["FSCANH"], name="fscanh")
-fscanh_samx = EpicsSignal(iconfig.get("USERCALC")["FSCANH_POSITIONER"], name="fscanh_samx")
+fscanh_samx = EpicsSignal(
+    iconfig.get("USERCALC")["FSCANH_POSITIONER"], name="fscanh_samx"
+)
+fscanh_dwell = EpicsSignal(iconfig.get("USERCALC")["FSCANH_DWELL"], name="fscanh_dwell")
 samx = EpicsMotor(iconfig.get("POSITIONERS")["X_MOTOR"], name="samx")
 samy = EpicsMotor(iconfig.get("POSITIONERS")["Y_MOTOR"], name="samy")
 samz = EpicsMotor(iconfig.get("POSITIONERS")["Z_MOTOR"], name="samz")
 samtheta = EpicsMotor(iconfig.get("POSITIONERS")["THETA_MOTOR"], name="samtheta")
 savedata = SaveDataMic(iconfig.get("DEVICES")["SAVE_DATA"], name="savedata")
-hydra1_startposition = EpicsSignal(iconfig.get("OTHER_SIGNALS")["HYDRA1_STARTPOSITION"], name="hydra1_startposition")
+hydra1_startposition = EpicsSignal(
+    iconfig.get("OTHER_SIGNALS")["HYDRA1_STARTPOSITION"], name="hydra1_startposition"
+)
+scan_overhead = iconfig.get("POSITIONERS")["SCAN_OVERHEAD"]
 
-
+netcdf_delimiter = iconfig.get("DETECTOR")["FILE_DELIMITER"]
 xrf = XMAP(
     iconfig.get("DETECTOR")["XMAP_4Chan"]["PV_PREFIX"],
     name=iconfig.get("DETECTOR")["XMAP_4Chan"]["NAME"],
 )
+xmap_buffer = iconfig.get("DETECTOR")["XMAP_4Chan"]["BUFFER"]
 
 xrf_netcdf = DetNetCDF(
     iconfig.get("DETECTOR")["XMAP_4Chan"]["NETCDF_PV_PREFIX"],
@@ -53,13 +60,23 @@ eiger = Eiger500k(
     name=iconfig.get("DETECTOR")["AD_EIGER_PTYCHO"]["NAME"],
 )
 
-# xrf_me7_hdf = DetHDF5(
-#     iconfig.get("AREA_DETECTOR")["AD_XSP3_8Chan"]["HDF5_PV_PREFIX"],
-#     name=iconfig.get("AREA_DETECTOR")["AD_XSP3_8Chan"]["NAME"] + "_hdf",
-# )
+if iconfig.get("DETECTOR")["AD_EIGER_PTYCHO"]["HDF5_PV_PREFIX"] is not "":
+    eiger_hdf5 = DetHDF5(
+        iconfig.get("DETECTOR")["AD_EIGER_PTYCHO"]["HDF5_PV_PREFIX"],
+        name=iconfig.get("DETECTOR")["AD_EIGER_PTYCHO"]["NAME"] + "_hdf",
+    )
+else:
+    eiger_hdf5 = None
 
-# simdet = SimDet(iconfig.get("DEVICES")["SIMDET_CAM"], name="simdet")
-# simdeth5file = SimDetHDF5(iconfig.get("DEVICES")["SIMDET_HDF5"], name="simdet_hdf5")
+# Create detector name mapping
+det_name_mapping = {
+    "xrf": {"cam": xrf, "file_plugin": xrf_netcdf},
+    "preamp": {"cam": None, "file_plugin": None},
+    "fpga": {"cam": None, "file_plugin": None},
+    "ptycho": {"cam": eiger, "file_plugin": eiger_hdf5},
+    "struck": {"cam": sis3820, "file_plugin": None},
+}
+
 
 ## DM workflow config ##
 instrument_path = pathlib.Path(__file__).parent.parent

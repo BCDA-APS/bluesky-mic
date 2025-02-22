@@ -55,9 +55,9 @@ def step2d(
     ##TODO Close shutter while setting up scan parameters
 
     """Set up the inner loop scan record based on the scan types and parameters"""
-    yield from generalized_scan_1d(scan1, samx, scanmode=scanmode, 
-                                   netcdf_delimiter=NETCDF_DELIMITER,
-                                   **locals())
+    yield from generalized_scan_1d(
+        scan1, samx, scanmode=scanmode, netcdf_delimiter=NETCDF_DELIMITER, **locals()
+    )
     yield from scan1.set_bspv("")
     yield from scan1.set_aspv("")
 

@@ -19,7 +19,9 @@ def value_setter(attribute_name):
                 yield from bps.mv(signal, value)
                 logger.info(f"Assigned {attribute_name} in {self.prefix} to {value}.")
             except Exception as e:
-                logger.error(f"Error setting {attribute_name} to {value} in {self.prefix}: {e}")
+                logger.error(
+                    f"Error setting {attribute_name} to {value} in {self.prefix}: {e}"
+                )
 
         return wrapper
 

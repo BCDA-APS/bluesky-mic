@@ -95,7 +95,9 @@ def scan_number_in_list(lst, partial_str):
     if len(matches) > 1:
         print("warning, more than one file matching scan number somehow")
     elif len(matches) == 0:
-        print("warning, no matches found, check that files are being saved and closing correctly")
+        print(
+            "warning, no matches found, check that files are being saved and closing correctly"
+        )
     elif len(matches) == 1:
         pass
     else:
