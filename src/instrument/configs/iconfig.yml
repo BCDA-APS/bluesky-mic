@@ -26,10 +26,10 @@ RUN_ENGINE:
 #     PLOTS: false
 #     TABLE: false
 
-STORAGE_PATH: "//micdata/data1/2idd/2025-1"
+STORAGE:
+  PATH: "/mnt/micdata1"
 
 DEVICES:
-  TETRAMM1: "19idBPM:C:T4U"
   SAVE_DATA: "2idd:saveData_"
   SCAN1: "2idd:scan1"
   SCAN2: "2idd:scan2"
@@ -41,6 +41,8 @@ POSITIONERS:
   Y_MOTOR: "2idd:m39"
   Z_MOTOR: "2idd:m36"
   ENERGY: "2ida2:BraggEAO"
+  SCAN_OVERHEAD: 0.3
+
 
 DETECTOR:
     ### General configuration for area detectors.
@@ -48,23 +50,41 @@ DETECTOR:
     BLUESKY_FILES_ROOT: &BLUESKY_DATA_ROOT "/path/to/data/"
     IMAGE_DIR: "sub/directory/path"
     HDF5_FILE_TEMPLATE: "%s%s_%6.6d.h5"
+    FILE_DELIMITER: "2idd"
   
     XMAP_1Chan:
       NAME: xrf
       PV_PREFIX: "2iddXMAP:"
       NETCDF_PV_PREFIX: "2iddXMAP:netCDF1:"
-      NETCDF_BASEPATH: "W:\\2idd\\"
+      BUFFER: 124
 
-    AD_EIGER_PTYCHO:
-      NAME: eiger_ptycho
-      PV_PREFIX: "temp"
+    SIS3820:
+      NAME: sis3820
+      PV_PREFIX: "2idd:3820:"
 
-    AD_EIGER_DIFFRACTION:
-      NAME: eigher_xrd
-      PV_PREFIX: "temp"
+    TETRAMM1:
+      NAME: tetramm1
+      PV_PREFIX: "2iddtmm1:"
+      NETCDF_PV_PREFIX: "2iddtmm1:netCDF1:"
+
+    TETRAMM2:
+      NAME: tetramm2
+      PV_PREFIX: "2iddtmm2:"
+      NETCDF_PV_PREFIX: "2iddtmm2:netCDF1:"
+
+    # AD_EIGER_PTYCHO:
+    #   NAME: eiger_ptycho
+    #   PV_PREFIX: "temp"
+    #   HDF5_PV_PREFIX: ""
+    #   # HDF5_PV_PREFIX: "2ideEGR:HDF1:"
+
+    # AD_EIGER_DIFFRACTION:
+    #   NAME: eigher_xrd
+    #   PV_PREFIX: "temp"
 
 USERCALC:
   FSCANH_POSITIONER: "2idd:userCalc9.A"
+  FSCANH_DWELL: "2idd:Flyscans:Setup:DwellTime"
 
     ### Add configuration for specific detector(s).
     ### Suggestion:
