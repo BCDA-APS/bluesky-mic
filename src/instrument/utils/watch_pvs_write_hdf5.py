@@ -27,7 +27,6 @@ MASTER_SCAN_FILE = PROJECT_DIR / "example_pvs.h5"
 pv_db = {}
 
 # TODO: Refactor to use epics.PV objects instead.
-# TODO: UNITS_PV: "mA"  is not a PV, still handle appropriately.
 
 
 class WatchedEpicsMotor(EpicsMotor):
@@ -51,12 +50,15 @@ class WatchedEpicsSignal(EpicsSignalRO):
     """EPICS signal for reporting in HDF5 file."""
 
     def __init__(self, read_pv="", units_pv="", **kwargs):
+        """."""
         import epics  # cheat here
 
         try:
             super().__init__(read_pv=read_pv, **kwargs)
         except Exception as reason:
-            raise RuntimeError(f"{read_pv=} {units_pv=} {kwargs=} {reason=}")
+            raise RuntimeError(
+                f"{read_pv=} {units_pv=} {kwargs=} {reason=}"
+            ) from reason
 
         pv_base = read_pv.split(".")[0]
         tmot = 0.5
@@ -65,7 +67,11 @@ class WatchedEpicsSignal(EpicsSignalRO):
             value = default
             if len(pv) > 0:
                 try:
-                    value = epics.caget(pv, timeout=timeout)
+                    value = epics.caget(
+                        pv,
+                        timeout=timeout,
+                        connection_timeout=timeout,
+                    )
                 except TimeoutError:
                     value = default
             return value
@@ -73,20 +79,41 @@ class WatchedEpicsSignal(EpicsSignalRO):
         # cheat here, only during initial construction
         # Signal has no Component attributes.  Gotta fake it.
         self._description = caget_now(
-            f"{pv_base}.DESC", default=f"EPICS PV: {pv_base}", timeout=tmot
+            f"{pv_base}.DESC",
+            default=f"EPICS PV: {pv_base}",
+            timeout=tmot,
         )
+
         self._record_type = caget_now(
-            f"{pv_base}.RTYP", default="-timeout-", timeout=tmot
+            f"{pv_base}.RTYP",
+            default="-timeout-",
+            timeout=tmot,
         )
-        self.egu = caget_now(
-            units_pv, default=self.metadata.get("units", ""), timeout=tmot
-        )
+
+        if ":" not in units_pv or "." not in units_pv:
+            self.egu = units_pv  # Assume text, not a PV
+        else:
+            self.egu = caget_now(
+                units_pv,
+                default=self.metadata.get("units", ""),
+                timeout=tmot,
+            )
+
         if self._description == "":
             self._description = f"EPICS PV: {self.pvname}"
 
     @property
     def position(self):
-        return self.get()
+        """Current value."""
+        value = self.get()
+        if isinstance(value, int):
+            # If enum, then use str, if defined.
+            choices = self.metadata.get("enum_strs")
+            try:
+                value = choices[value]
+            except IndexError:
+                pass
+        return value
 
 
 def connect_with_EPICS(specifications, db):
@@ -114,8 +141,6 @@ def connect_with_EPICS(specifications, db):
                 pv = entry.get("VALUE_PV", entry.get("PV"))
                 units_pv = entry.get("UNITS_PV")
                 if units_pv is not None:
-                    if ":" not in units_pv or "." not in units_pv:
-                        pass  # TODO: Assume text, not a PV
                     if units_pv != f"{pv.split('.')[0]}.EGU":
                         kwargs["units_pv"] = units_pv
                 device = WatchedEpicsSignal(pv, **kwargs)
@@ -142,15 +167,10 @@ def write_h5_dataset(
     except AttributeError:
         pv = entry.prefix
 
+    if not isinstance(entry, (WatchedEpicsMotor, WatchedEpicsSignal)):
+        raise TypeError(f"Unexpected type: {type(entry): {entry!r}}")
     if isinstance(entry, WatchedEpicsMotor):
         setpoint = entry.user_setpoint.get()
-    elif isinstance(entry, WatchedEpicsSignal):
-        if isinstance(value, int):
-            choices = entry.metadata.get("enum_strs")  # convert int to str, if defined
-            if value < len(choices):
-                value = choices[value]
-    else:
-        raise TypeError(f"Unexpected type: {type(entry): {entry!r}}")
 
     ds = h5parent.create_dataset(entry.name, data=value)
     # https://manual.nexusformat.org/nxdl_desc.html#long-name
@@ -196,7 +216,7 @@ def developer_report(db):
                 section_name,
                 name,
                 entry.position,
-                entry.egu,
+                entry.egu if str(entry.egu) != "None" else "",
                 entry._record_type,
                 pv,
                 entry._description,
@@ -212,10 +232,13 @@ def example():
     time.sleep(1)  # plenty of time for PV connections
     developer_report(pv_db)
 
-    with h5py.File(MASTER_SCAN_FILE, "w") as h5root:
-        h5root.attrs["filename"] = str(MASTER_SCAN_FILE)
-        h5root.attrs["datetime"] = str(datetime.datetime.now())
-        write_h5_watched_pvs(h5root, pv_db, MASTER_YAML_FILE)
+    try:
+        with h5py.File(MASTER_SCAN_FILE, "w") as h5root:
+            h5root.attrs["filename"] = str(MASTER_SCAN_FILE)
+            h5root.attrs["datetime"] = str(datetime.datetime.now())
+            write_h5_watched_pvs(h5root, pv_db, MASTER_YAML_FILE)
+    except PermissionError as reason:
+        print(f"PermissionError: {reason}")
 
 
 if __name__ == "__main__":
