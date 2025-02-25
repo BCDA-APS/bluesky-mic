@@ -35,8 +35,9 @@ OPTICS:
 #   SCAN2: "19idBLUE:scan2"
 
 TETRAMM1_SETTING:
-  NAME: tetramm1
-  RANGE_PV: "19idSFT:TetrAMM1:Range"
+  TETRAMM1:
+    NAME: tetramm1
+    VALUE_PV: "19idSFT:TetrAMM1:Range"
   
 
 XRD_ROBOT:
