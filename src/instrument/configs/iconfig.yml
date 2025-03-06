@@ -48,6 +48,7 @@ POSITIONERS:
     M2: "19idBLUE:m3"
   ENERGY: "19idBLUE:m5"
   TEMPERATURE: "19idBLUE:m6"
+  SCAN_OVERHEAD: 0.3
 
 AREA_DETECTOR:
     ### General configuration for area detectors.

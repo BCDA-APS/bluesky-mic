@@ -24,6 +24,7 @@ samx = EpicsMotor(iconfig.get("POSITIONERS")["X_MOTOR"], name="samx")
 samy = EpicsMotor(iconfig.get("POSITIONERS")["Y_MOTOR"], name="samy")
 samz = EpicsMotor(iconfig.get("POSITIONERS")["Z_MOTOR"], name="samz")
 samr = EpicsMotor(iconfig.get("POSITIONERS")["R_MOTOR"], name="samr")
+scan_overhead = iconfig.get("POSITIONERS")["SCAN_OVERHEAD"]
 savedata = SaveDataMic(iconfig.get("DEVICES")["SAVE_DATA"], name="savedata")
 xrf_me7 = Xspress3(
     iconfig.get("AREA_DETECTOR")["AD_XSP3_8Chan"]["PV_PREFIX"],
@@ -33,6 +34,18 @@ xrf_me7_hdf = DetHDF5(
     iconfig.get("AREA_DETECTOR")["AD_XSP3_8Chan"]["HDF5_PV_PREFIX"],
     name=iconfig.get("AREA_DETECTOR")["AD_XSP3_8Chan"]["NAME"] + "_hdf",
 )
+
+# Create detector name mapping
+det_name_mapping = {
+    "xrf_me7": {"cam": xrf_me7, "file_plugin": xrf_me7_netcdf},
+    # "preamp1": {"cam": tetramm1, "file_plugin": tetramm1_netcdf},
+    # "preamp2": {"cam": tetramm2, "file_plugin": tetramm2_netcdf},
+    "fpga": {"cam": None, "file_plugin": None},
+    "ptycho": {"cam": None, "file_plugin": None},
+    "xrd": {"cam": None, "file_plugin": None},
+}
+
+
 
 # simdet = SimDet(iconfig.get("DEVICES")["SIMDET_CAM"], name="simdet")
 # simdeth5file = SimDetHDF5(iconfig.get("DEVICES")["SIMDET_HDF5"], name="simdet_hdf5")

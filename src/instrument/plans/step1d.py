@@ -19,7 +19,8 @@ from ..utils.dm_utils import dm_upload_wait
 from ..devices.data_management import api
 from apstools.devices import DM_WorkflowConnector
 from .dm_plans import dm_submit_workflow_job
-from ..configs.device_config_19id import scan1, samx, savedata
+from ..configs.device_config import scan1, samx, savedata
+from mic_instrument.plans.helper_funcs import selected_dets, calculate_num_capture, move_to_position
 
 
 logger = logging.getLogger(__name__)
@@ -42,14 +43,55 @@ def step1d(
     position_stream=False,
     wf_run=False,
     analysisMachine="mona2",
-    eta=0,
 ):
-    """1D Bluesky plan that drives the a sample motor in stepping mode using ScanRecord"""
+    """1D Bluesky plan that drives the a sample motor in stepping mode using ScanRecord
+    
+    Parameters
+    ----------
+    samplename:     
+        Str: The name of the sample
+    user_comments: 
+        Str: The user comments for the scan
+    width: 
+        Float: The width of the scan
+    x_center: 
+        Float: The center of the scan
+    stepsize_x: 
+        Float: The step size of the scan
+    dwell: float
+        Float: The dwell time of the scan
+    smp_theta: 
+        Float: The sample theta angle
+    simdet_on: 
+        Bool: Whether to turn on the simdet
+    xrf_me7_on: 
+        Bool: Whether to turn on the xrf me7
+    ptycho_on: 
+        Bool: Whether to turn on the ptycho
+    preamp_on: 
+        Bool: Whether to turn on the preamp
+    fpga_on: 
+        Bool: Whether to turn on the fpga
+    position_stream: 
+        Bool: Whether to turn on the position stream
+    wf_run: 
+        Bool: Whether to run the dm workflow
+    analysisMachine: 
+        Str: The analysis machine to use
+        
+    """
 
     ##TODO Close shutter while setting up scan parameters
 
     """Set up scan record based on the scan types and parameters"""
-    yield from generalized_scan_1d(scan1, samx, scanmode="LINEAR", **locals())
+    # yield from generalized_scan_1d(scan1, samx, scanmode="LINEAR", **locals())
+    yield from generalized_scan_1d(scan1, samx, scanmode="LINEAR", x_center=x_center,
+                                   width=width, stepsize_x=stepsize_x, dwell=dwell)
+
+    """Check which detectors to trigger"""
+    logger.info("Determining which detectors are selected")
+    dets = selected_dets(**locals())
+
 
     """Start executing scan"""
     savedata.update_next_file_name()

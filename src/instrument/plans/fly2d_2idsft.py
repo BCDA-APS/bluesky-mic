@@ -38,7 +38,7 @@ from ..callbacks.trajectories import raster
 from ..utils.config_loaders import iconfig
 from ..devices.xspress3 import xp3
 from ..devices.tetramm import tmm1
-from mic_instrument.configs.device_config_2id import scan1, scan2
+from mic_instrument.configs.device_config import scan1, scan2
 
 # from ..devices.softglue_zynq import sgz
 # from ..devices.scan_record import ScanRecord

@@ -29,7 +29,7 @@ from ..utils.dm_utils import dm_upload_wait
 from ..devices.data_management import api
 from apstools.devices import DM_WorkflowConnector
 from .dm_plans import dm_submit_workflow_job
-from ..configs.device_config_19id import scan1, samx, savedata
+from ..configs.device_config import scan1, samx, savedata
 
 
 logger = logging.getLogger(__name__)
