@@ -91,7 +91,9 @@ def step1d(
     """Check which detectors to trigger"""
     logger.info("Determining which detectors are selected")
     dets = selected_dets(**locals())
-
+    
+    """Generate master file"""
+    master_file = generate_master_file(dets)
 
     """Start executing scan"""
     savedata.update_next_file_name()

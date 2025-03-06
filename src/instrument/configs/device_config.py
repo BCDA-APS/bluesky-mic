@@ -37,7 +37,7 @@ xrf_me7_hdf = DetHDF5(
 
 # Create detector name mapping
 det_name_mapping = {
-    "xrf_me7": {"cam": xrf_me7, "file_plugin": xrf_me7_netcdf},
+    "xrf_me7": {"cam": xrf_me7, "file_plugin": xrf_me7_hdf},
     # "preamp1": {"cam": tetramm1, "file_plugin": tetramm1_netcdf},
     # "preamp2": {"cam": tetramm2, "file_plugin": tetramm2_netcdf},
     "fpga": {"cam": None, "file_plugin": None},
