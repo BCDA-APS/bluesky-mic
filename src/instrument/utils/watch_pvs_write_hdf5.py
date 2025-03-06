@@ -1,5 +1,5 @@
 """
-Watch PVs and write to HDF5 file group.
+Watch PVs (using ophyd) and write to HDF5 file group.
 
 Accept information about PVs from YAML files.
 
