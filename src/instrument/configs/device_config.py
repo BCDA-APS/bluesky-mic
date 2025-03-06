@@ -50,8 +50,14 @@ det_name_mapping = {
 # simdet = SimDet(iconfig.get("DEVICES")["SIMDET_CAM"], name="simdet")
 # simdeth5file = SimDetHDF5(iconfig.get("DEVICES")["SIMDET_HDF5"], name="simdet_hdf5")
 
-## DM workflow config ##
+
+## Scan master file config ##
 instrument_path = pathlib.Path(__file__).parent.parent
+master_file_config_path = instrument_path / "configs" / "masterFileConfig.yml"
+master_file_yaml = load_config_yaml(master_file_config_path)
+
+
+## DM workflow config ##
 xrf_workflow_yaml_path = instrument_path / "configs" / "xrf_workflow.yml"
 ptychoxrf_workflow_yaml_path = instrument_path / "configs" / "ptycho_xrf_workflow.yml"
 ptychodus_workflow_yaml_path = instrument_path / "configs" / "ptychodus_workflow.yml"

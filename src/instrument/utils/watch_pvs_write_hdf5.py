@@ -225,18 +225,19 @@ def developer_report(db):
     print(table)
 
 
-def example():
+def write_scan_master_h5(master_file_yaml: dict, master_scan_file: str):
     """Demonstrate this code."""
-    specifications = load_config_yaml(MASTER_YAML_FILE)
-    connect_with_EPICS(specifications, pv_db)
+    # specifications = master_file_yaml
+    pv_db = {}
+    connect_with_EPICS(master_file_yaml, pv_db)
     time.sleep(1)  # plenty of time for PV connections
     developer_report(pv_db)
 
     try:
-        with h5py.File(MASTER_SCAN_FILE, "w") as h5root:
-            h5root.attrs["filename"] = str(MASTER_SCAN_FILE)
+        with h5py.File(master_scan_file, "w") as h5root:
+            h5root.attrs["filename"] = str(master_scan_file)
             h5root.attrs["datetime"] = str(datetime.datetime.now())
-            write_h5_watched_pvs(h5root, pv_db, MASTER_YAML_FILE)
+            write_h5_watched_pvs(h5root, pv_db, master_file_yaml)
     except PermissionError as reason:
         print(f"PermissionError: {reason}")
 

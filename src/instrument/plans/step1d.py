@@ -12,14 +12,16 @@ __all__ = """
 
 import logging
 import os
-from .generallized_scan_1d import generalized_scan_1d
-from ..utils.scan_monitor import execute_scan_1d
-from .workflow_plan import run_workflow
-from ..utils.dm_utils import dm_upload_wait
-from ..devices.data_management import api
+from pathlib import Path
 from apstools.devices import DM_WorkflowConnector
-from .dm_plans import dm_submit_workflow_job
-from ..configs.device_config import scan1, samx, savedata
+from mic_instrument.devices.data_management import api
+from mic_instrument.plans.generallized_scan_1d import generalized_scan_1d
+from mic_instrument.plans.workflow_plan import run_workflow
+from mic_instrument.plans.dm_plans import dm_submit_workflow_job
+from mic_instrument.utils.scan_monitor import execute_scan_1d
+from mic_instrument.utils.dm_utils import dm_upload_wait
+from mic_instrument.utils.watch_pvs_write_hdf5 import write_scan_master_h5
+from mic_instrument.configs.device_config import scan1, samx, savedata, master_file_yaml
 from mic_instrument.plans.helper_funcs import selected_dets, calculate_num_capture, move_to_position
 
 
@@ -93,7 +95,11 @@ def step1d(
     dets = selected_dets(**locals())
     
     """Generate master file"""
-    master_file = generate_master_file(dets)
+    savedata.update_next_file_name()
+    next_file_name = savedata.next_file_name.replace(".mda", "_master.h5")
+    master_h5_path = Path(savedata.file_system.value) / next_file_name
+    write_scan_master_h5(master_file_yaml, master_h5_path)
+    logger.info(f"Scan master file saved to {master_h5_path}")
 
     """Start executing scan"""
     savedata.update_next_file_name()
