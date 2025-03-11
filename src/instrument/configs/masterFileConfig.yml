@@ -1,0 +1,178 @@
+# Configuration for the master file generator.
+
+ACCELERATOR:
+  Ring_current:
+    NAME: Ring_current
+    PV: "S-DCCT:CurrentM"
+    UNITS_PV: "mA" 
+  US_energy:
+    NAME: US_energy
+    VALUE_PV: "S19ID:USID:EnergySetC.VAL"
+    UNITS_PV: "keV"
+  US_gap:
+    NAME: US_gap
+    VALUE_PV: "S19ID:USID:GapSetC.VAL"
+    UNITS_PV: "mm"
+  US_revolver: 
+    NAME: US_revolver
+    VALUE_PV: "S19ID:USID:RevolverSelectC.VAL"
+  DS_energy:
+    NAME: DS_energy
+    VALUE_PV: "S19ID:DSID:EnergySetC.VAL"
+    UNITS_PV: "keV"
+  DS_gap:
+    NAME: DS_gap
+    VALUE_PV: "S19ID:DSID:GapSetC.VAL"
+    UNITS_PV: "mm"
+  DS_revolver: 
+    NAME: DS_revolver
+    VALUE_PV: "S19ID:DSID:RevolverSelectC.VAL"
+
+
+BEAMLINE: 
+  MR1_2_lateral:
+    NAME: MR1_2_lateral
+    VALUE_PV: "19idMR:m3.VAL"
+    RBV_PV: "19idMR:m3.RBV"
+    UNITS_PV: "19idMR:m3.EGU"
+  DCM_Bragg:
+    NAME: DCM_Bragg
+    VALUE_PV: "19idDCM:m1.VAL"
+    RBV_PV: "19idDCM:m1.RBV"
+    UNITS_PV: "19idDCM:m1.EGU"
+  DCM_Gap:
+    NAME: DCM_Gap
+    VALUE_PV: "19idDCM:m2.VAL"
+    RBV_PV: "19idDCM:m2.RBV"
+    UNITS_PV: "19idDCM:m2.EGU"
+  DCM_Energy:
+    NAME: DCM_Energy
+    VALUE_PV: "19idDCM:SM3.VAL"
+    RBV_PV: "19idDCM:m2.RBV"
+    UNITS_PV: "keV"
+  C_BDA_size:
+    NAME: C_BDA_size
+    VALUE_PV: "19idBDA:Slit1Vsize.VAL"
+    RBV_PV: "19idBDA:Slit1Vsize.RBV"
+    UNITS_PV: "19idBDA:Slit1Vsize.EGU"
+  C_BDA_center:
+    NAME: C_BDA_center
+    VALUE_PV: "19idBDA:Slit1Vcenter.VAL"
+    RBV_PV: "19idBDA:Slit1Vcenter.RBV"
+    UNITS_PV: "19idBDA:Slit1Vcenter.EGU"
+  D_BDA_size:
+    NAME: D_BDA_size
+    VALUE_PV: "19idBDA:Slit1Hsize.VAL"
+    RBV_PV: "19idBDA:Slit1Hsize.RBV"
+    UNITS_PV: "19idBDA:Slit1Hsize.EGU"
+  D_BDA_center:
+    NAME: D_BDA_center
+    VALUE_PV: "19idBDA:Slit1Hcenter.VAL"
+    RBV_PV: "19idBDA:Slit1Hcenter.RBV"
+    UNITS_PV: "19idBDA:Slit1Hcenter.EGU"
+
+
+INSTRUMENT:
+  Sam_X:
+    NAME: Sam_X
+    VALUE_PV: "19idAERO:m1.VAL"
+    RBV_PV: "19idAERO:m1.RBV"
+    UNITS_PV: "19idAERO:m1.EGU"
+  Sam_Z:
+    NAME: Sam_Z
+    VALUE_PV: "19idAERO:m2.VAL"
+    RBV_PV: "19idAERO:m2.RBV"
+    UNITS_PV: "19idAERO:m2.EGU"
+  Sam_rot:
+    NAME: Sam_rot
+    VALUE_PV: "19idAERO:m5.VAL"
+    RBV_PV: "19idAERO:m5.RBV"
+    UNITS_PV: "19idAERO:m5.EGU"
+  Fine_X:
+    NAME: Fine_X
+    VALUE_PV: "19idAERO:m6.VAL"
+    RBV_PV: "19idAERO:m6.RBV"
+    UNITS_PV: "19idAERO:m6.EGU"
+  Fine_Z:
+    NAME: Fine_Z
+    VALUE_PV: "19idAERO:m7.VAL"
+    RBV_PV: "19idAERO:m7.RBV"
+    UNITS_PV: "19idAERO:m7.EGU"
+  Piezo_Y1:
+    NAME: Piezo_Y1
+    VALUE_PV: "19idAERO:m8.VAL"
+    RBV_PV: "19idAERO:m8.RBV"
+    UNITS_PV: "19idAERO:m8.EGU"
+  Piezo_Y2:
+    NAME: Piezo_Y2
+    VALUE_PV: "19idAERO:m9.VAL"
+    RBV_PV: "19idAERO:m9.RBV"
+    UNITS_PV: "19idAERO:m9.EGU"
+  Piezo_Y3:
+    NAME: Piezo_Y3
+    VALUE_PV: "19idAERO:m10.VAL"
+    RBV_PV: "19idAERO:m10.RBV"
+    UNITS_PV: "19idAERO:m10.EGU"
+
+
+ROBOT: 
+  Radius:
+    NAME: Radius
+    VALUE_PV: "19IDRobot:Radius.VAL"
+    RBV_PV: "19IDRobot:Radius.RBV"
+    UNITS_PV: "19IDRobot:Radius.EGU"
+  Pitch:
+    NAME: Pitch
+    VALUE_PV: "19IDRobot:Pitch.VAL"
+    RBV_PV: "19IDRobot:Pitch.RBV"
+    UNITS_PV: "19IDRobot:Pitch.EGU"
+  Yaw:
+    NAME: Yaw
+    VALUE_PV: "19IDRobot:Yaw.VAL"
+    RBV_PV: "19IDRobot:Yaw.RBV"
+    UNITS_PV: "19IDRobot:Yaw.EGU"
+  
+PTYCHO:
+  Ptycho_X:
+    NAME: Ptycho_X
+    VALUE_PV: "19idACS2:m1.VAL"
+    RBV_PV: "19idACS2:m1.RBV"
+    UNITS_PV: "19idACS2:m1.EGU"
+  Ptycho_Y:
+    NAME: Ptycho_Y
+    VALUE_PV: "19idACS2:m2.VAL"
+    RBV_PV: "19idACS2:m2.RBV"
+    UNITS_PV: "19idACS2:m2.EGU"
+  Ptycho_Z:
+    NAME: Ptycho_Z
+    VALUE_PV: "19idACS2:m3.VAL"
+    RBV_PV: "19idACS2:m3.RBV"
+    UNITS_PV: "19idACS2:m3.EGU"
+
+
+
+# TETRAMM1_SETTING:
+#   TETRAMM1:
+#     NAME: tetramm
+#     RANGE_PV: "19idSFT:TetrAMM1:Range_RBV"
+
+# TETRAMM2_SETTING:
+#   NAME: tetramm
+#   RANGE_PV: "19idSFT2:TetrAMM2:Range_RBV"
+
+# TETRAMM3_SETTING:
+#   NAME: tetramm
+#   RANGE_PV: "19idSFT3:TetrAMM3:Range_RBV"
+
+# TETRAMM4_SETTING:
+#   NAME: tetramm
+#   RANGE_PV: "19idSFT4:TetrAMM4:Range_RBV"
+
+  
+# SAMPLES:
+#   TETRAMM1: "19idBPM:C:T4U"
+#   SAVE_DATA: "19idBLUE:saveData_"
+#   SCAN1: "19idBLUE:scan1"
+#   SCAN2: "19idBLUE:scan2"
+
+

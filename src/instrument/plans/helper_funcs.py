@@ -34,7 +34,15 @@ def selected_dets(**kwargs):
     for k, v in kwargs.items():
         if all([v, isinstance(v, bool), rm_str in k]):
             det_str = k[: -len(rm_str)]
+<<<<<<< HEAD
             dets.update({det_str: det_name_mapping[det_str]})
+=======
+            try:
+                dets.update({det_str: det_name_mapping[det_str]})
+            except Exception as e:
+                print(f"Having issue connectiong detector {det_str} or its file plugin: {e}")
+                dets.update({det_str: {"cam": None, "file_plugin": None}})
+>>>>>>> s19dev
     return dets
 
 
