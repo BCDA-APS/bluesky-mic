@@ -26,10 +26,11 @@ RUN_ENGINE:
 #     PLOTS: false
 #     TABLE: false
 
-STORAGE_PATH: "/net/s19data/export/ISN/bluesky_dev"
+STORAGE:
+  PATH: "/net/s19data/export/ISN/bluesky_dev"
 
 DEVICES:
-  TETRAMM1: "19idBPM:C:T4U"
+  # TETRAMM1: "19idBPM:C:T4U"
   SAVE_DATA: "19idBLUE:saveData_"
   SCAN1: "19idBLUE:scan1"
   SCAN2: "19idBLUE:scan2"
@@ -56,6 +57,7 @@ AREA_DETECTOR:
     BLUESKY_FILES_ROOT: &BLUESKY_DATA_ROOT "/path/to/data/"
     IMAGE_DIR: "sub/directory/path"
     HDF5_FILE_TEMPLATE: "%s%s_%6.6d.h5"
+    FILE_DELIMITER: "19ide"
   
     AD_XSP3_8Chan:
       NAME: xrf_me7
@@ -74,6 +76,12 @@ AREA_DETECTOR:
     AD_EIGER_DIFFRACTION:
       NAME: eigher_xrd
       PV_PREFIX: "temp"
+
+    TETRAMM1:
+      NAME: tetramm1
+      PV_PREFIX: "19idBPM:C:T4U"
+      HDF5_PV_PREFIX: "19idBPM:C:T4U"
+      NETCDF_PV_PREFIX: "19idBPM:C:T4U"
 
     ### Add configuration for specific detector(s).
     ### Suggestion:

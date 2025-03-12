@@ -14,10 +14,6 @@ import logging
 import os
 from pathlib import Path
 from apstools.devices import DM_WorkflowConnector
-<<<<<<< HEAD
-from .dm_plans import dm_submit_workflow_job
-from ..configs.device_config import scan1, samx, savedata
-=======
 from mic_instrument.devices.data_management import api
 from mic_instrument.plans.generallized_scan_1d import generalized_scan_1d
 from mic_instrument.plans.workflow_plan import run_workflow
@@ -27,7 +23,6 @@ from mic_instrument.utils.dm_utils import dm_upload_wait
 from mic_instrument.utils.watch_pvs_write_hdf5 import write_scan_master_h5
 from mic_instrument.configs.device_config import scan1, samx, savedata, master_file_yaml
 from mic_instrument.plans.helper_funcs import selected_dets, calculate_num_capture, move_to_position
->>>>>>> s19dev
 
 
 logger = logging.getLogger(__name__)

@@ -20,11 +20,7 @@ from ..utils.dm_utils import dm_upload_wait
 from ..devices.data_management import api
 from apstools.devices import DM_WorkflowConnector
 from .dm_plans import dm_submit_workflow_job
-<<<<<<< HEAD
-from ..configs.device_config import scan1, samx, savedata
-=======
 # from ..configs.device_config import scan1, samx, savedata
->>>>>>> s19dev
 
 
 logger = logging.getLogger(__name__)
@@ -50,6 +46,10 @@ def dummy_testing(
     eta=0,
 ):
     """Bluesky plan for testing but not moving any actual hardware"""
+
+    """Print out the input parameters"""
+    for key, value in locals().items():
+        logger.info(f"{key}: {value}")
 
     """Print out the input parameters"""
     for key, value in locals().items():
