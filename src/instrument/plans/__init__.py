@@ -2,7 +2,8 @@
 
 # from .scan_record_scan import scan_record_isn
 # from .fly2d_2idsft import fly2d  # noqa: F401
-from .fly1d import fly1d
+from .fly2d import fly2d
+# from .fly2d_old import fly2d
 from .step1d import step1d
 from .step2d import step2d
 from .dummy_plan import dummy_testing

@@ -33,7 +33,9 @@ def mode_setter(attribute_name):
                         f"Available states: {states}"
                     )
             except Exception as e:
-                logger.error(f"Error setting mode for {attribute_name} in {self.prefix}: {e}")
+                logger.error(
+                    f"Error setting mode for {attribute_name} in {self.prefix}: {e}"
+                )
 
         return wrapper
 
@@ -51,7 +53,9 @@ def value_setter(attribute_name):
                 yield from bps.mv(signal, value)
                 logger.info(f"Assigned {signal.pvname} to {value}.")
             except Exception as e:
-                logger.error(f"Error setting {attribute_name} to {value} in {self.prefix}: {e}")
+                logger.error(
+                    f"Error setting {attribute_name} to {value} in {self.prefix}: {e}"
+                )
 
         return wrapper
 
