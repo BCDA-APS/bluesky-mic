@@ -63,8 +63,50 @@ def fly2d(
     analysisMachine="mona2",
     ptycho_exp_factor=1,
 ):
-    """2D Bluesky plan that drives the x- and y- sample motors in fly mode using ScanRecord"""
-
+    """2D Bluesky plan that drives the x- and y- sample motors in fly mode using ScanRecord
+    
+    Parameters
+    ----------
+    samplename : 
+        Str: The name of the sample.
+    user_comments : 
+        Str: The user comments for the scan.
+    width : 
+        Float: The width of the scan.
+    x_center : 
+        Float: The center of the scan in the x-direction.
+    stepsize_x : 
+        Float: The stepsize of the scan in the x-direction.
+    height : 
+        Float: The height of the scan.      
+    y_center : 
+        Float: The center of the scan in the y-direction.
+    stepsize_y : 
+        Float: The stepsize of the scan in the y-direction.
+    dwell : 
+        Float: The dwell time of the scan.
+    smp_theta : 
+        Float: The sample theta angle.
+    xrf_on : 
+        Bool: Whether to run XRF.
+    ptycho_on : 
+        Bool: Whether to run Ptycho.
+    preamp1_on : 
+        Bool: Whether to run Preamp1.
+    preamp2_on : 
+        Bool: Whether to run Preamp2.
+    fpga_on : 
+        Bool: Whether to run FPGA.
+    position_stream : 
+        Bool: Whether to run Position Stream.
+    wf_run : 
+        Bool: Whether to run DM workflow.
+    analysisMachine : 
+        Str: The analysis machine to use.
+    ptycho_exp_factor : 
+        Float: The exposure factor for Ptycho.
+        
+    """
     ##TODO Close shutter while setting up scan parameters
 
     """Set up scan record based on the scan types and parameters"""
@@ -101,6 +143,9 @@ def fly2d(
     savedata.update_next_file_name()
     next_file_name = savedata.next_file_name
 
+    """Generate scan_master.h5 file"""
+    
+    
     """Initialize detectors with desired pts, exposure time and file writer """
     if sis3820.connected:
         # Set up triggers for FLY scans, sis3820 will be sending out pulses. The number of pulses is numpts_x - 2
@@ -128,9 +173,9 @@ def fly2d(
                         filename=filename,
                         beamline_delimiter=netcdf_delimiter,
                     )
-                    yield from file_plugin.set_capture("capturing")
+                    # yield from file_plugin.set_capture("capturing")
 
-                if det_name == "ptycho":
+                elif det_name == "ptycho":
                     yield from setup_flyscan_ptycho_triggers(
                         fscan1, fscanh, cam, eiger_filewriter=file_plugin
                     )
@@ -145,7 +190,8 @@ def fly2d(
                         netcdf_delimiter,
                     )
 
-                if any([det_name == "preamp1", det_name == "preamp2"]):
+                elif any([det_name == "preamp1", det_name == "preamp2"]):
+                    logger.info(f"Setting up file writer for {det_name}, {file_plugin.file_path.get()}")
                     yield from file_plugin.setup_file_writer(
                         savedata,
                         det_name,
@@ -153,6 +199,9 @@ def fly2d(
                         filename=filename,
                         beamline_delimiter=netcdf_delimiter,
                     )
+                
+                yield from file_plugin.set_capture("capturing")
+                    
 
     """Start executing scan"""
     

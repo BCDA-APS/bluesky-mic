@@ -33,9 +33,13 @@ class DetBase:
             The delimiter used in the file path.
         """
         fileplugin_path = self.file_path.get()
+        logger.info(f"self.fileplugin_path: {fileplugin_path}")
         fileplugin_path_split = fileplugin_path.split(delimiter)
+        logger.info(f"fileplugin_path_split: {fileplugin_path_split}")
         det_path_split = det_path.split(delimiter)
+        logger.info(f"det_path_split: {det_path_split}")
         fileplugin_path_new = fileplugin_path_split[0] + delimiter + det_path_split[-1]
+        logger.info(f"fileplugin_path_new: {fileplugin_path_new}")
         return fileplugin_path_new
 
     def generate_det_filepath(self, savedata, det_name):

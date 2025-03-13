@@ -43,9 +43,46 @@ def dummy_testing(
     position_stream=False,
     wf_run=False,
     analysisMachine="mona2",
-    eta=0,
 ):
-    """Bluesky plan for testing but not moving any actual hardware"""
+    """Bluesky plan for testing but not moving any actual hardware
+    
+    Parameters  
+    ----------
+    samplename : 
+        Str: The name of the sample.
+    user_comments : 
+        Str: The user comments for the scan.
+    width : 
+        Float: The width of the scan.
+    x_center : 
+        Float: The center of the scan in the x-direction.
+    stepsize_x : 
+        Float: The stepsize of the scan in the x-direction.
+    dwell : 
+        Float: The dwell time of the scan.
+    smp_theta : 
+        Float: The sample theta angle.
+    simdet_on : 
+        Bool: Whether to run Simdet.
+    xrf_on : 
+        Bool: Whether to run XRF.
+    ptycho_on : 
+        Bool: Whether to run Ptycho.
+    preamp_on : 
+        Bool: Whether to run Preamp.
+    fpga_on : 
+        Bool: Whether to run FPGA.
+    position_stream : 
+        Bool: Whether to run Position Stream.
+    wf_run : 
+        Bool: Whether to run DM workflow.
+    analysisMachine : 
+        Str: The analysis machine to use.
+    """
+
+    """Print out the input parameters"""
+    for key, value in locals().items():
+        logger.info(f"{key}: {value}")
 
     for i in range(stepsize_x):
         prog = round(i / stepsize_x * 100, 2)
