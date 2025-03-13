@@ -90,6 +90,8 @@ def step1d(
     yield from generalized_scan_1d(scan1, samx, scanmode="LINEAR", x_center=x_center,
                                    width=width, stepsize_x=stepsize_x, dwell=dwell)
 
+                                   
+
     """Check which detectors to trigger"""
     logger.info("Determining which detectors are selected")
     dets = selected_dets(**locals())
@@ -136,3 +138,4 @@ def step1d(
 
     # # yield from bps.sleep(1)
     # # print("end of plan")
+
