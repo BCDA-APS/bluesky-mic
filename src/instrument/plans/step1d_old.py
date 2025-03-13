@@ -3,21 +3,11 @@ Creating a bluesky plan that interacts with Scan Record.
 
 @author: yluo(grace227)
 
-EXAMPLE::
-
-    # Load this code in IPython or Jupyter notebook:
-    %run -i user/fly2d_2idsft.py
-
-    # # Run the plan with the RunEngine:
-    # RE(scan_record2(scanrecord_name = 'scan1', ioc = "2idsft:", m1_name = 'm1',
-    #                m1_start = -0.5, m1_finish = 0.5,
-    #                m2_name = 'm3', m2_start = -0.2 ,m2_finish = 0.2, 
-    #                npts = 50, dwell_time = 0.1))
 
 """
 
 __all__ = """
-    fly1d
+    step1d
 """.split()
 
 import logging
@@ -36,7 +26,7 @@ logger = logging.getLogger(__name__)
 logger.info(__file__)
 
 
-def fly1d(
+def step1d(
     samplename="smp1",
     user_comments="",
     width=0,
@@ -54,12 +44,12 @@ def fly1d(
     analysisMachine="mona2",
     eta=0,
 ):
-    """1D Bluesky plan that drives the flyable sample motor using ScanRecord"""
+    """1D Bluesky plan that drives the a sample motor in stepping mode using ScanRecord"""
 
     ##TODO Close shutter while setting up scan parameters
 
     """Set up scan record based on the scan types and parameters"""
-    yield from generalized_scan_1d(scan1, samx, scanmode="FLY", **locals())
+    yield from generalized_scan_1d(scan1, samx, scanmode="LINEAR", **locals())
 
     """Start executing scan"""
     savedata.update_next_file_name()
@@ -83,7 +73,7 @@ def fly1d(
     #             argsDict = ptychodus_dm_args.copy()
 
     #         ##TODO Modify argsDict accordingly based on the scan parameters
-    #         argsDict["analysisMachine"] = analysisMachine
+    #         argsDict['analysisMachine'] = analysisMachine
 
     #         yield from dm_submit_workflow_job(WORKFLOW, argsDict)
     #         logger.info(f"{len(api.listProcessingJobs())=!r}")
@@ -94,5 +84,5 @@ def fly1d(
     # else:
     #     logger.info(f"Having issue connecting to scan record: {scan1.prefix}")
 
-    # yield from bps.sleep(1)
-    # print("end of plan")
+    # # yield from bps.sleep(1)
+    # # print("end of plan")

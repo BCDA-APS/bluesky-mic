@@ -11,6 +11,7 @@ Includes:
 
 # logging setup first
 import logging
+import pathlib
 
 from .core.best_effort_init import bec  # noqa: F401
 from .core.best_effort_init import peaks  # noqa: F401
@@ -31,7 +32,7 @@ from apstools.utils import listplans, listobjects
 
 logger = logging.getLogger(__name__)
 logger.bsdev(__file__)
-# logger.info(__file__)
+
 
 # Configure the session with callbacks, devices, and plans.
 if iconfig.get("NEXUS_DATA_FILES") is not None:

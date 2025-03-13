@@ -23,8 +23,7 @@ class Xspress3(Xspress3DetectorCam):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
 
-    
-    def scan_init(self, exposure_time = 0, num_images = 0):
+    def scan_init(self, exposure_time=0, num_images=0):
         yield from self.set_acquire_time(exposure_time)
         yield from self.set_num_images(num_images)
 
