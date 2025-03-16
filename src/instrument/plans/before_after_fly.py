@@ -19,7 +19,6 @@ import logging
 # from .dm_plans import dm_submit_workflow_job
 from ..configs.device_config import (
     # savedata,
-    sis3820,
     # hydra1_startposition,
     # stepdwell,
     xrf_dm_args,

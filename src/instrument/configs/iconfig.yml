@@ -27,7 +27,7 @@ RUN_ENGINE:
 #     TABLE: false
 
 STORAGE:
-  PATH: "/net/s19data/export/ISN/bluesky_dev"
+  PATH: "/gdata/dm/19ID"
 
 DEVICES:
   # TETRAMM1: "19idBPM:C:T4U"
@@ -57,7 +57,7 @@ AREA_DETECTOR:
     BLUESKY_FILES_ROOT: &BLUESKY_DATA_ROOT "/path/to/data/"
     IMAGE_DIR: "sub/directory/path"
     HDF5_FILE_TEMPLATE: "%s%s_%6.6d.h5"
-    FILE_DELIMITER: "19ide"
+    FILE_DELIMITER: "19ID"
   
     AD_XSP3_8Chan:
       NAME: xrf_me7
@@ -70,8 +70,9 @@ AREA_DETECTOR:
       HDF5_PV_PREFIX: "XSP3_12Chan:HDF1:"
 
     AD_EIGER_PTYCHO:
-      NAME: eiger_ptycho
-      PV_PREFIX: "temp"
+      NAME: ptycho
+      PV_PREFIX: "19idPTYCHO:cam1:"
+      HDF5_PV_PREFIX: "19idPTYCHO:HDF1:"
 
     AD_EIGER_DIFFRACTION:
       NAME: eigher_xrd
@@ -79,9 +80,9 @@ AREA_DETECTOR:
 
     TETRAMM1:
       NAME: tetramm1
-      PV_PREFIX: "19idBPM:C:T4U"
-      HDF5_PV_PREFIX: "19idBPM:C:T4U"
-      NETCDF_PV_PREFIX: "19idBPM:C:T4U"
+      PV_PREFIX: "19idSFT:TetrAMM1:"
+      HDF5_PV_PREFIX: ""
+      NETCDF_PV_PREFIX: ""
 
     ### Add configuration for specific detector(s).
     ### Suggestion:

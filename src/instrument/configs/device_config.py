@@ -11,9 +11,10 @@ from mic_instrument.devices.scan_record import ScanRecord
 from mic_instrument.devices.save_data import SaveDataMic
 from mic_instrument.devices.ad_fileplugin import DetHDF5, DetNetCDF
 from mic_instrument.devices.tetramm import TetraMM
+from mic_instrument.devices.xspress3 import Xspress3
+from mic_instrument.devices.eiger1m import Eiger1M
 from mic_instrument.utils.config_loaders import iconfig
 from mic_instrument.utils.config_loaders import load_config_yaml
-from ophyd import EpicsSignal
 from ophyd import EpicsMotor
 
 # from mic_instrument.devices.simdet import SimDet, SimDetHDF5
@@ -26,7 +27,7 @@ samz = EpicsMotor(iconfig.get("POSITIONERS")["Z_MOTOR"], name="samz")
 samr = EpicsMotor(iconfig.get("POSITIONERS")["R_MOTOR"], name="samr")
 scan_overhead = iconfig.get("POSITIONERS")["SCAN_OVERHEAD"]
 savedata = SaveDataMic(iconfig.get("DEVICES")["SAVE_DATA"], name="savedata")
-micdata_mountpath = iconfig.get("STORAGE")["PATH"]
+local_mountpath = iconfig.get("STORAGE")["PATH"]
 
 
 xrf_me7 = Xspress3(
@@ -38,16 +39,22 @@ xrf_me7_hdf = DetHDF5(
     name=iconfig.get("AREA_DETECTOR")["AD_XSP3_8Chan"]["NAME"] + "_hdf",
 )
 
-tetramm1 = TetraMM(iconfig.get("AREA_DETECTOR")["TETRAMM1"]["PV_PREFIX"], 
-                  name=iconfig.get("DETECTOR")["TETRAMM1"]["NAME"])
-tetramm1_netcdf = DetNetCDF(
-    iconfig.get("DETECTOR")["TETRAMM1"]["NETCDF_PV_PREFIX"],
-    name=iconfig.get("DETECTOR")["TETRAMM1"]["NAME"] + "_netcdf",
-)
+ptycho = Eiger1M(iconfig.get("AREA_DETECTOR")["AD_EIGER_PTYCHO"]["PV_PREFIX"], 
+                     name=iconfig.get("AREA_DETECTOR")["AD_EIGER_PTYCHO"]["NAME"])
+ptycho_hdf = DetHDF5(iconfig.get("AREA_DETECTOR")["AD_EIGER_PTYCHO"]["HDF5_PV_PREFIX"], 
+                           name=iconfig.get("AREA_DETECTOR")["AD_EIGER_PTYCHO"]["NAME"] + "_hdf")
 
-netcdf_delimiter = iconfig.get("DETECTOR")["FILE_DELIMITER"]
-xrf_me7_hdf.micdata_mountpath = micdata_mountpath
-tetramm1_netcdf.micdata_mountpath = micdata_mountpath
+tetramm1 = TetraMM(iconfig.get("AREA_DETECTOR")["TETRAMM1"]["PV_PREFIX"], 
+                  name=iconfig.get("AREA_DETECTOR")["TETRAMM1"]["NAME"])
+tetramm1_netcdf = None
+# tetramm1_netcdf = DetNetCDF(
+#     iconfig.get("DETECTOR")["TETRAMM1"]["NETCDF_PV_PREFIX"],
+#     name=iconfig.get("DETECTOR")["TETRAMM1"]["NAME"] + "_netcdf",
+# )
+
+netcdf_delimiter = iconfig.get("AREA_DETECTOR")["FILE_DELIMITER"]
+xrf_me7_hdf.micdata_mountpath = local_mountpath
+# tetramm1_netcdf.micdata_mountpath = local_mountpath
 
 
 # Create detector name mapping
@@ -56,7 +63,7 @@ det_name_mapping = {
     "preamp1": {"cam": tetramm1, "file_plugin": tetramm1_netcdf},
     # "preamp2": {"cam": tetramm2, "file_plugin": tetramm2_netcdf},
     "fpga": {"cam": None, "file_plugin": None},
-    "ptycho": {"cam": None, "file_plugin": None},
+    "ptycho": {"cam": ptycho, "file_plugin": ptycho_hdf},
 }
 
 
