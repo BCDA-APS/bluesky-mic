@@ -34,9 +34,16 @@ class ScanRecord(SscanRecord):
     detTrigger_3 = Component(EpicsSignal, ".T3PV")
     detTrigger_4 = Component(EpicsSignal, ".T4PV")
 
+    detTrigger_1_old = ''
+    detTrigger_2_old = ''
+    detTrigger_3_old = ''
+    detTrigger_4_old = ''
+
+
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.P1PA = PV(f"{self.prefix}.P1PA")
+        self.save_current_detTriggers()
 
     def set_center_width_stepsize(self, center: float, width: float, ss: float):
         """Set center, width, and stepsize in a single motion command."""
@@ -54,6 +61,11 @@ class ScanRecord(SscanRecord):
         """
         Set detector triggers for the scan record.
         """
+
+        # Save the current detector triggers before setting new ones
+        self.save_current_detTriggers()
+
+        # Set the new detector triggers
         trigger_list = [
             self.detTrigger_1,
             self.detTrigger_2,
@@ -63,6 +75,22 @@ class ScanRecord(SscanRecord):
         for detTri, pv_name in zip(trigger_list, trigger_pvs):
             yield from bps.mv(detTri, pv_name)
             logger.info(f"Set {detTri.pvname} to {pv_name} in {self.prefix}.")
+
+    def save_current_detTriggers(self):
+        self.detTrigger_1_old = self.detTrigger_1.get()
+        self.detTrigger_2_old = self.detTrigger_2.get()
+        self.detTrigger_3_old = self.detTrigger_3.get()
+        self.detTrigger_4_old = self.detTrigger_4.get()
+
+    def restore_detTriggers(self):
+        """
+        Restore the detector triggers to the previous values.
+        This function assumes that the old values are saved
+        """
+        yield from bps.mv(self.detTrigger_1, self.detTrigger_1_old,
+                          self.detTrigger_2, self.detTrigger_2_old,
+                          self.detTrigger_3, self.detTrigger_3_old,
+                          self.detTrigger_4, self.detTrigger_4_old)
 
     @mode_setter("scan_mode")
     def set_scan_mode(self, mode):

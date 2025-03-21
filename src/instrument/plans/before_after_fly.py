@@ -88,11 +88,11 @@ def setup_flyscan_ptycho_triggers(
         filewriter_capture_pv = eiger_filewriter.capture.pvname.replace("_RBV", "")
 
     trigger_pvs = [
-        inner_scanrecord.execute_scans.pvname,
+        inner_scanrecord.execute_scan.pvname,
         filewriter_capture_pv,
         eiger.acquire.pvname.replace("_RBV", ""),
     ]
-    yield from outter_scanrecord.set_trigger_pv(trigger_pvs)
+    yield from outter_scanrecord.set_detTriggers(trigger_pvs)
 
 
 def setup_eiger_filewriter(

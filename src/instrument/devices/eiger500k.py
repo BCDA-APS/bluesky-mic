@@ -32,6 +32,34 @@ class Eiger500k(EigerDetectorCam):
     file_name_pattern = Component(EpicsSignal, "FWNamePattern")
     save_files = Component(EpicsSignal, "SaveFiles")
 
+
+    def scan_init(self, exposure_time, num_images, ptycho_exp_factor):
+        """
+        Initialize the detector for a scan.
+        Based on the current trigger mode, this function will choose corresponding setup functions.
+
+        Parameters:
+        - dwell: Dwell time for each pixel in seconds.
+        - num_images: Number of images to be set.
+        - ptycho_exp_factor: Exposure factor to adjust the acquisition time.
+                             When is set to 1, the exposure time is the same as the dwell time.
+                             Otherwise, the exposure time is the dwell time divided by the ptycho_exp_factor.
+        """
+        trigger_mode = self.trigger_mode.get(as_string=True)
+        print(f"trigger_mode: {trigger_mode}")
+        yield from self.set_acquire("DONE")
+
+        if trigger_mode == "Internal":
+            yield from self.setup_internal_trigger(num_images)
+        elif trigger_mode == "External Enable":
+            yield from self.setup_external_enable_trigger(num_images)
+        elif trigger_mode == "External Series":
+            yield from self.setup_external_series_trigger(num_images)
+        
+        yield from self.set_acquire_period(exposure_time)
+        yield from self.set_acquire_time(exposure_time / ptycho_exp_factor)
+    
+
     def sync_file_path(self, savedatapath, delimiter):
         """
         Synchronize the file path of the SaveData object with the EPICS AreaDetector filewriter.
@@ -53,15 +81,23 @@ class Eiger500k(EigerDetectorCam):
         print(p1_new)
         return p1_new
 
+    def setup_internal_trigger(self, num_triggers):
+        """
+        Set up the internal trigger for the detector.
+        This function will set the number of images equals to the input number of triggers
+        and the number of triggers equals to 1.
+
+        This is essentially the same as the setup_external_series_trigger function.
+        """
+        yield from self.setup_external_series_trigger(num_triggers)
+    
     def setup_external_enable_trigger(self, num_triggers):
         """
         Set up the external enable trigger for the detector.
-
+        This function will set the number of triggers equals to the input number of triggers
+        and the number of images equals to 1.
         Parameters:
         - num_triggers: Number of triggers to be set.
-        - pixel_dwell: Dwell time for each pixel in milliseconds.
-        - exp_factor: Exposure factor to adjust the acquisition time (default is 1).
-        - ad_hdf5_filewriter: The EPICS AreaDetector HDF5 filewriter to be set up (default is None).
         """
         yield from self.set_num_triggers(num_triggers)  # Set the number of triggers
         yield from self.set_num_images(1)  # Set the number of images to 1
@@ -69,17 +105,16 @@ class Eiger500k(EigerDetectorCam):
     def setup_external_series_trigger(self, num_triggers):
         """
         Set up the external series trigger for the detector.
-
+        This function will set the number of images equals to the input number of triggers
+        and the number of triggers equals to 1.
         Parameters:
         - num_triggers: Number of triggers to be set.
-        - pixel_dwell: Dwell time for each pixel in milliseconds.
-        - exp_factor: Exposure factor to adjust the acquisition time (default is 1).
-
         """
         yield from self.set_num_images(
             num_triggers
         )  # Set the number of images to the number of triggers
         yield from self.set_num_triggers(1)  # Set the number of triggers to 1
+
 
     def setup_eiger_filewriter(self, savedata, det_name, filename, beamline_delimiter):
         """
@@ -103,25 +138,6 @@ class Eiger500k(EigerDetectorCam):
         else:
             logger.error(f"File path {newpath} does not exist")
 
-    def flyscan_before(self, num_pulses, dwell, ptycho_exp_factor):
-        """
-        Set up the Eiger detector for a flyscan.
-        """
-        trigger_mode = self.trigger_mode.get(as_string=True)
-        yield from self.set_acquire("Stop")
-
-        if trigger_mode == "External Series":
-            yield from self.setup_external_series_trigger(
-                num_pulses, dwell, ptycho_exp_factor
-            )
-        elif trigger_mode == "External Enable":
-            yield from self.setup_external_enable_trigger(
-                num_pulses, dwell, ptycho_exp_factor
-            )
-
-        yield from self.set_num_triggers(num_pulses)
-        yield from self.set_acquire_period(dwell / 1000)
-        yield from self.set_acquire_time(dwell / 1000 / ptycho_exp_factor)
 
     @mode_setter("file_writer_enable")
     def set_file_writer_enable(self, mode):

@@ -27,7 +27,7 @@ fscanh = ScanRecord(iconfig.get("DEVICES")["FSCANH"], name="fscanh")
 fscanh_samx = EpicsSignal(
     iconfig.get("USERCALC")["FSCANH_POSITIONER"], name="fscanh_samx"
 )
-fscanh_dwell = EpicsSignal(iconfig.get("USERCALC")["FSCANH_DWELL"], name="fscanh_dwell")
+fscanh_dwell = EpicsSignal(iconfig.get("USERCALC")["FLYSCAN_DWELL"], name="fscanh_dwell")
 samx = EpicsMotor(iconfig.get("POSITIONERS")["X_MOTOR"], name="samx")
 samy = EpicsMotor(iconfig.get("POSITIONERS")["Y_MOTOR"], name="samy")
 samz = EpicsMotor(iconfig.get("POSITIONERS")["Z_MOTOR"], name="samz")
@@ -36,6 +36,7 @@ savedata = SaveDataMic(iconfig.get("DEVICES")["SAVE_DATA"], name="savedata")
 hydra1_startposition = EpicsSignal(
     iconfig.get("OTHER_SIGNALS")["HYDRA1_STARTPOSITION"], name="hydra1_startposition"
 )
+micdata_mountpath = iconfig.get("STORAGE")["PATH"]
 scan_overhead = iconfig.get("POSITIONERS")["SCAN_OVERHEAD"]
 
 netcdf_delimiter = iconfig.get("DETECTOR")["FILE_DELIMITER"]
@@ -49,6 +50,7 @@ xrf_netcdf = DetNetCDF(
     iconfig.get("DETECTOR")["XMAP_4Chan"]["NETCDF_PV_PREFIX"],
     name=iconfig.get("DETECTOR")["XMAP_4Chan"]["NAME"] + "_netcdf",
 )
+xrf_netcdf.micdata_mountpath = micdata_mountpath
 
 sis3820 = SIS3820(
     iconfig.get("DETECTOR")["SIS3820"]["PV_PREFIX"],
@@ -65,6 +67,7 @@ if iconfig.get("DETECTOR")["AD_EIGER_PTYCHO"]["HDF5_PV_PREFIX"] is not "":
         iconfig.get("DETECTOR")["AD_EIGER_PTYCHO"]["HDF5_PV_PREFIX"],
         name=iconfig.get("DETECTOR")["AD_EIGER_PTYCHO"]["NAME"] + "_hdf",
     )
+    eiger_hdf5.micdata_mountpath = micdata_mountpath
 else:
     eiger_hdf5 = None
 

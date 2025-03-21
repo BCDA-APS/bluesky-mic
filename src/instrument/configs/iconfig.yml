@@ -26,11 +26,12 @@ RUN_ENGINE:
 #     PLOTS: false
 #     TABLE: false
 
-STORAGE_PATH: "//micdata/data1/2idd/2025-1"
+STORAGE:
+  PATH: "/mnt/micdata1"
 
 DEVICES:
   TETRAMM1: "2ide:TMM1"
-  SAVE_DATA: "2xfmS1:saveData_"
+  SAVE_DATA: "2xfm:saveData_"
   SCAN1: "2xfmS1:scan1"
   SCAN2: "2xfmS1:scan2"
   FSCAN1: "2xfm:Fscan1"

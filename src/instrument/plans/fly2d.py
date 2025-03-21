@@ -40,7 +40,6 @@ import bluesky.plan_stubs as bps
 
 logger = logging.getLogger(__name__)
 logger.info(__file__)
-# NETCDF_DELIMITER = "2ide"
 
 
 def fly2d(
@@ -62,7 +61,7 @@ def fly2d(
     wf_run=False,
     analysisMachine="mona2",
     eta=0,
-    ptycho_exp_factor=1,
+    ptycho_exp_factor=3,
 ):
     """2D Bluesky plan that drives the x- and y- sample motors in fly mode using ScanRecord"""
 
@@ -85,7 +84,14 @@ def fly2d(
     yield from fscan1.set_scan_mode("linear")
     yield from fscan1.set_positioner_drive(f"{samy.prefix}.VAL")
     yield from fscan1.set_positioner_readback(f"{samy.prefix}.RBV")
-    yield from fscan1.set_center_width_stepsize(y_center, height, stepsize_y)
+
+    # check if the scan movement is relative or absolute
+    scan_movement = fscan1.scan_movement.enum_strs[fscan1.scan_movement.get()]
+    if scan_movement == "RELATIVE":
+        yield from bps.mv(samy, y_center)
+        yield from fscan1.set_center_width_stepsize(0, height, stepsize_y)
+    else:
+        yield from fscan1.set_center_width_stepsize(y_center, height, stepsize_y)
 
     """Assign the per-pixel dwell time"""
     logger.info(f"Setting per-pixel dwell time ({fscanh_dwell.pvname}) to {dwell} ms")
@@ -109,41 +115,61 @@ def fly2d(
             file_plugin = det_var["file_plugin"]
             filename = next_file_name.replace(".mda", "_")
 
-            if det_name == "xrf":
-                num_capture = calculate_num_capture(numpts_x)
-                yield from setup_flyscan_XRF_triggers(
-                    fscanh, cam, file_plugin, sis3820, num_pulses
-                )
-                yield from cam.flyscan_before(num_pulses)
-                yield from file_plugin.setup_file_writer(
-                    savedata,
-                    det_name,
-                    num_capture,
-                    filename=filename,
-                    beamline_delimiter=netcdf_delimiter,
-                )
-                yield from file_plugin.set_capture("capturing")
+            # TODO: We need to update filename in xrf file plugin, Assuming the XRF detector is handled by usercalc already
+            # if det_name == "xrf":
+            #     num_capture = calculate_num_capture(numpts_x)
+            #     yield from setup_flyscan_XRF_triggers(
+            #         fscanh, cam, file_plugin, sis3820, num_pulses
+            #     )
+            #     yield from cam.flyscan_before(num_pulses)
+            #     yield from file_plugin.setup_file_writer(
+            #         savedata,
+            #         det_name,
+            #         num_capture,
+            #         filename=filename,
+            #         beamline_delimiter=netcdf_delimiter,
+            #     )
+            #     yield from file_plugin.set_capture("capturing")
 
             if det_name == "ptycho":
                 yield from setup_flyscan_ptycho_triggers(
                     fscan1, fscanh, cam, eiger_filewriter=file_plugin
                 )
-                yield from cam.flyscan_before(num_pulses, dwell, ptycho_exp_factor)
-                yield from setup_eiger_filewriter(
-                    cam,
-                    file_plugin,
-                    savedata,
-                    det_name,
-                    num_pulses,
-                    filename,
-                    netcdf_delimiter,
-                )
+                yield from cam.scan_init(dwell/1e3, num_pulses, ptycho_exp_factor)
+
+                if file_plugin is not None:
+                    #If an hdf5 file plugin is used, we need to disable the Eiger's default file writer.
+                    yield from cam.set_file_writer_enable("Disable")
+
+                    next_file_number_str = str(savedata.next_scan_number.get()).zfill(3)
+                    eiger_filename = f"fly{next_file_number_str}_data"
+                    yield from file_plugin.setup_file_writer(
+                        savedata,
+                        det_name,
+                        num_pulses,
+                        filename=eiger_filename,
+                        beamline_delimiter=netcdf_delimiter,
+                    )
+                # yield from setup_eiger_filewriter(
+                #     cam,
+                #     file_plugin,
+                #     savedata,
+                #     det_name,
+                #     num_pulses,
+                #     filename,
+                #     netcdf_delimiter,
+                # )
 
     """Start executing scan"""
-    savedata.update_next_file_name()
-    yield from bps.sleep(1)
-    # yield from execute_scan_2d(fscanh, fscan1, scan_name=savedata.next_file_name,
-    #                            print_outter_msg=True)
+
+    # yield from bps.sleep(1)
+    yield from execute_scan_2d(fscanh, fscan1, scan_name=savedata.next_file_name,
+                               print_outter_msg=True)
+
+    # Restore the previous scan record triggers 
+    logger.info("Restoring the previous scan record triggers before exiting the plan")
+    yield from fscan1.restore_detTriggers()
+    yield from fscanh.restore_detTriggers()
 
     #     #############################
     #     # START THE APS DM WORKFLOW #

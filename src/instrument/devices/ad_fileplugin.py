@@ -18,24 +18,29 @@ logger.info(__file__)
 
 class DetBase:
 
+    micdata_mountpath = ""
+
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
 
-    def sync_file_path(self, savedatapath, delimiter):
+    def sync_file_path(self, det_path, delimiter):
         """
         Synchronize the file path of the SaveData object with the EPICS AreaDetector filewriter.
 
         Parameters:
-        - savedatapath: str
-            The path where the files will be saved.
+        - det_path: str
+            The path where the detector files will be saved.
         - delimiter: str
             The delimiter used in the file path.
         """
-        p1 = self.file_path.get()
-        p1_split = p1.split(delimiter)
-        p2_split = savedatapath.split(delimiter)
-        p1_new = p1_split[0] + delimiter + p2_split[-1]
-        return p1_new
+        fileplugin_path = self.file_path.get()
+        print(f"det_path: {det_path}")
+        print(f"fileplugin_path: {fileplugin_path}")
+        fileplugin_path_split = fileplugin_path.split(delimiter)
+        det_path_split = det_path.split(delimiter)
+        fileplugin_path_new = fileplugin_path_split[0] + delimiter + det_path_split[-1]
+        print(f"fileplugin_path_new: {fileplugin_path_new}")
+        return fileplugin_path_new
 
     def generate_det_filepath(self, savedata, det_name):
         """
@@ -43,18 +48,19 @@ class DetBase:
         for the EPICS AreaDetector filewriter.
         """
         basepath = savedata.get().file_system
+        basepath = basepath.replace("//micdata/data1", self.micdata_mountpath)
         det_path = os.path.join(basepath, det_name.upper())
         logger.info(f"Setting up {det_name} to have data saved at {det_path}")
         if not os.path.exists(det_path):
             try:
                 os.makedirs(det_path, exist_ok=True)
                 logger.info(f"Directory '{det_path}' created for {det_name}.")
-                return det_path
             except Exception as e:
                 logger.error(
                     f"Failed to create directory '{det_path}' for {det_name}: {e}"
                 )
                 raise e
+        return det_path
 
     def setup_file_writer(
         self,
