@@ -6,7 +6,7 @@ ICONFIG_VERSION: 2.0.0
 # Add additional configuration for use with your instrument.
 
 ### The short name for the databroker catalog.
-DATABROKER_CATALOG: &databroker_catalog temp
+DATABROKER_CATALOG: &databroker_catalog 19id_isn
 
 ### RunEngine configuration
 RUN_ENGINE:
