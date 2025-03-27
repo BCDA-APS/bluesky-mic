@@ -106,8 +106,10 @@ class Eiger1M(EigerDetectorCam):
         attrs_values.update({"det_size_y": self.det_size_y.get()})
         attrs_values.update({"pix_size_x": self.pix_size_x.get()})
         attrs_values.update({"pix_size_y": self.pix_size_y.get()})
+        attrs_values.update({"det_dist_mm": self.det_distance.get()})
         attrs_values.update({"sensor_thickness": self.sensor_thickness.get()})
         attrs_values.update({"det_description": self.det_description.get()})
+        
 
         write_det_h5(masterfile_path = masterfile_path, 
                      det_dir = detector_path, 
