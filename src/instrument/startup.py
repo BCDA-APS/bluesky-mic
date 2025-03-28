@@ -19,6 +19,7 @@ from .core.catalog_init import cat  # noqa: F401
 from .core.run_engine_init import RE  # noqa: F401
 from .core.run_engine_init import sd  # noqa: F401
 
+
 # from .devices import *  # noqa: F403
 from .plans import *  # noqa: F403
 
@@ -57,5 +58,10 @@ if iconfig.get("SPEC_DATA_FILES") is not None:
 #     from apstools.utils import *  # noqa: F403
 #     from bluesky import plan_stubs as bps  # noqa: F401
 #     from bluesky import plans as bp  # noqa: F401
+
+from bluesky import plan_stubs as bps
+from bluesky import plans as bp
+from mic_instrument.devices import * # type: ignore #noqa
+
 
 #     from .utils.controls_setup import oregistry  # noqa: F401
