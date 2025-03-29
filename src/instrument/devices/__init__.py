@@ -27,3 +27,5 @@ del host_on_aps_subnet
 from .hhl_mirrors import *
 from .softgluezynq import *
 from .tetramm_test import *
+from .bda import *
+from .ring import *
