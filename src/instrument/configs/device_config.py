@@ -12,6 +12,7 @@ from mic_instrument.devices.ad_fileplugin import DetHDF5, DetNetCDF
 from mic_instrument.devices.xmap import XMAP
 from mic_instrument.devices.sis3820 import SIS3820
 from mic_instrument.devices.tetramm import TetraMM
+from mic_instrument.devices.kohzu import KohzuMono
 from mic_instrument.utils.config_loaders import iconfig
 from mic_instrument.utils.config_loaders import load_config_yaml
 from ophyd import EpicsSignal
@@ -66,6 +67,8 @@ tetramm2_netcdf.micdata_mountpath = micdata_mountpath
 sis3820 = SIS3820(iconfig.get("DETECTOR")["SIS3820"]["PV_PREFIX"], 
                   name=iconfig.get("DETECTOR")["SIS3820"]["NAME"])
 
+kohzu = KohzuMono(iconfig.get("KOHZU_MONO")["PV_PREFIX"], 
+                  name=iconfig.get("KOHZU_MONO")["NAME"])
 
 # Create detector name mapping
 det_name_mapping = {

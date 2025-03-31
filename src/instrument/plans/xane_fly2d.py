@@ -1,5 +1,5 @@
 """
-Creating a bluesky plan that interacts with Scan Record.
+Creating a bluesky plan that waits for the desired incident mono energy before performing a 2D scan.
 
 @author: yluo(grace227)
 
@@ -7,7 +7,7 @@ Creating a bluesky plan that interacts with Scan Record.
 """
 
 __all__ = """
-    fly2d
+    xane_fly2d
 """.split()
 
 import logging
@@ -23,6 +23,7 @@ from mic_instrument.configs.device_config import (
     sis3820,
     netcdf_delimiter,
     fscanh_dwell,
+    kohzu,
 )
 from mic_instrument.plans.helper_funcs import selected_dets
 from mic_instrument.plans.toggle_usercalc import disable_usercalc, enable_usercalc
@@ -36,7 +37,7 @@ det_foldername = {'xrf': 'flyXRF',
                   'preamp1': 'tetramm', 
                   'preamp2': 'tetramm2'}
 
-def fly2d(
+def xane_fly2d(
     samplename="smp1",
     user_comments="",
     width=0,
@@ -87,6 +88,18 @@ def fly2d(
         
     """
     
+
+    """Lets go to the desired incident energy"""
+    yield from kohzu.set_energy(inc_eng)
+    yield from kohzu.set_move(1)
+    ready = False
+    while not ready:
+        logger.info(f"Waiting for Kohzu to be ready at {inc_eng} keV, current energy: {kohzu.energy_rbv.get()} keV")
+        kohzu_status = kohzu.moving.get(as_string=True)
+        if kohzu_status == "Done":
+            ready = True
+        yield from bps.sleep(0.1)
+
     """Disable the usercalc that used in scan record"""
     yield from disable_usercalc()
 
@@ -183,5 +196,3 @@ def fly2d(
 
     """Enable the usercalc that used in scan record"""
     yield from enable_usercalc()
-
-   

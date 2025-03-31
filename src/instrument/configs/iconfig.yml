@@ -40,8 +40,14 @@ POSITIONERS:
   X_MOTOR: "2idd:m40"
   Y_MOTOR: "2idd:m39"
   Z_MOTOR: "2idd:m36"
-  ENERGY: "2ida2:BraggEAO"
   SCAN_OVERHEAD: 0.3
+
+KOHZU_MONO:
+  NAME: kohzu_mono
+  PV_PREFIX: "2ida2:"
+  # NETCDF_PV_PREFIX: "2ida2:netCDF1:"
+  # ENERGY: "2ida2:BraggEAO"
+
 
 
 DETECTOR:
@@ -72,19 +78,16 @@ DETECTOR:
       PV_PREFIX: "2iddtmm2:"
       NETCDF_PV_PREFIX: "2iddtmm2:netCDF1:"
 
-    # AD_EIGER_PTYCHO:
-    #   NAME: eiger_ptycho
-    #   PV_PREFIX: "temp"
-    #   HDF5_PV_PREFIX: ""
-    #   # HDF5_PV_PREFIX: "2ideEGR:HDF1:"
-
-    # AD_EIGER_DIFFRACTION:
-    #   NAME: eigher_xrd
-    #   PV_PREFIX: "temp"
-
 USERCALC:
   FSCANH_POSITIONER: "2idd:userCalc9.A"
   FSCANH_DWELL: "2idd:Flyscans:Setup:DwellTime"
+
+USERCALC_DISABLE:
+  TETRAMM1_FILENAME: "2iddfS1:userStringCalc1Enable"
+  TETRAMM1_FILETEMPLATE: "2iddfS1:userStringCalc2Enable"
+  TETRAMM2_FILENAME: "2iddfS1:userStringCalc4Enable"
+  TETRAMM2_FILETEMPLATE: "2iddfS1:userStringCalc5Enable"
+  XMAP_FILENAME: "2iddfS1:userStringCalc7Enable"
 
     ### Add configuration for specific detector(s).
     ### Suggestion:

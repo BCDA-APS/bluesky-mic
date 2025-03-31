@@ -49,7 +49,7 @@ class DetBase:
         """
         basepath = savedata.get().file_system
         basepath = basepath.replace("//micdata/data1", self.micdata_mountpath)
-        det_path = os.path.join(basepath, det_name.upper())
+        det_path = os.path.join(basepath, det_name)
         logger.info(f"Setting up {det_name} to have data saved at {det_path}")
         if not os.path.exists(det_path):
             try:
