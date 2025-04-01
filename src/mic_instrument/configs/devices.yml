@@ -1,0 +1,82 @@
+# Guarneri-style device YAML configuration
+
+apsbits.utils.sim_creator.predefined_device:
+- {creator: ophyd.sim.motor, name: sim_motor}
+- {creator: ophyd.sim.noisy_det, name: sim_det}
+
+apstools.devices.SimulatedApsPssShutterWithStatus:
+- name: shutter
+  labels: ["shutters"]
+  
+mic_instrument.devices.HHL_Mirrors:
+- name: hhl_mirrors
+  prefix: 19idMR
+  labels: ["mirror"]
+
+mic_instrument.devices.SoftGlueZynq:
+- name: softglue
+  prefix: acq_isn:SG
+
+mic_instrument.devices.Tetramm:
+- name: tetramm_1
+  prefix: 19idSFT:TetrAMM1
+
+mic_instrument.devices.BDA:
+- name: bda_vert
+  prefix: 19idBDA
+  labels: ["bda"]
+
+- name: bda_hor
+  prefix: 19idBDA
+  labels: ["bda"]
+
+mic_instrument.devices.Ring:
+- name: ring
+  prefix: S-DCCT
+  labels: ["ring"]
+
+
+
+
+# ophyd.Signal:
+# - name: test
+#   value: 50.7
+# - name: t2
+#   value: 2
+
+# apstools.synApps.Optics2Slit2D_HV:
+# - name: slit1
+#   prefix: ioc:Slit1
+#   labels: ["slits"]
+
+# hkl.SimulatedE4CV:
+# - name: sim4c
+#   prefix: ""
+#   labels: ["diffractometer"]
+
+# ophyd.scaler.ScalerCH:
+# - name: scaler1
+#   prefix: vme:scaler1
+#   labels: ["scalers", "detectors"]
+
+# ophyd.EpicsMotor:
+# - {name: m1, prefix: gp:m1, labels: ["motor"]}
+# - {name: m2, prefix: gp:m2, labels: ["motor"]}
+# - {name: m3, prefix: gp:m3, labels: ["motor"]}
+# - {name: m4, prefix: gp:m4, labels: ["motor"]}
+
+# apstools.devices.ad_creator:
+#   - name: adsimdet
+#     prefix: "ad:"
+#     labels: ["area_detector", "detectors"]
+#     plugins:
+#       - cam:
+#           class: apstools.devices.SimDetectorCam_V34
+#       - image
+#       - pva
+#       - hdf1:
+#           class: apstools.devices.AD_EpicsFileNameHDF5Plugin
+#           read_path_template: "/path/to/bluesky/tmp/"
+#           write_path_template: "/path/to/ioc/tmp/"
+#       - roi1
+#       - stats1
