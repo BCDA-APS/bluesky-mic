@@ -6,13 +6,16 @@ Created on Oct 16 2024
 """
 
 
-from apstools.synApps import SscanRecord
-from ophyd import EpicsSignal, Component
-from epics import PV
-from ..devices.utils import mode_setter, value_setter
-import bluesky.plan_stubs as bps
 import logging
 
+import bluesky.plan_stubs as bps
+from apstools.synApps import SscanRecord
+from epics import PV
+from ophyd import Component
+from ophyd import EpicsSignal
+
+from .utils import mode_setter
+from .utils import value_setter
 
 logger = logging.getLogger(__name__)
 logger.info(__file__)

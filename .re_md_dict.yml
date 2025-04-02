@@ -1,23 +1,27 @@
 # Written by StoredDict.
-# Dictionary contents written: 2025-03-31 16:29:39.078944
+# Dictionary contents written: 2025-04-02 14:41:39.542860
 
 beamline_id: demo_instrument
-conda_prefix: /opt/homebrew/Caskroom/miniforge/base/envs/apsbits
+conda_prefix: /opt/homebrew/Caskroom/miniforge/base/envs/bits_mic
 databroker_catalog: temp
 iconfig:
-  APS_DEVICES_FILES: devices_aps_only.yml
+  APS_DEVICES_FILES:
+  - devices_aps_only.yml
   BEC:
     BASELINE: true
     HEADING: true
-    PLOTS: true
+    PLOTS: false
     TABLE: true
   DATABROKER_CATALOG: temp
-  DEVICES_FILES: devices.yml
+  DEVICES_FILES:
+  - devices.yml
   DM_SETUP_FILE: /home/dm/etc/dm.setup.sh
-  ICONFIG_PATH: /Users/ecodrea/er_bs_test/src/eric_instrument/configs/iconfig.yml
+  ICONFIG_PATH: /Users/ecodrea/bluesky-mic/src/mic_instrument/configs/iconfig.yml
   ICONFIG_VERSION: 2.0.0
   INSTRUMENT_FOLDER: configs
-  INSTRUMENT_PATH: /Users/ecodrea/er_bs_test/src/eric_instrument/configs
+  INSTRUMENT_PATH: /Users/ecodrea/bluesky-mic/src/mic_instrument/configs
+  MAKE_DEVICES:
+    LOG_LEVEL: info
   NEXUS_DATA_FILES:
     ENABLE: false
     FILE_EXTENSION: hdf
@@ -43,11 +47,11 @@ iconfig:
   XMODE_DEBUG_LEVEL: Plain
 instrument_name: Most Glorious Scientific Instrument
 login_id: ecodrea@jinx
-pid: 81046
+pid: 87949
 proposal_id: commissioning
 scan_id: 1
 versions:
-  apsbits: 1.0.0rc3
+  apsbits: 1.0.1
   apstools: 1.7.2
   bluesky: 1.13.1
   databroker: 1.2.5
@@ -56,7 +60,7 @@ versions:
   intake: 0.6.4
   matplotlib: 3.10.1
   numpy: 1.26.4
-  ophyd: 1.10.0
+  ophyd: 1.10.5
   pyRestTable: 2020.0.10
   pysumreg: 1.0.7
   python: 3.11.11

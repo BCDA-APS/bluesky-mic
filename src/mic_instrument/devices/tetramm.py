@@ -24,17 +24,17 @@ TETRAMMCLOCK = 100000  # unit in Hz
 
 class TetraMM(TetrAMM):
 
-    trigger_polarity = Cpt(EpicsSignalWithRBV, "TriggerPolarity")
-    fast_avg_time = Cpt(EpicsSignalWithRBV, "FastAveragingTime")
-    netcdf_enable = Cpt(EpicsSignalWithRBV, "netCDF1:EnableCallbacks")
-    file_path = Cpt(EpicsSignalWithRBV, "netCDF1:FilePath", string=True)
-    file_name = Cpt(EpicsSignalWithRBV, "netCDF1:FileName", string=True)
-    file_num = Cpt(EpicsSignalWithRBV, "netCDF1:FileNumber")
-    auto_increment = Cpt(EpicsSignalWithRBV, "netCDF1:AutoIncrement")
-    file_format = Cpt(EpicsSignalWithRBV, "netCDF1:FileTemplate", string=True)
-    file_num_capture = Cpt(EpicsSignalWithRBV, "netCDF1:NumCapture")
-    file_capture = Cpt(EpicsSignalWithRBV, "netCDF1:Capture")
-    file_write_mode = Cpt(EpicsSignalWithRBV, "netCDF1:FileWriteMode")
+    trigger_polarity = Cpt(EpicsSignalWithRBV, ":TriggerPolarity")
+    fast_avg_time = Cpt(EpicsSignalWithRBV, ":FastAveragingTime")
+    netcdf_enable = Cpt(EpicsSignalWithRBV, ":netCDF1:EnableCallbacks")
+    file_path = Cpt(EpicsSignalWithRBV, "n:etCDF1:FilePath", string=True)
+    file_name = Cpt(EpicsSignalWithRBV, ":netCDF1:FileName", string=True)
+    file_num = Cpt(EpicsSignalWithRBV, ":netCDF1:FileNumber")
+    auto_increment = Cpt(EpicsSignalWithRBV, ":netCDF1:AutoIncrement")
+    file_format = Cpt(EpicsSignalWithRBV, ":netCDF1:FileTemplate", string=True)
+    file_num_capture = Cpt(EpicsSignalWithRBV, ":netCDF1:NumCapture")
+    file_capture = Cpt(EpicsSignalWithRBV, ":netCDF1:Capture")
+    file_write_mode = Cpt(EpicsSignalWithRBV, ":netCDF1:FileWriteMode")
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)

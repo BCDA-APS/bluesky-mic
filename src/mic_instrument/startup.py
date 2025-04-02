@@ -55,7 +55,7 @@ if iconfig.get("SPEC_DATA_FILES", {}).get("ENABLE", False):
     init_specwriter_with_RE(RE)
 
 # Import all plans
-from .plans import *  # noqa
+# from .plans import *  # noqa
 
 # These imports must come after the above setup.
 if running_in_queueserver():

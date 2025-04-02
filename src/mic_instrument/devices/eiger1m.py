@@ -27,24 +27,24 @@ class Eiger1M(EigerDetectorCam):
     This class provides methods to set up external triggers and manage acquisition parameters.
     """
 
-    threshold1_enable = Component(EpicsSignal, "Threshold1Enable")
-    threshold2_enable = Component(EpicsSignal, "Threshold2Enable")
-    threshold_diff_enable = Component(EpicsSignal, "ThresholdDiffEnable")
-    threshold1_value = Component(EpicsSignal, "ThresholdEnergy")
-    threshold2_value = Component(EpicsSignal, "Threshold2Energy")
-    
-    det_size_x = Component(EpicsSignalRO, "MaxSizeX_RBV")
-    det_size_y = Component(EpicsSignalRO, "MaxSizeY_RBV")
-    pix_size_x = Component(EpicsSignalRO, "XPixelSize_RBV")
-    pix_size_y = Component(EpicsSignalRO, "YPixelSize_RBV")
-    sensor_thickness = Component(EpicsSignalRO, "SensorThickness_RBV")
-    det_description = Component(EpicsSignalRO, "Description_RBV")
+    threshold1_enable = Component(EpicsSignal, ":Threshold1Enable")
+    threshold2_enable = Component(EpicsSignal, ":Threshold2Enable")
+    threshold_diff_enable = Component(EpicsSignal, ":ThresholdDiffEnable")
+    threshold1_value = Component(EpicsSignal, ":ThresholdEnergy")
+    threshold2_value = Component(EpicsSignal, ":Threshold2Energy")
 
-    file_writer_enable = Component(EpicsSignal, "FWEnable")
-    file_compression = Component(EpicsSignal, "FWCompression")
-    num_images_per_file = Component(EpicsSignal, "FWNImagesPerFile")
-    file_name_pattern = Component(EpicsSignal, "FWNamePattern")
-    save_files = Component(EpicsSignal, "SaveFiles")
+    det_size_x = Component(EpicsSignalRO, ":MaxSizeX_RBV")
+    det_size_y = Component(EpicsSignalRO, ":MaxSizeY_RBV")
+    pix_size_x = Component(EpicsSignalRO, ":XPixelSize_RBV")
+    pix_size_y = Component(EpicsSignalRO, ":YPixelSize_RBV")
+    sensor_thickness = Component(EpicsSignalRO, ":SensorThickness_RBV")
+    det_description = Component(EpicsSignalRO, ":Description_RBV")
+
+    file_writer_enable = Component(EpicsSignal, ":FWEnable")
+    file_compression = Component(EpicsSignal, ":FWCompression")
+    num_images_per_file = Component(EpicsSignal, ":FWNImagesPerFile")
+    file_name_pattern = Component(EpicsSignal, ":FWNamePattern")
+    save_files = Component(EpicsSignal, ":SaveFiles")
 
 
     def scan_init(self, exposure_time, num_images, ptycho_exp_factor):
