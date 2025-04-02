@@ -52,6 +52,18 @@ tetramm1_netcdf = None
 #     name=iconfig.get("DETECTOR")["TETRAMM1"]["NAME"] + "_netcdf",
 # )
 
+# tetramm2 = TetraMM(iconfig.get("AREA_DETECTOR")["TETRAMM2"]["PV_PREFIX"], 
+#                   name=iconfig.get("AREA_DETECTOR")["TETRAMM2"]["NAME"])
+# tetramm2_netcdf = None
+
+# tetramm3 = TetraMM(iconfig.get("AREA_DETECTOR")["TETRAMM3"]["PV_PREFIX"], 
+#                   name=iconfig.get("AREA_DETECTOR")["TETRAMM3"]["NAME"])
+# tetramm3_netcdf = None
+
+tetramm4 = TetraMM(iconfig.get("AREA_DETECTOR")["TETRAMM4"]["PV_PREFIX"], 
+                  name=iconfig.get("AREA_DETECTOR")["TETRAMM4"]["NAME"])
+tetramm4_netcdf = None
+
 netcdf_delimiter = iconfig.get("AREA_DETECTOR")["FILE_DELIMITER"]
 xrf_me7_hdf.micdata_mountpath = local_mountpath
 # tetramm1_netcdf.micdata_mountpath = local_mountpath

@@ -84,6 +84,24 @@ AREA_DETECTOR:
       HDF5_PV_PREFIX: ""
       NETCDF_PV_PREFIX: ""
 
+    TETRAMM2:
+      NAME: tetramm2
+      PV_PREFIX: "19idSFT2:TetrAMM2:"
+      HDF5_PV_PREFIX: ""
+      NETCDF_PV_PREFIX: ""
+
+    TETRAMM3:
+      NAME: tetramm3
+      PV_PREFIX: "19idSFT3:TetrAMM3:"
+      HDF5_PV_PREFIX: ""
+      NETCDF_PV_PREFIX: ""
+
+    TETRAMM4:
+      NAME: tetramm4
+      PV_PREFIX: "19idSFT4:TetrAMM4:"
+      HDF5_PV_PREFIX: ""
+      NETCDF_PV_PREFIX: ""
+
     ### Add configuration for specific detector(s).
     ### Suggestion:
     # ADSIM_16M:
