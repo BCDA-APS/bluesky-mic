@@ -1,5 +1,5 @@
 # Written by StoredDict.
-# Dictionary contents written: 2025-04-02 15:42:57.269777
+# Dictionary contents written: 2025-04-02 16:41:06.207611
 
 beamline_id: demo_instrument
 conda_prefix: /opt/homebrew/Caskroom/miniforge/base/envs/bits_mic
@@ -41,6 +41,7 @@ iconfig:
     MD_PATH: .re_md_dict.yml
     MD_STORAGE_HANDLER: StoredDict
     USE_PROGRESS_BAR: false
+  SCAN_OVERHEAD: 0.3
   SPEC_DATA_FILES:
     ENABLE: true
     FILE_EXTENSION: dat
@@ -48,7 +49,7 @@ iconfig:
   XMODE_DEBUG_LEVEL: Plain
 instrument_name: Most Glorious Scientific Instrument
 login_id: ecodrea@jinx
-pid: 91756
+pid: 96930
 proposal_id: commissioning
 scan_id: 1
 versions:
