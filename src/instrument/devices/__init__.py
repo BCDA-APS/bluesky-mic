@@ -26,7 +26,6 @@ del host_on_aps_subnet
 #Temporary way to load useful devices automatically
 from .hhl_mirrors import *
 from .softgluezynq import *
-from .tetramm_test import *
 from .bda import *
 from .ring import *
 from .mono import *
