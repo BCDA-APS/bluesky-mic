@@ -90,10 +90,10 @@ mic_instrument.devices.DetNetCDF:
 #       PV_PREFIX: "temp"
 
 
-  # TETRAMM1: "19idBPM:C:T4U"
-  # XSPRESS3_1: "XSP3_8Chan:det1"
-  # XSPRESS3_1_HDF5: "XSP3_8Chan:HDF1"
-  # SIMDET_CAM: "2idsimdet:cam1"
-  # SIMDET_HDF5: "2idsimdet:HDF1"
+# TETRAMM1: "19idBPM:C:T4U"
+# XSPRESS3_1: "XSP3_8Chan:det1"
+# XSPRESS3_1_HDF5: "XSP3_8Chan:HDF1"
+# SIMDET_CAM: "2idsimdet:cam1"
+# SIMDET_HDF5: "2idsimdet:HDF1"
 
-  #   SCAN_OVERHEAD: 0.3
+#   SCAN_OVERHEAD: 0.3

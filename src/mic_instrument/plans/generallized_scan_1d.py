@@ -11,8 +11,18 @@ __all__ = """
 """.split()
 
 import logging
+
+from apsbits.utils.config_loaders import get_config
+from apsbits.utils.controls_setup import oregistry
+
 from mic_instrument.utils.scan_monitor import execute_scan_1d
-from mic_instrument.configs.device_config import savedata, scan_overhead
+
+iconfig = get_config()
+
+savedata = oregistry["savedata"]
+scan_overhead = iconfig.get("SCAN_OVERHEAD")
+
+
 
 # from mic_instrument.plans.dm_plans import dm_submit_workflow_job
 # from .workflow_plan import run_workflow

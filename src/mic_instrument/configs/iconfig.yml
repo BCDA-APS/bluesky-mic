@@ -54,6 +54,7 @@ SPEC_DATA_FILES:
     FILE_EXTENSION: dat
 
 FILE_DELIMITER: "19ID"
+SCAN_OVERHEAD: 0.3
 
 ### APS Data Management
 ### Use bash shell, deactivate all conda environments, source this file:
