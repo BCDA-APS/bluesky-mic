@@ -5,12 +5,14 @@ Created on Dec 03 2024
 @author: yluo (grace227)
 """
 
+import logging
+import os
+
 from ophyd.areadetector.plugins import HDF5Plugin
 from ophyd.areadetector.plugins import NetCDFPlugin
-from mic_instrument.devices.utils import mode_setter, value_setter
-import os
-import logging
 
+from mic_instrument.utils.device_utils import mode_setter
+from mic_instrument.utils.device_utils import value_setter
 
 logger = logging.getLogger(__name__)
 logger.info(__file__)

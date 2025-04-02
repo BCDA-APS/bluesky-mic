@@ -14,8 +14,8 @@ from ophyd import EpicsSignal
 from ophyd.areadetector.cam import Xspress3DetectorCam
 
 from ..utils.writeDetH5 import write_det_h5
-from .utils import mode_setter
-from .utils import value_setter
+from ..utils.device_utils import mode_setter
+from ..utils.device_utils import value_setter
 
 logger = logging.getLogger(__name__)
 logger.info(__file__)

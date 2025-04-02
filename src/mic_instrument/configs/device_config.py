@@ -8,17 +8,17 @@ Created on Dec 04 2024
 
 import pathlib
 
+from apsbits.utils.config_loaders import iconfig
+from apsbits.utils.config_loaders import load_config_yaml
 from ophyd import EpicsMotor
 
 from mic_instrument.devices.ad_fileplugin import DetHDF5
-from mic_instrument.devices.ad_fileplugin import DetNetCDF
+from mic_instrument.devices.ad_fileplugin import DetNetCDF  # noqa: F401
 from mic_instrument.devices.eiger1m import Eiger1M
 from mic_instrument.devices.save_data import SaveDataMic
 from mic_instrument.devices.scan_record import ScanRecord
 from mic_instrument.devices.tetramm import TetraMM
 from mic_instrument.devices.xspress3 import Xspress3
-from mic_instrument.utils.config_loaders import iconfig
-from mic_instrument.utils.config_loaders import load_config_yaml
 
 # from mic_instrument.devices.simdet import SimDet, SimDetHDF5
 
@@ -55,7 +55,7 @@ tetramm1_netcdf = None
 #     name=iconfig.get("DETECTOR")["TETRAMM1"]["NAME"] + "_netcdf",
 # )
 
-netcdf_delimiter = iconfig.get("AREA_DETECTOR")["FILE_DELIMITER"]
+netcdf_delimiter = iconfig.get("FILE_DELIMITER")
 xrf_me7_hdf.micdata_mountpath = local_mountpath
 # tetramm1_netcdf.micdata_mountpath = local_mountpath
 

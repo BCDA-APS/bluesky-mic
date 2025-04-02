@@ -1,5 +1,5 @@
 # Written by StoredDict.
-# Dictionary contents written: 2025-04-02 14:41:39.542860
+# Dictionary contents written: 2025-04-02 15:42:57.269777
 
 beamline_id: demo_instrument
 conda_prefix: /opt/homebrew/Caskroom/miniforge/base/envs/bits_mic
@@ -16,6 +16,7 @@ iconfig:
   DEVICES_FILES:
   - devices.yml
   DM_SETUP_FILE: /home/dm/etc/dm.setup.sh
+  FILE_DELIMITER: 19ID
   ICONFIG_PATH: /Users/ecodrea/bluesky-mic/src/mic_instrument/configs/iconfig.yml
   ICONFIG_VERSION: 2.0.0
   INSTRUMENT_FOLDER: configs
@@ -47,7 +48,7 @@ iconfig:
   XMODE_DEBUG_LEVEL: Plain
 instrument_name: Most Glorious Scientific Instrument
 login_id: ecodrea@jinx
-pid: 87949
+pid: 91756
 proposal_id: commissioning
 scan_id: 1
 versions:

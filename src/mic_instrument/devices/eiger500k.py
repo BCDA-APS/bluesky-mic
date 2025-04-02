@@ -10,7 +10,7 @@ acquisition parameters for the detector.
 """
 
 from ophyd import EigerDetectorCam
-from mic_instrument.devices.utils import mode_setter, value_setter
+from mic_instrument.utils.device_utils import mode_setter, value_setter
 from ophyd import Component, EpicsSignal
 import logging
 import os

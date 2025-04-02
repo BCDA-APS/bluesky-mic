@@ -53,9 +53,12 @@ SPEC_DATA_FILES:
     ENABLE: true
     FILE_EXTENSION: dat
 
+FILE_DELIMITER: "19ID"
+
 ### APS Data Management
 ### Use bash shell, deactivate all conda environments, source this file:
 DM_SETUP_FILE: "/home/dm/etc/dm.setup.sh"
+
 
 ### Local OPHYD Device Control Yaml
 DEVICES_FILES:
@@ -84,3 +87,4 @@ OPHYD:
 # Control detail of exception traces in IPython (console and notebook).
 # Options are: Minimal, Plain, Verbose
 XMODE_DEBUG_LEVEL: Plain
+

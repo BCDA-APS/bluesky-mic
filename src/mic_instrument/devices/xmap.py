@@ -11,7 +11,7 @@ from ophyd import Component
 from ophyd import Device
 from ophyd import EpicsSignal
 from ophyd import EpicsSignalRO
-from ..devices.utils import mode_setter, value_setter
+from ..utils.device_utils import mode_setter, value_setter
 
 
 class XMAP(Device):

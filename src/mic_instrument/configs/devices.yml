@@ -49,100 +49,9 @@ ophyd.EpicsMotor:
 - {name: energy, prefix: 19idBLUE:m5, labels: ["motor"]}
 - {name: temperature, prefix: 19idBLUE:m6, labels: ["motor"]}
 
-
-# POSITIONERS:
-#   XZ_MOTOR:
-#     M1: "19idBLUE:m1"
-#     M2: "19idBLUE:m3"
-#   SCAN_OVERHEAD: 0.3
-
-# ophyd.MotorBundle:
-# - name: xz_motor
-#   prefix: 19idBLUE
-# #     M1: "19idBLUE:m1"
-# #     M2: "19idBLUE:m3"
-
-
-# AREA_DETECTOR:
-#     ### General configuration for area detectors.
-#     ALLOW_PLUGIN_WARMUP: true
-#     BLUESKY_FILES_ROOT: &BLUESKY_DATA_ROOT "/path/to/data/"
-#     IMAGE_DIR: "sub/directory/path"
-#     HDF5_FILE_TEMPLATE: "%s%s_%6.6d.h5"
-#     FILE_DELIMITER: "19ID"
-  
-
-#     AD_XSP3_12Chan:
-#       NAME: xrf_bse
-#       PV_PREFIX: "XSP3_12Chan:det1:"
-#       HDF5_PV_PREFIX: "XSP3_12Chan:HDF1:"
-
-
-
-#     AD_EIGER_DIFFRACTION:
-#       NAME: eigher_xrd
-#       PV_PREFIX: "temp"
-
-
-
-
-  # TETRAMM1: "19idBPM:C:T4U"
-  # XSPRESS3_1: "XSP3_8Chan:det1"
-  # XSPRESS3_1_HDF5: "XSP3_8Chan:HDF1"
-  # SIMDET_CAM: "2idsimdet:cam1"
-  # SIMDET_HDF5: "2idsimdet:HDF1"
-
-
-apstools.devices.ad_creator:
-  - name: adsimdet
-    prefix: "ad:"
-    labels: ["area_detector", "detectors"]
-    plugins:
-      - cam:
-          class: apstools.devices.SimDetectorCam_V34
-      - image
-      - pva
-      - hdf1:
-          class: apstools.devices.AD_EpicsFileNameHDF5Plugin
-          read_path_template: "/path/to/bluesky/tmp/"
-          write_path_template: "/path/to/ioc/tmp/"
-      - roi1
-      - stats1
-
-
-AREA_DETECTOR:
-    ### General configuration for area detectors.
-    ALLOW_PLUGIN_WARMUP: true
-    BLUESKY_FILES_ROOT: &BLUESKY_DATA_ROOT "/path/to/data/"
-    IMAGE_DIR: "sub/directory/path"
-    HDF5_FILE_TEMPLATE: "%s%s_%6.6d.h5"
-    FILE_DELIMITER: "19ID"
-  
-    AD_XSP3_8Chan:
-      NAME: xrf_me7
-      PV_PREFIX: "XSP3_7Chan:det1:"
-      HDF5_PV_PREFIX: "XSP3_7Chan:HDF1:"
-
-    AD_XSP3_12Chan:
-      NAME: xrf_bse
-      PV_PREFIX: "XSP3_12Chan:det1:"
-      HDF5_PV_PREFIX: "XSP3_12Chan:HDF1:"
-
-    AD_EIGER_PTYCHO:
-      NAME: ptycho
-      PV_PREFIX: "19idPTYCHO:cam1:"
-      HDF5_PV_PREFIX: "19idPTYCHO:HDF1:"
-
-    AD_EIGER_DIFFRACTION:
-      NAME: eigher_xrd
-      PV_PREFIX: "temp"
-
-    TETRAMM1:
-      NAME: tetramm1
-      PV_PREFIX: "19idSFT:TetrAMM1:"
-      HDF5_PV_PREFIX: ""
-      NETCDF_PV_PREFIX: ""
-
+mic_instrument.devices.MyMotorBundle:
+- name: xz_motor
+  prefix: 19idBLUE
 
 mic_instrument.devices.Tetramm:
 - name: tetramm_1
@@ -165,3 +74,26 @@ mic_instrument.devices.DetHDF5:
   prefix: XSP3_7Chan:HDF1
 - name: ptycho_hdf
   prefix: 19idPTYCHO:HDF1
+- name: tetramm1_hdf
+
+mic_instrument.devices.DetNetCDF:
+- name: tetramm1_netcdf
+
+#     AD_XSP3_12Chan:
+#       NAME: xrf_bse
+#       PV_PREFIX: "XSP3_12Chan:det1:"
+#       HDF5_PV_PREFIX: "XSP3_12Chan:HDF1:"
+
+
+#     AD_EIGER_DIFFRACTION:
+#       NAME: eigher_xrd
+#       PV_PREFIX: "temp"
+
+
+  # TETRAMM1: "19idBPM:C:T4U"
+  # XSPRESS3_1: "XSP3_8Chan:det1"
+  # XSPRESS3_1_HDF5: "XSP3_8Chan:HDF1"
+  # SIMDET_CAM: "2idsimdet:cam1"
+  # SIMDET_HDF5: "2idsimdet:HDF1"
+
+  #   SCAN_OVERHEAD: 0.3
