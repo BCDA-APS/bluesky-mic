@@ -29,3 +29,5 @@ from .softgluezynq import *
 from .tetramm_test import *
 from .bda import *
 from .ring import *
+from .mono import *
+from .undulators import *
