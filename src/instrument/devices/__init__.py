@@ -30,3 +30,4 @@ from .bda import *
 from .ring import *
 from .mono import *
 from .undulators import *
+from .lateral_mirror import *
