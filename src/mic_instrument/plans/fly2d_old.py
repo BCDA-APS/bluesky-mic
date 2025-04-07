@@ -45,7 +45,8 @@ def fly2d(
     analysisMachine="mona2",
     eta=0,
 ):
-    """2D Bluesky plan that drives the x- and y- sample motors in fly mode using ScanRecord"""
+    """2D Bluesky plan that drives the x- and y- sample motors in fly mode using
+    ScanRecord"""
 
     ##TODO Close shutter while setting up scan parameters
 
@@ -71,7 +72,9 @@ def fly2d(
     #     #############################
 
     #     if wf_run:
-    #         dm_workflow = DM_WorkflowConnector(name=samplename, labels=("dm",))
+    #         dm_workflow = DM_WorkflowConnector(
+    #             name=samplename, labels=("dm",)
+    #         )
 
     #         if all([xrf_me7_on, ptycho_on]):
     #             WORKFLOW = "ptycho-xrf"

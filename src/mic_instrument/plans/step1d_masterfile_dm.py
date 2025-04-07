@@ -143,7 +143,8 @@ def step1d_masterfile_dm(
                     ptycho_exp_factor=ptycho_exp_factor,
                 )
             if file_plugin is not None:
-                # If an hdf5 file plugin is used, we need to disable the Eiger's default file writer.
+                # If an hdf5 file plugin is used, we need to disable the Eiger's
+                # default file writer.
                 yield from cam.set_file_writer_enable("Disable")
 
                 yield from file_plugin.setup_file_writer(
@@ -164,10 +165,12 @@ def step1d_masterfile_dm(
     """Start executing scan"""
     yield from execute_scan_1d(scan1, scan_name=savedata.next_file_name)
 
-    """Generate detector master file and update detector h5 master file in the scan master file"""
+    """Generate detector master file and update detector h5 master file in the scan
+    master file"""
     det_h5_master_path = {}
     logger.info(
-        "Generating detector master file and updating detector h5 master file in the scan master file"
+        "Generating detector master file and updating detector h5 master file in "
+        "the scan master file"
     )
     for det_name, det_var in dets.items():
         cam = det_var["cam"]
@@ -191,7 +194,8 @@ def step1d_masterfile_dm(
             group[det_name] = h5py.ExternalLink(rel_path, det_name)
 
     logger.info(
-        "Detector master file and detector h5 master file in the scan master file have been updated"
+        "Detector master file and detector h5 master file in the scan master file "
+        "have been updated"
     )
 
     #############################
@@ -209,9 +213,11 @@ def step1d_masterfile_dm(
             argsDict["ptychoDetectorName"] = "PTYCHO"
             argsDict["ptychoFilePath"] = "19ide_bluesky_0029.h5"
             argsDict["filePath"] = "19ide_bluesky_0029_0.hdf5"
-            # argsDict['ptychoFilePath'] = ptycho_hdf.file_path.get() #'/gdata/dm/19ID/2025-1/blueskydev/data/PTYCHO/'
+            # argsDict['ptychoFilePath'] = ptycho_hdf.file_path.get()
+            # '/gdata/dm/19ID/2025-1/blueskydev/data/PTYCHO/'
             # argsDict['ptychoFilePath'] = 'data/PTYCHO/_.hdf5'
-            # argsDict['filePath'] = xrf_me7_hdf.file_name.get() + '.hdf5' # '19ide_bluesky_0020'
+            # argsDict['filePath'] = xrf_me7_hdf.file_name.get() + '.hdf5'
+            # '19ide_bluesky_0020'
         elif xrf_me7_on:
             WORKFLOW = "xrf-maps"
             argsDict = xrf_dm_args.copy()

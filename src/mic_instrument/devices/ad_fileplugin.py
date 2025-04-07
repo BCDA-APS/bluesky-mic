@@ -29,7 +29,8 @@ class DetBase:
 
     def sync_file_path(self, det_path, delimiter):
         """
-        Synchronize the file path of the SaveData object with the EPICS AreaDetector filewriter.
+        Synchronize the file path of the SaveData object with the EPICS AreaDetector
+        filewriter.
 
         Parameters:
         - det_path: str

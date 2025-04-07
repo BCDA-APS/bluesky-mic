@@ -132,10 +132,10 @@ def setup_eiger_filewriter(
 #                    dwell, ptycho_exp_factor=1, savedata=None,
 #                    filename="test_", beamline_delimiter=""):
 
-#     # # """Preparing for SIS3820 data collection"""
-#     # # if sis3820.connected:
-#     # #     yield from sis3820.set_stop_all(1)
-#     # #     yield from sis3820.set_num_ch_used(num_pts - 2)
+#     # """Preparing for SIS3820 data collection"""
+#     # if sis3820.connected:
+#     #     yield from sis3820.set_stop_all(1)
+#     #     yield from sis3820.set_num_ch_used(num_pts - 2)
 
 #     # """Preparing for XRF data collection"""
 #     # if "xrf" in dets.keys():
@@ -145,13 +145,17 @@ def setup_eiger_filewriter(
 
 #     #     # yield from xrf_netcdf.set_capture("done")
 #     #     # yield from xrf_netcdf.set_num_capture(num_capture)
-#     #     # yield from xrf_netcdf.set_filename(savedata.get().full_name.replace(".mda", "_"))
+#     #     # yield from xrf_netcdf.set_filename(
+#     #     #     savedata.get().full_name.replace(".mda", "_")
+#     #     # )
 #     #     # yield from xrf_netcdf.set_filenumber(0)
 #     #     # yield from xrf.set_collection_mode("MCA MAPPING")
 
 #     #     # yield from xrf.set_stop_all(1)
 #     #     # yield from xrf.set_pixels_per_run(num_pts - 2)
-#     #     # yield from bps.mv(hydra1_startposition, start_position+stepsize)
+#     #     # yield from bps.mv(
+#     #     #     hydra1_startposition, start_position+stepsize
+#     #     # )
 #     #     yield from xrf_netcdf.set_capture("capturing")
 
 
@@ -166,9 +170,13 @@ def setup_eiger_filewriter(
 #         if eiger is not None:
 #             trigger_mode = eiger.trigger_mode.get(as_string=True)
 #             if trigger_mode == "External Series":
-#                 yield from eiger.setup_external_series_trigger(num_pts, dwell, ptycho_exp_factor)
+#                 yield from eiger.setup_external_series_trigger(
+#                     num_pts, dwell, ptycho_exp_factor
+#                 )
 #             elif trigger_mode == "External Enable":
-#                 yield from eiger.setup_external_enable_trigger(num_pts, dwell, ptycho_exp_factor)
+#                 yield from eiger.setup_external_enable_trigger(
+#                     num_pts, dwell, ptycho_exp_factor
+#                 )
 
 
 # def after_flyscan(kwargs):

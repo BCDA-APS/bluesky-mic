@@ -56,7 +56,8 @@ def fly2d(
     ptycho_exp_factor=1,
 ):
     """
-    2D Bluesky plan that drives the x- and y- sample motors in fly mode using ScanRecord.
+    2D Bluesky plan that drives the x- and y- sample motors in fly mode using
+    ScanRecord.
 
     Parameters
     ----------

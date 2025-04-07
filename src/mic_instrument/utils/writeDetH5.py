@@ -43,7 +43,8 @@ def write_det_h5(
             try:
                 for _i, fn in enumerate(files):
                     if fn != os.path.basename(masterfile_path):
-                        # Use os.path.relpath to get relative path from masterfile to detector file
+                        # Use os.path.relpath to get relative path from masterfile to
+                        # detector file
                         rel_path = os.path.relpath(
                             Path(det_dir) / fn, Path(masterfile_path).parent
                         )

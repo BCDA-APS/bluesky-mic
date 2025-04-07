@@ -79,7 +79,10 @@ class ScanMonitor:
                 if self.outter_print_msg:
                     prog = round(100 * value / self.numpts_y, 2)
                     msg = f"Filename: {self.scan_name}, Scan_progress: {prog}%, "
-                    msg += f"Scanned : {value}/{self.numpts_y}, Scan_remaining : {self.scan_time_remaining}, "
+                    msg += (
+                        f"Scanned : {value}/{self.numpts_y}, "
+                        f"Scan_remaining : {self.scan_time_remaining}, "
+                    )
                     msg += f"Line_eta : {self.line_delta}"
                     logger.info(msg)
 
@@ -111,9 +114,12 @@ class ScanMonitor:
                         2,
                     )
                     msg = f"Filename: {self.scan_name}, Scan_progress: {prog}%, "
-                    msg += f"Line: {self.current_line}/{self.numpts_y}, Scan_remaining: {self.scan_time_remaining}, "
-                    msg += f"Line_eta: {self.line_delta}, "
-                    msg += f"Scanned: {value}/{self.numpts_x}"
+                    msg += (
+                        f"Line: {self.current_line}/{self.numpts_y}, "
+                        f"Scan_remaining: {self.scan_time_remaining}, "
+                        f"Line_eta: {self.line_delta}, "
+                        f"Scanned: {value}/{self.numpts_x}"
+                    )
                     logger.info(msg)
 
     def watch_execute_scan(self, old_value, value, **kwargs):

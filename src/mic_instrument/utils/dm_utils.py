@@ -90,7 +90,7 @@ def dm_upload_wait(
         else:
             return
 
-    raise TimeoutError(f"DM upload timed out after {time()-t0 :.1f} s.")
+    raise TimeoutError(f"DM upload timed out after {time() - t0:.1f} s.")
 
 
 def list_esafs(year=None, sector="04"):

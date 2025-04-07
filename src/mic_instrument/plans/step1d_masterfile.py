@@ -133,7 +133,8 @@ def step1d_masterfile(
                     ptycho_exp_factor=ptycho_exp_factor,
                 )
             if file_plugin is not None:
-                # If an hdf5 file plugin is used, we need to disable the Eiger's default file writer.
+                # If an hdf5 file plugin is used, we need to disable the Eiger's
+                # default file writer.
                 yield from cam.set_file_writer_enable("Disable")
 
                 yield from file_plugin.setup_file_writer(
@@ -153,10 +154,12 @@ def step1d_masterfile(
     """Start executing scan"""
     yield from execute_scan_1d(scan1, scan_name=savedata.next_file_name)
 
-    """Generate detector master file and update detector h5 master file in the scan master file"""
+    """Generate detector master file and update detector h5 master file in the scan
+    master file"""
     det_h5_master_path = {}
     logger.info(
-        "Generating detector master file and updating detector h5 master file in the scan master file"
+        "Generating detector master file and updating detector h5 master file in "
+        "the scan master file"
     )
     for det_name, det_var in dets.items():
         cam = det_var["cam"]
@@ -180,7 +183,8 @@ def step1d_masterfile(
             group[det_name] = h5py.ExternalLink(rel_path, det_name)
 
     logger.info(
-        "Detector master file and detector h5 master file in the scan master file have been updated"
+        "Detector master file and detector h5 master file in the scan master file "
+        "have been updated"
     )
 
     #     #############################
@@ -188,7 +192,9 @@ def step1d_masterfile(
     #     #############################
 
     #     if wf_run:
-    #         dm_workflow = DM_WorkflowConnector(name=samplename, labels=("dm",))
+    #         dm_workflow = DM_WorkflowConnector(
+    #             name=samplename, labels=("dm",)
+    #         )
 
     #         if all([xrf_me7_on, ptycho_on]):
     #             WORKFLOW = "ptycho-xrf"

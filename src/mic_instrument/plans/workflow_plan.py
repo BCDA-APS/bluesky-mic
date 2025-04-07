@@ -192,7 +192,7 @@ def run_workflow(
             run = full_cat[bluesky_id]
         except KeyError as err:
             raise KeyError(
-                "Could not find a Bluesky run associated with the " f"{bluesky_id=}."
+                f"Could not find a Bluesky run associated with the {bluesky_id=}."
             ) from err
     elif isinstance(bluesky_id, BlueskyRun):
         run = bluesky_id

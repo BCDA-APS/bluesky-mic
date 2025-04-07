@@ -7,9 +7,17 @@ EXAMPLE::
     %run -i user/profile_move_isn.py
 
     # Run the plan with the RunEngine:
-    RE(profile_move_isn(profilemove_name = 'pm1:', ioc = "2idsft:",
-                     m1_name = 'm1', m1_start = -0.5, m1_finish = 0.5,
-                     m2_name = 'm2', m2_start = -0.2 ,m2_finish = 0.2, dwell_time = 0.1))
+    RE(profile_move_isn(
+        profilemove_name='pm1:',
+        ioc="2idsft:",
+        m1_name='m1',
+        m1_start=-0.5,
+        m1_finish=0.5,
+        m2_name='m2',
+        m2_start=-0.2,
+        m2_finish=0.2,
+        dwell_time=0.1
+    ))
 """
 
 __all__ = """
@@ -130,8 +138,14 @@ def profile_move_isn(
 # profilemove_name = "pm1:"
 # pm1 = ProfileMove(ioc=ioc, profilemove_name=profilemove_name)
 
-# RE(profile_move_isn(pm1, m1_start = -0.5, m1_finish = 0.5, m2_start = -0.2 ,
-# m2_finish = 0.2, dwell_time = 0.1, xpts = 12, ypts=12))
-# RE(setup_profile_move(pm1=pm1, profilemove_name=profilemove_name, ioc=ioc, m1_name=m1_name, m2_name=m2_name,
-#                 m1_start=m1_start, m1_finish=m1_finish, m2_start=m2_start,
-#                 m2_finish=m2_finish, npts=npts, dwell_time=dwell_time))
+# RE(profile_move_isn(
+#     pm1, m1_start=-0.5, m1_finish=0.5, m2_start=-0.2,
+#     m2_finish=0.2, dwell_time=0.1, xpts=12, ypts=12
+# ))
+# RE(setup_profile_move(
+#     pm1=pm1, profilemove_name=profilemove_name, ioc=ioc,
+#     m1_name=m1_name, m2_name=m2_name,
+#     m1_start=m1_start, m1_finish=m1_finish,
+#     m2_start=m2_start, m2_finish=m2_finish,
+#     npts=npts, dwell_time=dwell_time
+# ))

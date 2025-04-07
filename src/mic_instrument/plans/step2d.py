@@ -47,7 +47,8 @@ def step2d(
     analysisMachine="mona2",
     eta=0,
 ):
-    """2D Bluesky plan that drives the x- and y- sample motors in stepping mode using ScanRecord"""
+    """2D Bluesky plan that drives the x- and y- sample motors in stepping mode using
+    ScanRecord"""
 
     ##TODO Close shutter while setting up scan parameters
 
