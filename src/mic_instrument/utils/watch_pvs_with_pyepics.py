@@ -27,14 +27,23 @@ TEST_CONFIG = yaml.load(open(MASTER_YAML_FILE).read(), yaml.SafeLoader)
 
 
 class WatchedPvRO(epics.PV):
-    """."""
+    """Read-only Process Variable with metadata support."""
 
     def put(self, *args, **kwargs):
-        """Not writable."""
+        """Not writable.
+
+        Raises:
+            NotImplementedError: Always raised as this is read-only.
+        """
         raise NotImplementedError(f"{self} is read-only.")
 
     @property
     def value(self):
+        """Get PV value with metadata.
+
+        Returns:
+            Value of the PV, with enum string if applicable.
+        """
         contents = self.get_with_metadata(with_ctrlvars=True)
         value = contents["value"]
         if isinstance(value, int):
@@ -48,9 +57,19 @@ class WatchedPvRO(epics.PV):
 
 
 class WatchedPvGroup:
-    """Watch a group of related PVs."""
+    """Watch a group of related PVs.
+
+    Attributes:
+        db (dict): Dictionary of PVs.
+        name (str): Name of the group.
+    """
 
     def __init__(self, **kwargs):
+        """Initialize WatchedPvGroup.
+
+        Parameters:
+            **kwargs: Keyword arguments including NAME and PV specifications.
+        """
         self.db = {}
         self.name = kwargs.pop("NAME")
         for key, value in kwargs.items():
@@ -61,18 +80,30 @@ class WatchedPvGroup:
 
     @property
     def connected(self):
+        """Check if all PVs are connected.
+
+        Returns:
+            bool: True if all PVs are connected.
+        """
         for item in self.db.values():
             if not item.connected:
                 return False
         return True
 
     def wait_for_connection(self, timeout=5, interval=0.01):
-        """Wait for all items to connect."""
+        """Wait for all items to connect.
+
+        Parameters:
+            timeout (float): Maximum time to wait.
+            interval (float): Time between connection checks.
+
+        Returns:
+            bool: True if all PVs connected.
+        """
         deadline = time.monotonic() + timeout
         while not self.connected and time.monotonic() < deadline:
             for item in self.db.values():
                 if not item.connected:
-                    # TODO: reduce by time spent so far?
                     item.connect(timeout=timeout)
                 if time.monotonic() > deadline:
                     break
@@ -81,7 +112,11 @@ class WatchedPvGroup:
         return self.connected
 
     def asdict(self):
-        """Content as dictionary."""
+        """Get content as dictionary.
+
+        Returns:
+            dict: Dictionary of PV values.
+        """
         return {
             self.name: {
                 key: item.value for key, item in self.db.items() if item.connected
@@ -90,6 +125,11 @@ class WatchedPvGroup:
 
 
 def watch_single_pv(pvname):
+    """Watch a single PV.
+
+    Parameters:
+        pvname (str): Name of the PV to watch.
+    """
     pv = WatchedPvRO(pvname, connection_timeout=TIMEOUT)
     pv.wait_for_connection(timeout=TIMEOUT)
     print(f"{pv=!r}")
@@ -98,12 +138,22 @@ def watch_single_pv(pvname):
 
 
 def watch_group(group_dict):
+    """Watch a group of PVs.
+
+    Parameters:
+        group_dict (dict): Dictionary with group specifications.
+    """
     group = WatchedPvGroup(**group_dict)
     group.wait_for_connection(timeout=0.1)
     print(f"{group.asdict()=}")
 
 
 def watch_config(config):
+    """Watch PVs based on configuration.
+
+    Parameters:
+        config (dict): Configuration dictionary.
+    """
     db = {}
     for section_name, section in config.items():
         db[section_name] = {}

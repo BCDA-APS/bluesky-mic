@@ -19,9 +19,12 @@ logger.info(__file__)
 
 
 class DetBase:
+    """Base class for detector file plugins."""
+
     micdata_mountpath = ""
 
     def __init__(self, *args, **kwargs):
+        """Initialize DetBase."""
         super().__init__(*args, **kwargs)
 
     def sync_file_path(self, det_path, delimiter):
@@ -99,39 +102,80 @@ class DetBase:
             raise ValueError(f"File path {self.file_path.get()} does not exist")
 
     @value_setter("file_name")
-    def set_filename(self, filename):
+    def set_filename(self, filename) -> None:
+        """Set the file name for the file writer.
+
+        Parameters:
+            filename (str): The filename to set.
+        """
         pass
 
     @value_setter("file_number")
-    def set_filenumber(self, filenumber):
+    def set_filenumber(self, filenumber) -> None:
+        """Set the file number for the file writer.
+
+        Parameters:
+            filenumber (int): The file number to set.
+        """
         pass
 
     @value_setter("file_path")
-    def set_filepath(self, path):
+    def set_filepath(self, path: str) -> None:
+        """Set the file path for the file writer.
+
+        Parameters:
+            path (str): The file path to set.
+        """
         pass
 
     @value_setter("num_capture")
-    def set_num_capture(self, num_capture):
+    def set_num_capture(self, num_capture: int) -> None:
+        """Set the number of captures for the file writer.
+
+        Parameters:
+            num_capture (int): The number of captures to set.
+        """
         pass
 
     @mode_setter("capture")
-    def set_capture(self, capture):
+    def set_capture(self, capture: str) -> None:
+        """Set the capture mode for the file writer.
+
+        Parameters:
+            capture (str): The capture mode to set.
+        """
         pass
 
     @mode_setter("enable")
-    def set_enable(self, mode):
+    def set_enable(self, mode: str) -> None:
+        """Set the enable mode for the file writer.
+
+        Parameters:
+            mode (str): The mode to enable.
+        """
         pass
 
     @mode_setter("auto_save")
-    def set_auto_save(self, mode):
+    def set_auto_save(self, mode: str) -> None:
+        """Set the auto-save mode for the file writer.
+
+        Parameters:
+            mode (str): The auto-save mode to set.
+        """
         pass
 
 
 class DetHDF5(DetBase, HDF5Plugin):
+    """HDF5 plugin for detector file writing."""
+
     def __init__(self, *args, **kwargs):
+        """Initialize DetHDF5."""
         super().__init__(*args, **kwargs)
 
 
 class DetNetCDF(DetBase, NetCDFPlugin):
+    """NetCDF plugin for detector file writing."""
+
     def __init__(self, *args, **kwargs):
+        """Initialize DetNetCDF."""
         super().__init__(*args, **kwargs)

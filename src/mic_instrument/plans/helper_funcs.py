@@ -12,6 +12,7 @@ __all__ = """
 import bluesky.plan_stubs as bps
 
 from mic_instrument.configs.device_config import det_name_mapping
+from mic_instrument.configs.device_config import xmap_buffer
 
 
 def move_to_position(motor, position, tol=0.01):

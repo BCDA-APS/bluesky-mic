@@ -10,6 +10,7 @@ from apstools.utils import share_bluesky_metadata_with_dm
 # from .local_scans import mv
 from bluesky.plan_stubs import mv
 from bluesky.plan_stubs import sleep
+from databroker.core import BlueskyRun
 from yaml import Loader as yloader
 from yaml import load as yload
 
@@ -18,6 +19,7 @@ from ..devices import dm_workflow
 
 # from ..utils._logging_setup import logger
 # from ..utils.catalog import full_cat
+from ..utils.catalog import full_cat
 
 logger = logging.getLogger(__name__)
 logger.info(__file__)
@@ -134,6 +136,21 @@ def run_workflow(
     # Or you can enter the kwargs that will be just be passed to the workflow --
     **_kwargs,
 ):
+    """Run a DM workflow with specified parameters.
+
+    Parameters:
+        bluesky_id: Bluesky run ID or run object.
+        dm_concise (bool): Use concise reporting.
+        dm_wait (bool): Wait for workflow completion.
+        dm_reporting_period (float): Reporting period in seconds.
+        dm_reporting_time_limit (float): Maximum reporting time.
+        settings_file_path (str): Path to settings file.
+        **_kwargs: Additional workflow parameters.
+
+    Raises:
+        FileExistsError: If settings file not found.
+        ValueError: If required workflow parameters missing.
+    """
     # Option to import workflow parameters from file.
     kwargs = {}
     if settings_file_path is not None:
@@ -169,23 +186,22 @@ def run_workflow(
             f"{workflow} workflow: {missing}."
         )
 
-    # # Check that the bluesky_id works.
-    # if isinstance(bluesky_id, (str, int)):
-    #     try:
-    #         run = full_cat[bluesky_id]
-    #     except KeyError:
-    #         raise KeyError(
-    #             "Could not find a Bluesky run associated with the "
-    #             f"{bluesky_id=}."
-    #         )
-    # elif isinstance(bluesky_id, BlueskyRun):
-    #     run = bluesky_id
-    # else:
-    #     logger.warning(
-    #         "Could not find the scan associated to the bluesky_id entered. "
-    #         "Bluesky metadata will not be shared with DM."
-    #     )
-    #     run = None
+    # Check that the bluesky_id works.
+    if isinstance(bluesky_id, (str, int)):
+        try:
+            run = full_cat[bluesky_id]
+        except KeyError as err:
+            raise KeyError(
+                "Could not find a Bluesky run associated with the " f"{bluesky_id=}."
+            ) from err
+    elif isinstance(bluesky_id, BlueskyRun):
+        run = bluesky_id
+    else:
+        logger.warning(
+            "Could not find the scan associated to the bluesky_id entered. "
+            "Bluesky metadata will not be shared with DM."
+        )
+        run = None
 
     # Start workflow
     logger.info(f"DM workflow {workflow}.")

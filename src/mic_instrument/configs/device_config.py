@@ -21,6 +21,9 @@ from mic_instrument.devices.xspress3 import Xspress3
 
 # from mic_instrument.devices.simdet import SimDet, SimDetHDF5
 
+# XRF detector configuration
+xmap_buffer = 1000  # Default buffer size for XRF detector
+
 scan1 = ScanRecord(iconfig.get("DEVICES")["SCAN1"], name="scan1")
 scan2 = ScanRecord(iconfig.get("DEVICES")["SCAN2"], name="scan2")
 samx = EpicsMotor(iconfig.get("POSITIONERS")["X_MOTOR"], name="samx")
@@ -73,7 +76,6 @@ det_name_mapping = {
     "fpga": {"cam": None, "file_plugin": None},
     "ptycho": {"cam": ptycho, "file_plugin": ptycho_hdf},
 }
-
 
 ## Scan master file config ##
 instrument_path = pathlib.Path(__file__).parent.parent

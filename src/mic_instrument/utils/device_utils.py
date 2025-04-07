@@ -1,3 +1,5 @@
+"""Utility functions for device configuration and control."""
+
 import logging
 from functools import wraps
 

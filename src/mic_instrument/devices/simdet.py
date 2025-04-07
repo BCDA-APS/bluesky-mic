@@ -1,6 +1,11 @@
+"""Simulated detector devices and HDF5 plugin utilities."""
+
 import logging
 from functools import wraps
+from typing import Any
+from typing import Generator
 
+import bluesky.plan_stubs as bps
 from ophyd.areadetector.cam import SimDetectorCam
 from ophyd.areadetector.plugins import HDF5Plugin
 
@@ -8,12 +13,12 @@ logger = logging.getLogger(__name__)
 logger.info(__file__)
 
 
-def value_setter(attribute_name):
-    """Decorator to set value for EpicsSignal component."""
+def value_setter(attribute_name: str) -> Any:
+    """Decorator to set a value for an EpicsSignal."""
 
-    def decorator(func):
+    def decorator(func: Any) -> Any:
         @wraps(func)
-        def wrapper(self, value):
+        def wrapper(self: Any, value: Any) -> Generator:
             signal = getattr(self, attribute_name)
             try:
                 yield from bps.mv(signal, value)
@@ -29,14 +34,21 @@ def value_setter(attribute_name):
 
 
 class SimDet(SimDetectorCam):
-    def __init__(self, *args, **kwargs):
+    """Simulated detector camera."""
+
+    def __init__(self, *args: Any, **kwargs: Any) -> None:
+        """Initialize SimDet."""
         super().__init__(*args, **kwargs)
 
 
 class SimDetHDF5(HDF5Plugin):
-    def __init__(self, *args, **kwargs):
+    """HDF5 plugin for simulated detectors."""
+
+    def __init__(self, *args: Any, **kwargs: Any) -> None:
+        """Initialize SimDetHDF5."""
         super().__init__(*args, **kwargs)
 
     @value_setter("file_path")
-    def set_filepath(self, path):
+    def set_filepath(self, path: str) -> None:
+        """Set HDF5 file path."""
         pass

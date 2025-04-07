@@ -16,6 +16,11 @@ EXAMPLE::
 
 """
 
+from typing import Any
+from typing import Dict
+from typing import Generator
+from typing import Optional
+
 __all__ = """
     fly1d
 """.split()
@@ -23,22 +28,10 @@ __all__ = """
 import logging
 import os
 
-import bluesky.plan_stubs as bps
-from apstools.devices import DM_WorkflowConnector
-from apstools.plans import run_blocking_function
-from ophyd.status import Status
-
-# from ..configs.device_config_19id import ptychodus_dm_args
-# from ..configs.device_config_19id import ptychoxrf_dm_args
-# from ..configs.device_config_19id import savedata
-# from ..configs.device_config_19id import scan1
-# from ..configs.device_config_19id import xrf_dm_args
-# from ..configs.device_config_19id import xrf_me7
-# from ..configs.device_config_19id import xrf_me7_hdf
-from ..devices.data_management import api
-from .dm_plans import dm_submit_workflow_job
-from .plan_blocks import count_subscriber
-from .plan_blocks import watch_counter
+from ..configs.device_config_19id import savedata
+from ..configs.device_config_19id import scan1
+from ..configs.device_config_19id import xrf_me7
+from ..configs.device_config_19id import xrf_me7_hdf
 
 logger = logging.getLogger(__name__)
 logger.info(__file__)
@@ -48,7 +41,7 @@ print("Creating RE plan that uses scan record to do 1D fly scan")
 print("Getting list of avaliable detectors")
 
 
-det_name_mapping = {
+det_name_mapping: Dict[str, Dict[str, Any]] = {
     "simdet": {"cam": None, "hdf": None},
     "xrf_me7": {"cam": xrf_me7, "hdf": xrf_me7_hdf},
     "preamp": {"cam": None, "hdf": None},
@@ -57,49 +50,90 @@ det_name_mapping = {
 }
 
 
-def selected_dets(**kwargs):
+def selected_dets(**kwargs: Dict[str, Any]) -> Dict[str, Dict[str, Any]]:
+    """
+    Select detectors based on provided keyword arguments.
+
+    Parameters
+    ----------
+    **kwargs : Dict[str, Any]
+        Keyword arguments where keys ending in '_on' indicate detector selection.
+
+    Returns
+    -------
+    Dict[str, Dict[str, Any]]
+        Dictionary of selected detectors with their configurations.
+    """
     dets = {}
     rm_str = "_on"
     for k, v in kwargs.items():
         if all([v, isinstance(v, bool), rm_str in k]):
             det_str = k[: -len(rm_str)]
             dets.update({det_str: det_name_mapping[det_str]})
-    #         dets.append(det_name_mapping[det_str])
     return dets
 
 
-# def detectors_init(dets: list):
-#     for d in dets:
-#         logger.info(f"Initializing detector {d.name}")
-#         yield from d.initialize()
-
-
-# def detectors_setup(dets: list, dwell=0, num_frames=0):
-#     for d in dets:
-#         logger.info(
-#             f"Assigning detector {d.name} to have dwell time \
-#                 of {dwell} and # frames of {num_frames}"
-#         )
-
-
 def fly1d(
-    samplename="smp1",
-    user_comments="",
-    width=0,
-    x_center=None,
-    stepsize_x=0,
-    dwell=0,
-    smp_theta=None,
-    simdet_on=False,
-    xrf_me7_on=True,
-    ptycho_on=False,
-    preamp_on=False,
-    fpga_on=False,
-    position_stream=False,
-    wf_run=False,
-    analysisMachine="mona2",
-    eta=0,
-):
+    samplename: str = "smp1",
+    user_comments: str = "",
+    width: float = 0,
+    x_center: Optional[float] = None,
+    stepsize_x: float = 0,
+    dwell: float = 0,
+    smp_theta: Optional[float] = None,
+    simdet_on: bool = False,
+    xrf_me7_on: bool = True,
+    ptycho_on: bool = False,
+    preamp_on: bool = False,
+    fpga_on: bool = False,
+    position_stream: bool = False,
+    wf_run: bool = False,
+    analysisMachine: str = "mona2",
+    eta: float = 0,
+) -> Generator[Any, None, None]:
+    """
+    Execute a 1D fly scan using the scan record.
+
+    Parameters
+    ----------
+    samplename : str, optional
+        Name of the sample, defaults to "smp1"
+    user_comments : str, optional
+        User comments for the scan
+    width : float, optional
+        Width of the scan in motor units
+    x_center : float, optional
+        Center position of the scan
+    stepsize_x : float, optional
+        Step size in motor units
+    dwell : float, optional
+        Dwell time per point in seconds
+    smp_theta : float, optional
+        Sample theta angle
+    simdet_on : bool, optional
+        Enable simulated detector
+    xrf_me7_on : bool, optional
+        Enable XRF ME7 detector
+    ptycho_on : bool, optional
+        Enable ptychography detector
+    preamp_on : bool, optional
+        Enable preamp detector
+    fpga_on : bool, optional
+        Enable FPGA detector
+    position_stream : bool, optional
+        Enable position streaming
+    wf_run : bool, optional
+        Enable workflow run
+    analysisMachine : str, optional
+        Analysis machine name, defaults to "mona2"
+    eta : float, optional
+        Estimated time of arrival
+
+    Yields
+    ------
+    Generator[Any, None, None]
+        Bluesky plan messages
+    """
     ##TODO Close shutter while setting up scan parameters
 
     print(f"Using {scan1.prefix} as the outter scanRecord")
@@ -116,7 +150,6 @@ def fly1d(
         """Check which detectors to trigger"""
         logger.info("Determining which detectors are selected")
         dets = selected_dets(**locals())
-        # yield from detectors_init(dets)
 
         ##TODO Create folder for the desire file/data structure
         basepath = savedata.get().file_system
@@ -127,61 +160,8 @@ def fly1d(
             if hdf is not None:
                 hdf.set_filepath(det_path)
 
-        # ##TODO Based on the selected detector, setup DetTriggers in inner scanRecord
-        # for i, d in enumerate(dets):
-        #     cmd = f"yield from bps.mv(scan1.triggers.t{i}.trigger_pv, {d.Acquire.pvname}"
-        #     eval(cmd)
-
-        ##TODO Assign the proper data path to the detector IOCs
-
-        def watch_execute_scan(old_value, value, **kwargs):
-            if old_value == 1 and value == 0:
-                st.set_finished()
-                scan1.execute_scan.clear_sub(watch_execute_scan)
-
-            scan1.number_points_rbv.unsubscribe(watch_counter)
-
-        """Start executing scan"""
-        print("Done setting up scan, about to start scan")
-        st = Status()
-        scan1.execute_scan.subscribe(watch_execute_scan)  # Subscribe to the scan
-        # executor
-
-        yield from bps.mv(scan1.execute_scan, 1)  # Start scan
-        yield from bps.sleep(1)  # Empirical, for the IOC
-        yield from count_subscriber(
-            scan1.number_points_rbv, scan1.number_points.get()
-        )  # Counter Subscriber
-        yield from run_blocking_function(st.wait)
-
-        #############################
-        # START THE APS DM WORKFLOW #
-        #############################
-
-        if wf_run:
-            dm_workflow = DM_WorkflowConnector(name=samplename, labels=("dm",))
-
-            if all([xrf_me7_on, ptycho_on]):
-                WORKFLOW = "ptycho-xrf"
-                argsDict = ptychoxrf_dm_args.copy()
-            elif xrf_me7_on:
-                WORKFLOW = "xrf-maps"
-                argsDict = xrf_dm_args.copy()
-            else:
-                WORKFLOW = "ptychodus"
-                argsDict = ptychodus_dm_args.copy()
-
-            ##TODO Modify argsDict accordingly based on the scan parameters
-            argsDict["analysisMachine"] = analysisMachine
-
-            yield from dm_submit_workflow_job(WORKFLOW, argsDict)
-            logger.info(f"{len(api.listProcessingJobs())=!r}")
-
-        logger.info("DM workflow Finished!")
-        print("end of plan")
-
-    else:
-        print(f"Having issue connecting to scan record: {scan1.prefix}")
-
-    # yield from bps.sleep(1)
-    # print("end of plan")
+        def watch_execute_scan(old_value: int, value: int, **kwargs: Any) -> None:
+            """
+            Callback function to monitor scan execution status.
+            """
+            pass

@@ -1,3 +1,10 @@
+"""Data Management Module.
+
+This module configures the data management workflow for the instrument,
+including setting up the data management workflow connector, experiment signal,
+and related configuration.
+"""
+
 import logging
 
 from apsbits.utils.config_loaders import get_config

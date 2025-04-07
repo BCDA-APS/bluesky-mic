@@ -22,6 +22,17 @@ SCANNUM_DIGITS = 4
 
 
 class ScanMonitor:
+    """Monitor and log scan progress.
+
+    Attributes:
+        current_line (int): Current line being scanned.
+        line_time_in (float): Time when line scan started.
+        line_time_out (float): Time when line scan ended.
+        line_delta (float): Time taken for line scan.
+        scan_time_remaining (float): Estimated remaining scan time.
+        outter_print_msg (bool): Whether to print outer loop messages.
+    """
+
     current_line = 0
     line_time_in = 0
     line_time_out = 0
@@ -30,6 +41,13 @@ class ScanMonitor:
     outter_print_msg = False
 
     def __init__(self, numpts_x=None, scan_name=None, numpts_y=0):
+        """Initialize ScanMonitor.
+
+        Parameters:
+            numpts_x (int, optional): Number of points in X direction.
+            scan_name (str, optional): Name of the scan.
+            numpts_y (int, optional): Number of points in Y direction.
+        """
         self.scan_active = False
         self.counter_active = False
         self.st = Status()
@@ -38,11 +56,19 @@ class ScanMonitor:
         self.scan_name = scan_name
 
     def update_eta(self):
+        """Update estimated time remaining."""
         self.line_time_out = time.perf_counter()
         self.line_delta = round(self.line_time_out - self.line_time_in, 2)
         self.line_time_in = self.line_time_out
 
     def watch_counter_outter(self, old_value, value, **kwargs):
+        """Monitor outer loop counter.
+
+        Parameters:
+            old_value (int): Previous counter value.
+            value (int): Current counter value.
+            **kwargs: Additional keyword arguments.
+        """
         if self.counter_active:
             if value >= 1:
                 self.update_eta()
@@ -58,6 +84,13 @@ class ScanMonitor:
                     logger.info(msg)
 
     def watch_counter_inner(self, old_value, value, **kwargs):
+        """Monitor inner loop counter.
+
+        Parameters:
+            old_value (int): Previous counter value.
+            value (int): Current counter value.
+            **kwargs: Additional keyword arguments.
+        """
         if self.counter_active and self.numpts_x is not None:
             if all([value > 0, value > old_value, value < self.numpts_x]):
                 if self.numpts_y == 0:
@@ -70,7 +103,6 @@ class ScanMonitor:
                     msg += f"Line: 1/1, Scan_remaining: {self.scan_time_remaining}, "
                     msg += f"Scanned {value}/{self.numpts_x}"
                     logger.info(msg)
-                    # logger.info(f"Scan progress: {self.scan_name}: {prog}% :, scanned {value}/{self.numpts_x}")
                 else:
                     prog = round(
                         100
@@ -82,10 +114,16 @@ class ScanMonitor:
                     msg += f"Line: {self.current_line}/{self.numpts_y}, Scan_remaining: {self.scan_time_remaining}, "
                     msg += f"Line_eta: {self.line_delta}, "
                     msg += f"Scanned: {value}/{self.numpts_x}"
-
                     logger.info(msg)
 
     def watch_execute_scan(self, old_value, value, **kwargs):
+        """Monitor scan execution.
+
+        Parameters:
+            old_value (int): Previous execution value.
+            value (int): Current execution value.
+            **kwargs: Additional keyword arguments.
+        """
         if self.scan_active and old_value == 1 and value == 0:
             self.st.set_finished()
             logger.info(f"FINISHED: ScanMonitor.st {self.st}")
@@ -93,6 +131,12 @@ class ScanMonitor:
 
 # Usage
 def execute_scan_1d(scan1, scan_name=""):
+    """Execute a 1D scan with monitoring.
+
+    Parameters:
+        scan1: Scan object.
+        scan_name (str): Name of the scan.
+    """
     watcher = ScanMonitor(
         numpts_x=scan1.number_points.value, scan_name=scan_name.zfill(SCANNUM_DIGITS)
     )
@@ -117,6 +161,14 @@ def execute_scan_1d(scan1, scan_name=""):
 
 
 def execute_scan_2d(inner_scan, outter_scan, print_outter_msg=False, scan_name=""):
+    """Execute a 2D scan with monitoring.
+
+    Parameters:
+        inner_scan: Inner scan object.
+        outter_scan: Outer scan object.
+        print_outter_msg (bool): Whether to print outer loop messages.
+        scan_name (str): Name of the scan.
+    """
     watcher = ScanMonitor(
         numpts_x=inner_scan.number_points.value,
         numpts_y=outter_scan.number_points.value,

@@ -22,6 +22,8 @@ TETRAMMCLOCK = 100000  # unit in Hz
 
 
 class TetraMM(TetrAMM):
+    """TetrAMM device for current measurements."""
+
     trigger_polarity = Cpt(EpicsSignalWithRBV, ":TriggerPolarity")
     fast_avg_time = Cpt(EpicsSignalWithRBV, ":FastAveragingTime")
     netcdf_enable = Cpt(EpicsSignalWithRBV, ":netCDF1:EnableCallbacks")
@@ -35,11 +37,13 @@ class TetraMM(TetrAMM):
     file_write_mode = Cpt(EpicsSignalWithRBV, ":netCDF1:FileWriteMode")
 
     def __init__(self, *args, **kwargs):
+        """Initialize TetraMM device."""
         super().__init__(*args, **kwargs)
         self.range = self.em_range
         self.avg_time = self.averaging_time
 
     def initialization(self):
+        """Initialize device settings for operation."""
         yield from bps.mv(
             self.acquire_mode,
             1,  # acquire_mode set to Multiple
@@ -69,6 +73,12 @@ class TetraMM(TetrAMM):
         )
 
     def setup_scan(self, pts, dwell):
+        """Set up scan parameters.
+
+        Parameters:
+            pts (int): Number of points to acquire.
+            dwell (float): Dwell time in seconds.
+        """
         values_per_reading = int(TETRAMMCLOCK * dwell - 1)
         yield from bps.mv(
             self.avg_time,

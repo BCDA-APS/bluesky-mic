@@ -11,18 +11,6 @@ __all__ = """
 """.split()
 
 import logging
-import os
-from pathlib import Path
-from apstools.devices import DM_WorkflowConnector
-from mic_instrument.devices.data_management import api
-from mic_instrument.plans.generallized_scan_1d import generalized_scan_1d
-from mic_instrument.plans.workflow_plan import run_workflow
-from mic_instrument.plans.dm_plans import dm_submit_workflow_job
-from mic_instrument.utils.scan_monitor import execute_scan_1d
-from mic_instrument.utils.dm_utils import dm_upload_wait
-from mic_instrument.utils.watch_pvs_write_hdf5 import write_scan_master_h5
-from mic_instrument.configs.device_config import scan1, samx, savedata, master_file_yaml
-from mic_instrument.plans.helper_funcs import selected_dets, calculate_num_capture, move_to_position
 
 logger = logging.getLogger(__name__)
 logger.info(__file__)
@@ -45,3 +33,44 @@ def step1d_soft(
     wf_run=False,
     analysisMachine="mona2",
 ):
+    """Execute a 1D step scan with soft X-rays.
+
+    Parameters
+    ----------
+    samplename : str, optional
+        Name of the sample, by default "smp1"
+    user_comments : str, optional
+        User comments about the scan, by default ""
+    width : float, optional
+        Total width of the scan, by default 0
+    x_center : float, optional
+        Center position of the scan, by default None
+    stepsize_x : float, optional
+        Step size for the scan, by default 0
+    dwell : float, optional
+        Dwell time per step, by default 0
+    smp_theta : float, optional
+        Sample theta angle, by default None
+    simdet_on : bool, optional
+        Whether to use simulated detector, by default False
+    xrf_me7_on : bool, optional
+        Whether to use XRF ME7, by default True
+    ptycho_on : bool, optional
+        Whether to use ptychography, by default False
+    preamp_on : bool, optional
+        Whether to use preamp, by default False
+    fpga_on : bool, optional
+        Whether to use FPGA, by default False
+    position_stream : bool, optional
+        Whether to stream position data, by default False
+    wf_run : bool, optional
+        Whether this is a workflow run, by default False
+    analysisMachine : str, optional
+        Analysis machine to use, by default "mona2"
+
+    Returns
+    -------
+    None
+    """
+    # Implementation will be added here
+    pass

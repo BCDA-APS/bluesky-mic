@@ -21,8 +21,6 @@ __all__ = """
 """.split()
 
 
-# from ..devices.data_management import api
-
 import logging
 
 import bluesky.plan_stubs as bps
@@ -30,6 +28,7 @@ from apsbits.utils.config_loaders import get_config
 from apsbits.utils.config_loaders import load_config_yaml
 from apstools.devices import DM_WorkflowConnector
 
+from ..devices.data_management import api
 from .dm_plans import dm_submit_workflow_job
 
 logger = logging.getLogger(__name__)

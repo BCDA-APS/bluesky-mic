@@ -21,6 +21,8 @@ logger.info(__file__)
 
 
 class ScanRecord(SscanRecord):
+    """Scan record device for controlling scan parameters."""
+
     scan_mode = Component(EpicsSignal, ".P1SM")
     pos_drive = Component(EpicsSignal, ".P1PV")
     pos_readback = Component(EpicsSignal, ".R1PV")
@@ -37,6 +39,7 @@ class ScanRecord(SscanRecord):
     detTrigger_4 = Component(EpicsSignal, ".T4PV")
 
     def __init__(self, *args, **kwargs):
+        """Initialize ScanRecord."""
         super().__init__(*args, **kwargs)
         self.P1PA = PV(f"{self.prefix}.P1PA")
 
@@ -45,7 +48,8 @@ class ScanRecord(SscanRecord):
         try:
             yield from bps.mv(self.center, center, self.width, width, self.stepsize, ss)
             logger.info(
-                f"Set center to {center}, width to {width}, and stepsize to {ss} in {self.prefix}."
+                f"Set center to {center}, width to {width}, "
+                f"and stepsize to {ss} in {self.prefix}."
             )
         except Exception as e:
             logger.error(
@@ -68,40 +72,50 @@ class ScanRecord(SscanRecord):
 
     @mode_setter("scan_mode")
     def set_scan_mode(self, mode):
+        """Set scan mode."""
         pass
 
     @mode_setter("scan_movement")
     def set_rel_abs_motion(self, mode):
+        """Set relative or absolute motion mode."""
         pass
 
     @value_setter("center")
     def set_center(self, value):
+        """Set scan center position."""
         pass
 
     @value_setter("width")
     def set_width(self, width):
+        """Set scan width."""
         pass
 
     @value_setter("stepsize")
     def set_stepsize(self, stepsize):
+        """Set scan step size."""
         pass
 
     @value_setter("number_points")
     def set_numpts(self, numpts):
+        """Set number of scan points."""
         pass
 
     @value_setter("pos_drive")
     def set_positioner_drive(self, positioner_pv):
+        """Set positioner drive PV."""
         pass
 
     @value_setter("pos_readback")
     def set_positioner_readback(self, positioner_rbv):
+        """Set positioner readback PV."""
         pass
 
     @value_setter("bspv")
     def set_bspv(self, beforescan_pv):
+        """Set before scan PV."""
         pass
 
     @value_setter("aspv")
     def set_aspv(self, afterscan_pv):
+        """Set after scan PV."""
         pass

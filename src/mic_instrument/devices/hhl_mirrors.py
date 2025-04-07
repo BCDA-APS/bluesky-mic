@@ -6,6 +6,8 @@ from ophyd import EpicsMotor
 
 
 class HHL_Mirrors(Device):
+    """HHL mirrors device for 19ID-A."""
+
     jack = Component(EpicsMotor, ":m1", labels=("motor",), kind="config")
     lateral = Component(EpicsMotor, ":m3", labels=("motor",), kind="config")
     pitch = Component(EpicsMotor, ":m5", labels=("motor",), kind="config")

@@ -23,6 +23,8 @@ import numpy as np
 from epics import caput
 from ophyd.status import Status
 
+from ..devices.profile_move import ProfileMove
+
 # from ophyd import Component as Cpt
 # from bluesky import plans as bp
 
@@ -88,8 +90,8 @@ def profile_move_isn(
         "dwell_time",
     ]
 
-    for l in param_labels:
-        print(f"plan starts with {l}={eval(l)}")
+    for param_label in param_labels:
+        print(f"plan starts with {param_label}={eval(param_label)}")
 
     """Set up profile move"""
     print("in profile_move function")

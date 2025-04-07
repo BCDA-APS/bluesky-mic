@@ -1,3 +1,5 @@
+"""Positioner stream device module."""
+
 import subprocess
 
 from ophyd import Component
@@ -8,6 +10,8 @@ from ..utils.misc import run_subprocess
 
 
 class PositionerStream(Device):
+    """Device for positioner stream control."""
+
     reset_ = Component(EpicsSignal, "reset")
     start_ = Component(EpicsSignal, "start")
     stop_ = Component(EpicsSignal, "stop")
@@ -15,6 +19,7 @@ class PositionerStream(Device):
     outputFile = Component(EpicsSignal, "outputFile")
 
     def setup_positionstream(sefl, filename, filepath):
+        """Set up positioner stream with filename and filepath."""
         print("in setup_positionstream function")
         cmd = f'pvput -r "filePath" posvr:outputFile \'{{"filePath":"{filepath}"}}\''
         print(run_subprocess(cmd)[1])
@@ -22,6 +27,14 @@ class PositionerStream(Device):
         print(run_subprocess(cmd)[1])
 
     def run_subprocess(self, command_list):
+        """Run a subprocess command.
+
+        Parameters:
+            command_list (str): Command to execute.
+
+        Returns:
+            tuple: Status and output of the command.
+        """
         try:
             result = subprocess.getstatusoutput(command_list)
         except subprocess.CalledProcessError as e:

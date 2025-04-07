@@ -15,6 +15,13 @@ from ..utils.config_loaders import iconfig
 
 
 class ProfileMove(Device):
+    """
+    A device class for profile-based motion control.
+
+    This class provides components for controlling profile-based motion, including
+    acceleration, timing, and multi-axis positioning.
+    """
+
     abort = Component(EpicsSignal, "Abort")
     num_points = Component(EpicsSignal, "NumPoints")
     timer_mode = Component(EpicsSignal, "TimeMode")
@@ -47,11 +54,21 @@ class ProfileMove(Device):
     move_mode = Component(EpicsSignal, "MoveMode")
 
     def setup_profile_move(self, xarr, yarr, dwell_time):
+        """
+        Set up a profile move with specified arrays and dwell time.
+
+        Parameters:
+            xarr: Array of x-axis positions
+            yarr: Array of y-axis positions
+            dwell_time: Time to dwell at each position
+        """
         print("in setup_profile_move function")
         self.wait_for_connection()
-        # yield from run_blocking_function(pm1.abort) # TODO: re-implement reset function for profile move
+        # TODO: re-implement reset function for profile move
+        # yield from run_blocking_function(pm1.abort)
         yield from bps.sleep(0.2)  # arbitrary wait for EPICS to finish the reset.
-        caput(self.m1_arr.pvname, list(xarr))  # FIXME: replace with yield from bps.mv()
+        # FIXME: replace with yield from bps.mv()
+        caput(self.m1_arr.pvname, list(xarr))
         caput(self.m2_arr.pvname, list(yarr))
         yield from bps.mv(
             self.m1_use,

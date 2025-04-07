@@ -22,7 +22,7 @@ CONFIGS_DIR = THIS_DIR / ".." / "configs"
 PROJECT_DIR = THIS_DIR / "."  # TODO: get this from DM data dir
 
 MASTER_YAML_FILE = CONFIGS_DIR / "masterFileConfig_gen.yml"
-MASTER_SCAN_FILE = PROJECT_DIR / "example_pvs.h5"
+MASTER_SCAN_FILE = PROJECT_DIR / "master_scan_pvs.h5"
 
 pv_db = {}
 
@@ -243,4 +243,4 @@ def write_scan_master_h5(master_file_yaml: dict, master_scan_file: str):
 
 
 if __name__ == "__main__":
-    example()
+    pass

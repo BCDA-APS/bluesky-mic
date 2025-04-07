@@ -55,7 +55,50 @@ def fly2d(
     analysisMachine="mona2",
     ptycho_exp_factor=1,
 ):
-    """2D Bluesky plan that drives the x- and y- sample motors in fly mode using ScanRecord"""
+    """
+    2D Bluesky plan that drives the x- and y- sample motors in fly mode using ScanRecord.
+
+    Parameters
+    ----------
+    samplename : str, optional
+        Name of the sample, defaults to "smp1"
+    user_comments : str, optional
+        User comments for the scan
+    width : float, optional
+        Width of the scan in motor units
+    x_center : float, optional
+        Center position of the scan in x
+    stepsize_x : float, optional
+        Step size in x motor units
+    height : float, optional
+        Height of the scan in motor units
+    y_center : float, optional
+        Center position of the scan in y
+    stepsize_y : float, optional
+        Step size in y motor units
+    dwell : float, optional
+        Dwell time per point in seconds
+    smp_theta : float, optional
+        Sample theta angle
+    xrf_on : bool, optional
+        Enable XRF detector
+    ptycho_on : bool, optional
+        Enable ptychography detector
+    preamp1_on : bool, optional
+        Enable preamp1 detector
+    preamp2_on : bool, optional
+        Enable preamp2 detector
+    fpga_on : bool, optional
+        Enable FPGA detector
+    position_stream : bool, optional
+        Enable position streaming
+    wf_run : bool, optional
+        Enable workflow run
+    analysisMachine : str, optional
+        Analysis machine name, defaults to "mona2"
+    ptycho_exp_factor : float, optional
+        Exposure factor for ptychography
+    """
 
     ##TODO Close shutter while setting up scan parameters
 
@@ -95,7 +138,8 @@ def fly2d(
 
     """Initialize detectors with desired pts, exposure time and file writer """
     if sis3820.connected:
-        # Set up triggers for FLY scans, sis3820 will be sending out pulses. The number of pulses is numpts_x - 2
+        # Set up triggers for FLY scans, sis3820 will be sending out pulses.
+        # The number of pulses is numpts_x - 2
         numpts_x = fscanh.number_points.value
         num_pulses = numpts_x - 2
         filename = next_file_name.replace(".mda", "")
@@ -106,10 +150,8 @@ def fly2d(
                 savedata.update_next_file_name()
 
                 if det_name == "xrf":
-                    # num_capture = calculate_num_capture(numpts_x)
-                    num_capture = (
-                        0  # When it's zero, the num_capture won't be overwritten
-                    )
+                    # When it's zero, the num_capture won't be overwritten
+                    num_capture = 0
                     yield from setup_flyscan_XRF_triggers(
                         fscanh, cam, file_plugin, sis3820, num_pulses
                     )
@@ -149,10 +191,11 @@ def fly2d(
                     )
 
     """Start executing scan"""
-
-    # yield from bps.sleep(1)
     yield from execute_scan_2d(
-        fscanh, fscan1, scan_name=savedata.next_file_name, print_outter_msg=True
+        fscanh,
+        fscan1,
+        scan_name=savedata.next_file_name,
+        print_outter_msg=True,
     )
 
     #     #############################

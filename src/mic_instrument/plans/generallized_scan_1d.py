@@ -66,7 +66,8 @@ def generalized_scan_1d(
             yield from scanrecord.set_positioner_drive(f"{positioner.prefix}.VAL")
             yield from scanrecord.set_positioner_readback(f"{positioner.prefix}.RBV")
         except Exception as e:
-            logger.info(f"Fail to set positioner in {scanrecord.prefix} due to {e}")
+            msg = f"Fail to set positioner in {scanrecord.prefix} due to {e}"
+            logger.info(msg)
             yield from scanrecord.set_positioner_drive(f"{positioner.pvname}")
             yield from scanrecord.set_positioner_readback(f"{positioner.pvname}")
 

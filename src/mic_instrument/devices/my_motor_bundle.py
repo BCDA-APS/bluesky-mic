@@ -1,3 +1,5 @@
+"""Custom motor bundle module."""
+
 from ophyd import Component as Cpt
 from ophyd import EpicsMotor
 from ophyd import MotorBundle

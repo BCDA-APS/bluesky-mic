@@ -108,7 +108,8 @@ def setup_eiger_filewriter(
             eiger_filewriter = eiger
         except Exception as e:
             logger.error(
-                f"Error occurs when setting up eiger filewriter: {eiger_filewriter}: {e}"
+                f"Error occurs when setting up eiger filewriter: "
+                f"{eiger_filewriter}: {e}"
             )
     else:
         try:
@@ -123,6 +124,7 @@ def setup_eiger_filewriter(
             logger.error(f"Error occurs when setting up {eiger_filewriter.prefix}: {e}")
 
     if not eiger_filewriter.file_path_exists.get():
+        logger.error(f"File path {eiger_filewriter.file_path.get()} does not exist")
         raise ValueError(f"File path {eiger_filewriter.file_path.get()} does not exist")
 
 

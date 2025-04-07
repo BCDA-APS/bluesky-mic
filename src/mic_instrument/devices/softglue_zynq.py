@@ -1,3 +1,5 @@
+"""SoftGlue Zynq device module."""
+
 __all__ = """
     sgz
 """.split()
@@ -10,6 +12,8 @@ from ophyd import EpicsSignal
 
 
 class SoftGlueZynq(Device):
+    """SoftGlue Zynq device for pulse generation and DMA control."""
+
     npts = Component(EpicsSignal, "SG:plsTrn-1_NPULSES")
     period = Component(EpicsSignal, "SG:plsTrn-1_PERIOD")
     width = Component(EpicsSignal, "SG:plsTrn-1_WIDTH")
@@ -28,6 +32,12 @@ class SoftGlueZynq(Device):
     send_pulses = Component(EpicsSignal, "SG:plsTrn-1_Inp_Signal.PROC")
 
     def setup_softgluezynq(sgz, npts, period):
+        """Configure SoftGlue Zynq for pulse generation.
+
+        Parameters:
+            npts (int): Number of pulses.
+            period (float): Pulse period in seconds.
+        """
         print("in setup_softgluezinq function")
         clk_f = int(20e6)  # master clock
         period = int(period * clk_f)  # period in number of clock cycles

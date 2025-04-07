@@ -93,7 +93,15 @@ def dm_upload_wait(
     raise TimeoutError(f"DM upload timed out after {time()-t0 :.1f} s.")
 
 
-def list_esafs(year=datetime.now().year, sector="04"):
+def list_esafs(year=None, sector="04"):
+    """List ESAFs for a given year and sector.
+
+    Parameters:
+        year (int, optional): Year to list ESAFs for. Defaults to current year.
+        sector (str, optional): Sector to list ESAFs for. Defaults to "04".
+    """
+    if year is None:
+        year = datetime.now().year
     return esaf_api.listEsafs(sector, year)
 
 
@@ -114,9 +122,11 @@ def get_current_run():
 
 
 def dm_experiment_setup(
-    experiment_name, esaf_id=None, users_name_list: list = [], **kwargs
+    experiment_name, esaf_id=None, users_name_list: list = None, **kwargs
 ):
     # Gets the users from the ESAF.
+    if users_name_list is None:
+        users_name_list = []
     if esaf_id is not None:
         badges = get_esaf_users_badge(esaf_id)
         _users = []

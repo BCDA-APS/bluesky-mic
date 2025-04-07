@@ -1,6 +1,4 @@
-"""
-SoftGlueZynq implementation for ISN
-"""
+"""SoftGlueZynq implementation for ISN."""
 
 from bluesky.plan_stubs import mv
 from ophyd import Component
@@ -10,6 +8,8 @@ from ophyd import EpicsSignalRO
 
 
 class UpCounter(Device):
+    """Up counter device."""
+
     enable = Component(EpicsSignal, "ENABLE_Signal", kind="config")
     clock = Component(EpicsSignal, "CLK_Signal", kind="config")
     clear = Component(EpicsSignal, "CLEAR_Signal", kind="config")
@@ -17,6 +17,8 @@ class UpCounter(Device):
 
 
 class DownCounter(Device):
+    """Down counter device."""
+
     enable = Component(EpicsSignal, "ENABLE_Signal", kind="config")
     clock = Component(EpicsSignal, "CLK_Signal", kind="config")
     load = Component(EpicsSignal, "LOAD_Signal", kind="config")
@@ -25,11 +27,15 @@ class DownCounter(Device):
 
 
 class Buffer(Device):
+    """Buffer device."""
+
     in_signal = Component(EpicsSignal, "IN_Signal", kind="config")
     out_signal = Component(EpicsSignal, "OUT_Signal", kind="config")
 
 
 class DivByN(Device):
+    """Divide by N device."""
+
     enable = Component(EpicsSignal, "ENABLE_Signal", kind="config")
     clock = Component(EpicsSignal, "CLOCK_Signal", kind="config")
     reset = Component(EpicsSignal, "RESET_Signal", kind="config")
@@ -38,6 +44,8 @@ class DivByN(Device):
 
 
 class GateDelay(Device):
+    """Gate delay device."""
+
     in_signal = Component(EpicsSignal, "IN_Signal", kind="config")
     clock = Component(EpicsSignal, "CLK_Signal", kind="config")
     delay = Component(EpicsSignal, "DLY", kind="config")
@@ -46,6 +54,8 @@ class GateDelay(Device):
 
 
 class SoftGlueZynq(Device):
+    """SoftGlue Zynq device for ISN."""
+
     # TODO: Make an ordered dictionary implementation for components
     buffer_1 = Component(Buffer, ":BUFFER-1_", kind="config")
     buffer_2 = Component(Buffer, ":BUFFER-2_", kind="config")
@@ -65,9 +75,17 @@ class SoftGlueZynq(Device):
     gate_delay_1 = Component(GateDelay, ":GateDly-1")
 
     def start(self):
+        """Start the SoftGlue Zynq device."""
         yield from mv(self.buffer_4.in_signal, "1")
 
     def setup_gated_trigger(self, period_time, pulse_width, pulse_delay=0):
+        """Set up gated trigger with specified parameters.
+
+        Parameters:
+            period_time (float): Period time in seconds.
+            pulse_width (float): Pulse width in seconds.
+            pulse_delay (float, optional): Pulse delay in seconds. Defaults to 0.
+        """
         yield from mv(
             self.div_by_n_3.n,
             1e7 * period_time,

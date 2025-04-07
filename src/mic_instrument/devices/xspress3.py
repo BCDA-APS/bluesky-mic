@@ -22,18 +22,35 @@ logger.info(__file__)
 
 
 class Xspress3(Xspress3DetectorCam):
+    """Xspress3 detector camera for X-ray spectroscopy."""
+
     erase_on_start = Component(EpicsSignal, ":EraseOnStart")
 
     def __init__(self, *args, **kwargs):
+        """Initialize Xspress3 detector."""
         super().__init__(*args, **kwargs)
 
     def scan_init(self, exposure_time=0, num_images=0):
+        """Initialize scan parameters.
+
+        Parameters:
+            exposure_time (float): Exposure time in seconds.
+            num_images (int): Number of images to acquire.
+        """
         yield from self.set_acquire_time(exposure_time)
         yield from self.set_num_images(num_images)
 
     def write_h5(
         self, masterfile_path: str, detector_path: str, scan_name: str, det_name: str
     ):
+        """Write detector data to HDF5 file.
+
+        Parameters:
+            masterfile_path (str): Path to master file.
+            detector_path (str): Path to detector data.
+            scan_name (str): Name of the scan.
+            det_name (str): Name of the detector.
+        """
         logger.info(
             f"{self.__class__.__name__}: Writing HDF5 file to {masterfile_path}"
         )
@@ -64,26 +81,32 @@ class Xspress3(Xspress3DetectorCam):
 
     @mode_setter("image_mode")
     def set_image_mode(mode):
+        """Set image acquisition mode."""
         pass
 
     @mode_setter("erase_on_start")
     def set_erase_on_start(mode):
+        """Set erase on start mode."""
         pass
 
     @mode_setter("trigger_mode")
     def set_trigger_mode(mode):
+        """Set trigger mode."""
         pass
 
     @value_setter("acquire_time")
     def set_acquire_time(exposure_time):
+        """Set acquisition time."""
         pass
 
     @value_setter("num_images")
     def set_num_images(num_images):
+        """Set number of images to acquire."""
         pass
 
     @value_setter("acquire")
     def set_acquire_state(value):
+        """Set acquisition state."""
         pass
 
     # @value_setter("acquire")

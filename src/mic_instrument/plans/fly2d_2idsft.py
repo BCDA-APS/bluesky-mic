@@ -7,10 +7,18 @@ EXAMPLE::
     %run -i user/fly2d_2idsft.py
 
     # # Run the plan with the RunEngine:
-    # RE(scan_record2(scanrecord_name = 'scan1', ioc = "2idsft:", m1_name = 'm1',
-    #                m1_start = -0.5, m1_finish = 0.5,
-    #                m2_name = 'm3', m2_start = -0.2 ,m2_finish = 0.2,
-    #                npts = 50, dwell_time = 0.1))
+    # RE(scan_record2(
+    #     scanrecord_name='scan1',
+    #     ioc="2idsft:",
+    #     m1_name='m1',
+    #     m1_start=-0.5,
+    #     m1_finish=0.5,
+    #     m2_name='m3',
+    #     m2_start=-0.2,
+    #     m2_finish=0.2,
+    #     npts=50,
+    #     dwell_time=0.1
+    # ))
 """
 
 __all__ = """
@@ -55,6 +63,19 @@ det_name_mapping = {
 
 
 def selected_dets(**kwargs):
+    """
+    Select detectors based on provided keyword arguments.
+
+    Parameters
+    ----------
+    **kwargs : dict
+        Keyword arguments containing detector selection flags.
+
+    Returns
+    -------
+    list
+        List of selected detector objects.
+    """
     dets = []
     for k, v in kwargs.items():
         if all([v, isinstance(v, bool)]):
@@ -64,48 +85,119 @@ def selected_dets(**kwargs):
 
 
 def detectors_init(dets: list):
+    """
+    Initialize detectors.
+
+    Parameters
+    ----------
+    dets : list
+        List of detector objects to initialize.
+
+    Yields
+    ------
+    Generator
+        Initialization commands.
+    """
     for d in dets:
         logger.info(f"Initializing detector {d.name}")
         yield from d.initialize()
 
 
-def detectors_setup(dets: list, dwell=0, num_frames=0):
+def detectors_setup(dets: list, dwell: float = 0, num_frames: int = 0):
+    """
+    Set up detector parameters.
+
+    Parameters
+    ----------
+    dets : list
+        List of detector objects to set up.
+    dwell : float, optional
+        Dwell time per point.
+    num_frames : int, optional
+        Number of frames to acquire.
+    """
     for d in dets:
-        logger.info(
-            f"Assigning detector {d.name} to have dwell time \
-                of {dwell} and # frames of {num_frames}"
+        msg = (
+            f"Assigning detector {d.name} to have dwell time "
+            f"of {dwell} and # frames of {num_frames}"
         )
+        logger.info(msg)
 
 
 def fly2d(
-    samplename="smp1",
-    user_comments="",
-    width=0,
-    height=0,
-    x_center=None,
-    y_center=None,
-    stepsize_x=0,
-    stepsize_y=0,
-    dwell=0,
-    smp_theta=None,
-    xrf_on=True,
-    ptycho_on=False,
-    preamp_on=False,
-    fpga_on=False,
-    position_stream=False,
-    eta=0,
-):
-    ##TODO Close shutter while setting up scan parameters
+    samplename: str = "smp1",
+    user_comments: str = "",
+    width: float = 0,
+    height: float = 0,
+    x_center: float = None,
+    y_center: float = None,
+    stepsize_x: float = 0,
+    stepsize_y: float = 0,
+    dwell: float = 0,
+    smp_theta: float = None,
+    xrf_on: bool = True,
+    ptycho_on: bool = False,
+    preamp_on: bool = False,
+    fpga_on: bool = False,
+    position_stream: bool = False,
+    eta: float = 0,
+) -> None:
+    """
+    Execute a 2D fly scan with specified parameters.
 
-    print(
-        f"Using {scan1.prefix} as the outter scanRecord and {scan2.prefix} as inner scanRecord"
+    Parameters
+    ----------
+    samplename : str, optional
+        Name of the sample, by default "smp1"
+    user_comments : str, optional
+        Additional comments, by default ""
+    width : float, optional
+        Width of scan in x direction, by default 0
+    height : float, optional
+        Height of scan in y direction, by default 0
+    x_center : float, optional
+        Center position in x, by default None
+    y_center : float, optional
+        Center position in y, by default None
+    stepsize_x : float, optional
+        Step size in x direction, by default 0
+    stepsize_y : float, optional
+        Step size in y direction, by default 0
+    dwell : float, optional
+        Dwell time per point, by default 0
+    smp_theta : float, optional
+        Sample theta angle, by default None
+    xrf_on : bool, optional
+        Enable XRF detector, by default True
+    ptycho_on : bool, optional
+        Enable ptychography, by default False
+    preamp_on : bool, optional
+        Enable preamp, by default False
+    fpga_on : bool, optional
+        Enable FPGA, by default False
+    position_stream : bool, optional
+        Enable position streaming, by default False
+    eta : float, optional
+        Estimated time, by default 0
+    """
+    # TODO: Close shutter while setting up scan parameters
+
+    scan_msg = (
+        f"Using {scan1.prefix} as the outter scanRecord and "
+        f"{scan2.prefix} as inner scanRecord"
     )
+    print(scan_msg)
+
     if all([scan1.connected, scan2.connected]):
         print(f"{scan1.prefix} and {scan2.prefix} are connected")
 
-        """Set up scan parameters and get estimated time of a scan"""
-        yield from scan2.set_center_width_stepsize(y_center, height, stepsize_y)
-        yield from scan1.set_center_width_stepsize(x_center, width, stepsize_x)
+        # Set up scan parameters and get estimated time of a scan
+        yield from scan2.set_center_width_stepsize(
+            y_center, height, stepsize_y
+        )
+        yield from scan1.set_center_width_stepsize(
+            x_center, width, stepsize_x
+        )
         numpts_y = scan2.number_points.value
         numpts_x = scan1.number_points.value
         eta = numpts_x * numpts_y * dwell * (1 + SCAN_OVERHEAD)
@@ -113,26 +205,31 @@ def fly2d(
         print(f"Number_points in X: {numpts_x}")
         print(f"Estimated_time for this scan is {eta}")
 
-        """Check which detectors to trigger"""
+        # Check which detectors to trigger
         print("Determining which detectors are selected")
         dets = selected_dets(**locals())
         yield from detectors_init(dets)
 
-        ##TODO Create folder for the desire data structure
+        # TODO: Create folder for the desired data structure
 
-        ##TODO Based on the selected detector, setup DetTriggers in inner scanRecord
+        # TODO: Based on the selected detector, setup DetTriggers in inner scanRecord
         for i, d in enumerate(dets):
             cmd = (
-                f"yield from bps.mv(scan1.triggers.t{i}.trigger_pv, {d.Acquire.pvname}"
+                f"yield from bps.mv("
+                f"scan1.triggers.t{i}.trigger_pv, "
+                f"{d.Acquire.pvname}"
+                f")"
             )
             eval(cmd)
 
-        ##TODO Assign the proper data path to the detector IOCs
+        # TODO: Assign the proper data path to the detector IOCs
 
     else:
-        print(
-            f"Having issue connecting to scan records: {scan1.prefix}, {scan2.prefix}"
+        msg = (
+            "Having issue connecting to scan records: "
+            f"{scan1.prefix}, {scan2.prefix}"
         )
+        print(msg)
 
     # print(
     #     f"Creating ophyd object of scan records:\n \

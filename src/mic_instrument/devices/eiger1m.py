@@ -53,16 +53,12 @@ class Eiger1M(EigerDetectorCam):
     save_files = Component(EpicsSignal, ":SaveFiles")
 
     def scan_init(self, exposure_time, num_images, ptycho_exp_factor):
-        """
-        Initialize the detector for a scan.
-        Based on the current trigger mode, this function will choose corresponding setup functions.
+        """Initialize scan configuration.
 
         Parameters:
-        - dwell: Dwell time for each pixel in seconds.
-        - num_images: Number of images to be set.
-        - ptycho_exp_factor: Exposure factor to adjust the acquisition time.
-                             When is set to 1, the exposure time is the same as the dwell time.
-                             Otherwise, the exposure time is the dwell time divided by the ptycho_exp_factor.
+            exposure_time (float): Dwell time in seconds.
+            num_images (int): Number of images.
+            ptycho_exp_factor (float): Exposure factor.
         """
         trigger_mode = self.trigger_mode.get(as_string=True)
         yield from self.set_acquire("Stop")
@@ -80,6 +76,14 @@ class Eiger1M(EigerDetectorCam):
     def write_h5(
         self, masterfile_path: str, detector_path: str, scan_name: str, det_name: str
     ):
+        """Write an HDF5 file with detector settings.
+
+        Parameters:
+            masterfile_path (str): Master file path.
+            detector_path (str): Detector directory.
+            scan_name (str): Scan name.
+            det_name (str): Detector name.
+        """
         logger.info(
             f"{self.__class__.__name__}: Writing HDF5 file to {masterfile_path}"
         )
@@ -124,14 +128,14 @@ class Eiger1M(EigerDetectorCam):
         )
 
     def sync_file_path(self, savedatapath, delimiter):
-        """
-        Synchronize the file path of the SaveData object with the EPICS AreaDetector filewriter.
+        """Synchronize file path.
 
         Parameters:
-        - savedatapath: str
-            The path where the files will be saved.
-        - delimiter: str
-            The delimiter used in the file path.
+            savedatapath (str): Save data path.
+            delimiter (str): Delimiter.
+
+        Returns:
+            str: New file path.
         """
         p1 = self.file_path.get()
         print(p1)
@@ -145,33 +149,33 @@ class Eiger1M(EigerDetectorCam):
         return p1_new
 
     def setup_internal_trigger(self, num_triggers):
-        """
-        Set up the internal trigger for the detector.
-        This function will set the number of images equals to the input number of triggers
-        and the number of triggers equals to 1.
+        """Set up internal trigger.
 
-        This is essentially the same as the setup_external_series_trigger function.
+        Yields:
+            Generator: Trigger setup generator.
         """
         yield from self.setup_external_series_trigger(num_triggers)
 
     def setup_external_enable_trigger(self, num_triggers):
-        """
-        Set up the external enable trigger for the detector.
-        This function will set the number of triggers equals to the input number of triggers
-        and the number of images equals to 1.
+        """Set up external enable trigger.
+
         Parameters:
-        - num_triggers: Number of triggers to be set.
+            num_triggers (int): Number of triggers.
+
+        Yields:
+            Generator: Trigger setup generator.
         """
         yield from self.set_num_triggers(num_triggers)  # Set the number of triggers
         yield from self.set_num_images(1)  # Set the number of images to 1
 
     def setup_external_series_trigger(self, num_triggers):
-        """
-        Set up the external series trigger for the detector.
-        This function will set the number of images equals to the input number of triggers
-        and the number of triggers equals to 1.
+        """Set up external series trigger.
+
         Parameters:
-        - num_triggers: Number of triggers to be set.
+            num_triggers (int): Number of triggers.
+
+        Yields:
+            Generator: Trigger setup generator.
         """
         yield from self.set_num_images(
             num_triggers
@@ -179,8 +183,16 @@ class Eiger1M(EigerDetectorCam):
         yield from self.set_num_triggers(1)  # Set the number of triggers to 1
 
     def setup_eiger_filewriter(self, savedata, det_name, filename, beamline_delimiter):
-        """
-        Set up the default Eiger filewriter.
+        """Configure file writer.
+
+        Parameters:
+            savedata: Data configuration.
+            det_name (str): Detector name.
+            filename (str): Filename pattern.
+            beamline_delimiter (str): Delimiter.
+
+        Yields:
+            Generator: File writer setup generator.
         """
         print(beamline_delimiter)
         basepath = savedata.get().file_system
@@ -201,13 +213,15 @@ class Eiger1M(EigerDetectorCam):
             logger.error(f"File path {newpath} does not exist")
 
     def flyscan_before(self, num_pulses, dwell, ptycho_exp_factor):
-        """
-        Set up the Eiger detector for a flyscan.
+        """Configure flyscan.
 
         Parameters:
-        - num_pulses: Number of pulses to be set.
-        - dwell: Dwell time for each pixel in milliseconds.
-        - ptycho_exp_factor: Exposure factor to adjust the acquisition time.
+            num_pulses (int): Number of pulses.
+            dwell (float): Dwell time in milliseconds.
+            ptycho_exp_factor (float): Exposure factor.
+
+        Yields:
+            Generator: Flyscan setup generator.
         """
         trigger_mode = self.trigger_mode.get(as_string=True)
         yield from self.set_acquire("Stop")
@@ -223,32 +237,96 @@ class Eiger1M(EigerDetectorCam):
 
     @mode_setter("file_writer_enable")
     def set_file_writer_enable(self, mode):
+        """Set file writer enable mode.
+
+        Parameters:
+            mode (str): Enable mode.
+
+        Yields:
+            Generator.
+        """
         pass
 
     @mode_setter("acquire")
     def set_acquire(self, mode):
+        """Set acquire mode.
+
+        Parameters:
+            mode (str): Acquire mode.
+
+        Yields:
+            Generator.
+        """
         pass
 
     @value_setter("file_path")
     def set_file_path(self, value):
+        """Set file path.
+
+        Parameters:
+            value (str): New path.
+
+        Yields:
+            Generator.
+        """
         pass
 
     @value_setter("file_name_pattern")
     def set_file_name_pattern(self, value):
+        """Set file name pattern.
+
+        Parameters:
+            value (str): Filename pattern.
+
+        Yields:
+            Generator.
+        """
         pass
 
     @value_setter("acquire_period")
     def set_acquire_period(self, value):
+        """Set acquire period.
+
+        Parameters:
+            value (float): Period in seconds.
+
+        Yields:
+            Generator.
+        """
         pass
 
     @value_setter("acquire_time")
     def set_acquire_time(self, value):
+        """Set acquire time.
+
+        Parameters:
+            value (float): Total acquisition time in seconds.
+
+        Yields:
+            Generator.
+        """
         pass
 
     @value_setter("num_images")
     def set_num_images(self, value):
+        """Set number of images.
+
+        Parameters:
+            value (int): Number of images.
+
+        Yields:
+            Generator.
+        """
         pass
 
     @value_setter("num_triggers")
     def set_num_triggers(self, value):
+        """Set number of triggers.
+
+        Parameters:
+            value (int): Number of triggers.
+
+        Yields:
+            Generator.
+        """
         pass

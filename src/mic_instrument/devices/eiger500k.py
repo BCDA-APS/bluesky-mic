@@ -3,14 +3,16 @@ eiger500k.py
 
 Author: grace227 (yluo89)
 Date: 2025-02-14
-Description: This module defines the Eiger500k class, which inherits from EigerDetectorCam
-to control the Eiger 500k detector. It provides methods to set up external triggers and manage
-acquisition parameters for the detector.
+Description: This module defines the Eiger500k class, which inherits from
+EigerDetectorCam to control the Eiger 500k detector. It provides methods to set up
+external triggers and manage acquisition parameters for the detector.
 
 """
 
 import logging
 import os
+from typing import Any
+from typing import Generator
 
 from ophyd import Component
 from ophyd import EigerDetectorCam
@@ -27,7 +29,8 @@ class Eiger500k(EigerDetectorCam):
     """
     Eiger500k class inherits from EigerDetectorCam to control the Eiger 500k detector.
 
-    This class provides methods to set up external triggers and manage acquisition parameters.
+    This class provides methods to set up external triggers and manage acquisition
+    parameters.
     """
 
     file_writer_enable = Component(EpicsSignal, "FWEnable")
@@ -36,15 +39,19 @@ class Eiger500k(EigerDetectorCam):
     file_name_pattern = Component(EpicsSignal, "FWNamePattern")
     save_files = Component(EpicsSignal, "SaveFiles")
 
-    def sync_file_path(self, savedatapath, delimiter):
+    def sync_file_path(self, savedatapath: str, delimiter: str) -> str:
         """
-        Synchronize the file path of the SaveData object with the EPICS AreaDetector filewriter.
+        Synchronize the file path of the SaveData object with the EPICS AreaDetector
+        filewriter.
 
         Parameters:
         - savedatapath: str
             The path where the files will be saved.
         - delimiter: str
             The delimiter used in the file path.
+
+        Returns:
+        str: The new synchronized file path.
         """
         p1 = self.file_path.get()
         print(p1)
@@ -57,7 +64,9 @@ class Eiger500k(EigerDetectorCam):
         print(p1_new)
         return p1_new
 
-    def setup_external_enable_trigger(self, num_triggers):
+    def setup_external_enable_trigger(
+        self, num_triggers: int
+    ) -> Generator[None, None, None]:
         """
         Set up the external enable trigger for the detector.
 
@@ -65,12 +74,18 @@ class Eiger500k(EigerDetectorCam):
         - num_triggers: Number of triggers to be set.
         - pixel_dwell: Dwell time for each pixel in milliseconds.
         - exp_factor: Exposure factor to adjust the acquisition time (default is 1).
-        - ad_hdf5_filewriter: The EPICS AreaDetector HDF5 filewriter to be set up (default is None).
+        - ad_hdf5_filewriter: The EPICS AreaDetector HDF5 filewriter to be set up
+          (default is None).
+
+        Yields:
+        None: This is a generator yielding from internal methods to configure triggers.
         """
         yield from self.set_num_triggers(num_triggers)  # Set the number of triggers
         yield from self.set_num_images(1)  # Set the number of images to 1
 
-    def setup_external_series_trigger(self, num_triggers):
+    def setup_external_series_trigger(
+        self, num_triggers: int
+    ) -> Generator[None, None, None]:
         """
         Set up the external series trigger for the detector.
 
@@ -79,13 +94,16 @@ class Eiger500k(EigerDetectorCam):
         - pixel_dwell: Dwell time for each pixel in milliseconds.
         - exp_factor: Exposure factor to adjust the acquisition time (default is 1).
 
+        Yields:
+        None: This is a generator yielding from internal methods to configure triggers.
         """
-        yield from self.set_num_images(
-            num_triggers
-        )  # Set the number of images to the number of triggers
+        # Set the number of images to the number of triggers
+        yield from self.set_num_images(num_triggers)
         yield from self.set_num_triggers(1)  # Set the number of triggers to 1
 
-    def setup_eiger_filewriter(self, savedata, det_name, filename, beamline_delimiter):
+    def setup_eiger_filewriter(
+        self, savedata: Any, det_name: str, filename: str, beamline_delimiter: str
+    ) -> Generator[None, None, None]:
         """
         Set up the default Eiger filewriter.
         """
@@ -107,7 +125,9 @@ class Eiger500k(EigerDetectorCam):
         else:
             logger.error(f"File path {newpath} does not exist")
 
-    def flyscan_before(self, num_pulses, dwell, ptycho_exp_factor):
+    def flyscan_before(
+        self, num_pulses: int, dwell: float, ptycho_exp_factor: float
+    ) -> Generator[None, None, None]:
         """
         Set up the Eiger detector for a flyscan.
         """
@@ -115,46 +135,114 @@ class Eiger500k(EigerDetectorCam):
         yield from self.set_acquire("Stop")
 
         if trigger_mode == "External Series":
-            yield from self.setup_external_series_trigger(
-                num_pulses, dwell, ptycho_exp_factor
-            )
+            yield from self.setup_external_series_trigger(num_pulses)
         elif trigger_mode == "External Enable":
-            yield from self.setup_external_enable_trigger(
-                num_pulses, dwell, ptycho_exp_factor
-            )
+            yield from self.setup_external_enable_trigger(num_pulses)
 
         yield from self.set_num_triggers(num_pulses)
         yield from self.set_acquire_period(dwell / 1000)
         yield from self.set_acquire_time(dwell / 1000 / ptycho_exp_factor)
 
     @mode_setter("file_writer_enable")
-    def set_file_writer_enable(self, mode):
+    def set_file_writer_enable(self, mode: str) -> Generator[None, None, None]:
+        """
+        Set the file writer enable mode.
+
+        Parameters:
+        - mode: The mode to set for the file writer enable signal.
+
+        Yields:
+        None
+        """
         pass
 
     @mode_setter("acquire")
-    def set_acquire(self, mode):
+    def set_acquire(self, mode: str) -> Generator[None, None, None]:
+        """
+        Set the acquire mode for the detector.
+
+        Parameters:
+        - mode: The mode to set for the acquisition process.
+
+        Yields:
+        None
+        """
         pass
 
     @value_setter("file_path")
-    def set_file_path(self, value):
+    def set_file_path(self, value: str) -> Generator[None, None, None]:
+        """
+        Set the file path for the detector.
+
+        Parameters:
+        - value: The new file path to be set.
+
+        Yields:
+        None
+        """
         pass
 
     @value_setter("file_name_pattern")
-    def set_file_name_pattern(self, value):
+    def set_file_name_pattern(self, value: str) -> Generator[None, None, None]:
+        """
+        Set the file name pattern for the file writer.
+
+        Parameters:
+        - value: The file name pattern to be set.
+
+        Yields:
+        None
+        """
         pass
 
     @value_setter("acquire_period")
-    def set_acquire_period(self, value):
+    def set_acquire_period(self, value: float) -> Generator[None, None, None]:
+        """
+        Set the acquire period for the detector.
+
+        Parameters:
+        - value: The acquire period value to be set.
+
+        Yields:
+        None
+        """
         pass
 
     @value_setter("acquire_time")
-    def set_acquire_time(self, value):
+    def set_acquire_time(self, value: float) -> Generator[None, None, None]:
+        """
+        Set the acquire time for the detector.
+
+        Parameters:
+        - value: The acquire time value to be set.
+
+        Yields:
+        None
+        """
         pass
 
     @value_setter("num_images")
-    def set_num_images(self, value):
+    def set_num_images(self, value: int) -> Generator[None, None, None]:
+        """
+        Set the number of images for the detector.
+
+        Parameters:
+        - value: The number of images to be set.
+
+        Yields:
+        None
+        """
         pass
 
     @value_setter("num_triggers")
-    def set_num_triggers(self, value):
+    def set_num_triggers(self, value: int) -> Generator[None, None, None]:
+        """
+        Set the number of triggers for the detector.
+
+        Parameters:
+        - value: The number of triggers to be set.
+
+        Yields:
+        None
+        """
         pass
