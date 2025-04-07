@@ -11,20 +11,13 @@ __all__ = """
 """.split()
 
 import logging
-import os
 
-from apstools.devices import DM_WorkflowConnector
-
-from ...mic_instrument.plans.workflow_plan import run_workflow
 from ..configs.device_config import fscan1
 from ..configs.device_config import fscanh
 from ..configs.device_config import fscanh_samx
 from ..configs.device_config import samy
 from ..configs.device_config import savedata
-from ..devices.data_management import api
-from ..utils.dm_utils import dm_upload_wait
 from ..utils.scan_monitor import execute_scan_2d
-from .dm_plans import dm_submit_workflow_job
 from .generallized_scan_1d import generalized_scan_1d
 
 logger = logging.getLogger(__name__)
@@ -69,8 +62,9 @@ def fly2d(
 
     """Start executing scan"""
     savedata.update_next_file_name()
-    yield from execute_scan_2d(fscanh, fscan1, scan_name=savedata.next_file_name, 
-                               print_outter_msg=True)
+    yield from execute_scan_2d(
+        fscanh, fscan1, scan_name=savedata.next_file_name, print_outter_msg=True
+    )
 
     #     #############################
     #     # START THE APS DM WORKFLOW #

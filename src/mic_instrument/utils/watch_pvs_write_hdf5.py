@@ -225,8 +225,7 @@ def developer_report(db):
     print(table)
 
 
-def write_scan_master_h5(master_file_yaml: dict, 
-                        master_scan_file: str):
+def write_scan_master_h5(master_file_yaml: dict, master_scan_file: str):
     """Demonstrate this code."""
     # specifications = master_file_yaml
     pv_db = {}

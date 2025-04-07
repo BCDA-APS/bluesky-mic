@@ -12,10 +12,11 @@ Accept information about PVs from YAML files.
    https://wiki-ext.aps.anl.gov/blc/index.php?title=EPICS_networking
 """
 
+import pathlib
 import time
+
 import epics
 import yaml
-import pathlib
 
 TIMEOUT = 0.1
 THIS_DIR = pathlib.Path(__file__).parent

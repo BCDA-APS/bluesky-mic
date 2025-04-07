@@ -1,5 +1,4 @@
-
-""" Create scanrecords that are specific to 19id-ISN
+"""Create scanrecords that are specific to 19id-ISN
 
 Created on Dec 04 2024
 
@@ -42,13 +41,19 @@ xrf_me7_hdf = DetHDF5(
     name=iconfig.get("AREA_DETECTOR")["AD_XSP3_8Chan"]["NAME"] + "_hdf",
 )
 
-ptycho = Eiger1M(iconfig.get("AREA_DETECTOR")["AD_EIGER_PTYCHO"]["PV_PREFIX"], 
-                     name=iconfig.get("AREA_DETECTOR")["AD_EIGER_PTYCHO"]["NAME"])
-ptycho_hdf = DetHDF5(iconfig.get("AREA_DETECTOR")["AD_EIGER_PTYCHO"]["HDF5_PV_PREFIX"], 
-                           name=iconfig.get("AREA_DETECTOR")["AD_EIGER_PTYCHO"]["NAME"] + "_hdf")
+ptycho = Eiger1M(
+    iconfig.get("AREA_DETECTOR")["AD_EIGER_PTYCHO"]["PV_PREFIX"],
+    name=iconfig.get("AREA_DETECTOR")["AD_EIGER_PTYCHO"]["NAME"],
+)
+ptycho_hdf = DetHDF5(
+    iconfig.get("AREA_DETECTOR")["AD_EIGER_PTYCHO"]["HDF5_PV_PREFIX"],
+    name=iconfig.get("AREA_DETECTOR")["AD_EIGER_PTYCHO"]["NAME"] + "_hdf",
+)
 
-tetramm1 = TetraMM(iconfig.get("AREA_DETECTOR")["TETRAMM1"]["PV_PREFIX"], 
-                  name=iconfig.get("AREA_DETECTOR")["TETRAMM1"]["NAME"])
+tetramm1 = TetraMM(
+    iconfig.get("AREA_DETECTOR")["TETRAMM1"]["PV_PREFIX"],
+    name=iconfig.get("AREA_DETECTOR")["TETRAMM1"]["NAME"],
+)
 tetramm1_netcdf = None
 # tetramm1_netcdf = DetNetCDF(
 #     iconfig.get("DETECTOR")["TETRAMM1"]["NETCDF_PV_PREFIX"],

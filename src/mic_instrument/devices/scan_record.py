@@ -5,7 +5,6 @@ Created on Oct 16 2024
 @author: yluo (grace227)
 """
 
-
 import logging
 
 import bluesky.plan_stubs as bps
@@ -63,7 +62,7 @@ class ScanRecord(SscanRecord):
             self.detTrigger_3,
             self.detTrigger_4,
         ]
-        for detTri, pv_name in zip(trigger_list, trigger_pvs):
+        for detTri, pv_name in zip(trigger_list, trigger_pvs, strict=False):
             yield from bps.mv(detTri, pv_name)
             logger.info(f"Set {detTri.pvname} to {pv_name} in {self.prefix}.")
 

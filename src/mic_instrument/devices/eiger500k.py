@@ -9,11 +9,15 @@ acquisition parameters for the detector.
 
 """
 
-from ophyd import EigerDetectorCam
-from mic_instrument.utils.device_utils import mode_setter, value_setter
-from ophyd import Component, EpicsSignal
 import logging
 import os
+
+from ophyd import Component
+from ophyd import EigerDetectorCam
+from ophyd import EpicsSignal
+
+from mic_instrument.utils.device_utils import mode_setter
+from mic_instrument.utils.device_utils import value_setter
 
 logger = logging.getLogger(__name__)
 logger.info(__file__)

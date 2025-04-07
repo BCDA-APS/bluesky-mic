@@ -9,11 +9,12 @@ List of functions::
 
 """
 
-from ophyd.status import Status
-import bluesky.plan_stubs as bps
-from apstools.plans import run_blocking_function
 import logging
 import time
+
+import bluesky.plan_stubs as bps
+from apstools.plans import run_blocking_function
+from ophyd.status import Status
 
 logger = logging.getLogger(__name__)
 

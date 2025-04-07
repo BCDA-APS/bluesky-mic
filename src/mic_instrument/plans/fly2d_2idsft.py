@@ -9,7 +9,7 @@ EXAMPLE::
     # # Run the plan with the RunEngine:
     # RE(scan_record2(scanrecord_name = 'scan1', ioc = "2idsft:", m1_name = 'm1',
     #                m1_start = -0.5, m1_finish = 0.5,
-    #                m2_name = 'm3', m2_start = -0.2 ,m2_finish = 0.2, 
+    #                m2_name = 'm3', m2_start = -0.2 ,m2_finish = 0.2,
     #                npts = 50, dwell_time = 0.1))
 """
 
@@ -22,12 +22,8 @@ import logging
 
 # import bluesky
 import bluesky.plan_stubs as bps
-import numpy as np
 
 # from ophyd import Device, EpicsSignal, EpicsSignalRO, Component, EpicsMotor
-from apstools.plans import run_blocking_function
-from ophyd.status import Status
-
 from mic_instrument.configs.device_config import scan1
 from mic_instrument.configs.device_config import scan2
 
@@ -35,10 +31,8 @@ from mic_instrument.configs.device_config import scan2
 # import os
 # import sys
 # import pvaccess
-from ..callbacks.trajectories import raster
 from ..devices.tetramm import tmm1
 from ..devices.xspress3 import xp3
-from ..utils.config_loaders import iconfig
 
 # from ..devices.softglue_zynq import sgz
 # from ..devices.scan_record import ScanRecord
@@ -101,10 +95,11 @@ def fly2d(
     position_stream=False,
     eta=0,
 ):
-
     ##TODO Close shutter while setting up scan parameters
 
-    print(f"Using {scan1.prefix} as the outter scanRecord and {scan2.prefix} as inner scanRecord")
+    print(
+        f"Using {scan1.prefix} as the outter scanRecord and {scan2.prefix} as inner scanRecord"
+    )
     if all([scan1.connected, scan2.connected]):
         print(f"{scan1.prefix} and {scan2.prefix} are connected")
 
@@ -127,13 +122,17 @@ def fly2d(
 
         ##TODO Based on the selected detector, setup DetTriggers in inner scanRecord
         for i, d in enumerate(dets):
-            cmd = f"yield from bps.mv(scan1.triggers.t{i}.trigger_pv, {d.Acquire.pvname}"
+            cmd = (
+                f"yield from bps.mv(scan1.triggers.t{i}.trigger_pv, {d.Acquire.pvname}"
+            )
             eval(cmd)
 
         ##TODO Assign the proper data path to the detector IOCs
 
     else:
-        print(f"Having issue connecting to scan records: {scan1.prefix}, {scan2.prefix}")
+        print(
+            f"Having issue connecting to scan records: {scan1.prefix}, {scan2.prefix}"
+        )
 
     # print(
     #     f"Creating ophyd object of scan records:\n \

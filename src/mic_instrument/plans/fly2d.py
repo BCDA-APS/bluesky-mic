@@ -11,10 +11,8 @@ __all__ = """
 """.split()
 
 import logging
-import os
 
 import bluesky.plan_stubs as bps
-from apstools.devices import DM_WorkflowConnector
 
 from mic_instrument.configs.device_config import fscan1
 from mic_instrument.configs.device_config import fscanh
@@ -24,17 +22,12 @@ from mic_instrument.configs.device_config import netcdf_delimiter
 from mic_instrument.configs.device_config import samy
 from mic_instrument.configs.device_config import savedata
 from mic_instrument.configs.device_config import sis3820
-from mic_instrument.devices.data_management import api
 from mic_instrument.plans.before_after_fly import setup_eiger_filewriter
 from mic_instrument.plans.before_after_fly import setup_flyscan_ptycho_triggers
 from mic_instrument.plans.before_after_fly import setup_flyscan_XRF_triggers
-from mic_instrument.plans.dm_plans import dm_submit_workflow_job
 from mic_instrument.plans.generallized_scan_1d import generalized_scan_1d
-from mic_instrument.plans.helper_funcs import calculate_num_capture
 from mic_instrument.plans.helper_funcs import move_to_position
 from mic_instrument.plans.helper_funcs import selected_dets
-from mic_instrument.plans.workflow_plan import run_workflow
-from mic_instrument.utils.dm_utils import dm_upload_wait
 from mic_instrument.utils.scan_monitor import execute_scan_2d
 
 logger = logging.getLogger(__name__)
@@ -85,7 +78,7 @@ def fly2d(
     yield from fscan1.set_positioner_readback(f"{samy.prefix}.RBV")
     if fscan1.scan_movement.get(as_string=True) == "relative":
         yield from move_to_position(samy, y_center)
-    
+
     yield from fscan1.set_center_width_stepsize(y_center, height, stepsize_y)
 
     """Assign the per-pixel dwell time"""
@@ -95,7 +88,7 @@ def fly2d(
     """Check which detectors to trigger"""
     logger.info("Determining which detectors are selected")
     dets = selected_dets(**locals())
-           
+
     """Update the next file name for the detector file plugin"""
     savedata.update_next_file_name()
     next_file_name = savedata.next_file_name
@@ -111,15 +104,17 @@ def fly2d(
                 cam = det_var["cam"]
                 file_plugin = det_var["file_plugin"]
                 savedata.update_next_file_name()
-            
+
                 if det_name == "xrf":
                     # num_capture = calculate_num_capture(numpts_x)
-                    num_capture = 0 # When it's zero, the num_capture won't be overwritten
+                    num_capture = (
+                        0  # When it's zero, the num_capture won't be overwritten
+                    )
                     yield from setup_flyscan_XRF_triggers(
                         fscanh, cam, file_plugin, sis3820, num_pulses
                     )
                     yield from cam.flyscan_before(num_pulses)
-                    
+
                     yield from file_plugin.setup_file_writer(
                         savedata,
                         det_name,
@@ -154,10 +149,11 @@ def fly2d(
                     )
 
     """Start executing scan"""
-    
+
     # yield from bps.sleep(1)
-    yield from execute_scan_2d(fscanh, fscan1, scan_name=savedata.next_file_name,
-                               print_outter_msg=True)
+    yield from execute_scan_2d(
+        fscanh, fscan1, scan_name=savedata.next_file_name, print_outter_msg=True
+    )
 
     #     #############################
     #     # START THE APS DM WORKFLOW #

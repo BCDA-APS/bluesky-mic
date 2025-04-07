@@ -1,7 +1,7 @@
-from functools import wraps
-import bluesky.plan_stubs as bps
 import logging
+from functools import wraps
 
+import bluesky.plan_stubs as bps
 
 logger = logging.getLogger(__name__)
 logger.info(__file__)

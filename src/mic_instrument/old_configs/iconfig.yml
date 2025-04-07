@@ -12,7 +12,7 @@ DATABROKER_CATALOG: &databroker_catalog 19id_isn
 RUN_ENGINE:
     DEFAULT_METADATA:
         beamline_id: 19IDE
-        instrument_name: XSD 19-IDE 
+        instrument_name: XSD 19-IDE
         proposal_id: commissioning
         databroker_catalog: *databroker_catalog
 
@@ -58,7 +58,7 @@ AREA_DETECTOR:
     IMAGE_DIR: "sub/directory/path"
     HDF5_FILE_TEMPLATE: "%s%s_%6.6d.h5"
     FILE_DELIMITER: "19ID"
-  
+
     AD_XSP3_8Chan:
       NAME: xrf_me7
       PV_PREFIX: "XSP3_7Chan:det1:"

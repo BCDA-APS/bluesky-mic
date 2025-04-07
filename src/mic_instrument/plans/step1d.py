@@ -11,19 +11,16 @@ __all__ = """
 """.split()
 
 import logging
-import os
 from pathlib import Path
-from apstools.devices import DM_WorkflowConnector
-from mic_instrument.devices.data_management import api
-from mic_instrument.plans.generallized_scan_1d import generalized_scan_1d
-from mic_instrument.plans.workflow_plan import run_workflow
-from mic_instrument.plans.dm_plans import dm_submit_workflow_job
-from mic_instrument.utils.scan_monitor import execute_scan_1d
-from mic_instrument.utils.dm_utils import dm_upload_wait
-from mic_instrument.utils.watch_pvs_write_hdf5 import write_scan_master_h5
-from mic_instrument.configs.device_config import scan1, samx, savedata, master_file_yaml
-from mic_instrument.plans.helper_funcs import selected_dets, calculate_num_capture, move_to_position
 
+from mic_instrument.configs.device_config import master_file_yaml
+from mic_instrument.configs.device_config import samx
+from mic_instrument.configs.device_config import savedata
+from mic_instrument.configs.device_config import scan1
+from mic_instrument.plans.generallized_scan_1d import generalized_scan_1d
+from mic_instrument.plans.helper_funcs import selected_dets
+from mic_instrument.utils.scan_monitor import execute_scan_1d
+from mic_instrument.utils.watch_pvs_write_hdf5 import write_scan_master_h5
 
 logger = logging.getLogger(__name__)
 logger.info(__file__)
@@ -47,55 +44,60 @@ def step1d(
     analysisMachine="mona2",
 ):
     """1D Bluesky plan that drives the a sample motor in stepping mode using ScanRecord
-    
+
     Parameters
     ----------
-    samplename:     
+    samplename:
         Str: The name of the sample
-    user_comments: 
+    user_comments:
         Str: The user comments for the scan
-    width: 
+    width:
         Float: The width of the scan
-    x_center: 
+    x_center:
         Float: The center of the scan
-    stepsize_x: 
+    stepsize_x:
         Float: The step size of the scan
     dwell: float
         Float: The dwell time of the scan
-    smp_theta: 
+    smp_theta:
         Float: The sample theta angle
-    simdet_on: 
+    simdet_on:
         Bool: Whether to turn on the simdet
-    xrf_me7_on: 
+    xrf_me7_on:
         Bool: Whether to turn on the xrf me7
-    ptycho_on: 
+    ptycho_on:
         Bool: Whether to turn on the ptycho
-    preamp_on: 
+    preamp_on:
         Bool: Whether to turn on the preamp
-    fpga_on: 
+    fpga_on:
         Bool: Whether to turn on the fpga
-    position_stream: 
+    position_stream:
         Bool: Whether to turn on the position stream
-    wf_run: 
+    wf_run:
         Bool: Whether to run the dm workflow
-    analysisMachine: 
+    analysisMachine:
         Str: The analysis machine to use
-        
+
     """
 
     ##TODO Close shutter while setting up scan parameters
 
     """Set up scan record based on the scan types and parameters"""
     # yield from generalized_scan_1d(scan1, samx, scanmode="LINEAR", **locals())
-    yield from generalized_scan_1d(scan1, samx, scanmode="LINEAR", x_center=x_center,
-                                   width=width, stepsize_x=stepsize_x, dwell=dwell)
-
-                                   
+    yield from generalized_scan_1d(
+        scan1,
+        samx,
+        scanmode="LINEAR",
+        x_center=x_center,
+        width=width,
+        stepsize_x=stepsize_x,
+        dwell=dwell,
+    )
 
     """Check which detectors to trigger"""
     logger.info("Determining which detectors are selected")
     dets = selected_dets(**locals())
-    
+
     """Generate master file"""
     savedata.update_next_file_name()
     next_file_name = savedata.next_file_name.replace(".mda", "_master.h5")
@@ -138,4 +140,3 @@ def step1d(
 
     # # yield from bps.sleep(1)
     # # print("end of plan")
-

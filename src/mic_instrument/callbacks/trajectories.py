@@ -1,7 +1,6 @@
-'''
+"""
 Trajectories for the mic instrument
-'''
-
+"""
 
 import matplotlib.pyplot as plt
 import numpy as np

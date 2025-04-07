@@ -11,7 +11,7 @@ EXAMPLE::
     # # Run the plan with the RunEngine:
     # RE(scan_record2(scanrecord_name = 'scan1', ioc = "2idsft:", m1_name = 'm1',
     #                m1_start = -0.5, m1_finish = 0.5,
-    #                m2_name = 'm3', m2_start = -0.2 ,m2_finish = 0.2, 
+    #                m2_name = 'm3', m2_start = -0.2 ,m2_finish = 0.2,
     #                npts = 50, dwell_time = 0.1))
 
 """
@@ -44,7 +44,6 @@ def run_dm_analysis(
     detectors=3,
     analysisMahine="mona2",
 ):
-
     dm_workflow = DM_WorkflowConnector(name=samplename, labels=("dm",))
 
     if workflow == "xrf-maps":

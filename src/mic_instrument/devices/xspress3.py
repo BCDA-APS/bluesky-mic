@@ -4,7 +4,7 @@ Created on Dec 04 2024
 
 @author: yluo (grace227)
 """
-#TODO: Add back the colon
+# TODO: Add back the colon
 
 import datetime
 import logging
@@ -13,9 +13,9 @@ from ophyd import Component
 from ophyd import EpicsSignal
 from ophyd.areadetector.cam import Xspress3DetectorCam
 
-from ..utils.writeDetH5 import write_det_h5
 from ..utils.device_utils import mode_setter
 from ..utils.device_utils import value_setter
+from ..utils.writeDetH5 import write_det_h5
 
 logger = logging.getLogger(__name__)
 logger.info(__file__)

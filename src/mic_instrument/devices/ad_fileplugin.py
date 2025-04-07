@@ -17,8 +17,8 @@ from mic_instrument.utils.device_utils import value_setter
 logger = logging.getLogger(__name__)
 logger.info(__file__)
 
-class DetBase:
 
+class DetBase:
     micdata_mountpath = ""
 
     def __init__(self, *args, **kwargs):
@@ -59,7 +59,7 @@ class DetBase:
                 )
                 raise e
         return det_path
-    
+
     def setup_file_writer(
         self,
         savedata,

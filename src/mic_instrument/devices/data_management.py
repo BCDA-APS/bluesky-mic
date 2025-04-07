@@ -1,11 +1,12 @@
-from apstools.devices import DM_WorkflowConnector
-from apstools.utils.aps_data_management import dm_setup
-from apstools.utils import dm_api_proc
-from ophyd import Signal
-from mic_instrument.utils.config_loaders import iconfig
-
 # from ..utils import logger
 import logging
+
+from apstools.devices import DM_WorkflowConnector
+from apstools.utils import dm_api_proc
+from apstools.utils.aps_data_management import dm_setup
+from ophyd import Signal
+
+from mic_instrument.utils.config_loaders import iconfig
 
 logger = logging.getLogger(__name__)
 logger.info(__file__)

@@ -1,8 +1,8 @@
+import logging
+from functools import wraps
+
 from ophyd.areadetector.cam import SimDetectorCam
 from ophyd.areadetector.plugins import HDF5Plugin
-from functools import wraps
-import logging
-
 
 logger = logging.getLogger(__name__)
 logger.info(__file__)
@@ -29,13 +29,11 @@ def value_setter(attribute_name):
 
 
 class SimDet(SimDetectorCam):
-
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
 
 
 class SimDetHDF5(HDF5Plugin):
-
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
 

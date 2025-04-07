@@ -7,7 +7,7 @@ apsbits.utils.sim_creator.predefined_device:
 apstools.devices.SimulatedApsPssShutterWithStatus:
 - name: shutter
   labels: ["shutters"]
-  
+
 mic_instrument.devices.hhl_mirrors.HHL_Mirrors:
 - name: hhl_mirrors
   prefix: 19idMR

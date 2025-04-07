@@ -4,7 +4,7 @@ ACCELERATOR:
   Ring_current:
     NAME: Ring_current
     PV: "S-DCCT:CurrentM"
-    UNITS_PV: "mA" 
+    UNITS_PV: "mA"
   US_energy:
     NAME: US_energy
     VALUE_PV: "S19ID:USID:EnergySetC.VAL"
@@ -13,7 +13,7 @@ ACCELERATOR:
     NAME: US_gap
     VALUE_PV: "S19ID:USID:GapSetC.VAL"
     UNITS_PV: "mm"
-  US_revolver: 
+  US_revolver:
     NAME: US_revolver
     VALUE_PV: "S19ID:USID:RevolverSelectC.VAL"
   DS_energy:
@@ -24,12 +24,12 @@ ACCELERATOR:
     NAME: DS_gap
     VALUE_PV: "S19ID:DSID:GapSetC.VAL"
     UNITS_PV: "mm"
-  DS_revolver: 
+  DS_revolver:
     NAME: DS_revolver
     VALUE_PV: "S19ID:DSID:RevolverSelectC.VAL"
 
 
-BEAMLINE: 
+BEAMLINE:
   MR1_2_lateral:
     NAME: MR1_2_lateral
     VALUE_PV: "19idMR:m3.VAL"
@@ -115,7 +115,7 @@ INSTRUMENT:
     UNITS_PV: "19idAERO:m10.EGU"
 
 
-ROBOT: 
+ROBOT:
   Radius:
     NAME: Radius
     VALUE_PV: "19IDRobot:Radius.VAL"
@@ -131,7 +131,7 @@ ROBOT:
     VALUE_PV: "19IDRobot:Yaw.VAL"
     RBV_PV: "19IDRobot:Yaw.RBV"
     UNITS_PV: "19IDRobot:Yaw.EGU"
-  
+
 PTYCHO:
   Ptycho_X:
     NAME: Ptycho_X
@@ -168,11 +168,9 @@ PTYCHO:
 #   NAME: tetramm
 #   RANGE_PV: "19idSFT4:TetrAMM4:Range_RBV"
 
-  
+
 # SAMPLES:
 #   TETRAMM1: "19idBPM:C:T4U"
 #   SAVE_DATA: "19idBLUE:saveData_"
 #   SCAN1: "19idBLUE:scan1"
 #   SCAN2: "19idBLUE:scan2"
-
-

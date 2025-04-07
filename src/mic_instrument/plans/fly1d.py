@@ -11,7 +11,7 @@ EXAMPLE::
     # # Run the plan with the RunEngine:
     # RE(scan_record2(scanrecord_name = 'scan1', ioc = "2idsft:", m1_name = 'm1',
     #                m1_start = -0.5, m1_finish = 0.5,
-    #                m2_name = 'm3', m2_start = -0.2 ,m2_finish = 0.2, 
+    #                m2_name = 'm3', m2_start = -0.2 ,m2_finish = 0.2,
     #                npts = 50, dwell_time = 0.1))
 
 """
@@ -28,7 +28,6 @@ from apstools.devices import DM_WorkflowConnector
 from apstools.plans import run_blocking_function
 from ophyd.status import Status
 
-from ...mic_instrument.plans.workflow_plan import run_workflow
 from ..configs.device_config_19id import ptychodus_dm_args
 from ..configs.device_config_19id import ptychoxrf_dm_args
 from ..configs.device_config_19id import savedata
@@ -37,7 +36,6 @@ from ..configs.device_config_19id import xrf_dm_args
 from ..configs.device_config_19id import xrf_me7
 from ..configs.device_config_19id import xrf_me7_hdf
 from ..devices.data_management import api
-from ..utils.dm_utils import dm_upload_wait
 from .dm_plans import dm_submit_workflow_job
 from .plan_blocks import count_subscriber
 from .plan_blocks import watch_counter
@@ -51,11 +49,11 @@ print("Getting list of avaliable detectors")
 
 
 det_name_mapping = {
-    "simdet": {"cam":None, "hdf":None},
-    "xrf_me7": {"cam":xrf_me7, "hdf":xrf_me7_hdf},
-    "preamp": {"cam":None, "hdf":None},
-    "fpga": {"cam":None, "hdf":None},
-    "ptycho": {"cam":None, "hdf":None},
+    "simdet": {"cam": None, "hdf": None},
+    "xrf_me7": {"cam": xrf_me7, "hdf": xrf_me7_hdf},
+    "preamp": {"cam": None, "hdf": None},
+    "fpga": {"cam": None, "hdf": None},
+    "ptycho": {"cam": None, "hdf": None},
 }
 
 
@@ -64,7 +62,7 @@ def selected_dets(**kwargs):
     rm_str = "_on"
     for k, v in kwargs.items():
         if all([v, isinstance(v, bool), rm_str in k]):
-            det_str = k[:-len(rm_str)]
+            det_str = k[: -len(rm_str)]
             dets.update({det_str: det_name_mapping[det_str]})
     #         dets.append(det_name_mapping[det_str])
     return dets
@@ -102,7 +100,6 @@ def fly1d(
     analysisMachine="mona2",
     eta=0,
 ):
-
     ##TODO Close shutter while setting up scan parameters
 
     print(f"Using {scan1.prefix} as the outter scanRecord")
@@ -126,7 +123,7 @@ def fly1d(
         for det_name, det_var in dets.items():
             det_path = os.path.join(basepath, det_name)
             logger.info(f"Setting up {det_name} to have data saved at {det_path}")
-            hdf = det_var['hdf']
+            hdf = det_var["hdf"]
             if hdf is not None:
                 hdf.set_filepath(det_path)
 
@@ -152,7 +149,9 @@ def fly1d(
 
         yield from bps.mv(scan1.execute_scan, 1)  # Start scan
         yield from bps.sleep(1)  # Empirical, for the IOC
-        yield from count_subscriber(scan1.number_points_rbv, scan1.number_points.get())  # Counter Subscriber
+        yield from count_subscriber(
+            scan1.number_points_rbv, scan1.number_points.get()
+        )  # Counter Subscriber
         yield from run_blocking_function(st.wait)
 
         #############################
@@ -173,11 +172,10 @@ def fly1d(
                 argsDict = ptychodus_dm_args.copy()
 
             ##TODO Modify argsDict accordingly based on the scan parameters
-            argsDict['analysisMachine'] = analysisMachine
+            argsDict["analysisMachine"] = analysisMachine
 
             yield from dm_submit_workflow_job(WORKFLOW, argsDict)
             logger.info(f"{len(api.listProcessingJobs())=!r}")
-
 
         logger.info("DM workflow Finished!")
         print("end of plan")

@@ -9,13 +9,19 @@ acquisition parameters for the detector.
 
 """
 
-from ophyd import EigerDetectorCam
-from mic_instrument.utils.device_utils import mode_setter, value_setter
-from mic_instrument.utils.writeDetH5 import write_det_h5
-from ophyd import Component, EpicsSignal, EpicsSignalRO
+import datetime
 import logging
 import os
-import datetime
+
+from ophyd import Component
+from ophyd import EigerDetectorCam
+from ophyd import EpicsSignal
+from ophyd import EpicsSignalRO
+
+from mic_instrument.utils.device_utils import mode_setter
+from mic_instrument.utils.device_utils import value_setter
+from mic_instrument.utils.writeDetH5 import write_det_h5
+
 logger = logging.getLogger(__name__)
 logger.info(__file__)
 
@@ -46,7 +52,6 @@ class Eiger1M(EigerDetectorCam):
     file_name_pattern = Component(EpicsSignal, ":FWNamePattern")
     save_files = Component(EpicsSignal, ":SaveFiles")
 
-
     def scan_init(self, exposure_time, num_images, ptycho_exp_factor):
         """
         Initialize the detector for a scan.
@@ -68,18 +73,16 @@ class Eiger1M(EigerDetectorCam):
             yield from self.setup_external_enable_trigger(num_images)
         elif trigger_mode == "External Series":
             yield from self.setup_external_series_trigger(num_images)
-        
+
         yield from self.set_acquire_period(exposure_time)
         yield from self.set_acquire_time(exposure_time / ptycho_exp_factor)
 
-
-    def write_h5(self, 
-                 masterfile_path: str, 
-                 detector_path: str, 
-                 scan_name: str,
-                 det_name: str):
-                
-        logger.info(f"{self.__class__.__name__}: Writing HDF5 file to {masterfile_path}")
+    def write_h5(
+        self, masterfile_path: str, detector_path: str, scan_name: str, det_name: str
+    ):
+        logger.info(
+            f"{self.__class__.__name__}: Writing HDF5 file to {masterfile_path}"
+        )
         logger.info(f"{self.__class__.__name__}: Detector path: {detector_path}")
         logger.info(f"{self.__class__.__name__}: Scan name: {scan_name}")
 
@@ -94,7 +97,7 @@ class Eiger1M(EigerDetectorCam):
         attrs_values.update({"num_exposures_per_img": self.num_exposures.get()})
         attrs_values.update({"num_triggers": self.num_triggers.get()})
         attrs_values.update({"trigger_mode": self.trigger_mode.get(as_string=True)})
-        
+
         attrs_values.update({"threshold1_enable": self.threshold1_enable.get()})
         attrs_values.update({"threshold2_enable": self.threshold2_enable.get()})
         attrs_values.update({"threshold_diff_enable": self.threshold_diff_enable.get()})
@@ -109,16 +112,16 @@ class Eiger1M(EigerDetectorCam):
         attrs_values.update({"det_dist_mm": self.det_distance.get()})
         attrs_values.update({"sensor_thickness": self.sensor_thickness.get()})
         attrs_values.update({"det_description": self.det_description.get()})
-        
 
-        write_det_h5(masterfile_path = masterfile_path, 
-                     det_dir = detector_path, 
-                     scan_name = scan_name, 
-                     det_name = det_name, 
-                     det_file_ext = det_file_ext, 
-                     det_key = det_key, 
-                     det_attrs_values = attrs_values)
-        
+        write_det_h5(
+            masterfile_path=masterfile_path,
+            det_dir=detector_path,
+            scan_name=scan_name,
+            det_name=det_name,
+            det_file_ext=det_file_ext,
+            det_key=det_key,
+            det_attrs_values=attrs_values,
+        )
 
     def sync_file_path(self, savedatapath, delimiter):
         """
@@ -150,7 +153,7 @@ class Eiger1M(EigerDetectorCam):
         This is essentially the same as the setup_external_series_trigger function.
         """
         yield from self.setup_external_series_trigger(num_triggers)
-    
+
     def setup_external_enable_trigger(self, num_triggers):
         """
         Set up the external enable trigger for the detector.
