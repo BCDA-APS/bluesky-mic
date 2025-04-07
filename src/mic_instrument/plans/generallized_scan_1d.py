@@ -97,7 +97,8 @@ def generalized_scan_1d(
         #             yield from cam.stepscan_before()
         #             yield from bps.mv(stepdwell, kwargs["dwell"])
         #         elif sis3820.connected:
-        #             # Set up triggers for FLY scans, sis3820 will be sending out pulses.
+        #             # Set up triggers for FLY scans,
+        #             # sis3820 will be sending out pulses.
         #             # The number of pulses is numpts_x - 2
         #             num_pulses = numpts_x - 2
         #             yield from setup_inner_flyscan_triggers(
@@ -124,7 +125,8 @@ def generalized_scan_1d(
 
         #     if cam is not None:
         #         # try:
-        #             # yield from cam.scan_init(exposure_time=kwargs["dwell"], num_images=numpts_x)
+        #         #   yield from cam.scan_init(exposure_time=kwargs["dwell"],
+        #         #                            num_images=numpts_x)
         #         if det_name == "xrf" and scanmode == "LINEAR":
         #             yield from cam.stepscan_before()
         #             yield from bps.mv(stepdwell, kwargs["dwell"])
@@ -155,8 +157,10 @@ def generalized_scan_1d(
         #     basepath = savedata.get().file_system
         #     for det_name, det_var in dets.items():
         #         file_plugin = det_var["file_plugin"]
-        #         if all([det_name == "xrf", scanmode == "FLY", file_plugin is not None]):
-        #             det_path = os.path.join(basepath, det_name.upper())
+        #        if all([det_name == "xrf",
+        #                scanmode == "FLY",
+        #                file_plugin is not None]):
+        #            det_path = os.path.join(basepath, det_name.upper())
         #             logger.info(
         #                 f"Setting up {det_name} to have data saved at {det_path}"
         #             )
@@ -191,7 +195,8 @@ def generalized_scan_1d(
         #             except Exception as e:
         #                 logger.error(f"Error occurs when setting up {savedata.prefix}: {e}")
 
-        #     #     # ##TODO Based on the selected detector, setup DetTriggers in inner scanRecord
+        #     #     # ##TODO Based on the selected detector,
+        #                   setup DetTriggers in inner scanRecord
         #     #     # for i, d in enumerate(dets):
         #     #     #     cmd = f"yield from bps.mv(scan1.triggers.t{i}.trigger_pv, {d.Acquire.pvname}"
         #     #     #     eval(cmd)

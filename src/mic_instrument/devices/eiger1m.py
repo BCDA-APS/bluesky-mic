@@ -4,8 +4,8 @@ eiger500k.py
 Author: grace227 (yluo89)
 Date: 2025-02-14
 Description: This module defines the Eiger1M class, which inherits from EigerDetectorCam
-to control the Eiger 1M detector. It provides methods to set up external triggers and manage
-acquisition parameters for the detector.
+to control the Eiger 1M detector. It provides methods to set up external triggers
+and manage acquisition parameters for the detector.
 
 """
 
@@ -30,7 +30,8 @@ class Eiger1M(EigerDetectorCam):
     """
     Eiger1M class inherits from EigerDetectorCam to control the Eiger 1M detector.
 
-    This class provides methods to set up external triggers and manage acquisition parameters.
+    This class provides methods to set up external triggers
+    and manage acquisition parameters.
     """
 
     threshold1_enable = Component(EpicsSignal, ":Threshold1Enable")

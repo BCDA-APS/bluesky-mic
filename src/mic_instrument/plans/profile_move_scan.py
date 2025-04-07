@@ -44,7 +44,8 @@ logger.info(__file__)
 def setup_profile_move(pm1, xarr, yarr, dwell_time):
     print("in setup_profile_move function")
     pm1.wait_for_connection()
-    # yield from run_blocking_function(pm1.abort) # TODO: re-implement reset function for profile move
+    # TODO: re-implement reset function for profile move
+    # yield from run_blocking_function(pm1.abort)
     yield from bps.sleep(0.2)  # arbitrary wait for EPICS to finish the reset.
     yield from bps.mv(pm1.m1_use, 1, pm1.m2_use, 1)
 
