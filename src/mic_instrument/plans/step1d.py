@@ -13,10 +13,10 @@ __all__ = """
 import logging
 from pathlib import Path
 
-from mic_instrument.configs.device_config import master_file_yaml
-from mic_instrument.configs.device_config import samx
-from mic_instrument.configs.device_config import savedata
-from mic_instrument.configs.device_config import scan1
+from apsbits.utils.config_loaders import get_config
+from apsbits.utils.config_loaders import load_config_yaml
+from apsbits.utils.controls_setup import oregistry
+
 from mic_instrument.plans.generallized_scan_1d import generalized_scan_1d
 from mic_instrument.plans.helper_funcs import selected_dets
 from mic_instrument.utils.scan_monitor import execute_scan_1d
@@ -24,6 +24,17 @@ from mic_instrument.utils.watch_pvs_write_hdf5 import write_scan_master_h5
 
 logger = logging.getLogger(__name__)
 logger.info(__file__)
+
+iconfig = get_config()
+
+## Scan master file config ##
+instrument_path = Path(__file__).parent.parent
+master_file_config_path = instrument_path / "configs" / "masterFileConfig.yml"
+master_file_yaml = load_config_yaml(master_file_config_path)
+
+scan1 = oregistry["scan1"]
+savedata = oregistry["savedata"]
+samx = oregistry["samx"]
 
 
 def step1d(

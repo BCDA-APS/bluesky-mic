@@ -44,10 +44,10 @@ mic_instrument.devices.save_data.SaveDataMic:
   prefix: 19idBLUE:saveData_
 
 ophyd.EpicsMotor:
-- {name: x_motor, prefix: 19idBLUE:m1, labels: ["motor"]}
-- {name: y_motor, prefix: 19idBLUE:m2, labels: ["motor"]}
-- {name: z_motor, prefix: 19idBLUE:m3, labels: ["motor"]}
-- {name: r_motor, prefix: 19idBLUE:m4, labels: ["motor"]}
+- {name: samx, prefix: 19idBLUE:m1, labels: ["motor"]}
+- {name: samy, prefix: 19idBLUE:m2, labels: ["motor"]}
+- {name: samz, prefix: 19idBLUE:m3, labels: ["motor"]}
+- {name: samr, prefix: 19idBLUE:m4, labels: ["motor"]}
 - {name: energy, prefix: 19idBLUE:m5, labels: ["motor"]}
 - {name: temperature, prefix: 19idBLUE:m6, labels: ["motor"]}
 

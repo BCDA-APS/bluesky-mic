@@ -20,19 +20,32 @@ __all__ = """
     run_dm_analysis
 """.split()
 
+
+# from ..devices.data_management import api
+
 import logging
 
 import bluesky.plan_stubs as bps
+from apsbits.utils.config_loaders import get_config
+from apsbits.utils.config_loaders import load_config_yaml
 from apstools.devices import DM_WorkflowConnector
 
-from ..configs.device_config import ptychodus_dm_args
-from ..configs.device_config import ptychoxrf_dm_args
-from ..configs.device_config import xrf_dm_args
-from ..devices.data_management import api
 from .dm_plans import dm_submit_workflow_job
 
 logger = logging.getLogger(__name__)
 logger.info(__file__)
+
+iconfig = get_config()
+instrument_path = iconfig["INSTRUMENT_PATH"]
+
+## DM workflow config ##
+xrf_workflow_yaml_path = instrument_path / "configs" / "xrf_workflow.yml"
+ptychoxrf_workflow_yaml_path = instrument_path / "configs" / "ptycho_xrf_workflow.yml"
+ptychodus_workflow_yaml_path = instrument_path / "configs" / "ptychodus_workflow.yml"
+
+xrf_dm_args = load_config_yaml(xrf_workflow_yaml_path)
+ptychoxrf_dm_args = load_config_yaml(ptychoxrf_workflow_yaml_path)
+ptychodus_dm_args = load_config_yaml(ptychodus_workflow_yaml_path)
 
 
 def run_dm_analysis(
