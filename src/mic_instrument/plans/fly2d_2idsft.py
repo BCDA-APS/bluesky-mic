@@ -17,28 +17,28 @@ __all__ = """
     fly2d
 """.split()
 
+# from epics import caput, caget
 import logging
 
 # import bluesky
 import bluesky.plan_stubs as bps
+import numpy as np
 
 # from ophyd import Device, EpicsSignal, EpicsSignalRO, Component, EpicsMotor
 from apstools.plans import run_blocking_function
 from ophyd.status import Status
-import numpy as np
 
-# from epics import caput, caget
-import logging
+from mic_instrument.configs.device_config import scan1
+from mic_instrument.configs.device_config import scan2
 
 # import time
 # import os
 # import sys
 # import pvaccess
 from ..callbacks.trajectories import raster
-from ..utils.config_loaders import iconfig
-from ..devices.xspress3 import xp3
 from ..devices.tetramm import tmm1
-from mic_instrument.configs.device_config import scan1, scan2
+from ..devices.xspress3 import xp3
+from ..utils.config_loaders import iconfig
 
 # from ..devices.softglue_zynq import sgz
 # from ..devices.scan_record import ScanRecord

@@ -8,11 +8,16 @@ Usage: ``%run -i run_scan_plan.py``
     code is added by ``%run``.
 """
 
+import time
+
 import numpy as np
 
+from ..utils.misc import create_master_file
+from ..utils.misc import mkdir
+from ..utils.misc import mksubdirs
+from ..utils.misc import pvput
 from .trajectories import snake
-import time
-from ..utils.misc import mkdir, mksubdirs, create_master_file, pvput
+
 
 def run_scan(
     scan_type="fly",

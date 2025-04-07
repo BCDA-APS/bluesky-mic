@@ -14,6 +14,9 @@ __all__ = """
 
 import logging
 
+from ..configs.device_config import ptychodus_dm_args
+from ..configs.device_config import ptychoxrf_dm_args
+
 # import os
 # from ..utils.scan_monitor import execute_scan_1d
 # from .dm_plans import dm_submit_workflow_job
@@ -22,8 +25,6 @@ from ..configs.device_config import (
     # hydra1_startposition,
     # stepdwell,
     xrf_dm_args,
-    ptychoxrf_dm_args,
-    ptychodus_dm_args,
 )
 
 # from .workflow_plan import run_workflow

@@ -1,3 +1,8 @@
+'''
+Trajectories for the mic instrument
+'''
+
+
 import matplotlib.pyplot as plt
 import numpy as np
 
@@ -13,7 +18,9 @@ def snake(dwell, step_size, x_center, y_center, x_width, y_width):
     for i in range(rows):
         xpts = list(
             np.round(
-                np.linspace(x_center - x_width / 2, x_center + x_width / 2, int(cols + 1)),
+                np.linspace(
+                    x_center - x_width / 2, x_center + x_width / 2, int(cols + 1)
+                ),
                 5,
             )
         )
@@ -23,7 +30,8 @@ def snake(dwell, step_size, x_center, y_center, x_width, y_width):
         else:
             x += xpts[::-1]
         y += list(np.ones_like(xpts) * ypts[i])
-        # curve_x, curve_y = semi_circle((xpts[-1],ypts[i]), (xpts[-1],ypts[i]+step), step, step/2)
+        # curve_x, curve_y = semi_circle((xpts[-1],ypts[i]), (xpts[-1],ypts[i]+step),
+        # step, step/2)
         # x += list(curve_x*-1)
         # y += list(curve_y)
     x = np.asarray(x)
@@ -46,7 +54,9 @@ def raster(dwell, step_size, x_center, y_center, x_width, y_width, x_return_vel)
     for i in range(rows):
         xpts = list(
             np.round(
-                np.linspace(x_center - x_width / 2, x_center + x_width / 2, int(cols + 1)),
+                np.linspace(
+                    x_center - x_width / 2, x_center + x_width / 2, int(cols + 1)
+                ),
                 5,
             )
         )
@@ -56,7 +66,7 @@ def raster(dwell, step_size, x_center, y_center, x_width, y_width, x_return_vel)
     x = np.asarray(x)
     y = np.asarray(y)
 
-    dt = dwell
+    dt = dwell  # noqa: F841
     times = raster_times(x, y, dwell, x_return_vel)
     return x, y, times
 
@@ -109,7 +119,7 @@ def semi_circle(start, end, R, step):
     arc_length = np.round(2 * R * np.arcsin(d / (2 * R)), 5)
     try:
         npts = int(np.ceil(arc_length / step))
-    except:
+    except:  # noqa: E722
         print("why")
     t0 = np.arctan2(start[1] - yc, start[0] - xc)
     t1 = np.arctan2(end[1] - yc, end[0] - xc)
@@ -140,7 +150,7 @@ def lissajous(
     x = x_center + x_width * np.cos(x_freq * pts) / 2
     y = y_center + y_width * np.cos(y_freq * pts) / 2
     # TODO: consider passing coordinared through equidistant()
-    times = np.ones_like(x) * dwell
+    times = np.ones_like(x) * dwell  # noqa: F841
 
     return x, y
 
@@ -159,7 +169,9 @@ def trigger_events(center, x_width, y_width, res, x, y):
     callback to trigger events
     """
     x_bounds = int(np.ceil(x_width / res) + 1)
-    x_edge = np.linspace(center[0] - x_width / 2, center[0] + x_width / 2, int(x_bounds))
+    x_edge = np.linspace(
+        center[0] - x_width / 2, center[0] + x_width / 2, int(x_bounds)
+    )
     x_trig = []
     for i in range(x_bounds):
         edge = x_edge[i]
@@ -175,7 +187,9 @@ def trigger_events(center, x_width, y_width, res, x, y):
                 x_trig.append(p)
 
     y_bounds = int(np.ceil(y_width / res) + 1)
-    y_edge = np.linspace(center[1] - y_width / 2, center[1] + y_width / 2, int(y_bounds))
+    y_edge = np.linspace(
+        center[1] - y_width / 2, center[1] + y_width / 2, int(y_bounds)
+    )
     y_trig = []
     for i in range(y_bounds):
         edge = y_edge[i]
@@ -222,7 +236,12 @@ def equidistant(x, y, dt):
     equidistant trajectory callback
     """
     pts = len(x)
-    d_arr = np.asarray([np.sqrt((x[i] - x[i - 1]) ** 2 + (y[i] - y[i - 1]) ** 2) for i in range(1, pts)])
+    d_arr = np.asarray(
+        [
+            np.sqrt((x[i] - x[i - 1]) ** 2 + (y[i] - y[i - 1]) ** 2)
+            for i in range(1, pts)
+        ]
+    )
     ctr = 0
     trig_idx = []
     for idx, d in enumerate(d_arr):
