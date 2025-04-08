@@ -1,0 +1,107 @@
+name: Unit Tests & Code Coverage
+
+on:
+  # Triggers the workflow on push or pull request events but only for the main branch
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+  workflow_dispatch: # allow manual triggering
+
+defaults:
+  run:
+    shell: bash -l {0}
+
+jobs:
+  lint:
+    name: Code style
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Upgrade pip & test with pre-commit
+        run: |
+          set -vxeuo pipefail
+          python -m pip install --upgrade pip
+          python -m pip install pre-commit
+          pre-commit run --all-files
+
+  test-matrix:
+    name: Python ${{ matrix.python-version }} # - Redis ${{ matrix.redis-version }}
+    runs-on: ubuntu-latest
+    needs: lint
+    strategy:
+      matrix:
+        python-version:
+          - "3.11"
+          # - "3.12"
+          # - "3.13"  waiting for upstream packages
+        # redis-version:
+        #   # - "6"
+        #   - "7"
+      max-parallel: 5
+    env:
+      DISPLAY: ":99.0"
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install OS libraries to test Linux PyQt apps
+        run: |
+          sudo apt update -y
+          sudo apt install -y \
+            libxcb-icccm4 \
+            libxcb-image0 \
+            libxcb-keysyms1 \
+            libxcb-randr0 \
+            libxcb-render-util0 \
+            libxcb-xinerama0 \
+            libxcb-xfixes0 \
+            libxkbcommon-x11-0 \
+            screen \
+            x11-utils \
+            xvfb
+
+      # FIXME: conflicts if redis is running on host (local runners)
+      # - name: Start Redis
+      #   uses: supercharge/redis-github-action@1.7.0
+      #   with:
+      #     redis-version: ${{ matrix.redis-version }}
+      #     redis-remove-container: true # false by default
+
+      - name: Create environment Python ${{ matrix.python-version }} # - Redis ${{ matrix.redis-version }}
+        # needed for Unpack step
+        uses: mamba-org/setup-micromamba@v2
+        with:
+          cache-environment: true
+          cache-environment-key: env-key-${{ matrix.python-version }}
+          condarc: |
+            channels:
+              - conda-forge
+              - nodefaults
+            channel-priority: flexible
+          # environment-file: environment.yml
+          environment-name: anaconda-test-env-py-${{ matrix.python-version }} # -${{ matrix.redis-version }}
+          create-args: >-
+            coveralls
+            pytest
+            pytest-cov
+            pytest-qt
+            pytest-xvfb
+            python=${{ matrix.python-version }}
+            setuptools-scm
+            pyqt>5.15
+            pyepics
+
+      - name: Install this package with pip
+        shell: bash -l {0}
+        run: |
+          set -vxeuo pipefail
+          pip install -e .
