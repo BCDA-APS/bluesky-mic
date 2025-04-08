@@ -6,13 +6,13 @@ ICONFIG_VERSION: 2.0.0
 # Add additional configuration for use with your instrument.
 
 ### The short name for the databroker catalog.
-DATABROKER_CATALOG: &databroker_catalog temp
+DATABROKER_CATALOG: &databroker_catalog 19id_isn
 
 ### RunEngine configuration
 RUN_ENGINE:
     DEFAULT_METADATA:
-        beamline_id: demo_instrument
-        instrument_name: Most Glorious Scientific Instrument
+        beamline_id: 19IDE
+        instrument_name: XSD 19-IDE
         proposal_id: commissioning
         databroker_catalog: *databroker_catalog
 
@@ -37,10 +37,10 @@ USE_BLUESKY_MAGICS: true
 ### Defaults: all true
 ### except no plots in queueserver
 BEC:
-    BASELINE: true
-    HEADING: true
-    PLOTS: false
-    TABLE: true
+    BASELINE: false
+    HEADING: false
+    PLOTS: true
+    TABLE: false
 
 ### Support for known output file formats.
 ### Uncomment to use.  If undefined, will not write that type of file.
@@ -55,10 +55,12 @@ SPEC_DATA_FILES:
 
 FILE_DELIMITER: "19ID"
 SCAN_OVERHEAD: 0.3
+STORAGE:
+  PATH: "/gdata/dm/19ID"
 
 ### APS Data Management
 ### Use bash shell, deactivate all conda environments, source this file:
-DM_SETUP_FILE: "/home/dm/etc/dm.setup.sh"
+DM_SETUP_FILE: "/home/dm_id/etc/dm.setup.sh"
 
 
 ### Local OPHYD Device Control Yaml
