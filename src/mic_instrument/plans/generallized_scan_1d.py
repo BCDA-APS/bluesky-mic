@@ -171,7 +171,8 @@ def generalized_scan_1d(
         #             newpath = file_plugin.sync_file_path(det_path, netcdf_delimiter)
         #             yield from file_plugin.set_filepath(newpath)
         #             if file_plugin.file_path_exists.get():
-        #                 logger.info(f"File path is set to {file_plugin.file_path.get()}")
+        #                   logger.info(f"File path is set to "
+        #                           f"{file_plugin.file_path.get()}")
         #             else:
         #                 logger.error(
         #                     f"File path {file_plugin.file_path.get()} does not exist"
@@ -192,13 +193,15 @@ def generalized_scan_1d(
         #                 yield from file_plugin.set_filepath(det_path)
         #                 yield from file_plugin.set_filename(basename)
         #                 yield from file_plugin.set_filenumber(next_scan_number)
-        #             except Exception as e:
-        #                 logger.error(f"Error occurs when setting up {savedata.prefix}: {e}")
+        #            except Exception as e:
+        #                logger.error(f"Error occurs when setting up {savedata.prefix}:
+        #                             "{e}")
 
         #     #     # ##TODO Based on the selected detector,
         #                   setup DetTriggers in inner scanRecord
         #     #     # for i, d in enumerate(dets):
-        #     #     #     cmd = f"yield from bps.mv(scan1.triggers.t{i}.trigger_pv, {d.Acquire.pvname}"
+        #     #     #  cmd = f"yield from bps.mv(scan1.triggers.t{i}.trigger_pv,"
+        #      #      #       "{d.Acquire.pvname}"
         #     #     #     eval(cmd)
 
         #     #     ##TODO Assign the proper data path to the detector IOCs
