@@ -7,4 +7,4 @@ from .step1d import step1d
 from .step2d import step2d
 from .dummy_plan import dummy_testing
 from .generallized_scan_1d import generalized_scan_1d
-
+from .xane_spec import xane_spec

@@ -71,6 +71,7 @@ DETECTOR:
     TETRAMM1:
       NAME: tetramm1
       PV_PREFIX: "2iddtmm1:"
+      #HDF5_PV_PREFIX: "2iddtmm1:HDF1:"
       NETCDF_PV_PREFIX: "2iddtmm1:netCDF1:"
 
     TETRAMM2:

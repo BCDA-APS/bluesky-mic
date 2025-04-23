@@ -41,7 +41,10 @@ class ScanRecord(SscanRecord):
     def set_center_width_stepsize(self, center: float, width: float, ss: float):
         """Set center, width, and stepsize in a single motion command."""
         try:
-            yield from bps.mv(self.center, center, self.width, width, self.stepsize, ss)
+            # yield from bps.mv(self.center, center, self.width, width, self.stepsize, ss)
+            yield from bps.mv(self.center, center)
+            yield from bps.mv(self.width, width)
+            yield from bps.mv(self.stepsize, ss)
             logger.info(
                 f"Set center to {center}, width to {width}, and stepsize to {ss} in {self.prefix}."
             )

@@ -19,6 +19,7 @@ from mic_instrument.configs.device_config import (
     fscanh,
     fscanh_samx,
     samy,
+    samz,
     savedata,
     sis3820,
     netcdf_delimiter,
@@ -46,10 +47,11 @@ def fly2d(
     y_center=None,
     stepsize_y=0,
     dwell=0,
+    sample_z=0,
     inc_eng=None,
     adjust_zp=False,
     xrf_on=True,
-    preamp1_on=True,
+    preamp1_on=False,
     preamp2_on=False,
 ):
     """2D Bluesky plan that drives the x- and y- sample motors in fly mode using ScanRecord
@@ -72,6 +74,8 @@ def fly2d(
         Float: The center of the scan in the y-direction.
     stepsize_y : 
         Float: The stepsize of the scan in the y-direction.
+    sample_z : 
+        Float: The z position of the sample.
     dwell : 
         Float: The dwell time of the scan.
     inc_eng : 
@@ -89,6 +93,9 @@ def fly2d(
     
     """Disable the usercalc that used in scan record"""
     yield from disable_usercalc()
+
+    """Set the sample z position"""
+    yield from bps.mv(samz, sample_z)
 
     """Set up scan record based on the scan types and parameters"""
     yield from generalized_scan_1d(
@@ -174,14 +181,26 @@ def fly2d(
                 yield from file_plugin.set_capture("capturing")
                     
 
+    """Print the scan parameters and the updated file name """
+    parm_list = ['samplename', 'user_comments', 'width', 'x_center', 'stepsize_x',
+                'height', 'y_center', 'stepsize_y', 'dwell', 'inc_eng', 'adjust_zp',
+                'xrf_on', 'preamp1_on', 'preamp2_on']
+    local_parms = locals()
+    parm_dict = {parm: local_parms[parm] for parm in parm_list}
+    logger.info(f"-------------------------------- File {savedata.next_file_name} --------------------------------")
+    logger.info(f"Scan parameters: {parm_dict}")
+    logger.info(f"-------------------------------- File {savedata.next_file_name} --------------------------------")
+
     """Start executing scan"""
-    
     # yield from bps.sleep(1)
-    yield from execute_scan_2d(fscanh, fscan1, scan_name=savedata.next_file_name,
+    fname = savedata.next_file_name
+    yield from execute_scan_2d(fscanh, fscan1, scan_name=fname,
                                print_outter_msg=True)
 
 
     """Enable the usercalc that used in scan record"""
     yield from enable_usercalc()
+    
+    return fname
 
    

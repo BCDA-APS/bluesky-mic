@@ -35,7 +35,17 @@ class ScanMonitor:
         self.numpts_x = numpts_x
         self.numpts_y = numpts_y
         self.scan_name = scan_name
+        self.scan_faze = ''
 
+    def update_scan_phase(self, value, enum_strs, **kwargs):
+        status = enum_strs[value]
+        #logger.info(f"Scan status: {status}")
+        self.scan_faze = status
+
+        if status == 'SCAN_DONE':
+            self.st.set_finished()
+            logger.info(f"FINISHED: ScanMonitor.st {self.st}")
+    
     def update_eta(self):
         self.line_time_out = time.perf_counter()
         self.line_delta = round(self.line_time_out - self.line_time_in, 2)
@@ -88,6 +98,7 @@ class ScanMonitor:
         if self.scan_active and old_value == 1 and value == 0:
             self.st.set_finished()
             logger.info(f"FINISHED: ScanMonitor.st {self.st}")
+            logger.info(f"Scan phase: {self.scan_faze}")
 
 
 # Usage
@@ -126,9 +137,10 @@ def execute_scan_2d(inner_scan, outter_scan, print_outter_msg=False, scan_name="
     logger.info("Done setting up scan, about to start scan")
     logger.info("Start executing scan")
 
-    outter_scan.execute_scan.subscribe(
-        watcher.watch_execute_scan
-    )  # Subscribe to the scan
+    outter_scan.scan_phase.subscribe(watcher.update_scan_phase)
+    # outter_scan.execute_scan.subscribe(
+    #     watcher.watch_execute_scan
+    # )  # Subscribe to the scan
     outter_scan.number_points_rbv.subscribe(watcher.watch_counter_outter)
     inner_scan.number_points_rbv.subscribe(watcher.watch_counter_inner)
 
@@ -142,4 +154,6 @@ def execute_scan_2d(inner_scan, outter_scan, print_outter_msg=False, scan_name="
         inner_scan.number_points_rbv.unsubscribe_all()
         outter_scan.number_points_rbv.unsubscribe_all()
         outter_scan.execute_scan.unsubscribe_all()
+        
+    yield from bps.sleep(1)
     logger.info("Done executing scan")
