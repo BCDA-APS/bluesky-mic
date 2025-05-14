@@ -20,7 +20,7 @@ mic_instrument.devices.scan_record.ScanRecord:
 
 mic_instrument.devices.save_data.SaveDataMic:
 - name: savedata
-  prefix: 19idBLUE:saveData_
+  prefix: "2idd:saveData_"
 
 ophyd.EpicsMotor:
 - name: samx
@@ -39,14 +39,6 @@ ophyd.EpicsSignal:
 - name: fscanh_dwell
   prefix: "2idd:Flyscans:Setup:DwellTime"
 
-mic_instrument.devices.tetramm_test.Tetramm:
-- name: tetramm_1
-  prefix: 19idSFT:TetrAMM1
-
-mic_instrument.devices.xspress3.Xspress3:
-- name: xrf_me7
-  prefix: XSP3_7Chan:det1
-
 mic_instrument.devices.sis3820.SIS3820:
 - name: sis3820
   prefix: "2idd:3820:"
@@ -57,6 +49,14 @@ mic_instrument.devices.tetramm.TetraMM:
 - name: tetramm2
   prefix: "2iddtmm2:"
 
+mic_instrument.devices.kohzu.KohzuMono:
+- name: kohzu_mono
+  prefix: "2ida2:"
+
+mic_instrument.devices.xrf.XMAP:
+- name: xrf
+  prefix: "2iddXMAP:"
+
 mic_instrument.devices.ad_fileplugin.DetNetCDF:
 - name: xrf_netcdf
   prefix: "2iddXMAP:netCDF1:"
@@ -64,48 +64,3 @@ mic_instrument.devices.ad_fileplugin.DetNetCDF:
   prefix: "2iddtmm1:netCDF1:"
 - name: tetramm2_netcdf
   prefix: "2iddtmm2:netCDF1:"
-
-
-## THIS ARE EXAMPLES OF OTHER DEVICES THAT YOU CAN USE
-# ophyd.Signal:
-# - name: test
-#   value: 50.7
-# - name: t2
-#   value: 2
-
-# apstools.synApps.Optics2Slit2D_HV:
-# - name: slit1
-#   prefix: ioc:Slit1
-#   labels: ["slits"]
-
-# hkl.SimulatedE4CV:
-# - name: sim4c
-#   prefix: ""
-#   labels: ["diffractometer"]
-
-# ophyd.scaler.ScalerCH:
-# - name: scaler1
-#   prefix: vme:scaler1
-#   labels: ["scalers", "detectors"]
-
-# ophyd.EpicsMotor:
-# - {name: m1, prefix: gp:m1, labels: ["motor"]}
-# - {name: m2, prefix: gp:m2, labels: ["motor"]}
-# - {name: m3, prefix: gp:m3, labels: ["motor"]}
-# - {name: m4, prefix: gp:m4, labels: ["motor"]}
-
-# apstools.devices.ad_creator:
-#   - name: adsimdet
-#     prefix: "ad:"
-#     labels: ["area_detector", "detectors"]
-#     plugins:
-#       - cam:
-#           class: apstools.devices.SimDetectorCam_V34
-#       - image
-#       - pva
-#       - hdf1:
-#           class: apstools.devices.AD_EpicsFileNameHDF5Plugin
-#           read_path_template: "/path/to/bluesky/tmp/"
-#           write_path_template: "/path/to/ioc/tmp/"
-#       - roi1
-#       - stats1
