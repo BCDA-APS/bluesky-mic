@@ -2,19 +2,16 @@
 Run DM workflow
 """
 
-import logging
-from pathlib import Path
-
+from bluesky.plan_stubs import sleep
 from apstools.utils import share_bluesky_metadata_with_dm
+from databroker.core import BlueskyRun
+from pathlib import Path
+from yaml import load as yload, Loader as yloader
 
 # from .local_scans import mv
 from bluesky.plan_stubs import mv
-from bluesky.plan_stubs import sleep
-from yaml import Loader as yloader
-from yaml import load as yload
-
-from ..devices.data_management import dm_experiment
-from ..devices.data_management import dm_workflow
+import logging
+from ..devices.data_management import dm_workflow, dm_experiment
 
 # from ..utils._logging_setup import logger
 # from ..utils.catalog import full_cat
@@ -134,6 +131,7 @@ def run_workflow(
     # Or you can enter the kwargs that will be just be passed to the workflow --
     **_kwargs,
 ):
+
     # Option to import workflow parameters from file.
     kwargs = {}
     if settings_file_path is not None:
@@ -154,8 +152,7 @@ def run_workflow(
         raise ValueError("The 'workflow'  argument is required, but was not found.")
     if workflow not in EXPECTED_KWARGS.keys():
         raise ValueError(
-            f"The 'workflow' argument must be one of {EXPECTED_KWARGS.keys()}, "
-            f"but {workflow} was entered."
+            f"The 'workflow' argument must be one of {EXPECTED_KWARGS.keys()}, " f"but {workflow} was entered."
         )
 
     missing = []
@@ -165,8 +162,7 @@ def run_workflow(
 
     if len(missing) > 0:
         raise ValueError(
-            "The following arguments were not found, but are required for the "
-            f"{workflow} workflow: {missing}."
+            "The following arguments were not found, but are required for the " f"{workflow} workflow: {missing}."
         )
 
     # # Check that the bluesky_id works.
@@ -197,9 +193,7 @@ def run_workflow(
         dm_reporting_period,
     )
 
-    yield from dm_workflow.run_as_plan(
-        wait=dm_wait, timeout=dm_reporting_time_limit, **kwargs
-    )
+    yield from dm_workflow.run_as_plan(wait=dm_wait, timeout=dm_reporting_time_limit, **kwargs)
 
     yield from sleep(0.1)
     logger.info(f"dm_workflow id: {dm_workflow.job_id.get()}")

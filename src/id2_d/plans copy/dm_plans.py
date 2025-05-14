@@ -80,11 +80,7 @@ def dm_list_processing_jobs(exclude=None):
 
     for j in api.listProcessingJobs():
         if j["status"] not in exclude:
-            print(
-                f"id={j['id']!r}"
-                f"  submitted={j.get('submissionTimestamp')}"
-                f"  status={j['status']!r}"
-            )
+            print(f"id={j['id']!r}" f"  submitted={j.get('submissionTimestamp')}" f"  status={j['status']!r}")
 
 
 def dm_submit_workflow_job(workflowName, argsDict):

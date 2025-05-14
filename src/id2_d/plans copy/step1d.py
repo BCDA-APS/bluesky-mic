@@ -7,38 +7,35 @@ Creating a bluesky plan that interacts with Scan Record.
 """
 
 __all__ = """
-    step2d
+    step1d
 """.split()
 
 import logging
-
-from ..configs.device_config import samx
-from ..configs.device_config import samy
-from ..configs.device_config import savedata
-from ..configs.device_config import scan1
-from ..configs.device_config import scan2
-from ..utils.scan_monitor import execute_scan_2d
+import os
 from .generallized_scan_1d import generalized_scan_1d
+from ..utils.scan_monitor import execute_scan_1d
+from .workflow_plan import run_workflow
+from ..utils.dm_utils import dm_upload_wait
+from ..devices.data_management import api
+from apstools.devices import DM_WorkflowConnector
+from .dm_plans import dm_submit_workflow_job
+from ..configs.device_config import scan1, samx, savedata
+
 
 logger = logging.getLogger(__name__)
 logger.info(__file__)
 
-scanmode = "LINEAR"
 
-
-def step2d(
+def step1d(
     samplename="smp1",
     user_comments="",
     width=0,
     x_center=None,
     stepsize_x=0,
-    height=0,
-    y_center=None,
-    stepsize_y=0,
     dwell=0,
     smp_theta=None,
     simdet_on=False,
-    xrf_on=True,
+    xrf_me7_on=True,
     ptycho_on=False,
     preamp_on=False,
     fpga_on=False,
@@ -47,22 +44,16 @@ def step2d(
     analysisMachine="mona2",
     eta=0,
 ):
-    """2D Bluesky plan that drives the x- and y- sample motors in stepping mode using ScanRecord"""
+    """1D Bluesky plan that drives the a sample motor in stepping mode using ScanRecord"""
 
     ##TODO Close shutter while setting up scan parameters
 
-    """Set up the inner loop scan record based on the scan types and parameters"""
-    yield from generalized_scan_1d(scan1, samx, scanmode=scanmode, **locals())
-
-    """Set up the outter loop scan record"""
-    yield from scan2.set_scan_mode(scanmode)
-    yield from scan2.set_positioner_drive(f"{samy.prefix}.VAL")
-    yield from scan2.set_positioner_readback(f"{samy.prefix}.RBV")
-    yield from scan2.set_center_width_stepsize(y_center, height, stepsize_y)
+    """Set up scan record based on the scan types and parameters"""
+    yield from generalized_scan_1d(scan1, samx, scanmode="LINEAR", **locals())
 
     """Start executing scan"""
     savedata.update_next_file_name()
-    yield from execute_scan_2d(scan1, scan2, scan_name=savedata.next_file_name)
+    yield from execute_scan_1d(scan1, scan_name=savedata.next_file_name)
 
     #     #############################
     #     # START THE APS DM WORKFLOW #

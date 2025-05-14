@@ -9,8 +9,8 @@ __all__ = """
     selected_dets
 """.split()
 
-import bluesky.plan_stubs as bps
 from mic_instrument.configs.device_config import det_name_mapping
+import bluesky.plan_stubs as bps
 
 
 def move_to_position(motor, position, tol=0.01):
@@ -21,10 +21,9 @@ def move_to_position(motor, position, tol=0.01):
     yield from bps.mv(motor, position)
     while not in_position:
         yield from bps.sleep(0.5)
-        pos_mse = (motor.position - position) ** 2
+        pos_mse = (motor.position - position)**2
         if pos_mse < tol:
             in_position = True
-
 
 def selected_dets(**kwargs):
     """

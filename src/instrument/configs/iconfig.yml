@@ -57,7 +57,7 @@ DETECTOR:
     IMAGE_DIR: "sub/directory/path"
     HDF5_FILE_TEMPLATE: "%s%s_%6.6d.h5"
     FILE_DELIMITER: "2idd"
-  
+
     XMAP_1Chan:
       NAME: xrf
       PV_PREFIX: "2iddXMAP:"

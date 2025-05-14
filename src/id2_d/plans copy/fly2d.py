@@ -11,29 +11,31 @@ __all__ = """
 """.split()
 
 import logging
-
-import bluesky.plan_stubs as bps
-from mic_instrument.configs.device_config import fscan1
-from mic_instrument.configs.device_config import fscanh
-from mic_instrument.configs.device_config import fscanh_dwell
-from mic_instrument.configs.device_config import fscanh_samx
-from mic_instrument.configs.device_config import netcdf_delimiter
-from mic_instrument.configs.device_config import samy
-from mic_instrument.configs.device_config import samz
-from mic_instrument.configs.device_config import savedata
-from mic_instrument.configs.device_config import sis3820
-from mic_instrument.plans.before_after_fly import setup_flyscan_XRF_triggers
 from mic_instrument.plans.generallized_scan_1d import generalized_scan_1d
-from mic_instrument.plans.helper_funcs import selected_dets
-from mic_instrument.plans.toggle_usercalc import disable_usercalc
-from mic_instrument.plans.toggle_usercalc import enable_usercalc
+from mic_instrument.plans.before_after_fly import setup_flyscan_XRF_triggers
 from mic_instrument.utils.scan_monitor import execute_scan_2d
+from mic_instrument.configs.device_config import (
+    fscan1,
+    fscanh,
+    fscanh_samx,
+    samy,
+    samz,
+    savedata,
+    sis3820,
+    netcdf_delimiter,
+    fscanh_dwell,
+)
+from mic_instrument.plans.helper_funcs import selected_dets
+from mic_instrument.plans.toggle_usercalc import disable_usercalc, enable_usercalc
+import bluesky.plan_stubs as bps
+
 
 logger = logging.getLogger(__name__)
 logger.info(__file__)
 
-det_foldername = {"xrf": "flyXRF", "preamp1": "tetramm", "preamp2": "tetramm2"}
-
+det_foldername = {'xrf': 'flyXRF', 
+                  'preamp1': 'tetramm', 
+                  'preamp2': 'tetramm2'}
 
 def fly2d(
     samplename="smp1",
@@ -53,42 +55,42 @@ def fly2d(
     preamp2_on=False,
 ):
     """2D Bluesky plan that drives the x- and y- sample motors in fly mode using ScanRecord
-
+    
     Parameters
     ----------
-    samplename :
+    samplename : 
         Str: The name of the sample.
-    user_comments :
+    user_comments : 
         Str: The user comments for the scan.
-    width :
+    width : 
         Float: The width of the scan.
-    x_center :
+    x_center : 
         Float: The center of the scan in the x-direction.
-    stepsize_x :
+    stepsize_x : 
         Float: The stepsize of the scan in the x-direction.
-    height :
-        Float: The height of the scan.
-    y_center :
+    height : 
+        Float: The height of the scan.      
+    y_center : 
         Float: The center of the scan in the y-direction.
-    stepsize_y :
+    stepsize_y : 
         Float: The stepsize of the scan in the y-direction.
-    sample_z :
+    sample_z : 
         Float: The z position of the sample.
-    dwell :
+    dwell : 
         Float: The dwell time of the scan.
-    inc_eng :
+    inc_eng : 
         Float: The incident energy of the scan.
-    adjust_zp :
+    adjust_zp : 
         Bool: Whether to adjust the zone plate position based on the incident energy.
-    xrf_on :
+    xrf_on : 
         Bool: Whether to run XRF.
-    preamp1_on :
+    preamp1_on : 
         Bool: Whether to run Preamp1.
-    preamp2_on :
+    preamp2_on : 
         Bool: Whether to run Preamp2.
-
+        
     """
-
+    
     """Disable the usercalc that used in scan record"""
     yield from disable_usercalc()
 
@@ -120,6 +122,7 @@ def fly2d(
         yield from fscan1.set_center_width_stepsize(0, height, stepsize_y)
     else:
         yield from fscan1.set_center_width_stepsize(y_center, height, stepsize_y)
+        
 
     """Assign the per-pixel dwell time"""
     logger.info(f"Setting per-pixel dwell time ({fscanh_dwell.pvname}) to {dwell} ms")
@@ -128,13 +131,14 @@ def fly2d(
     """Check which detectors to trigger"""
     logger.info("Determining which detectors are selected")
     dets = selected_dets(**locals())
-
+           
     """Update the next file name for the detector file plugin"""
     savedata.update_next_file_name()
     next_file_name = savedata.next_file_name
 
     """Generate scan_master.h5 file"""
-
+    
+    
     """Initialize detectors with desired pts, exposure time and file writer """
     if sis3820.connected:
         # Set up triggers for FLY scans, sis3820 will be sending out pulses. The number of pulses is numpts_x - 2
@@ -146,17 +150,15 @@ def fly2d(
                 cam = det_var["cam"]
                 file_plugin = det_var["file_plugin"]
                 savedata.update_next_file_name()
-
+            
                 if det_name == "xrf":
                     # num_capture = calculate_num_capture(numpts_x)
-                    num_capture = (
-                        0  # When it's zero, the num_capture won't be overwritten
-                    )
+                    num_capture = 0 # When it's zero, the num_capture won't be overwritten
                     yield from setup_flyscan_XRF_triggers(
                         fscanh, cam, file_plugin, sis3820, num_pulses
                     )
                     yield from cam.flyscan_before(num_pulses)
-
+                    
                     yield from file_plugin.setup_file_writer(
                         savedata,
                         det_foldername[det_name],
@@ -167,9 +169,7 @@ def fly2d(
                     # yield from file_plugin.set_capture("capturing")
 
                 elif any([det_name == "preamp1", det_name == "preamp2"]):
-                    logger.info(
-                        f"Setting up file writer for {det_name}, {file_plugin.file_path.get()}"
-                    )
+                    logger.info(f"Setting up file writer for {det_name}, {file_plugin.file_path.get()}")
                     yield from file_plugin.setup_file_writer(
                         savedata,
                         det_foldername[det_name],
@@ -177,42 +177,30 @@ def fly2d(
                         filename=filename,
                         beamline_delimiter=netcdf_delimiter,
                     )
-
+                
                 yield from file_plugin.set_capture("capturing")
+                    
 
     """Print the scan parameters and the updated file name """
-    parm_list = [
-        "samplename",
-        "user_comments",
-        "width",
-        "x_center",
-        "stepsize_x",
-        "height",
-        "y_center",
-        "stepsize_y",
-        "dwell",
-        "inc_eng",
-        "adjust_zp",
-        "xrf_on",
-        "preamp1_on",
-        "preamp2_on",
-    ]
+    parm_list = ['samplename', 'user_comments', 'width', 'x_center', 'stepsize_x',
+                'height', 'y_center', 'stepsize_y', 'dwell', 'inc_eng', 'adjust_zp',
+                'xrf_on', 'preamp1_on', 'preamp2_on']
     local_parms = locals()
     parm_dict = {parm: local_parms[parm] for parm in parm_list}
-    logger.info(
-        f"-------------------------------- File {savedata.next_file_name} --------------------------------"
-    )
+    logger.info(f"-------------------------------- File {savedata.next_file_name} --------------------------------")
     logger.info(f"Scan parameters: {parm_dict}")
-    logger.info(
-        f"-------------------------------- File {savedata.next_file_name} --------------------------------"
-    )
+    logger.info(f"-------------------------------- File {savedata.next_file_name} --------------------------------")
 
     """Start executing scan"""
     # yield from bps.sleep(1)
     fname = savedata.next_file_name
-    yield from execute_scan_2d(fscanh, fscan1, scan_name=fname, print_outter_msg=True)
+    yield from execute_scan_2d(fscanh, fscan1, scan_name=fname,
+                               print_outter_msg=True)
+
 
     """Enable the usercalc that used in scan record"""
     yield from enable_usercalc()
-
+    
     return fname
+
+   

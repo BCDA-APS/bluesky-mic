@@ -10,13 +10,10 @@ __all__ = """
     xane_spec
 """.split()
 
-import bluesky.plan_stubs as bps
-from mic_instrument.configs.device_config import samx
-from mic_instrument.configs.device_config import samy
-from mic_instrument.configs.device_config import savedata
-from mic_instrument.configs.device_config import scan1
-from mic_instrument.configs.device_config import xrf
+import logging
+from mic_instrument.configs.device_config import samx, samy, scan1, xrf, savedata
 from mic_instrument.utils.scan_monitor import execute_scan_1d
+import bluesky.plan_stubs as bps
 
 
 def xane_spec(
@@ -34,23 +31,24 @@ def xane_spec(
 
     Parameters
     ----------
-    samplename :
+    samplename : 
         Str: The name of the sample.
-    user_comments :
+    user_comments : 
         Str: The user comments for the scan.
-    x_center :
+    x_center : 
         Float: The center of the sample-X position.
-    y_center :
+    y_center : 
         Float: The center of the sample-Y position.
-    eng_center :
+    eng_center : 
         Float: The center of the monochromator energy.
-    eng_width :
+    eng_width : 
         Float: The width of the energy that the monochromator will scan.
-    eng_inc :
+    eng_inc : 
         Float: The increment of the energy that the monochromator will scan.
-    dwell_sec :
+    dwell_sec : 
         Float: The dwell time of the scan in seconds.
     """
+    
 
     """Move to the desired sample position"""
     yield from bps.mv(samx, x_center)
@@ -65,3 +63,12 @@ def xane_spec(
     """Start executing scan"""
     savedata.update_next_file_name()
     yield from execute_scan_1d(scan1, scan_name=savedata.next_file_name)
+
+
+
+
+
+
+
+
+
