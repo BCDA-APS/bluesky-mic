@@ -1,5 +1,16 @@
 """Bluesky plans."""
 
+
+from .fly2d import fly2d
+from .xane_fly2d import xane_fly2d
+from .step1d import step1d
+from .step2d import step2d
+from .dummy_plan import dummy_testing
+from .generallized_scan_1d import generalized_scan_1d
+from .xane_spec import xane_spec
+
+"""Bluesky Demo plans."""
+
 from .dm_plans import dm_kickoff_workflow  # noqa: F401
 from .dm_plans import dm_list_processing_jobs  # noqa: F401
 from .dm_plans import dm_submit_workflow_job  # noqa: F401
