@@ -11,9 +11,11 @@ __all__ = """
 """.split()
 
 import logging
-from mic_instrument.plans.fly2d import fly2d
-from mic_instrument.configs.device_config import kohzu
+
 import bluesky.plan_stubs as bps
+from mic_instrument.configs.device_config import kohzu
+from mic_instrument.plans.fly2d import fly2d
+
 # from mic_instrument.plans.generallized_scan_1d import generalized_scan_1d
 # from mic_instrument.plans.before_after_fly import setup_flyscan_XRF_triggers
 # from mic_instrument.utils.scan_monitor import execute_scan_2d
@@ -32,13 +34,11 @@ import bluesky.plan_stubs as bps
 # from mic_instrument.plans.toggle_usercalc import disable_usercalc, enable_usercalc
 
 
-
 logger = logging.getLogger(__name__)
 logger.info(__file__)
 
-det_foldername = {'xrf': 'flyXRF', 
-                  'preamp1': 'tetramm', 
-                  'preamp2': 'tetramm2'}
+det_foldername = {"xrf": "flyXRF", "preamp1": "tetramm", "preamp2": "tetramm2"}
+
 
 def xane_fly2d(
     samplename="smp1",
@@ -57,47 +57,48 @@ def xane_fly2d(
     preamp2_on=False,
 ):
     """2D Bluesky plan that drives Kohzu and the x- and y- sample motors in fly mode using ScanRecord
-    
+
     Parameters
     ----------
-    samplename : 
+    samplename :
         Str: The name of the sample.
-    user_comments : 
+    user_comments :
         Str: The user comments for the scan.
-    width : 
+    width :
         Float: The width of the scan.
-    x_center : 
+    x_center :
         Float: The center of the scan in the x-direction.
-    stepsize_x : 
+    stepsize_x :
         Float: The stepsize of the scan in the x-direction.
-    height : 
-        Float: The height of the scan.      
-    y_center : 
+    height :
+        Float: The height of the scan.
+    y_center :
         Float: The center of the scan in the y-direction.
-    stepsize_y : 
+    stepsize_y :
         Float: The stepsize of the scan in the y-direction.
-    dwell : 
+    dwell :
         Float: The dwell time of the scan.
-    inc_eng : 
+    inc_eng :
         Float: The incident energy of the scan.
-    adjust_zp : 
+    adjust_zp :
         Bool: Whether to adjust the zone plate position based on the incident energy.
-    xrf_on : 
+    xrf_on :
         Bool: Whether to run XRF.
-    preamp1_on : 
+    preamp1_on :
         Bool: Whether to run Preamp1.
-    preamp2_on : 
+    preamp2_on :
         Bool: Whether to run Preamp2.
-        
+
     """
-    
 
     """Lets go to the desired incident energy"""
     yield from kohzu.set_energy(inc_eng)
     yield from kohzu.set_move(1)
     ready = False
     while not ready:
-        logger.info(f"Waiting for Kohzu to be ready at {inc_eng} keV, current energy: {kohzu.energy_rbv.get()} keV")
+        logger.info(
+            f"Waiting for Kohzu to be ready at {inc_eng} keV, current energy: {kohzu.energy_rbv.get()} keV"
+        )
         kohzu_status = kohzu.moving.get(as_string=True)
         if kohzu_status == "Done":
             ready = True
@@ -150,7 +151,6 @@ def xane_fly2d(
     #     yield from fscan1.set_center_width_stepsize(0, height, stepsize_y)
     # else:
     #     yield from fscan1.set_center_width_stepsize(y_center, height, stepsize_y)
-        
 
     # """Assign the per-pixel dwell time"""
     # logger.info(f"Setting per-pixel dwell time ({fscanh_dwell.pvname}) to {dwell} ms")
@@ -159,14 +159,13 @@ def xane_fly2d(
     # """Check which detectors to trigger"""
     # logger.info("Determining which detectors are selected")
     # dets = selected_dets(**locals())
-           
+
     # """Update the next file name for the detector file plugin"""
     # savedata.update_next_file_name()
     # next_file_name = savedata.next_file_name
 
     # """Generate scan_master.h5 file"""
-    
-    
+
     # """Initialize detectors with desired pts, exposure time and file writer """
     # if sis3820.connected:
     #     # Set up triggers for FLY scans, sis3820 will be sending out pulses. The number of pulses is numpts_x - 2
@@ -178,7 +177,7 @@ def xane_fly2d(
     #             cam = det_var["cam"]
     #             file_plugin = det_var["file_plugin"]
     #             savedata.update_next_file_name()
-            
+
     #             if det_name == "xrf":
     #                 # num_capture = calculate_num_capture(numpts_x)
     #                 num_capture = 0 # When it's zero, the num_capture won't be overwritten
@@ -186,7 +185,7 @@ def xane_fly2d(
     #                     fscanh, cam, file_plugin, sis3820, num_pulses
     #                 )
     #                 yield from cam.flyscan_before(num_pulses)
-                    
+
     #                 yield from file_plugin.setup_file_writer(
     #                     savedata,
     #                     det_foldername[det_name],
@@ -205,16 +204,14 @@ def xane_fly2d(
     #                     filename=filename,
     #                     beamline_delimiter=netcdf_delimiter,
     #                 )
-                
+
     #             yield from file_plugin.set_capture("capturing")
-                    
 
     # """Start executing scan"""
-    
+
     # # yield from bps.sleep(1)
     # yield from execute_scan_2d(fscanh, fscan1, scan_name=savedata.next_file_name,
     #                            print_outter_msg=True)
-
 
     # """Enable the usercalc that used in scan record"""
     # yield from enable_usercalc()

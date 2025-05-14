@@ -8,6 +8,63 @@ apstools.devices.SimulatedApsPssShutterWithStatus:
 - name: shutter
   labels: ["shutters"]
 
+mic_instrument.devices.scan_record.ScanRecord:
+- name: scan1
+  prefix: "2idd:scan1"
+- name: scan2
+  prefix: "2idd:scan2"
+- name: fscan1
+  prefix: "2idd:Fscan1"
+- name: fscanh
+  prefix: "2idd:FscanH"
+
+mic_instrument.devices.save_data.SaveDataMic:
+- name: savedata
+  prefix: 19idBLUE:saveData_
+
+ophyd.EpicsMotor:
+- name: samx
+  prefix: "2idd:m40"
+  labels: ["motor"]
+- name: samy
+  prefix: "2idd:m39"
+  labels: ["motor"]
+- name: samz
+  prefix: "2idd:m36"
+  labels: ["motor"]
+
+ophyd.EpicsSignal:
+- name: fscanh_samx
+  prefix: "2idd:userCalc9.A"
+- name: fscanh_dwell
+  prefix: "2idd:Flyscans:Setup:DwellTime"
+
+mic_instrument.devices.tetramm_test.Tetramm:
+- name: tetramm_1
+  prefix: 19idSFT:TetrAMM1
+
+mic_instrument.devices.xspress3.Xspress3:
+- name: xrf_me7
+  prefix: XSP3_7Chan:det1
+
+mic_instrument.devices.sis3820.SIS3820:
+- name: sis3820
+  prefix: "2idd:3820:"
+
+mic_instrument.devices.tetramm.TetraMM:
+- name: tetramm1
+  prefix:  "2iddtmm1:"
+- name: tetramm2
+  prefix: "2iddtmm2:"
+
+mic_instrument.devices.ad_fileplugin.DetNetCDF:
+- name: xrf_netcdf
+  prefix: "2iddXMAP:netCDF1:"
+- name: tetramm1_netcdf
+  prefix: "2iddtmm1:netCDF1:"
+- name: tetramm2_netcdf
+  prefix: "2iddtmm2:netCDF1:"
+
 
 ## THIS ARE EXAMPLES OF OTHER DEVICES THAT YOU CAN USE
 # ophyd.Signal:

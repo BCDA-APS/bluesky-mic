@@ -5,14 +5,16 @@ Created on Oct 16 2024
 @author: yluo (grace227)
 """
 
-
-from apstools.synApps import SscanRecord
-from ophyd import EpicsSignal, Component
-from epics import PV
-from ..utils.utils import mode_setter, value_setter
-import bluesky.plan_stubs as bps
 import logging
 
+import bluesky.plan_stubs as bps
+from apstools.synApps import SscanRecord
+from epics import PV
+from ophyd import Component
+from ophyd import EpicsSignal
+
+from ..utils.utils import mode_setter
+from ..utils.utils import value_setter
 
 logger = logging.getLogger(__name__)
 logger.info(__file__)
@@ -63,7 +65,7 @@ class ScanRecord(SscanRecord):
             self.detTrigger_3,
             self.detTrigger_4,
         ]
-        for detTri, pv_name in zip(trigger_list, trigger_pvs):
+        for detTri, pv_name in zip(trigger_list, trigger_pvs, strict=False):
             yield from bps.mv(detTri, pv_name)
             logger.info(f"Set {detTri.pvname} to {pv_name} in {self.prefix}.")
 

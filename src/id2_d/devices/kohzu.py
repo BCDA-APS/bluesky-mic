@@ -1,7 +1,8 @@
+from mic_instrument.devices.utils import mode_setter
+from mic_instrument.devices.utils import value_setter
 from ophyd import Component
 from ophyd import Device
 from ophyd import EpicsSignal
-from mic_instrument.devices.utils import value_setter, mode_setter
 
 
 class KohzuMono(Device):
