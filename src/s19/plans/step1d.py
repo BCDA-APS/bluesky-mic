@@ -17,10 +17,10 @@ from apsbits.utils.config_loaders import get_config
 from apsbits.utils.config_loaders import load_config_yaml
 from apsbits.utils.controls_setup import oregistry
 
-from mic_instrument.plans.generallized_scan_1d import generalized_scan_1d
-from mic_instrument.plans.helper_funcs import selected_dets
-from mic_instrument.utils.scan_monitor import execute_scan_1d
-from mic_instrument.utils.watch_pvs_write_hdf5 import write_scan_master_h5
+from s19.plans.generallized_scan_1d import generalized_scan_1d
+from s19.plans.helper_funcs import selected_dets
+from s19.utils.scan_monitor import execute_scan_1d
+from s19.utils.watch_pvs_write_hdf5 import write_scan_master_h5
 
 logger = logging.getLogger(__name__)
 logger.info(__file__)

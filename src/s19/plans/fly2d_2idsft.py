@@ -32,8 +32,8 @@ import logging
 import bluesky.plan_stubs as bps
 
 # from ophyd import Device, EpicsSignal, EpicsSignalRO, Component, EpicsMotor
-from mic_instrument.configs.device_config import scan1
-from mic_instrument.configs.device_config import scan2
+from s19.configs.device_config import scan1
+from s19.configs.device_config import scan2
 
 # import time
 # import os

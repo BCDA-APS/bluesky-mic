@@ -10,12 +10,12 @@ __all__ = """
 """.split()
 
 import bluesky.plan_stubs as bps
-from mic_instrument.configs.device_config import det_name_mapping
+from s19.configs.device_config import det_name_mapping
 
 
 def move_to_position(motor, position, tol=0.01):
     """
-    Move a motor to a position with a tolerance
+    Move a motor to a position with a tolerance test
     """
     in_position = False
     yield from bps.mv(motor, position)

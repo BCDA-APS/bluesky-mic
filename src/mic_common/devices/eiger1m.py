@@ -18,9 +18,9 @@ from ophyd import EigerDetectorCam
 from ophyd import EpicsSignal
 from ophyd import EpicsSignalRO
 
-from mic_instrument.utils.device_utils import mode_setter
-from mic_instrument.utils.device_utils import value_setter
-from mic_instrument.utils.writeDetH5 import write_det_h5
+from s19.utils.device_utils import mode_setter
+from s19.utils.device_utils import value_setter
+from s19.utils.writeDetH5 import write_det_h5
 
 logger = logging.getLogger(__name__)
 logger.info(__file__)

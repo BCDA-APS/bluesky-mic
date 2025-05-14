@@ -13,8 +13,8 @@ __all__ = """
 import logging
 
 import bluesky.plan_stubs as bps
-from mic_instrument.configs.device_config import kohzu
-from mic_instrument.plans.fly2d import fly2d
+from s19.configs.device_config import kohzu
+from s19.plans.fly2d import fly2d
 
 # from mic_instrument.plans.generallized_scan_1d import generalized_scan_1d
 # from mic_instrument.plans.before_after_fly import setup_flyscan_XRF_triggers

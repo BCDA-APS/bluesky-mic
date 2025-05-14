@@ -14,21 +14,21 @@ import logging
 
 import bluesky.plan_stubs as bps
 
-from mic_instrument.configs.device_config import fscan1
-from mic_instrument.configs.device_config import fscanh
-from mic_instrument.configs.device_config import fscanh_dwell
-from mic_instrument.configs.device_config import fscanh_samx
-from mic_instrument.configs.device_config import netcdf_delimiter
-from mic_instrument.configs.device_config import samy
-from mic_instrument.configs.device_config import savedata
-from mic_instrument.configs.device_config import sis3820
-from mic_instrument.plans.before_after_fly import setup_eiger_filewriter
-from mic_instrument.plans.before_after_fly import setup_flyscan_ptycho_triggers
-from mic_instrument.plans.before_after_fly import setup_flyscan_XRF_triggers
-from mic_instrument.plans.generallized_scan_1d import generalized_scan_1d
-from mic_instrument.plans.helper_funcs import move_to_position
-from mic_instrument.plans.helper_funcs import selected_dets
-from mic_instrument.utils.scan_monitor import execute_scan_2d
+from s19.configs.device_config import fscan1
+from s19.configs.device_config import fscanh
+from s19.configs.device_config import fscanh_dwell
+from s19.configs.device_config import fscanh_samx
+from s19.configs.device_config import netcdf_delimiter
+from s19.configs.device_config import samy
+from s19.configs.device_config import savedata
+from s19.configs.device_config import sis3820
+from s19.plans.before_after_fly import setup_eiger_filewriter
+from s19.plans.before_after_fly import setup_flyscan_ptycho_triggers
+from s19.plans.before_after_fly import setup_flyscan_XRF_triggers
+from s19.plans.generallized_scan_1d import generalized_scan_1d
+from s19.plans.helper_funcs import move_to_position
+from s19.plans.helper_funcs import selected_dets
+from s19.utils.scan_monitor import execute_scan_2d
 
 logger = logging.getLogger(__name__)
 logger.info(__file__)
