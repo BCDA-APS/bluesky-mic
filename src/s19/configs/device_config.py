@@ -11,13 +11,13 @@ from apsbits.utils.config_loaders import iconfig
 from apsbits.utils.config_loaders import load_config_yaml
 from ophyd import EpicsMotor
 
-from mic_instrument.devices.ad_fileplugin import DetHDF5
-from mic_instrument.devices.ad_fileplugin import DetNetCDF  # noqa: F401
-from mic_instrument.devices.eiger1m import Eiger1M
-from mic_instrument.devices.save_data import SaveDataMic
-from mic_instrument.devices.scan_record import ScanRecord
-from mic_instrument.devices.tetramm import TetraMM
-from mic_instrument.devices.xspress3 import Xspress3
+from s19.devices.ad_fileplugin import DetHDF5
+from s19.devices.ad_fileplugin import DetNetCDF  # noqa: F401
+from s19.devices.eiger1m import Eiger1M
+from s19.devices.save_data import SaveDataMic
+from s19.devices.scan_record import ScanRecord
+from s19.devices.tetramm import TetraMM
+from s19.devices.xspress3 import Xspress3
 
 # from mic_instrument.devices.simdet import SimDet, SimDetHDF5
 

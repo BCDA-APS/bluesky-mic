@@ -12,9 +12,9 @@ __all__ = """
 
 import logging
 
-from mic_instrument.configs.device_config import savedata
-from mic_instrument.configs.device_config import scan_overhead
-from mic_instrument.utils.scan_monitor import execute_scan_1d
+from s19.configs.device_config import savedata
+from s19.configs.device_config import scan_overhead
+from s19.utils.scan_monitor import execute_scan_1d
 
 # from mic_instrument.plans.dm_plans import dm_submit_workflow_job
 # from .workflow_plan import run_workflow

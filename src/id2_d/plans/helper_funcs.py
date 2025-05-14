@@ -10,7 +10,7 @@ __all__ = """
 """.split()
 
 import bluesky.plan_stubs as bps
-from mic_instrument.configs.device_config import det_name_mapping
+from s19.configs.device_config import det_name_mapping
 
 
 def move_to_position(motor, position, tol=0.01):

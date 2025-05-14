@@ -7,8 +7,8 @@ Created on Jan 14 2025
 
 import pathlib
 
-from mic_instrument.utils.config_loaders import iconfig
-from mic_instrument.utils.config_loaders import load_config_yaml
+from s19.utils.config_loaders import iconfig
+from s19.utils.config_loaders import load_config_yaml
 
 scan_overhead = iconfig.get("POSITIONERS")["SCAN_OVERHEAD"]
 # savedata = SaveDataMic(iconfig.get("DEVICES")["SAVE_DATA"], name="savedata")

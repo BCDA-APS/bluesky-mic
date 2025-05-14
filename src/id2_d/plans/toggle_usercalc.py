@@ -13,7 +13,7 @@ __all__ = """
 import logging
 
 import bluesky.plan_stubs as bps
-from mic_instrument.utils.config_loaders import iconfig
+from s19.utils.config_loaders import iconfig
 from ophyd import EpicsSignal
 
 logger = logging.getLogger(__name__)

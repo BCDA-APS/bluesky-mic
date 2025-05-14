@@ -11,12 +11,12 @@ __all__ = """
 """.split()
 
 import bluesky.plan_stubs as bps
-from mic_instrument.configs.device_config import samx
-from mic_instrument.configs.device_config import samy
-from mic_instrument.configs.device_config import savedata
-from mic_instrument.configs.device_config import scan1
-from mic_instrument.configs.device_config import xrf
-from mic_instrument.utils.scan_monitor import execute_scan_1d
+from s19.configs.device_config import samx
+from s19.configs.device_config import samy
+from s19.configs.device_config import savedata
+from s19.configs.device_config import scan1
+from s19.configs.device_config import xrf
+from s19.utils.scan_monitor import execute_scan_1d
 
 
 def xane_spec(

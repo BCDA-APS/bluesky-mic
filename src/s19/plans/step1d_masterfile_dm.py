@@ -18,19 +18,19 @@ from pathlib import Path
 import h5py
 from apstools.devices import DM_WorkflowConnector
 
-from mic_instrument.configs.device_config import master_file_yaml
-from mic_instrument.configs.device_config import netcdf_delimiter
-from mic_instrument.configs.device_config import ptychoxrf_dm_args
-from mic_instrument.configs.device_config import samx
-from mic_instrument.configs.device_config import savedata
-from mic_instrument.configs.device_config import scan1
-from mic_instrument.configs.device_config import xrf_dm_args
-from mic_instrument.devices.data_management import api
-from mic_instrument.plans.dm_plans import dm_submit_workflow_job
-from mic_instrument.plans.generallized_scan_1d import generalized_scan_1d
-from mic_instrument.plans.helper_funcs import selected_dets
-from mic_instrument.utils.scan_monitor import execute_scan_1d
-from mic_instrument.utils.watch_pvs_write_hdf5 import write_scan_master_h5
+from s19.configs.device_config import master_file_yaml
+from s19.configs.device_config import netcdf_delimiter
+from s19.configs.device_config import ptychoxrf_dm_args
+from s19.configs.device_config import samx
+from s19.configs.device_config import savedata
+from s19.configs.device_config import scan1
+from s19.configs.device_config import xrf_dm_args
+from s19.devices.data_management import api
+from s19.plans.dm_plans import dm_submit_workflow_job
+from s19.plans.generallized_scan_1d import generalized_scan_1d
+from s19.plans.helper_funcs import selected_dets
+from s19.utils.scan_monitor import execute_scan_1d
+from s19.utils.watch_pvs_write_hdf5 import write_scan_master_h5
 
 logger = logging.getLogger(__name__)
 logger.info(__file__)
