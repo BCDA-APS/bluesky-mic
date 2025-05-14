@@ -11,8 +11,8 @@ DATABROKER_CATALOG: &databroker_catalog temp
 ### RunEngine configuration
 RUN_ENGINE:
     DEFAULT_METADATA:
-        beamline_id: demo_instrument
-        instrument_name: Most Glorious Scientific Instrument
+        beamline_id: 2IDD
+        instrument_name: XSD 2IDD-microprobe
         proposal_id: commissioning
         databroker_catalog: *databroker_catalog
 
@@ -49,9 +49,12 @@ SPEC_DATA_FILES:
     ENABLE: true
     FILE_EXTENSION: dat
 
+STORAGE:
+  PATH: "/mnt/micdata1"
+
 ### APS Data Management
 ### Use bash shell, deactivate all conda environments, source this file:
-DM_SETUP_FILE: "/home/dm/etc/dm.setup.sh"
+DM_SETUP_FILE: "/home/dm_id/etc/dm.setup.sh"
 
 # ----------------------------------
 
