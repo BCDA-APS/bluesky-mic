@@ -8,16 +8,16 @@ apstools.devices.SimulatedApsPssShutterWithStatus:
 - name: shutter
   labels: ["shutters"]
 
-mic_instrument.devices.hhl_mirrors.HHL_Mirrors:
+s19.devices.hhl_mirrors.HHL_Mirrors:
 - name: hhl_mirrors
   prefix: 19idMR
   labels: ["mirror"]
 
-mic_instrument.devices.softgluezynq.SoftGlueZynq:
+s19.devices.softgluezynq.SoftGlueZynq:
 - name: softglue
   prefix: acq_isn:SG
 
-mic_instrument.devices.bda.BDA:
+s19.devices.bda.BDA:
 - name: bda_vert
   prefix: 19idBDA
   axis: V
@@ -28,18 +28,18 @@ mic_instrument.devices.bda.BDA:
   axis: H
   labels: ["bda"]
 
-mic_instrument.devices.ring.Ring:
+s19.devices.ring.Ring:
 - name: ring
   prefix: S-DCCT
   labels: ["ring"]
 
-mic_instrument.devices.scan_record.ScanRecord:
+s19.devices.scan_record.ScanRecord:
 - name: scan1
   prefix: 19idBLUE:scan1
 - name: scan2
   prefix: 19idBLUE:scan2
 
-mic_instrument.devices.save_data.SaveDataMic:
+mic_common.devices.save_data.SaveDataMic:
 - name: savedata
   prefix: 19idBLUE:saveData_
 
@@ -63,34 +63,34 @@ ophyd.EpicsMotor:
   prefix: 19idBLUE:m6
   labels: ["motor"]
 
-mic_instrument.devices.my_motor_bundle.MyMotorBundle:
+s19.devices.my_motor_bundle.MyMotorBundle:
 - name: xz_motor
   prefix: 19idBLUE
 
-mic_instrument.devices.tetramm_test.Tetramm:
+s19.devices.tetramm_test.Tetramm:
 - name: tetramm_1
   prefix: 19idSFT:TetrAMM1
 
-mic_instrument.devices.xspress3.Xspress3:
+s19.devices.xspress3.Xspress3:
 - name: xrf_me7
   prefix: XSP3_7Chan:det1
 
-mic_instrument.devices.eiger1m.Eiger1M:
+s19.devices.eiger1m.Eiger1M:
 - name: ptycho
   prefix: 19idPTYCHO:cam1
 
-# mic_instrument.devices.tetramm.TetraMM:
+# s19.devices.tetramm.TetraMM:
 # - name: tetramm1
 #   prefix: 19idSFT:TetrAMM1
 
-mic_instrument.devices.ad_fileplugin.DetHDF5:
+mic_common.devices.ad_fileplugin.DetHDF5:
 - name: xrf_me7_hdf
   prefix: XSP3_7Chan:HDF1
 - name: ptycho_hdf
   prefix: 19idPTYCHO:HDF1
 - name: tetramm1_hdf
 
-mic_instrument.devices.ad_fileplugin.DetNetCDF:
+mic_common.devices.ad_fileplugin.DetNetCDF:
 - name: tetramm1_netcdf
 
 #     AD_XSP3_12Chan:
