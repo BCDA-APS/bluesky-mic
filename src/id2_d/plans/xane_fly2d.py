@@ -97,7 +97,8 @@ def xane_fly2d(
     ready = False
     while not ready:
         logger.info(
-            f"Waiting for Kohzu to be ready at {inc_eng} keV, current energy: {kohzu.energy_rbv.get()} keV"
+            f"Waiting for Kohzu to be ready at {inc_eng} keV, "
+            f"current energy: {kohzu.energy_rbv.get()} keV"
         )
         kohzu_status = kohzu.moving.get(as_string=True)
         if kohzu_status == "Done":
@@ -153,7 +154,9 @@ def xane_fly2d(
     #     yield from fscan1.set_center_width_stepsize(y_center, height, stepsize_y)
 
     # """Assign the per-pixel dwell time"""
-    # logger.info(f"Setting per-pixel dwell time ({fscanh_dwell.pvname}) to {dwell} ms")
+    # logger.info(
+    #     f"Setting per-pixel dwell time ({fscanh_dwell.pvname}) to {dwell} ms"
+    # )
     # yield from bps.mv(fscanh_dwell, dwell)
 
     # """Check which detectors to trigger"""

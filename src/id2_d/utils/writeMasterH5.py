@@ -1,3 +1,7 @@
+"""
+Utility functions for writing master HDF5 files for Bluesky data acquisition.
+"""
+
 import os
 
 import h5py

@@ -1,3 +1,7 @@
+"""
+Miscellaneous utility functions for Bluesky workflows, including file and PV helpers.
+"""
+
 __all__ = [
     "mkdir",
     "mksubdirs",
@@ -17,6 +21,7 @@ import h5py
 
 
 def mkdir(directory):
+    """Create a directory if it does not exist."""
     if not os.path.exists(directory):
         try:
             os.makedirs(directory)
@@ -28,12 +33,14 @@ def mkdir(directory):
 
 
 def mksubdirs(save_path, subdirs=[]):
+    """Create multiple subdirectories under a given path."""
     for folder in subdirs:
         path = f"{save_path}{folder}"
         mkdir(path)
 
 
 def pvget(pv):
+    """Get the value of a process variable (PV) using pvget command."""
     try:
         cmd = f"pvget {pv}"
         result = subprocess.getstatusoutput(cmd)
@@ -42,6 +49,7 @@ def pvget(pv):
 
 
 def pvput(pv, value):
+    """Set the value of a process variable (PV) using pvput command."""
     try:
         cmd = f"pvput {pv} {value}"
         result = subprocess.getstatusoutput(cmd)
@@ -50,6 +58,7 @@ def pvput(pv, value):
 
 
 def run_subprocess(command_list):
+    """Run a subprocess command and return the result."""
     try:
         result = subprocess.getstatusoutput(command_list)
     except subprocess.CalledProcessError as e:
@@ -59,6 +68,7 @@ def run_subprocess(command_list):
 
 
 def pause_scan():
+    """Pause the current scan by setting the scan2.wcnt PV appropriately."""
     from ..devices.scan_record import scan2
 
     wcnt = scan2.wcnt.get()
@@ -71,6 +81,7 @@ def pause_scan():
 
 
 def resume_scan():
+    """Resume the current scan by resetting the scan2.wcnt PV."""
     from ..devices.scan_record import scan2
 
     wcnt = scan2.wcnt.get()
@@ -81,6 +92,7 @@ def resume_scan():
 
 
 def abort_scan():
+    """Abort the current scan by pausing and setting the AbortScan2 PV."""
     pause_scan()
     from ..devices.scan_record import scan2
 
@@ -91,6 +103,7 @@ def abort_scan():
 
 
 def scan_number_in_list(lst, partial_str):
+    """Find the first file in a list that matches a partial scan number string."""
     matches = [s for s in lst if partial_str in s]
     if len(matches) > 1:
         print("warning, more than one file matching scan number somehow")
@@ -109,9 +122,11 @@ def create_master_file(
     basedir,
     sample_name,
     scan_number,
-    groups=["flyXRF", "eiger", "mda", "tetramm", "positions"],
+    groups=None,
 ):
-    # TODO: samples with the same name get saved to the same folder even if separate scan, need to link files based on scan number instead of all files in folder.
+    """Create a master HDF5 file linking scan data files for a given scan number."""
+    if groups is None:
+        groups = ["flyXRF", "eiger", "mda", "tetramm", "positions"]
     with h5py.File(f"{basedir}/{sample_name}_{scan_number}_master.h5", "w") as f:
         for group in groups:
             f.create_group(group)

@@ -1,14 +1,21 @@
 """
-TetrAMM, Caen picoammeter.
+TetraMM device for controlling Caen picoammeter with NetCDF support in Bluesky workflows.
 
-.. note:  Support exists in ophyd.  Still needs NetCDF plugin support.
+This module defines the TetraMM class, which extends ophyd.TetrAMM and provides
+methods for configuring and operating the Caen picoammeter, including NetCDF file support.
+
+.. note::
+    Support exists in ophyd. Still needs NetCDF plugin support.
     See comments: https://github.com/BCDA-APS/apstools/issues/878
 
     ::
 
         from ophyd import TetrAMM
 
-        tetramm = TetrAMM("usxTetr1:qe1:", name="tetramm")
+        tetramm = TetrAMM(
+            "usxTetr1:qe1:",
+            name="tetramm"
+        )
         tetramm.wait_for_connection()
 
 """
@@ -22,6 +29,8 @@ TETRAMMCLOCK = 100000  # unit in Hz
 
 
 class TetraMM(TetrAMM):
+    """TetraMM device for controlling Caen picoammeter with NetCDF support."""
+
     trigger_polarity = Cpt(EpicsSignalWithRBV, "TriggerPolarity")
     fast_avg_time = Cpt(EpicsSignalWithRBV, "FastAveragingTime")
     netcdf_enable = Cpt(EpicsSignalWithRBV, "netCDF1:EnableCallbacks")
@@ -35,11 +44,13 @@ class TetraMM(TetrAMM):
     file_write_mode = Cpt(EpicsSignalWithRBV, "netCDF1:FileWriteMode")
 
     def __init__(self, *args, **kwargs):
+        """Initialize the TetraMM device and set up additional attributes."""
         super().__init__(*args, **kwargs)
         self.range = self.em_range
         self.avg_time = self.averaging_time
 
-    def initialization(self):
+    def initialization(self) -> None:
+        """Initialize the TetraMM device with default settings."""
         yield from bps.mv(
             self.acquire_mode,
             1,  # acquire_mode set to Multiple
@@ -68,7 +79,13 @@ class TetraMM(TetrAMM):
             "19ide_",  # Set it up for ISN (19ide)
         )
 
-    def setup_scan(self, pts, dwell):
+    def setup_scan(self, pts: int, dwell: float) -> None:
+        """Configure the TetraMM device for a scan with the given points and dwell time.
+
+        Args:
+            pts (int): Number of points to acquire.
+            dwell (float): Dwell time per point in seconds.
+        """
         values_per_reading = int(TETRAMMCLOCK * dwell - 1)
         yield from bps.mv(
             self.avg_time,

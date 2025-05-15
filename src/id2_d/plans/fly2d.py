@@ -200,7 +200,8 @@ def fly2d(
     local_parms = locals()
     parm_dict = {parm: local_parms[parm] for parm in parm_list}
     logger.info(
-        f"-------------------------------- File {savedata.next_file_name} --------------------------------"
+        f"-------------------------------- File {savedata.next_file_name} "
+        f"--------------------------------"
     )
     logger.info(f"Scan parameters: {parm_dict}")
     logger.info(

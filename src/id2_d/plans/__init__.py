@@ -16,3 +16,23 @@ from .dm_plans import dm_submit_workflow_job  # noqa: F401
 from .sim_plans import sim_count_plan  # noqa: F401
 from .sim_plans import sim_print_plan  # noqa: F401
 from .sim_plans import sim_rel_scan_plan  # noqa: F401
+
+__all__ = [
+    "dummy_testing",
+    "fly2d",
+    "generalized_scan_1d",
+    "step1d",
+    "step2d",
+    "xane_fly2d",
+    "xane_spec",
+    "dm_kickoff_workflow",
+    "dm_list_processing_jobs",
+    "dm_submit_workflow_job",
+    "sim_count_plan",
+    "sim_print_plan",
+    "sim_rel_scan_plan",
+]
+
+"""
+Initialization for the id2_d plans package.
+"""

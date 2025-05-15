@@ -1,5 +1,5 @@
 """
-Creating a bluesky plan that interacts with Scan Record.
+Bluesky plan for 1D step scans using ScanRecord.
 
 @author: yluo(grace227)
 

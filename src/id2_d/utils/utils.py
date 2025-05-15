@@ -1,3 +1,7 @@
+"""
+Utility decorators for mode and value setters for EpicsSignal components in Bluesky/Ophyd devices.
+"""
+
 import logging
 from functools import wraps
 

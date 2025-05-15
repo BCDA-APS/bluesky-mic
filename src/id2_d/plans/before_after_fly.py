@@ -108,7 +108,8 @@ def setup_eiger_filewriter(
             eiger_filewriter = eiger
         except Exception as e:
             logger.error(
-                f"Error occurs when setting up eiger filewriter: {eiger_filewriter}: {e}"
+                f"Error occurs when setting up eiger filewriter: "
+                f"{eiger_filewriter}: {e}"
             )
     else:
         try:
@@ -146,6 +147,7 @@ def setup_eiger_filewriter(
 #     #     # yield from xrf_netcdf.set_filename(savedata.get().full_name.replace(".mda", "_"))
 #     #     # yield from xrf_netcdf.set_filenumber(0)
 #     #     # yield from xrf.set_collection_mode("MCA MAPPING")
+
 
 #     #     # yield from xrf.set_stop_all(1)
 #     #     # yield from xrf.set_pixels_per_run(num_pts - 2)

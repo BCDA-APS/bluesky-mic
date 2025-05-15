@@ -22,6 +22,8 @@ SCANNUM_DIGITS = 4
 
 
 class ScanMonitor:
+    """Monitor and track scan progress and timing for Bluesky scans."""
+
     current_line = 0
     line_time_in = 0
     line_time_out = 0
@@ -30,6 +32,17 @@ class ScanMonitor:
     outter_print_msg = False
 
     def __init__(self, numpts_x=None, scan_name=None, numpts_y=0):
+        """Initialize the ScanMonitor with scan parameters.
+
+        Parameters
+        ----------
+        numpts_x : int, optional
+            Number of points in the x direction.
+        scan_name : str, optional
+            Name of the scan.
+        numpts_y : int, optional
+            Number of points in the y direction.
+        """
         self.scan_active = False
         self.counter_active = False
         self.st = Status()
@@ -39,6 +52,17 @@ class ScanMonitor:
         self.scan_faze = ""
 
     def update_scan_phase(self, value, enum_strs, **kwargs):
+        """Update the scan phase based on the value and enum strings.
+
+        Parameters
+        ----------
+        value : int
+            Enum value representing the scan phase.
+        enum_strs : list
+            List of enum strings for scan phases.
+        **kwargs
+            Additional keyword arguments.
+        """
         status = enum_strs[value]
         # logger.info(f"Scan status: {status}")
         self.scan_faze = status
@@ -48,6 +72,7 @@ class ScanMonitor:
             logger.info(f"FINISHED: ScanMonitor.st {self.st}")
 
     def update_eta(self):
+        """Update the estimated time remaining for the scan."""
         self.line_time_out = time.perf_counter()
         self.line_delta = round(self.line_time_out - self.line_time_in, 2)
         self.line_time_in = self.line_time_out
@@ -88,11 +113,13 @@ class ScanMonitor:
                         / (self.numpts_x * self.numpts_y),
                         2,
                     )
-                    msg = f"Filename: {self.scan_name}, Scan_progress: {prog}%, "
-                    msg += f"Line: {self.current_line}/{self.numpts_y}, Scan_remaining: {self.scan_time_remaining}, "
-                    msg += f"Line_eta: {self.line_delta}, "
-                    msg += f"Scanned: {value}/{self.numpts_x}"
-
+                    msg = (
+                        f"Filename: {self.scan_name}, Scan_progress: {prog}%, "
+                        f"Line: {self.current_line}/{self.numpts_y}, "
+                        f"Scan_remaining: {self.scan_time_remaining}, "
+                        f"Line_eta: {self.line_delta}, "
+                        f"Scanned: {value}/{self.numpts_x}"
+                    )
                     logger.info(msg)
 
     def watch_execute_scan(self, old_value, value, **kwargs):

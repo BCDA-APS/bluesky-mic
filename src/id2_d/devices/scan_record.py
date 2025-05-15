@@ -21,6 +21,13 @@ logger.info(__file__)
 
 
 class ScanRecord(SscanRecord):
+    """
+    ScanRecord device for controlling scan parameters and triggers in Bluesky workflows.
+
+    This module defines the ScanRecord class, which extends SscanRecord and provides
+    methods for configuring scan parameters, triggers, and related PVs for the id2_d instrument.
+    """
+
     scan_mode = Component(EpicsSignal, ".P1SM")
     pos_drive = Component(EpicsSignal, ".P1PV")
     pos_readback = Component(EpicsSignal, ".R1PV")
@@ -37,18 +44,30 @@ class ScanRecord(SscanRecord):
     detTrigger_4 = Component(EpicsSignal, ".T4PV")
 
     def __init__(self, *args, **kwargs):
+        """Initialize the ScanRecord device and set up the P1PA PV."""
         super().__init__(*args, **kwargs)
         self.P1PA = PV(f"{self.prefix}.P1PA")
 
     def set_center_width_stepsize(self, center: float, width: float, ss: float):
-        """Set center, width, and stepsize in a single motion command."""
+        """Set center, width, and stepsize in a single motion command.
+
+        Parameters
+        ----------
+        center : float
+            Center position value.
+        width : float
+            Width value.
+        ss : float
+            Stepsize value.
+        """
         try:
             # yield from bps.mv(self.center, center, self.width, width, self.stepsize, ss)
             yield from bps.mv(self.center, center)
             yield from bps.mv(self.width, width)
             yield from bps.mv(self.stepsize, ss)
             logger.info(
-                f"Set center to {center}, width to {width}, and stepsize to {ss} in {self.prefix}."
+                f"Set center to {center}, width to {width}, and stepsize to {ss} "
+                f"in {self.prefix}."
             )
         except Exception as e:
             logger.error(
@@ -67,44 +86,56 @@ class ScanRecord(SscanRecord):
         ]
         for detTri, pv_name in zip(trigger_list, trigger_pvs, strict=False):
             yield from bps.mv(detTri, pv_name)
-            logger.info(f"Set {detTri.pvname} to {pv_name} in {self.prefix}.")
+            logger.info(
+                f"Set {detTri.pvname} to {pv_name} in {self.prefix}."
+            )
 
     @mode_setter("scan_mode")
-    def set_scan_mode(self, mode):
+    def set_scan_mode(self, mode: str) -> None:
+        """Set the scan mode for the scan record."""
         pass
 
     @mode_setter("scan_movement")
-    def set_rel_abs_motion(self, mode):
+    def set_rel_abs_motion(self, mode: str) -> None:
+        """Set the relative or absolute motion mode for the scan record."""
         pass
 
     @value_setter("center")
-    def set_center(self, value):
+    def set_center(self, value: float) -> None:
+        """Set the center value for the scan record."""
         pass
 
     @value_setter("width")
-    def set_width(self, width):
+    def set_width(self, width: float) -> None:
+        """Set the width value for the scan record."""
         pass
 
     @value_setter("stepsize")
-    def set_stepsize(self, stepsize):
+    def set_stepsize(self, stepsize: float) -> None:
+        """Set the stepsize value for the scan record."""
         pass
 
     @value_setter("number_points")
-    def set_numpts(self, numpts):
+    def set_numpts(self, numpts: int) -> None:
+        """Set the number of points for the scan record."""
         pass
 
     @value_setter("pos_drive")
-    def set_positioner_drive(self, positioner_pv):
+    def set_positioner_drive(self, positioner_pv: str) -> None:
+        """Set the positioner drive PV for the scan record."""
         pass
 
     @value_setter("pos_readback")
-    def set_positioner_readback(self, positioner_rbv):
+    def set_positioner_readback(self, positioner_rbv: str) -> None:
+        """Set the positioner readback PV for the scan record."""
         pass
 
     @value_setter("bspv")
-    def set_bspv(self, beforescan_pv):
+    def set_bspv(self, beforescan_pv: str) -> None:
+        """Set the before-scan PV for the scan record."""
         pass
 
     @value_setter("aspv")
-    def set_aspv(self, afterscan_pv):
+    def set_aspv(self, afterscan_pv: str) -> None:
+        """Set the after-scan PV for the scan record."""
         pass

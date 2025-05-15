@@ -1,6 +1,5 @@
 """
-Creating a general scan 1D function that can be modify to perform either
-fly / step scans and also drive different positioners
+General 1D scan plan for Bluesky, supporting fly/step scans and multiple positioners.
 
 @author: yluo(grace227)
 
