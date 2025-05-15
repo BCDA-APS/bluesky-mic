@@ -25,7 +25,8 @@ class ScanRecord(SscanRecord):
     ScanRecord device for controlling scan parameters and triggers in Bluesky workflows.
 
     This module defines the ScanRecord class, which extends SscanRecord and provides
-    methods for configuring scan parameters, triggers, and related PVs for the id2_d instrument.
+    methods for configuring scan parameters, triggers, and related PVs for the id2_d
+    instrument.
     """
 
     scan_mode = Component(EpicsSignal, ".P1SM")
@@ -61,7 +62,9 @@ class ScanRecord(SscanRecord):
             Stepsize value.
         """
         try:
-            # yield from bps.mv(self.center, center, self.width, width, self.stepsize, ss)
+            # yield from bps.mv(
+            #     self.center, center, self.width, width, self.stepsize, ss
+            # )
             yield from bps.mv(self.center, center)
             yield from bps.mv(self.width, width)
             yield from bps.mv(self.stepsize, ss)
@@ -86,9 +89,7 @@ class ScanRecord(SscanRecord):
         ]
         for detTri, pv_name in zip(trigger_list, trigger_pvs, strict=False):
             yield from bps.mv(detTri, pv_name)
-            logger.info(
-                f"Set {detTri.pvname} to {pv_name} in {self.prefix}."
-            )
+            logger.info(f"Set {detTri.pvname} to {pv_name} in {self.prefix}.")
 
     @mode_setter("scan_mode")
     def set_scan_mode(self, mode: str) -> None:

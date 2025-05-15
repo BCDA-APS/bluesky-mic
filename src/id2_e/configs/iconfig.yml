@@ -52,7 +52,7 @@ DETECTOR:
     IMAGE_DIR: "sub/directory/path"
     HDF5_FILE_TEMPLATE: "%s%s_%6.6d.h5"
     FILE_DELIMITER: "2ide"
-  
+
     XMAP_4Chan:
       NAME: xrf
       PV_PREFIX: "dxpXMAP2xfm3:"
@@ -68,7 +68,7 @@ DETECTOR:
       PV_PREFIX: "2ideEGR:cam1:"
       # HDF5_PV_PREFIX: ""
       HDF5_PV_PREFIX: "2ideEGR:HDF1:"
-      
+
 
 
 USERCALC:

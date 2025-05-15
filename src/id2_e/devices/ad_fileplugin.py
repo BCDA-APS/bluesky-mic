@@ -5,19 +5,20 @@ Created on Dec 03 2024
 @author: yluo (grace227)
 """
 
+import logging
+import os
+
 from ophyd.areadetector.plugins import HDF5Plugin
 from ophyd.areadetector.plugins import NetCDFPlugin
-from ..devices.utils import mode_setter, value_setter
-import os
-import logging
 
+from ..devices.utils import mode_setter
+from ..devices.utils import value_setter
 
 logger = logging.getLogger(__name__)
 logger.info(__file__)
 
 
 class DetBase:
-
     micdata_mountpath = ""
 
     def __init__(self, *args, **kwargs):

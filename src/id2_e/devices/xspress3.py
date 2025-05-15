@@ -5,19 +5,20 @@ Created on Dec 04 2024
 @author: yluo (grace227)
 """
 
-from ophyd.areadetector.cam import Xspress3DetectorCam
-from ..devices.utils import mode_setter, value_setter
-from ophyd import EpicsSignal, Component
-import bluesky.plan_stubs as bps
 import logging
-import os
+
+from ophyd import Component
+from ophyd import EpicsSignal
+from ophyd.areadetector.cam import Xspress3DetectorCam
+
+from ..devices.utils import mode_setter
+from ..devices.utils import value_setter
 
 logger = logging.getLogger(__name__)
 logger.info(__file__)
 
 
 class Xspress3(Xspress3DetectorCam):
-
     erase_on_start = Component(EpicsSignal, "EraseOnStart")
 
     def __init__(self, *args, **kwargs):

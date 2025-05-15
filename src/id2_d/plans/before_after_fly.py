@@ -144,7 +144,9 @@ def setup_eiger_filewriter(
 
 #     #     # yield from xrf_netcdf.set_capture("done")
 #     #     # yield from xrf_netcdf.set_num_capture(num_capture)
-#     #     # yield from xrf_netcdf.set_filename(savedata.get().full_name.replace(".mda", "_"))
+#     #     # yield from xrf_netcdf.set_filename(
+#     #     #     savedata.get().full_name.replace(".mda", "_")
+#     #     # )
 #     #     # yield from xrf_netcdf.set_filenumber(0)
 #     #     # yield from xrf.set_collection_mode("MCA MAPPING")
 

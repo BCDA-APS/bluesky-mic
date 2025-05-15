@@ -11,32 +11,21 @@ __all__ = """
 """.split()
 
 import logging
-import os
-from mic_instrument.plans.generallized_scan_1d import generalized_scan_1d
-from mic_instrument.plans.before_after_fly import (
-    setup_flyscan_XRF_triggers,
-    setup_flyscan_ptycho_triggers,
-    setup_eiger_filewriter,
-)
-from ..utils.scan_monitor import execute_scan_2d
-from .workflow_plan import run_workflow
-from ..utils.dm_utils import dm_upload_wait
-from mic_instrument.devices.data_management import api
-from apstools.devices import DM_WorkflowConnector
-from .dm_plans import dm_submit_workflow_job
-from mic_instrument.configs.device_config import (
-    fscan1,
-    fscanh,
-    fscanh_samx,
-    samy,
-    savedata,
-    sis3820,
-    netcdf_delimiter,
-    fscanh_dwell,
-)
-from mic_instrument.plans.helper_funcs import selected_dets, calculate_num_capture
-import bluesky.plan_stubs as bps
 
+import bluesky.plan_stubs as bps
+from mic_instrument.configs.device_config import fscan1
+from mic_instrument.configs.device_config import fscanh
+from mic_instrument.configs.device_config import fscanh_dwell
+from mic_instrument.configs.device_config import fscanh_samx
+from mic_instrument.configs.device_config import netcdf_delimiter
+from mic_instrument.configs.device_config import samy
+from mic_instrument.configs.device_config import savedata
+from mic_instrument.configs.device_config import sis3820
+from mic_instrument.plans.before_after_fly import setup_flyscan_ptycho_triggers
+from mic_instrument.plans.generallized_scan_1d import generalized_scan_1d
+from mic_instrument.plans.helper_funcs import selected_dets
+
+from ..utils.scan_monitor import execute_scan_2d
 
 logger = logging.getLogger(__name__)
 logger.info(__file__)
@@ -135,10 +124,10 @@ def fly2d(
                 yield from setup_flyscan_ptycho_triggers(
                     fscan1, fscanh, cam, eiger_filewriter=file_plugin
                 )
-                yield from cam.scan_init(dwell/1e3, num_pulses, ptycho_exp_factor)
+                yield from cam.scan_init(dwell / 1e3, num_pulses, ptycho_exp_factor)
 
                 if file_plugin is not None:
-                    #If an hdf5 file plugin is used, we need to disable the Eiger's default file writer.
+                    # If an hdf5 file plugin is used, we need to disable the Eiger's default file writer.
                     yield from cam.set_file_writer_enable("Disable")
 
                     next_file_number_str = str(savedata.next_scan_number.get()).zfill(3)
@@ -163,10 +152,11 @@ def fly2d(
     """Start executing scan"""
 
     # yield from bps.sleep(1)
-    yield from execute_scan_2d(fscanh, fscan1, scan_name=savedata.next_file_name,
-                               print_outter_msg=True)
+    yield from execute_scan_2d(
+        fscanh, fscan1, scan_name=savedata.next_file_name, print_outter_msg=True
+    )
 
-    # Restore the previous scan record triggers 
+    # Restore the previous scan record triggers
     logger.info("Restoring the previous scan record triggers before exiting the plan")
     yield from fscan1.restore_detTriggers()
     yield from fscanh.restore_detTriggers()

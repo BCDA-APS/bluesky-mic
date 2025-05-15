@@ -5,14 +5,16 @@ Created on Oct 16 2024
 @author: yluo (grace227)
 """
 
-
-from apstools.synApps import SscanRecord
-from ophyd import EpicsSignal, Component
-from epics import PV
-from ..devices.utils import mode_setter, value_setter
-import bluesky.plan_stubs as bps
 import logging
 
+import bluesky.plan_stubs as bps
+from apstools.synApps import SscanRecord
+from epics import PV
+from ophyd import Component
+from ophyd import EpicsSignal
+
+from ..devices.utils import mode_setter
+from ..devices.utils import value_setter
 
 logger = logging.getLogger(__name__)
 logger.info(__file__)
@@ -34,11 +36,10 @@ class ScanRecord(SscanRecord):
     detTrigger_3 = Component(EpicsSignal, ".T3PV")
     detTrigger_4 = Component(EpicsSignal, ".T4PV")
 
-    detTrigger_1_old = ''
-    detTrigger_2_old = ''
-    detTrigger_3_old = ''
-    detTrigger_4_old = ''
-
+    detTrigger_1_old = ""
+    detTrigger_2_old = ""
+    detTrigger_3_old = ""
+    detTrigger_4_old = ""
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -72,7 +73,7 @@ class ScanRecord(SscanRecord):
             self.detTrigger_3,
             self.detTrigger_4,
         ]
-        for detTri, pv_name in zip(trigger_list, trigger_pvs):
+        for detTri, pv_name in zip(trigger_list, trigger_pvs, strict=False):
             yield from bps.mv(detTri, pv_name)
             logger.info(f"Set {detTri.pvname} to {pv_name} in {self.prefix}.")
 
@@ -87,10 +88,16 @@ class ScanRecord(SscanRecord):
         Restore the detector triggers to the previous values.
         This function assumes that the old values are saved
         """
-        yield from bps.mv(self.detTrigger_1, self.detTrigger_1_old,
-                          self.detTrigger_2, self.detTrigger_2_old,
-                          self.detTrigger_3, self.detTrigger_3_old,
-                          self.detTrigger_4, self.detTrigger_4_old)
+        yield from bps.mv(
+            self.detTrigger_1,
+            self.detTrigger_1_old,
+            self.detTrigger_2,
+            self.detTrigger_2_old,
+            self.detTrigger_3,
+            self.detTrigger_3_old,
+            self.detTrigger_4,
+            self.detTrigger_4_old,
+        )
 
     @mode_setter("scan_mode")
     def set_scan_mode(self, mode):

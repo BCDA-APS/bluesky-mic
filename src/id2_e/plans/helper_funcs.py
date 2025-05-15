@@ -26,7 +26,9 @@ def selected_dets(**kwargs):
             try:
                 dets.update({det_str: det_name_mapping[det_str]})
             except Exception as e:
-                print(f"Having issue connecting detector {det_str} or its file plugin: {e}")
+                print(
+                    f"Having issue connecting detector {det_str} or its file plugin: {e}"
+                )
                 dets.update({det_str: {"cam": None, "file_plugin": None}})
     return dets
 

@@ -4,7 +4,6 @@ from ophyd import Component
 from ophyd import Device
 from ophyd import EpicsSignal
 
-from ..utils.config_loaders import iconfig
 from ..utils.misc import run_subprocess
 
 

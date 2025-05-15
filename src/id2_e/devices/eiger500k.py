@@ -9,11 +9,14 @@ acquisition parameters for the detector.
 
 """
 
-from ophyd import EigerDetectorCam
-from mic_instrument.devices.utils import mode_setter, value_setter
-from ophyd import Component, EpicsSignal
 import logging
 import os
+
+from mic_instrument.devices.utils import mode_setter
+from mic_instrument.devices.utils import value_setter
+from ophyd import Component
+from ophyd import EigerDetectorCam
+from ophyd import EpicsSignal
 
 logger = logging.getLogger(__name__)
 logger.info(__file__)
@@ -31,7 +34,6 @@ class Eiger500k(EigerDetectorCam):
     num_images_per_file = Component(EpicsSignal, "FWNImagesPerFile")
     file_name_pattern = Component(EpicsSignal, "FWNamePattern")
     save_files = Component(EpicsSignal, "SaveFiles")
-
 
     def scan_init(self, exposure_time, num_images, ptycho_exp_factor):
         """
@@ -55,10 +57,9 @@ class Eiger500k(EigerDetectorCam):
             yield from self.setup_external_enable_trigger(num_images)
         elif trigger_mode == "External Series":
             yield from self.setup_external_series_trigger(num_images)
-        
+
         yield from self.set_acquire_period(exposure_time)
         yield from self.set_acquire_time(exposure_time / ptycho_exp_factor)
-    
 
     def sync_file_path(self, savedatapath, delimiter):
         """
@@ -90,7 +91,7 @@ class Eiger500k(EigerDetectorCam):
         This is essentially the same as the setup_external_series_trigger function.
         """
         yield from self.setup_external_series_trigger(num_triggers)
-    
+
     def setup_external_enable_trigger(self, num_triggers):
         """
         Set up the external enable trigger for the detector.
@@ -115,7 +116,6 @@ class Eiger500k(EigerDetectorCam):
         )  # Set the number of images to the number of triggers
         yield from self.set_num_triggers(1)  # Set the number of triggers to 1
 
-
     def setup_eiger_filewriter(self, savedata, det_name, filename, beamline_delimiter):
         """
         Set up the default Eiger filewriter.
@@ -137,7 +137,6 @@ class Eiger500k(EigerDetectorCam):
             self.ready = True
         else:
             logger.error(f"File path {newpath} does not exist")
-
 
     @mode_setter("file_writer_enable")
     def set_file_writer_enable(self, mode):

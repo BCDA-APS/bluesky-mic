@@ -15,15 +15,13 @@ TetrAMM, Caen picoammeter.
 
 from bluesky import plan_stubs as bps
 from ophyd import Component as Cpt
-from ophyd import Device
-from ophyd import EpicsSignal, EpicsSignalWithRBV
+from ophyd import EpicsSignalWithRBV
 from ophyd import TetrAMM
 
 TETRAMMCLOCK = 100000  # unit in Hz
 
 
 class S19TetraMM(TetrAMM):
-
     trigger_polarity = Cpt(EpicsSignalWithRBV, "TriggerPolarity")
     fast_avg_time = Cpt(EpicsSignalWithRBV, "FastAveragingTime")
     netcdf_enable = Cpt(EpicsSignalWithRBV, "netCDF1:EnableCallbacks")
@@ -65,9 +63,9 @@ class S19TetraMM(TetrAMM):
             self.file_write_mode,
             2,  # NetCDF file write mode to Strea
             self.file_format,
-            f"%s%s_%05d.nc",  # Set default NetCDF file formatter
+            "%s%s_%05d.nc",  # Set default NetCDF file formatter
             self.file_name,
-            f"19ide_",  # Set it up for ISN (19ide)
+            "19ide_",  # Set it up for ISN (19ide)
         )
 
     def setup_scan(self, pts, dwell):
