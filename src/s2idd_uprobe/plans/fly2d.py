@@ -13,7 +13,6 @@ __all__ = """
 import logging
 
 import bluesky.plan_stubs as bps
-
 from isn.configs.device_config import fscan1
 from isn.configs.device_config import fscanh
 from isn.configs.device_config import fscanh_dwell
