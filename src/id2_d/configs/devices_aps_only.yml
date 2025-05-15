@@ -4,3 +4,8 @@
 
 apstools.devices.ApsMachineParametersDevice:
   - name: aps
+id2_d.devices.tetramm.TetraMM:
+- name: tetramm1
+  prefix:  "2iddtmm1:"
+- name: tetramm2
+  prefix: "2iddtmm2:"

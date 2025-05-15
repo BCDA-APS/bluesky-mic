@@ -1,5 +1,5 @@
-from s19.devices.utils import mode_setter
-from s19.devices.utils import value_setter
+from mic_common.utils.device_utils import mode_setter
+from mic_common.utils.device_utils import value_setter
 from ophyd import Component
 from ophyd import Device
 from ophyd import EpicsSignal

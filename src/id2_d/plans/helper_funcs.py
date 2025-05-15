@@ -15,7 +15,7 @@ from s19.configs.device_config import det_name_mapping
 
 def move_to_position(motor, position, tol=0.01):
     """
-    Move a motor to a position with a tolerance test
+    Move a motor to a position with a tolerance
     """
     in_position = False
     yield from bps.mv(motor, position)

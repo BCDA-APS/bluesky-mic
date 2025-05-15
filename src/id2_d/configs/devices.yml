@@ -8,7 +8,7 @@ apstools.devices.SimulatedApsPssShutterWithStatus:
 - name: shutter
   labels: ["shutters"]
 
-mic_instrument.devices.scan_record.ScanRecord:
+id2_d.devices.scan_record.ScanRecord:
 - name: scan1
   prefix: "2idd:scan1"
 - name: scan2
@@ -18,7 +18,7 @@ mic_instrument.devices.scan_record.ScanRecord:
 - name: fscanh
   prefix: "2idd:FscanH"
 
-mic_instrument.devices.save_data.SaveDataMic:
+mic_common.devices.save_data.SaveDataMic:
 - name: savedata
   prefix: "2idd:saveData_"
 
@@ -35,29 +35,25 @@ ophyd.EpicsMotor:
 
 ophyd.EpicsSignal:
 - name: fscanh_samx
-  prefix: "2idd:userCalc9.A"
+  write_pv: "2idd:userCalc9.A"
+  read_pv: "2idd:userCalc9.A"
 - name: fscanh_dwell
-  prefix: "2idd:Flyscans:Setup:DwellTime"
+  write_pv: "2idd:Flyscans:Setup:DwellTime"
+  read_pv: "2idd:Flyscans:Setup:DwellTime"
 
-mic_instrument.devices.sis3820.SIS3820:
+mic_common.devices.sis3820.SIS3820:
 - name: sis3820
   prefix: "2idd:3820:"
 
-mic_instrument.devices.tetramm.TetraMM:
-- name: tetramm1
-  prefix:  "2iddtmm1:"
-- name: tetramm2
-  prefix: "2iddtmm2:"
-
-mic_instrument.devices.kohzu.KohzuMono:
+id2_d.devices.kohzu.KohzuMono:
 - name: kohzu_mono
   prefix: "2ida2:"
 
-mic_instrument.devices.xrf.XMAP:
+mic_common.devices.xmap.XMAP:
 - name: xrf
   prefix: "2iddXMAP:"
 
-mic_instrument.devices.ad_fileplugin.DetNetCDF:
+mic_common.devices.ad_fileplugin.DetNetCDF:
 - name: xrf_netcdf
   prefix: "2iddXMAP:netCDF1:"
 - name: tetramm1_netcdf

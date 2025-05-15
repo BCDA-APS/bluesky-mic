@@ -17,7 +17,6 @@ from typing import Generator
 from ophyd import Component
 from ophyd import EigerDetectorCam
 from ophyd import EpicsSignal
-
 from s19.utils.device_utils import mode_setter
 from s19.utils.device_utils import value_setter
 

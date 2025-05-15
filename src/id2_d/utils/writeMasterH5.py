@@ -13,16 +13,22 @@ def write_master_h5(
     det_key: list = ["/entry", None, "/stream"],
 ):
     if master_path is None:
-        master_path = os.path.join(os.path.join(basedir, sample_name), f"{sample_name}_{master_filename}")
+        master_path = os.path.join(
+            os.path.join(basedir, sample_name), f"{sample_name}_{master_filename}"
+        )
 
     with h5py.File(master_path, "w") as f:
-        for det_name, file_ext, det_k in zip(det_names, det_file_ext, det_key, strict=False):
+        for det_name, file_ext, det_k in zip(
+            det_names, det_file_ext, det_key, strict=False
+        ):
             group = f.create_group(det_name)
             det_dir = os.path.join(*[basedir, sample_name, det_name])
             files = [fn for fn in os.listdir(det_dir) if file_ext in fn]
             if file_ext != ".nc":
                 for i, fn in enumerate(files):
-                    group[f"{fn}"] = h5py.ExternalLink(os.path.join(*[basedir, sample_name, det_name, fn]), det_k)
+                    group[f"{fn}"] = h5py.ExternalLink(
+                        os.path.join(*[basedir, sample_name, det_name, fn]), det_k
+                    )
             else:
                 group[f"{fn}"] = os.path.join(*[basedir, sample_name, det_name, fn])
 

@@ -10,7 +10,6 @@ import os
 
 from ophyd.areadetector.plugins import HDF5Plugin
 from ophyd.areadetector.plugins import NetCDFPlugin
-
 from s19.utils.device_utils import mode_setter
 from s19.utils.device_utils import value_setter
 
