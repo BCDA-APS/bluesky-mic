@@ -14,11 +14,11 @@ import os
 from typing import Any
 from typing import Generator
 
+from isn.utils.device_utils import mode_setter
+from isn.utils.device_utils import value_setter
 from ophyd import Component
 from ophyd import EigerDetectorCam
 from ophyd import EpicsSignal
-from s19.utils.device_utils import mode_setter
-from s19.utils.device_utils import value_setter
 
 logger = logging.getLogger(__name__)
 logger.info(__file__)

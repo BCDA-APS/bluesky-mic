@@ -1,0 +1,62 @@
+# Guarneri-style device YAML configuration
+
+apsbits.utils.sim_creator.predefined_device:
+- {creator: ophyd.sim.motor, name: sim_motor}
+- {creator: ophyd.sim.noisy_det, name: sim_det}
+
+apstools.devices.SimulatedApsPssShutterWithStatus:
+- name: shutter
+  labels: ["shutters"]
+
+mic_common.devices.scan_record.ScanRecord:
+- name: scan1
+  prefix: "2idd:scan1"
+- name: scan2
+  prefix: "2idd:scan2"
+- name: fscan1
+  prefix: "2idd:Fscan1"
+- name: fscanh
+  prefix: "2idd:FscanH"
+
+mic_common.devices.save_data.SaveDataMic:
+- name: savedata
+  prefix: "2idd:saveData_"
+
+ophyd.EpicsMotor:
+- name: samx
+  prefix: "2idd:m40"
+  labels: ["motor"]
+- name: samy
+  prefix: "2idd:m39"
+  labels: ["motor"]
+- name: samz
+  prefix: "2idd:m36"
+  labels: ["motor"]
+
+ophyd.EpicsSignal:
+- name: fscanh_samx
+  write_pv: "2idd:userCalc9.A"
+  read_pv: "2idd:userCalc9.A"
+- name: fscanh_dwell
+  write_pv: "2idd:Flyscans:Setup:DwellTime"
+  read_pv: "2idd:Flyscans:Setup:DwellTime"
+
+mic_common.devices.sis3820.SIS3820:
+- name: sis3820
+  prefix: "2idd:3820:"
+
+s2idd_uprobe.devices.kohzu.KohzuMono:
+- name: kohzu_mono
+  prefix: "2ida2:"
+
+mic_common.devices.xmap.XMAP:
+- name: xrf
+  prefix: "2iddXMAP:"
+
+mic_common.devices.ad_fileplugin.DetNetCDF:
+- name: xrf_netcdf
+  prefix: "2iddXMAP:netCDF1:"
+- name: tetramm1_netcdf
+  prefix: "2iddtmm1:netCDF1:"
+- name: tetramm2_netcdf
+  prefix: "2iddtmm2:netCDF1:"
