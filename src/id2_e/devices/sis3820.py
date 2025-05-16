@@ -6,9 +6,14 @@ from ..devices.utils import value_setter
 
 
 class SIS3820(Device):
-    num_ch_used = Component(EpicsSignal, "NuseAll")
-    stop_all = Component(EpicsSignal, "StopAll")
-    erase_start = Component(EpicsSignal, "EraseStart")
+    """Device class for SIS3820 scaler."""
+
+    def __init__(self, *args, **kwargs):
+        """Initialize SIS3820 with optional arguments."""
+        super().__init__(*args, **kwargs)
+        self.num_ch_used = Component(EpicsSignal, "NuseAll")
+        self.stop_all = Component(EpicsSignal, "StopAll")
+        self.erase_start = Component(EpicsSignal, "EraseStart")
 
     def before_flyscan(self, num_pts):
         yield from self.set_stop_all(1)

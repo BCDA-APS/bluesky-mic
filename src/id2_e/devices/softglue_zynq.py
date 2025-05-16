@@ -10,6 +10,8 @@ from ophyd import EpicsSignal
 
 
 class SoftGlueZynq(Device):
+    """Device class for SoftGlue Zynq at ID2-E beamline."""
+
     npts = Component(EpicsSignal, "SG:plsTrn-1_NPULSES")
     period = Component(EpicsSignal, "SG:plsTrn-1_PERIOD")
     width = Component(EpicsSignal, "SG:plsTrn-1_WIDTH")

@@ -29,7 +29,10 @@ def value_setter(attribute_name):
 
 
 class SimDet(SimDetectorCam):
+    """Simulated detector class for testing purposes."""
+
     def __init__(self, *args, **kwargs):
+        """Initialize SimDet with optional arguments."""
         super().__init__(*args, **kwargs)
 
 

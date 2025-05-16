@@ -21,6 +21,8 @@ logger.info(__file__)
 
 
 class ScanRecord(SscanRecord):
+    """EPICS SscanRecord device with additional scan and trigger utilities."""
+
     scan_mode = Component(EpicsSignal, ".P1SM")
     pos_drive = Component(EpicsSignal, ".P1PV")
     pos_readback = Component(EpicsSignal, ".R1PV")
@@ -42,6 +44,7 @@ class ScanRecord(SscanRecord):
     detTrigger_4_old = ""
 
     def __init__(self, *args, **kwargs):
+        """Initialize ScanRecord and save current detector triggers."""
         super().__init__(*args, **kwargs)
         self.P1PA = PV(f"{self.prefix}.P1PA")
         self.save_current_detTriggers()
@@ -59,10 +62,7 @@ class ScanRecord(SscanRecord):
             )
 
     def set_detTriggers(self, trigger_pvs):
-        """
-        Set detector triggers for the scan record.
-        """
-
+        """Set detector triggers for the scan record."""
         # Save the current detector triggers before setting new ones
         self.save_current_detTriggers()
 
@@ -78,16 +78,14 @@ class ScanRecord(SscanRecord):
             logger.info(f"Set {detTri.pvname} to {pv_name} in {self.prefix}.")
 
     def save_current_detTriggers(self):
+        """Save the current detector trigger values."""
         self.detTrigger_1_old = self.detTrigger_1.get()
         self.detTrigger_2_old = self.detTrigger_2.get()
         self.detTrigger_3_old = self.detTrigger_3.get()
         self.detTrigger_4_old = self.detTrigger_4.get()
 
     def restore_detTriggers(self):
-        """
-        Restore the detector triggers to the previous values.
-        This function assumes that the old values are saved
-        """
+        """Restore the detector triggers to the previous values."""
         yield from bps.mv(
             self.detTrigger_1,
             self.detTrigger_1_old,
@@ -101,40 +99,50 @@ class ScanRecord(SscanRecord):
 
     @mode_setter("scan_mode")
     def set_scan_mode(self, mode):
+        """Set the scan mode for the scan record."""
         pass
 
     @mode_setter("scan_movement")
     def set_rel_abs_motion(self, mode):
+        """Set the scan movement mode (relative or absolute)."""
         pass
 
     @value_setter("center")
     def set_center(self, value):
+        """Set the center value for the scan."""
         pass
 
     @value_setter("width")
     def set_width(self, width):
+        """Set the width value for the scan."""
         pass
 
     @value_setter("stepsize")
     def set_stepsize(self, stepsize):
+        """Set the stepsize value for the scan."""
         pass
 
     @value_setter("number_points")
     def set_numpts(self, numpts):
+        """Set the number of points for the scan."""
         pass
 
     @value_setter("pos_drive")
     def set_positioner_drive(self, positioner_pv):
+        """Set the positioner drive PV for the scan."""
         pass
 
     @value_setter("pos_readback")
     def set_positioner_readback(self, positioner_rbv):
+        """Set the positioner readback PV for the scan."""
         pass
 
     @value_setter("bspv")
     def set_bspv(self, beforescan_pv):
+        """Set the before-scan PV for the scan record."""
         pass
 
     @value_setter("aspv")
     def set_aspv(self, afterscan_pv):
+        """Set the after-scan PV for the scan record."""
         pass

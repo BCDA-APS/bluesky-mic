@@ -1,3 +1,5 @@
+"""Data management utilities for ID2-E beamline devices."""
+
 # from ..utils import logger
 import logging
 

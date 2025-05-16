@@ -8,6 +8,8 @@ from ..utils.misc import run_subprocess
 
 
 class PositionerStream(Device):
+    """Class for handling positioner stream operations."""
+
     reset_ = Component(EpicsSignal, "reset")
     start_ = Component(EpicsSignal, "start")
     stop_ = Component(EpicsSignal, "stop")
