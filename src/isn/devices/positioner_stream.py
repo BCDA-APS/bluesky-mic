@@ -2,11 +2,10 @@
 
 import subprocess
 
+from mic_common.utils.misc import run_subprocess
 from ophyd import Component
 from ophyd import Device
 from ophyd import EpicsSignal
-
-from mic_common.utils.misc import run_subprocess
 
 
 class PositionerStream(Device):
