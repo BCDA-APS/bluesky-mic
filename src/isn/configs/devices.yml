@@ -28,12 +28,7 @@ isn.devices.bda.BDA:
   axis: H
   labels: ["bda"]
 
-isn.devices.ring.Ring:
-- name: ring
-  prefix: S-DCCT
-  labels: ["ring"]
-
-isn.devices.scan_record.ScanRecord:
+mic_common.devices.scan_record.ScanRecord:
 - name: scan1
   prefix: 19idBLUE:scan1
 - name: scan2
@@ -67,15 +62,11 @@ isn.devices.my_motor_bundle.MyMotorBundle:
 - name: xz_motor
   prefix: 19idBLUE
 
-isn.devices.tetramm_test.Tetramm:
-- name: tetramm_1
-  prefix: 19idSFT:TetrAMM1
-
-isn.devices.xspress3.Xspress3:
+mic_common.devices.xspress3.Xspress3:
 - name: xrf_me7
   prefix: XSP3_7Chan:det1
 
-isn.devices.eiger1m.Eiger1M:
+mic_common.devices.eiger1m.Eiger1M:
 - name: ptycho
   prefix: 19idPTYCHO:cam1
 
