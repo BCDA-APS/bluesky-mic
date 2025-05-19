@@ -12,8 +12,8 @@ from ophyd import Device
 from ophyd import EpicsSignal
 from ophyd import EpicsSignalRO
 
-from ..utils.device_utils import mode_setter
-from ..utils.device_utils import value_setter
+from mic_common.utils.device_utils import mode_setter
+from mic_common.utils.device_utils import value_setter
 
 
 class XMAP(Device):

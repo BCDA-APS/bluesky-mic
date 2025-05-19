@@ -4,7 +4,7 @@ from ophyd import Component
 from ophyd import Device
 from ophyd import EpicsSignal
 
-from ..utils.device_utils import value_setter
+from mic_common.utils.device_utils import value_setter
 
 
 class SIS3820(Device):

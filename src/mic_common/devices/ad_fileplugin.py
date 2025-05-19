@@ -11,8 +11,8 @@ import os
 from ophyd.areadetector.plugins import HDF5Plugin
 from ophyd.areadetector.plugins import NetCDFPlugin
 
-from ..utils.device_utils import mode_setter
-from ..utils.device_utils import value_setter
+from mic_common.utils.device_utils import mode_setter
+from mic_common.utils.device_utils import value_setter
 
 logger = logging.getLogger(__name__)
 logger.info(__file__)

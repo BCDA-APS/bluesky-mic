@@ -13,9 +13,9 @@ from ophyd import Component
 from ophyd import EpicsSignal
 from ophyd.areadetector.cam import Xspress3DetectorCam
 
-from ..utils.device_utils import mode_setter
-from ..utils.device_utils import value_setter
-from ..utils.writeDetH5 import write_det_h5
+from mic_common.utils.device_utils import mode_setter
+from mic_common.utils.device_utils import value_setter
+from mic_common.utils.writeDetH5 import write_det_h5
 
 logger = logging.getLogger(__name__)
 logger.info(__file__)

@@ -8,7 +8,7 @@ import logging
 
 from apstools.synApps import SaveData
 
-from ..utils.device_utils import value_setter
+from mic_common.utils.device_utils import value_setter
 
 logger = logging.getLogger(__name__)
 logger.info(__file__)
