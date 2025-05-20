@@ -13,26 +13,28 @@ __all__ = """
 import logging
 
 import bluesky.plan_stubs as bps
-from isn.configs.device_config import fscan1
-from isn.configs.device_config import fscanh
-from isn.configs.device_config import fscanh_dwell
-from isn.configs.device_config import fscanh_samx
-from isn.configs.device_config import netcdf_delimiter
-from isn.configs.device_config import samy
-from isn.configs.device_config import samz
-from isn.configs.device_config import savedata
-from isn.configs.device_config import sis3820
-from isn.plans.before_after_fly import setup_flyscan_XRF_triggers
-from isn.plans.generallized_scan_1d import generalized_scan_1d
-from isn.plans.helper_funcs import selected_dets
-from isn.plans.toggle_usercalc import disable_usercalc
-from isn.plans.toggle_usercalc import enable_usercalc
-from isn.utils.scan_monitor import execute_scan_2d
+from apsbits.core.instrument_init import oregistry
+from mic_common.utils.scan_monitor import execute_scan_2d
+
+from s2idd_uprobe.plans.before_after_fly import setup_flyscan_XRF_triggers
+from s2idd_uprobe.plans.generallized_scan_1d import generalized_scan_1d
+from s2idd_uprobe.plans.helper_funcs import selected_dets
+from s2idd_uprobe.plans.toggle_usercalc import disable_usercalc
+from s2idd_uprobe.plans.toggle_usercalc import enable_usercalc
 
 logger = logging.getLogger(__name__)
-logger.info(__file__)
 
 det_foldername = {"xrf": "flyXRF", "preamp1": "tetramm", "preamp2": "tetramm2"}
+
+fscan1 = oregistry["fscan1"]
+fscanh = oregistry["fscanh"]
+fscanh_dwell = oregistry["fscanh_dwell"]
+fscanh_samx = oregistry["fscanh_samx"]
+netcdf_delimiter = oregistry["netcdf_delimiter"]
+samy = oregistry["samy"]
+samz = oregistry["samz"]
+savedata = oregistry["savedata"]
+sis3820 = oregistry["sis3820"]
 
 
 def fly2d(

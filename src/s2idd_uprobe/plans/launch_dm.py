@@ -25,10 +25,10 @@ import logging
 import bluesky.plan_stubs as bps
 from apstools.devices import DM_WorkflowConnector
 
-from ..configs.device_config import ptychodus_dm_args
-from ..configs.device_config import ptychoxrf_dm_args
-from ..configs.device_config import xrf_dm_args
-from ..devices.data_management import api
+from s2idd_uprobe.configs.dm_workflow_configs import ptychodus_dm_args
+from s2idd_uprobe.configs.dm_workflow_configs import ptychoxrf_dm_args
+from s2idd_uprobe.configs.dm_workflow_configs import xrf_dm_args
+
 from .dm_plans import dm_submit_workflow_job
 
 logger = logging.getLogger(__name__)

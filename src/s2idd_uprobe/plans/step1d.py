@@ -12,10 +12,11 @@ __all__ = """
 
 import logging
 
-from ..configs.device_config import samx
-from ..configs.device_config import savedata
-from ..configs.device_config import scan1
-from ..utils.scan_monitor import execute_scan_1d
+# from s2idd_uprobe.configs.dm_workflow_configs import samx
+# from s2idd_uprobe.configs.dm_workflow_configs import savedata
+# from s2idd_uprobe.configs.dm_workflow_configs import scan1
+from mic_common.utils.scan_monitor import execute_scan_1d
+
 from .generallized_scan_1d import generalized_scan_1d
 
 logger = logging.getLogger(__name__)

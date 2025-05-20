@@ -11,12 +11,16 @@ __all__ = """
 """.split()
 
 import bluesky.plan_stubs as bps
-from isn.configs.device_config import samx
-from isn.configs.device_config import samy
-from isn.configs.device_config import savedata
-from isn.configs.device_config import scan1
-from isn.configs.device_config import xrf
-from isn.utils.scan_monitor import execute_scan_1d
+from apsbits.core.instrument_init import oregistry
+from mic_common.utils.scan_monitor import execute_scan_1d
+
+scan1 = oregistry["scan1"]
+samx = oregistry["samx"]
+samy = oregistry["samy"]
+samz = oregistry["samz"]
+savedata = oregistry["savedata"]
+xrf = oregistry["xrf"]
+xrf_netcdf = oregistry["xrf_netcdf"]
 
 
 def xane_spec(

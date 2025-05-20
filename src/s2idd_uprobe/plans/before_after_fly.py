@@ -27,7 +27,6 @@ import logging
 
 
 logger = logging.getLogger(__name__)
-logger.info(__file__)
 
 # SCAN_OVERHEAD = 0.3
 # XMAP_BUFFER = 124

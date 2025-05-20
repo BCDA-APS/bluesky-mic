@@ -11,9 +11,9 @@ __all__ = """
 
 import logging
 
-from isn.configs.device_config import savedata
-from isn.configs.device_config import scan_overhead
-from isn.utils.scan_monitor import execute_scan_1d
+from apsbits.core.instrument_init import oregistry
+from apsbits.utils.config_loaders import get_config
+from mic_common.utils.scan_monitor import execute_scan_1d
 
 # from mic_instrument.plans.dm_plans import dm_submit_workflow_job
 # from .workflow_plan import run_workflow
@@ -24,9 +24,12 @@ from isn.utils.scan_monitor import execute_scan_1d
 # import bluesky.plan_stubs as bps
 # import os
 
+iconfig = get_config()
 
 logger = logging.getLogger(__name__)
-logger.info(__file__)
+
+scan_overhead = iconfig["POSITIONERS"]["scan_overhead"]
+savedata = oregistry["savedata"]
 
 
 def generalized_scan_1d(
@@ -43,7 +46,6 @@ def generalized_scan_1d(
     Generalized scan 1D function that can be modify to perform either
     fly / step scans and also drive different positioners
     """
-
     logger.info(f"Using {scanrecord.prefix} as the scanRecord")
     logger.info(f"Using {positioner} as the motor")
     if scanrecord.connected and positioner.connected:

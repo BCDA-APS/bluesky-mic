@@ -15,7 +15,6 @@ import logging
 import bluesky.plan_stubs as bps
 
 logger = logging.getLogger(__name__)
-logger.info(__file__)
 
 
 def dummy_testing(

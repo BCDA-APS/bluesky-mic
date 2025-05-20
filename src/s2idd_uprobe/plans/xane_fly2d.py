@@ -13,9 +13,11 @@ __all__ = """
 import logging
 
 import bluesky.plan_stubs as bps
-from isn.configs.device_config import kohzu
-from isn.plans.fly2d import fly2d
+from apsbits.core.instrument_init import oregistry
 
+from s2idd_uprobe.plans.fly2d import fly2d
+
+kohzu = oregistry["kohzu_mono"]
 # from mic_instrument.plans.generallized_scan_1d import generalized_scan_1d
 # from mic_instrument.plans.before_after_fly import setup_flyscan_XRF_triggers
 # from mic_instrument.utils.scan_monitor import execute_scan_2d

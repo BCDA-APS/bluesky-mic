@@ -104,3 +104,10 @@ RE(make_devices(clear=False, file="devices.yml"))  # Create the devices.
 
 if host_on_aps_subnet():
     RE(make_devices(clear=False, file="device_aps_only.yml"))
+
+micdata_mountpath = iconfig.get("STORAGE")["PATH"]
+netcdf_devices = ["xrf_netcdf", "tetramm1_netcdf", "tetramm2_netcdf"]
+
+for device_name in netcdf_devices:
+    device = oregistry[device_name]
+    device.micdata_mountpath = micdata_mountpath

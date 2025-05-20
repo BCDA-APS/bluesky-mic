@@ -4,6 +4,7 @@ __all__ = """
     pm1
 """.split()
 
+from apsbits.utils.config_loaders import get_config
 from bluesky import plan_stubs as bps
 from epics import caput  # FIXME: refactor with bps.mv
 from ophyd import Component
@@ -11,7 +12,7 @@ from ophyd import Device
 from ophyd import EpicsSignal
 from ophyd import EpicsSignalRO
 
-from ..utils.config_loaders import iconfig
+iconfig = get_config()
 
 
 class ProfileMove(Device):

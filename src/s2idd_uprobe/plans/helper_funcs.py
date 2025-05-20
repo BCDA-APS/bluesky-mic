@@ -10,7 +10,10 @@ __all__ = """
 """.split()
 
 import bluesky.plan_stubs as bps
-from isn.configs.device_config import det_name_mapping
+from apsbits.utils.config_loaders import get_config
+
+iconfig = get_config()
+xmap_buffer = iconfig.get("DETECTOR")["XMAP_1Chan"]["BUFFER"]
 
 
 def move_to_position(motor, position, tol=0.01):

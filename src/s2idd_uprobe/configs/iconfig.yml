@@ -52,6 +52,24 @@ SPEC_DATA_FILES:
 STORAGE:
   PATH: "/mnt/micdata1"
 
+POSITIONERS:
+  SCAN_OVERHEAD: 0.3
+
+DETECTOR:
+    XMAP_1Chan:
+      BUFFER: 124
+
+USERCALC:
+  FSCANH_POSITIONER: "2idd:userCalc9.A"
+  FSCANH_DWELL: "2idd:Flyscans:Setup:DwellTime"
+
+USERCALC_DISABLE:
+  TETRAMM1_FILENAME: "2iddfS1:userStringCalc1Enable"
+  TETRAMM1_FILETEMPLATE: "2iddfS1:userStringCalc2Enable"
+  TETRAMM2_FILENAME: "2iddfS1:userStringCalc4Enable"
+  TETRAMM2_FILETEMPLATE: "2iddfS1:userStringCalc5Enable"
+  XMAP_FILENAME: "2iddfS1:userStringCalc7Enable"
+
 ### APS Data Management
 ### Use bash shell, deactivate all conda environments, source this file:
 DM_SETUP_FILE: "/home/dm_id/etc/dm.setup.sh"
