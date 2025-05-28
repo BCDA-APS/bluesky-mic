@@ -13,25 +13,27 @@ __all__ = """
 import logging
 
 import bluesky.plan_stubs as bps
+from apsbits.core.instrument_init import oregistry
 
-from isn.configs.device_config import fscan1
-from isn.configs.device_config import fscanh
-from isn.configs.device_config import fscanh_dwell
-from isn.configs.device_config import fscanh_samx
-from isn.configs.device_config import netcdf_delimiter
-from isn.configs.device_config import samy
-from isn.configs.device_config import savedata
-from isn.configs.device_config import sis3820
 from isn.plans.before_after_fly import setup_eiger_filewriter
 from isn.plans.before_after_fly import setup_flyscan_ptycho_triggers
 from isn.plans.before_after_fly import setup_flyscan_XRF_triggers
 from isn.plans.generallized_scan_1d import generalized_scan_1d
 from isn.plans.helper_funcs import move_to_position
 from isn.plans.helper_funcs import selected_dets
-from isn.utils.scan_monitor import execute_scan_2d
+from mic_common.utils.scan_monitor import execute_scan_2d
 
 logger = logging.getLogger(__name__)
 logger.info(__file__)
+
+fscan1 = oregistry.get("fscan1")
+fscanh = oregistry.get("fscanh")
+fscanh_samx = oregistry.get("fscanh_samx")
+fscanh_dwell = oregistry.get("fscanh_dwell")
+samy = oregistry.get("samy")
+savedata = oregistry.get("savedata")
+sis3820 = oregistry.get("sis3820")
+netcdf_delimiter = oregistry.get("netcdf_delimiter")
 
 
 def fly2d(

@@ -12,11 +12,11 @@ __all__ = """
 
 import logging
 
-from ..configs.device_config import samx
-from ..configs.device_config import samy
-from ..configs.device_config import savedata
-from ..configs.device_config import scan1
-from ..configs.device_config import scan2
+from ..configs.dm_workflow_configs import samx
+from ..configs.dm_workflow_configs import samy
+from ..configs.dm_workflow_configs import savedata
+from ..configs.dm_workflow_configs import scan1
+from ..configs.dm_workflow_configs import scan2
 from ..utils.scan_monitor import execute_scan_2d
 from .generallized_scan_1d import generalized_scan_1d
 

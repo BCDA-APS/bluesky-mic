@@ -17,11 +17,11 @@ from pathlib import Path
 
 import h5py
 
-from isn.configs.device_config import master_file_yaml
-from isn.configs.device_config import netcdf_delimiter
-from isn.configs.device_config import samx
-from isn.configs.device_config import savedata
-from isn.configs.device_config import scan1
+from isn.configs.dm_workflow_configs import master_file_yaml
+from isn.configs.dm_workflow_configs import netcdf_delimiter
+from isn.configs.dm_workflow_configs import samx
+from isn.configs.dm_workflow_configs import savedata
+from isn.configs.dm_workflow_configs import scan1
 from isn.plans.generallized_scan_1d import generalized_scan_1d
 from isn.plans.helper_funcs import selected_dets
 from isn.utils.scan_monitor import execute_scan_1d

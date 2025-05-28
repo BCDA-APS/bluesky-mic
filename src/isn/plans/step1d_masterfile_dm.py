@@ -18,13 +18,13 @@ from pathlib import Path
 import h5py
 from apstools.devices import DM_WorkflowConnector
 
-from isn.configs.device_config import master_file_yaml
-from isn.configs.device_config import netcdf_delimiter
-from isn.configs.device_config import ptychoxrf_dm_args
-from isn.configs.device_config import samx
-from isn.configs.device_config import savedata
-from isn.configs.device_config import scan1
-from isn.configs.device_config import xrf_dm_args
+from isn.configs.dm_workflow_configs import master_file_yaml
+from isn.configs.dm_workflow_configs import netcdf_delimiter
+from isn.configs.dm_workflow_configs import ptychoxrf_dm_args
+from isn.configs.dm_workflow_configs import samx
+from isn.configs.dm_workflow_configs import savedata
+from isn.configs.dm_workflow_configs import scan1
+from isn.configs.dm_workflow_configs import xrf_dm_args
 from isn.devices.data_management import api
 from isn.plans.dm_plans import dm_submit_workflow_job
 from isn.plans.generallized_scan_1d import generalized_scan_1d

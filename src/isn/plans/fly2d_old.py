@@ -12,11 +12,11 @@ __all__ = """
 
 import logging
 
-from ..configs.device_config import fscan1
-from ..configs.device_config import fscanh
-from ..configs.device_config import fscanh_samx
-from ..configs.device_config import samy
-from ..configs.device_config import savedata
+from ..configs.dm_workflow_configs import fscan1
+from ..configs.dm_workflow_configs import fscanh
+from ..configs.dm_workflow_configs import fscanh_samx
+from ..configs.dm_workflow_configs import samy
+from ..configs.dm_workflow_configs import savedata
 from ..utils.scan_monitor import execute_scan_2d
 from .generallized_scan_1d import generalized_scan_1d
 

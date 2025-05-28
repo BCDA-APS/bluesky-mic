@@ -32,8 +32,8 @@ import logging
 import bluesky.plan_stubs as bps
 
 # from ophyd import Device, EpicsSignal, EpicsSignalRO, Component, EpicsMotor
-from isn.configs.device_config import scan1
-from isn.configs.device_config import scan2
+from isn.configs.dm_workflow_configs import scan1
+from isn.configs.dm_workflow_configs import scan2
 
 # import time
 # import os
