@@ -27,20 +27,20 @@ import bluesky.plan_stubs as bps
 from apsbits.utils.config_loaders import get_config
 from apsbits.utils.config_loaders import load_config_yaml
 from apstools.devices import DM_WorkflowConnector
-
-from ..devices.data_management import api
+from mic_common.devices.data_management import api
+from pathlib import Path
 from .dm_plans import dm_submit_workflow_job
 
 logger = logging.getLogger(__name__)
 logger.info(__file__)
 
 iconfig = get_config()
-instrument_path = iconfig["INSTRUMENT_PATH"]
+instrument_path = Path(iconfig["INSTRUMENT_PATH"])
 
 ## DM workflow config ##
-xrf_workflow_yaml_path = instrument_path / "configs" / "xrf_workflow.yml"
-ptychoxrf_workflow_yaml_path = instrument_path / "configs" / "ptycho_xrf_workflow.yml"
-ptychodus_workflow_yaml_path = instrument_path / "configs" / "ptychodus_workflow.yml"
+xrf_workflow_yaml_path = instrument_path / "xrf_workflow.yml"
+ptychoxrf_workflow_yaml_path = instrument_path / "ptycho_xrf_workflow.yml"
+ptychodus_workflow_yaml_path = instrument_path / "ptychodus_workflow.yml"
 
 xrf_dm_args = load_config_yaml(xrf_workflow_yaml_path)
 ptychoxrf_dm_args = load_config_yaml(ptychoxrf_workflow_yaml_path)

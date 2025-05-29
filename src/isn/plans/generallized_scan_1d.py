@@ -15,7 +15,7 @@ import logging
 from apsbits.utils.config_loaders import get_config
 from apsbits.utils.controls_setup import oregistry
 
-from isn.utils.scan_monitor import execute_scan_1d
+from mic_common.utils.scan_monitor import execute_scan_1d
 
 iconfig = get_config()
 

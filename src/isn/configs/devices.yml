@@ -16,6 +16,7 @@ isn.devices.hhl_mirrors.HHL_Mirrors:
 isn.devices.softgluezynq.SoftGlueZynq:
 - name: softglue
   prefix: acq_isn:SG
+  labels: ["softglue"]
 
 isn.devices.bda.BDA:
 - name: bda_vert
@@ -31,12 +32,15 @@ isn.devices.bda.BDA:
 mic_common.devices.scan_record.ScanRecord:
 - name: scan1
   prefix: 19idBLUE:scan1
+  labels: ["scanrecord"]
 - name: scan2
   prefix: 19idBLUE:scan2
+  labels: ["scanrecord"]
 
 mic_common.devices.save_data.SaveDataMic:
 - name: savedata
   prefix: 19idBLUE:saveData_
+  labels: ["scandata"]
 
 ophyd.EpicsMotor:
 - name: samx
@@ -65,10 +69,12 @@ isn.devices.my_motor_bundle.MyMotorBundle:
 mic_common.devices.xspress3.Xspress3:
 - name: xrf_me7
   prefix: XSP3_7Chan:det1
+  labels: ["detector"]
 
 mic_common.devices.eiger1m.Eiger1M:
 - name: ptycho
   prefix: 19idPTYCHO:cam1
+  labels: ["detector"]
 
 # isn.devices.tetramm.TetraMM:
 # - name: tetramm1
@@ -77,8 +83,10 @@ mic_common.devices.eiger1m.Eiger1M:
 mic_common.devices.ad_fileplugin.DetHDF5:
 - name: xrf_me7_hdf
   prefix: XSP3_7Chan:HDF1
+  labels: ["fileplugin"]
 - name: ptycho_hdf
   prefix: 19idPTYCHO:HDF1
+  labels: ["fileplugin"]
 - name: tetramm1_hdf
 
 mic_common.devices.ad_fileplugin.DetNetCDF:
