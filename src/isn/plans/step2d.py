@@ -11,20 +11,19 @@ __all__ = """
 """.split()
 
 import logging
-
-from ..configs.dm_workflow_configs import samx
-from ..configs.dm_workflow_configs import samy
-from ..configs.dm_workflow_configs import savedata
-from ..configs.dm_workflow_configs import scan1
-from ..configs.dm_workflow_configs import scan2
-from ..utils.scan_monitor import execute_scan_2d
+from apsbits.utils.controls_setup import oregistry
+from mic_common.utils.scan_monitor import execute_scan_2d
 from .generallized_scan_1d import generalized_scan_1d
-
 logger = logging.getLogger(__name__)
 logger.info(__file__)
 
-scanmode = "LINEAR"
+samx = oregistry["samx"]
+samy = oregistry["samy"]
+savedata = oregistry["savedata"]
+scan1 = oregistry["scan1"]
+scan2 = oregistry["scan2"]
 
+scanmode = "LINEAR"
 
 def step2d(
     samplename="smp1",
