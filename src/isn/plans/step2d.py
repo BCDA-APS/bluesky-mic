@@ -14,6 +14,8 @@ import logging
 from apsbits.utils.controls_setup import oregistry
 from mic_common.utils.scan_monitor import execute_scan_2d
 from .generallized_scan_1d import generalized_scan_1d
+from bluesky import plan_stubs as bps  
+
 logger = logging.getLogger(__name__)
 logger.info(__file__)
 
@@ -36,62 +38,77 @@ def step2d(
     stepsize_y=0,
     dwell=0,
     smp_theta=None,
-    simdet_on=False,
     xrf_on=True,
     ptycho_on=False,
     preamp_on=False,
-    fpga_on=False,
     position_stream=False,
     wf_run=False,
     analysisMachine="mona2",
-    eta=0,
 ):
     """2D Bluesky plan that drives the x- and y- sample motors in stepping mode using
-    ScanRecord"""
+    ScanRecord
+    
+    The plan will drive samx and samy to the requested x_center and y_center, 
+    and then perform a relative scan in the x and y directions.
+
+    Parameters
+    ----------
+    samplename: 
+        Str: The name of the sample
+    user_comments: 
+        Str: The user comments for the scan
+    width:
+        Float: The width of the scan
+    x_center:
+        Float: The center of the scan in the x direction. Default is None which uses the current position of samx
+    stepsize_x:
+        Float: The step size in the x direction
+    height:
+        Float: The height of the scan
+    y_center:
+        Float: The center of the scan in the y direction. Default is None which uses the current position of samy
+    stepsize_y:
+        Float: The step size in the y direction
+    dwell:
+        Float: The dwell time in the scan
+    smp_theta:
+        Float: The theta of the sample
+    xrf_on:
+        Bool: Whether to collect XRF data
+    ptycho_on:
+        Bool: Whether to collect Ptycho data
+    preamp_on:
+        Bool: Whether to collect Preamp data
+    position_stream:
+        Bool: Whether to collect position stream data
+    wf_run:
+        Bool: Whether to run the workflow
+    analysisMachine:
+        Str: The name of the analysis machine
+    """
 
     ##TODO Close shutter while setting up scan parameters
 
+    """Move to the requested x- and y- centers"""
+    logger.info("Moving to the requested x- and y- centers")
+    if x_center is not None:
+        yield from bps.mv(samx, x_center)
+    if y_center is not None:
+        yield from bps.mv(samy, y_center)
+
     """Set up the inner loop scan record based on the scan types and parameters"""
-    yield from generalized_scan_1d(scan1, samx, scanmode=scanmode, **locals())
+    yield from bps.mv(scan1.positioners.p1.abs_rel, "relative".upper())
+    yield from generalized_scan_1d(scan1, samx, scanmode=scanmode, x_center=0, width=width, 
+                                stepsize_x=stepsize_x, dwell=dwell)
 
     """Set up the outter loop scan record"""
     yield from scan2.set_scan_mode(scanmode)
-    yield from scan2.set_positioner_drive(f"{samy.prefix}.VAL")
-    yield from scan2.set_positioner_readback(f"{samy.prefix}.RBV")
-    yield from scan2.set_center_width_stepsize(y_center, height, stepsize_y)
+    yield from bps.mv(scan2.positioners.p1.abs_rel, "relative".upper())
+    yield from generalized_scan_1d(scan2, samy, scanmode=scanmode, x_center=0, width=height, 
+                            stepsize_x=stepsize_y, dwell=dwell)
 
     """Start executing scan"""
     savedata.update_next_file_name()
     yield from execute_scan_2d(scan1, scan2, scan_name=savedata.next_file_name)
 
-    #     #############################
-    #     # START THE APS DM WORKFLOW #
-    #     #############################
 
-    #     if wf_run:
-    #         dm_workflow = DM_WorkflowConnector(name=samplename, labels=("dm",))
-
-    #         if all([xrf_me7_on, ptycho_on]):
-    #             WORKFLOW = "ptycho-xrf"
-    #             argsDict = ptychoxrf_dm_args.copy()
-    #         elif xrf_me7_on:
-    #             WORKFLOW = "xrf-maps"
-    #             argsDict = xrf_dm_args.copy()
-    #         else:
-    #             WORKFLOW = "ptychodus"
-    #             argsDict = ptychodus_dm_args.copy()
-
-    #         ##TODO Modify argsDict accordingly based on the scan parameters
-    #         argsDict['analysisMachine'] = analysisMachine
-
-    #         yield from dm_submit_workflow_job(WORKFLOW, argsDict)
-    #         logger.info(f"{len(api.listProcessingJobs())=!r}")
-    #         logger.info("DM workflow Finished!")
-
-    #     logger.info("end of plan")
-
-    # else:
-    #     logger.info(f"Having issue connecting to scan record: {scan1.prefix}")
-
-    # # yield from bps.sleep(1)
-    # # print("end of plan")

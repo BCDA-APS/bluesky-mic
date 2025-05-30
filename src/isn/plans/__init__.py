@@ -20,7 +20,7 @@
 # from .sim_plans import sim_rel_scan_plan  # noqa: F401
 # from .step1d_masterfile import step1d_masterfile  # noqa: F401
 # from .step1d_masterfile_dm import step1d_masterfile_dm  # noqa: F401
-from .step2d import step2d  # noqa: F401
 
 ## Plans designed for ISN
-from .test import test_plan  # noqa: F401
+# from .test import test_plan  # noqa: F401
+from .step2d import step2d  # noqa: F401
