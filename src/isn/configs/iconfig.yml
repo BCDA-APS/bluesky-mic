@@ -58,8 +58,6 @@ STORAGE:
 
 FILE_DELIMITER: "19ID"
 SCAN_OVERHEAD: 0.3
-XMAP:
-    BUFFER: 1000
 
 ### APS Data Management
 ### Use bash shell, deactivate all conda environments, source this file:

@@ -30,6 +30,7 @@ class ScanRecord(SscanRecord):
     width = Component(EpicsSignal, ".P1WD")
     number_points_rbv = Component(EpicsSignal, ".CPT")
     start_position = Component(EpicsSignal, ".P1SP")
+    end_position = Component(EpicsSignal, ".P1EP")
 
     detTrigger_1 = Component(EpicsSignal, ".T1PV")
     detTrigger_2 = Component(EpicsSignal, ".T2PV")

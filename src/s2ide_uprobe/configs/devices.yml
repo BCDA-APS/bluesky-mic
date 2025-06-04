@@ -1,0 +1,79 @@
+# S2IDE Uprobe device YAML configuration
+
+mic_common.devices.scan_record.ScanRecord:
+- name: scan1
+  prefix: 2ideBS:scan1
+  labels: ["scanrecord"]
+- name: scan2
+  prefix: 2ideBS:scan2
+  labels: ["scanrecord"]
+- name: fscan1
+  prefix: 2ideBS:Fscan1
+  labels: ["scanrecord"]
+- name: fscanh
+  prefix: 2ideBS:FscanH
+  labels: ["scanrecord"]
+
+mic_common.devices.save_data.SaveDataMic:
+- name: savedata
+  prefix: 2ideBS:saveData_
+  labels: ["savedata"]
+
+ophyd.EpicsMotor:
+- name: samx
+  prefix: 2xfm:m57
+  labels: ["motor"]
+- name: samy
+  prefix: 2xfm:m13
+  labels: ["motor"]
+- name: samz
+  prefix: 2ideBS:m3
+  labels: ["motor"]
+
+mic_common.devices.eiger500k.Eiger500k:
+- name: ptycho
+  prefix: 2ideEGR:cam1
+  labels: ["detector"]
+
+mic_common.devices.ad_fileplugin.DetHDF5:
+- name: ptycho_hdf
+  prefix: 2ideEGR:HDF1
+  labels: ["fileplugin"]
+
+mic_common.devices.ad_fileplugin.DetNetCDF:
+- name: xrf_netcdf
+  prefix: dxpXMAP2xfm3:netCDF1
+  labels: ["fileplugin"]
+
+mic_common.devices.xmap.XMAP:
+- name: xrf
+  prefix: dxpXMAP2xfm3
+  labels: ["xmap"]
+
+mic_common.devices.sis3820.SIS3820:
+- name: sis3820
+  prefix: 2xfm:mcs
+  labels: ["sis3820"]
+
+s2ide_uprobe.devices.hydra.Hydra:
+- name: hydra
+  prefix: 2xfm:Hydra1
+  labels: ["hydra"]
+
+ophyd.EpicsSignal:
+- name: stepdwell
+  read_pv: 2xfm:userTran1.P
+  write_pv: 2xfm:userTran1.P
+  labels: ["signal"]
+- name: flydwell
+  read_pv: 2xfm:Flyscans:Setup:DwellTime.VAL
+  write_pv: 2xfm:Flyscans:Setup:DwellTime.VAL
+  labels: ["signal"]
+- name: fscanh_samx
+  read_pv: 2idsft:userCalc5.A
+  write_pv: 2idsft:userCalc5.A
+  labels: ["signal"]
+# - name: hydra_startposition
+#   read_pv: 2xfm:Hydra1:StartPosition.VAL
+#   write_pv: 2xfm:Hydra1:StartPosition.VAL
+#   labels: ["signal"]

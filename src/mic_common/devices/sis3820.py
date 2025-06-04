@@ -10,9 +10,12 @@ from mic_common.utils.device_utils import value_setter
 class SIS3820(Device):
     """SIS3820 scaler device."""
 
-    num_ch_used = Component(EpicsSignal, "NuseAll")
-    stop_all = Component(EpicsSignal, "StopAll")
-    erase_start = Component(EpicsSignal, "EraseStart")
+    num_ch_used = Component(EpicsSignal, ":NuseAll")
+    stop_all = Component(EpicsSignal, ":StopAll")
+    erase_start = Component(EpicsSignal, ":EraseStart")
+    acquiring = Component(EpicsSignal, ":Acquiring")
+    current_channel = Component(EpicsSignal, ":CurrentChannel")
+    elapsed_real = Component(EpicsSignal, ":ElapsedReal")
 
     def before_flyscan(self, num_pts):
         """Configure scaler before flyscan."""
