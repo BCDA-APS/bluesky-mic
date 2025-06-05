@@ -88,22 +88,37 @@ def hydra_config(hydra, fscanh):
     yield from hydra.set_send_parameters(1)
 
 
-def xmap_sis3820_config(xmap, sis3820, fscanh, xmap_buffer):
-    """Set up XMAP and SIS3820 based on the fscan1 parameters
+def sis3820_config(sis3820, fscanh):
+    """Set up SIS3820 based on the fscan1 parameters
     
     Parameters:
-        xmap: XMap
-            The XMAP device
         sis3820: SIS3820
             The SIS3820 device
         fscan1: FScan1
             The linear scan record
-        xmap_buffer: int
-            The buffer size for the XMAP
     """
 
     total_points = fscanh.number_points.get()
     total_trigger = total_points - 2
-    buffer_size = np.ceil(total_trigger/xmap_buffer)
+    yield from sis3820.set_stop_all(1)
     yield from sis3820.set_num_ch_used(total_trigger)
-    yield from xmap.set_pixels_per_run(total_trigger)
+
+
+def xmap_config(xrf, xrf_netcdf, fscanh):
+    """Set up XRF and XRF_NetCDF based on parameters in fscanh
+    
+    Parameters:
+        xrf: XRF
+            The XRF device
+        xrf_netcdf: XRF_NetCDF
+            The XRF_NetCDF fileplugin
+        fscanh: FScanH
+            The fly scan record
+    """
+    total_points = fscanh.number_points.get()
+    total_trigger = total_points - 2
+    # yield from xrf_netcdf.st
+    yield from xrf.set_pixels_per_run(total_trigger)
+    yield from xrf_netcdf.set_pixels_per_run(total_trigger)
+
+

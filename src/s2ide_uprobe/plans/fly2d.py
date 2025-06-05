@@ -16,7 +16,7 @@ from s2ide_uprobe.utils.scan_monitor import execute_scan_2d
 from mic_common.plans.generallized_scan_1d import generalized_scan_1d
 from bluesky import plan_stubs as bps  
 from apsbits.utils.config_loaders import get_config
-from s2ide_uprobe.utils.usercalc_lib import hydra_config
+from s2ide_uprobe.utils.usercalc_lib import hydra_config, sis3820_config
 
 logger = logging.getLogger(__name__)
 logger.info(__file__)
@@ -29,6 +29,9 @@ savedata = oregistry["savedata"]
 fscan1 = oregistry["fscan1"]
 fscanh = oregistry["fscanh"]
 hydra = oregistry["hydra"]
+sis3820 = oregistry["sis3820"]
+xrf = oregistry["xrf"]
+xrf_netcdf = oregistry["xrf_netcdf"]
 iconfig = get_config()
 scan_overhead = iconfig.get("SCAN_OVERHEAD")
 xmap_buffer = iconfig.get("XMAP", "BUFFER")
@@ -120,7 +123,7 @@ def fly2d(
     yield from hydra_config(hydra, fscanh)
 
     """Set up SIS3820"""
-
+    yield from sis3820_config(sis3820, fscanh)
 
 
     """Start executing scan"""
