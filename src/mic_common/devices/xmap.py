@@ -19,23 +19,24 @@ from mic_common.utils.device_utils import value_setter
 class XMAP(Device):
     """4-element XMAP device for X-ray spectroscopy."""
 
-    start_all = Component(EpicsSignal, "StartAll")
-    stop_all = Component(EpicsSignal, "StopAll")
-    erase_start = Component(EpicsSignal, "EraseStart")
-    erase_all = Component(EpicsSignal, "EraseAll")
-    acquiring = Component(EpicsSignalRO, "Acquiring", string=True)
-    collection_mode = Component(EpicsSignal, "CollectMode")
-    preset_mode = Component(EpicsSignal, "PresetMode")
-    elapsed_real_time = Component(EpicsSignalRO, "ElapsedReal")
-    preset_real_time = Component(EpicsSignal, "PresetReal")
-    elapsed_live_time = Component(EpicsSignalRO, "ElapsedLive")
-    preset_live_time = Component(EpicsSignal, "PresetLive")
-    status_rate = Component(EpicsSignal, "StatusAll.SCAN")
-    read_rate = Component(EpicsSignal, "ReadAll.SCAN")
-    pixels_per_run = Component(EpicsSignal, "PixelsPerRun")
+    start_all = Component(EpicsSignal, ":StartAll")
+    stop_all = Component(EpicsSignal, ":StopAll")
+    erase_start = Component(EpicsSignal, ":EraseStart")
+    erase_all = Component(EpicsSignal, ":EraseAll")
+    acquiring = Component(EpicsSignalRO, ":Acquiring", string=True)
+    collection_mode = Component(EpicsSignal, ":CollectMode")
+    preset_mode = Component(EpicsSignal, ":PresetMode")
+    elapsed_real_time = Component(EpicsSignalRO, ":ElapsedReal")
+    preset_real_time = Component(EpicsSignal, ":PresetReal")
+    elapsed_live_time = Component(EpicsSignalRO, ":ElapsedLive")
+    preset_live_time = Component(EpicsSignal, ":PresetLive")
+    status_rate = Component(EpicsSignal, ":StatusAll.SCAN")
+    read_rate = Component(EpicsSignal, ":ReadAll.SCAN")
+    pixels_per_run = Component(EpicsSignal, ":PixelsPerRun")
 
     def stepscan_before(self):
         """Initialize XMAP before step scan."""
+        yield from self.set_stop_all(1)
         yield from self.set_collection_mode("MCA SPECTRA")
         yield from self.set_preset_mode("Real Time")
         yield from self.set_status_rate("Passive")
@@ -52,6 +53,7 @@ class XMAP(Device):
         Parameters:
             num_pts (int): Number of points to collect.
         """
+        yield from self.set_stop_all(1)
         yield from self.set_collection_mode("MCA MAPPING")
         yield from self.set_pixels_per_run(num_pts)
 

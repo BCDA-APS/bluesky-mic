@@ -78,7 +78,7 @@ class ScanMonitor:
         self.line_delta = round(self.line_time_out - self.line_time_in, 2)
         self.line_time_in = self.line_time_out
 
-    def watch_counter_outter(self, old_value, value, **kwargs):
+    def watch_counter_outter(self, value, old_value, **kwargs):
         """Monitor outer loop counter.
 
         Parameters:
@@ -86,6 +86,8 @@ class ScanMonitor:
             value (int): Current counter value.
             **kwargs: Additional keyword arguments.
         """
+
+        logger.info("watch_counter_outter called")
         if self.counter_active:
             if value >= 1:
                 self.update_eta()
@@ -191,14 +193,16 @@ def execute_scan_2d(inner_scan, outter_scan, print_outter_msg=False, scan_name="
     """Execute a 2D scan with monitoring.
 
     Parameters:
-        inner_scan: Inner scan object.
-        outter_scan: Outer scan object.
+        inner_scan: Inner scan scanrecord.
+        outter_scan: Outer scan scanrecord.
         print_outter_msg (bool): Whether to print outer loop messages.
         scan_name (str): Name of the scan.
+        hydra (Hydra, optional): Ophyd hydra device.
+        sis3820 (SIS3820, optional): Ophyd sis3820 device.
+        xmap (XMap, optional): Ophyd xmap device.
     """
+
     watcher = ScanMonitor(
-        numpts_x=inner_scan.number_points.value,
-        numpts_y=outter_scan.number_points.value,
         scan_name=scan_name.zfill(SCANNUM_DIGITS),
         hydra=hydra,
         sis3820=sis3820,

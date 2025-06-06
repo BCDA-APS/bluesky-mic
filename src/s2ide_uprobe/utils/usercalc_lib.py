@@ -5,6 +5,7 @@ A collection of functions to help with handling conditions and update PV values 
 
 import logging
 from apsbits.utils.controls_setup import oregistry
+from apsbits.utils.config_loaders import get_config
 import numpy as np
 
 logger = logging.getLogger(__name__)
@@ -14,6 +15,8 @@ fscan1 = oregistry["fscan1"]
 fscanh = oregistry["fscanh"]
 sis3820 = oregistry["sis3820"]
 samx = oregistry["samx"]
+iconfig = get_config()
+xmap_buffer = iconfig.get("XMAP", "BUFFER")
 
 
 def check_xstage_stuck(elapsed_realtime = 1, sis3820_current_channel = 0):
@@ -104,7 +107,7 @@ def sis3820_config(sis3820, fscanh):
     yield from sis3820.set_num_ch_used(total_trigger)
 
 
-def xmap_config(xrf, xrf_netcdf, fscanh):
+def xrf_config(xrf, xrf_netcdf, scanrecord, fname, xmap_buffer_size=xmap_buffer):
     """Set up XRF and XRF_NetCDF based on parameters in fscanh
     
     Parameters:
@@ -112,13 +115,26 @@ def xmap_config(xrf, xrf_netcdf, fscanh):
             The XRF device
         xrf_netcdf: XRF_NetCDF
             The XRF_NetCDF fileplugin
-        fscanh: FScanH
-            The fly scan record
+        scanrecord: ScanRecord, usually the inner scan record for 2D scans
+            The scanrecord to coordinate the scans
+        fname: str
+            The name of the file to write to
     """
     total_points = fscanh.number_points.get()
     total_trigger = total_points - 2
-    # yield from xrf_netcdf.st
-    yield from xrf.set_pixels_per_run(total_trigger)
-    yield from xrf_netcdf.set_pixels_per_run(total_trigger)
+
+    # Check if the scanrecord is flying or stepping
+    scan_mode = scanrecord.scan_mode.enum_strs[scanrecord.scan_mode.get()]
+    if scan_mode == "FLY":
+        # For fly scan, we need to configure XMAP and XRF_NetCDF
+        num_buffer = int(np.ceil(total_trigger / xmap_buffer_size))
+        yield from xrf_netcdf.set_capture("done")  # Stop capture
+        yield from xrf_netcdf.set_filename(fname)  # Set the filename
+        yield from xrf_netcdf.set_filenumber(0)    # Set the next filenumber to 0
+        yield from xrf_netcdf.set_num_capture(num_buffer)
+        yield from xrf.flyscan_before(total_trigger)
+    else:
+        # For step scan, we don't save netcdf files and just need to configure XMAP
+        yield from xrf.stepscan_before()
 
 

@@ -13,21 +13,30 @@ __all__ = """
 import logging
 from apsbits.utils.controls_setup import oregistry
 from s2ide_uprobe.utils.scan_monitor import execute_scan_2d
+# from mic_common.utils.scan_monitor import execute_scan_2d
 from mic_common.plans.generallized_scan_1d import generalized_scan_1d
 from bluesky import plan_stubs as bps  
 from apsbits.utils.config_loaders import get_config
-from s2ide_uprobe.utils.usercalc_lib import hydra_config, sis3820_config
+from s2ide_uprobe.utils.usercalc_lib import hydra_config, sis3820_config, xrf_config
+from ophyd.status import Status
+from apstools.plans import run_blocking_function
 
 logger = logging.getLogger(__name__)
 logger.info(__file__)
 SCANNUM_DIGITS = 4
 
-samx = oregistry["samx"]
-samy = oregistry["samy"]
-fscanh_samx = oregistry["fscanh_samx"]
-savedata = oregistry["savedata"]
+samx = oregistry["sim1"]
+samy = oregistry["sim2"]
+# fscan1 = oregistry["scan2"]
+# fscanh = oregistry["scan1"]
+
+# samx = oregistry["samx"]
+# samy = oregistry["samy"]
 fscan1 = oregistry["fscan1"]
 fscanh = oregistry["fscanh"]
+fscanh_samx = oregistry["fscanh_samx"]
+flydwell = oregistry["flydwell"]
+savedata = oregistry["savedata"]
 hydra = oregistry["hydra"]
 sis3820 = oregistry["sis3820"]
 xrf = oregistry["xrf"]
@@ -108,10 +117,13 @@ def fly2d(
 
     """Set up the inner loop scan record based on the scan types and parameters"""
     yield from bps.mv(fscanh.positioners.p1.abs_rel, "absolute".upper())
-    yield from generalized_scan_1d(fscanh, fscanh_samx, savedata, scan_overhead=scan_overhead,
+    yield from generalized_scan_1d(fscanh, samx, savedata, scan_overhead=scan_overhead,
                                     scanmode="FLY", x_center=x_center, width=width, 
                                     stepsize_x=stepsize_x, dwell=dwell)
-    yield from fscanh.set_positioner_readback("")
+    # yield from generalized_scan_1d(fscanh, fscanh_samx, savedata, scan_overhead=scan_overhead,
+    #                                 scanmode="FLY", x_center=x_center, width=width, 
+    #                                 stepsize_x=stepsize_x, dwell=dwell)
+    # yield from fscanh.set_positioner_readback("")
 
     """Set up the outter loop scan record"""
     yield from bps.mv(fscan1.positioners.p1.abs_rel, "relative".upper())
@@ -119,16 +131,51 @@ def fly2d(
                                    scanmode="LINEAR", x_center=0, width=height, 
                                    stepsize_x=stepsize_y, dwell=dwell)
 
-    """Set up the hydra (motor controller)"""
-    yield from hydra_config(hydra, fscanh)
+    # """Set up the hydra (motor controller)"""
+    # yield from hydra_config(hydra, fscanh)
 
-    """Set up SIS3820"""
-    yield from sis3820_config(sis3820, fscanh)
+    # """Assign the per-pixel dwell time"""
+    # logger.info(f"Setting per-pixel dwell time ({flydwell.pvname}) to {dwell} ms")
+    # yield from bps.mv(flydwell, dwell)
+
+    # """Set up SIS3820"""
+    # yield from sis3820_config(sis3820, fscanh)
+
+    # """Set up XMAP and XRF_NetCDF"""
+    # savedata.update_next_file_name()
+    # yield from xrf_config(xrf, xrf_netcdf, fscanh, savedata.next_file_name)
+
+    st = Status()
+
+    def outter_counter_callback(value, old_value, **kwargs):
+        logger.info(f"Outter counter callback called with value {value} and old_value {old_value}")
+        # if value >= 1:
+        logger.info(f"Sending erase start signal to sis3820")
+            # yield from sis3820.set_erase_start(1)
+        logger.info(f"Sending parameters to hydra")
+            # yield from hydra.set_send_parameters(1)
+
+    def watch_execute_scan(old_value, value, **kwargs):
+        """Monitor scan execution.
+
+        Parameters:
+            old_value (int): Previous execution value.
+            value (int): Current execution value.
+            **kwargs: Additional keyword arguments.
+        """
+        if old_value == 1 and value == 0:
+            st.set_finished()
+            logger.info(f"FINISHED: ScanMonitor.st {st}")
+
 
 
     """Start executing scan"""
     # yield from bps.sleep(2)
     savedata.update_next_file_name()
-    yield from execute_scan_2d(fscanh, fscan1, scan_name=savedata.next_file_name)
+    fscan1.number_points_rbv.subscribe(outter_counter_callback)
+    yield from bps.mv(fscan1.execute_scan, 1)  # Start scan
+    yield from run_blocking_function(st.wait)
+    # yield from execute_scan_2d(fscanh, fscan1, scan_name=savedata.next_file_name, 
+    #                            print_outter_msg=True)
 
 

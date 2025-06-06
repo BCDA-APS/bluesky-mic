@@ -26,8 +26,11 @@ ophyd.EpicsMotor:
 - name: samy
   prefix: 2xfm:m13
   labels: ["motor"]
-- name: samz
-  prefix: 2ideBS:m3
+- name: sim1
+  prefix: 2ideBS:m1
+  labels: ["motor"]
+- name: sim2
+  prefix: 2ideBS:m2
   labels: ["motor"]
 
 mic_common.devices.eiger500k.Eiger500k:
