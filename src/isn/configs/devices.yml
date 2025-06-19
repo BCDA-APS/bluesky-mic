@@ -44,10 +44,12 @@ mic_common.devices.save_data.SaveDataMic:
 
 ophyd.EpicsMotor:
 - name: samx
-  prefix: 19idBLUE:m1
+  # prefix: 19idBLUE:m1
+  prefix: 19idAERO:m2
   labels: ["motor"]
 - name: samy
-  prefix: 19idBLUE:m2
+  # prefix: 19idBLUE:m2
+  prefix: 19idAERO:SM1
   labels: ["motor"]
 - name: samz
   prefix: 19idBLUE:m3
@@ -86,7 +88,7 @@ mic_common.devices.xspress3.Xspress3:
 
 mic_common.devices.eiger1m.Eiger1M:
 - name: ptycho
-  prefix: 19idPTYCHO:cam1
+  prefix: "19idPTYCHO:cam1:"
   labels: ["detector"]
 
 # isn.devices.tetramm.TetraMM:
@@ -98,7 +100,7 @@ mic_common.devices.ad_fileplugin.DetHDF5:
   prefix: XSP3_7Chan:HDF1
   labels: ["fileplugin"]
 - name: ptycho_hdf
-  prefix: 19idPTYCHO:HDF1
+  prefix: "19idPTYCHO:HDF1:"
   labels: ["fileplugin"]
 - name: tetramm1_hdf
 

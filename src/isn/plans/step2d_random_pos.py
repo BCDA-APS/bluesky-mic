@@ -102,13 +102,13 @@ def step2d_random_pos(
         Bool: Whether to turn on the xrf me7
     """
 
-    """Open the shutter"""
-    logger.info("Opening the shutter")
-    yield from bps.mv(shutter_open, 1)
-    shutter_status = shutter_open_status.value  # when open, the status becomes 0
-    while shutter_status:
-        shutter_status = shutter_open_status.value
-        yield from bps.sleep(0.2)
+    # """Open the shutter"""
+    # logger.info("Opening the shutter")
+    # yield from bps.mv(shutter_open, 1)
+    # shutter_status = shutter_open_status.value  # when open, the status becomes 0
+    # while shutter_status:
+    #     shutter_status = shutter_open_status.value
+    #     yield from bps.sleep(0.2)
 
     """Move to the requested x- and y- centers"""
     logger.info("Moving to the requested x- and y- centers")
@@ -184,10 +184,11 @@ def step2d_random_pos(
     savedata.update_next_file_name()
     yield from execute_scan_1d(scan1, scan_name=savedata.next_file_name)
 
-    """Close the shutter"""
-    yield from bps.mv(shutter_close, 1)
+    # """Close the shutter"""
+    # yield from bps.mv(shutter_close, 1)
 
     """Reset the scan record to default"""
+    yield from bps.sleep(1)
     yield from scan1.set_scan_mode("linear")
     yield from bps.mv(scan1.positioners.p2.mode, "linear".upper())
     yield from bps.mv(scan1.positioners.p2.setpoint_pv, '',
