@@ -40,6 +40,7 @@ class ScanRecord(SscanRecord):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.P1PA = PV(f"{self.prefix}.P1PA")
+        self.P2PA = PV(f"{self.prefix}.P2PA")
 
     def set_center_width_stepsize(self, center: float, width: float, ss: float):
         """Set center, width, and stepsize in a single motion command."""
