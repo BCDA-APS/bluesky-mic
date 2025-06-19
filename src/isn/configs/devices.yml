@@ -11,23 +11,64 @@ apstools.devices.SimulatedApsPssShutterWithStatus:
 isn.devices.hhl_mirrors.HHL_Mirrors:
 - name: hhl_mirrors
   prefix: 19idMR
-  labels: ["mirror"]
+  labels: ["mirror", "baseline"]
+
+isn.devices.mono.Mono:
+- name: mono
+  prefix: 19idDCM
+  labels: ["mono", "baseline"]
+
+isn.devices.lateral_mirror.Lateral_Mirror:
+- name: lateral_mirror
+  prefix: 19idMR
+  labels: ["mirror", "baseline"]
+
+isn.devices.xrayeye.XRayEye:
+- name: xrayeye
+  prefix: 19idXEYE
 
 isn.devices.softgluezynq.SoftGlueZynq:
 - name: softglue
-  prefix: acq_isn:SG
+  prefix: acq_isn
   labels: ["softglue"]
 
 isn.devices.bda.BDA:
 - name: bda_vert
   prefix: 19idBDA
   axis: V
-  labels: ["bda"]
+  labels: ["bda", "baseline"]
 
 - name: bda_hor
   prefix: 19idBDA
   axis: H
-  labels: ["bda"]
+  labels: ["bda", "baseline"]
+
+isn.devices.tetramm.TetraMM:
+- name: tetramm1
+  prefix: 19idSFT:TetrAMM1
+  labels: ["detector"]
+
+- name: tetramm2
+  prefix: 19idSFT2:TetrAMM2
+  labels: ["detector"]
+
+- name: tetramm3
+  prefix: 19idSFT3:TetrAMM3
+  labels: ["detector"]
+
+- name: tetramm4
+  prefix: 19idSFT4:T4
+  labels: ["detector"]
+
+mic_common.devices.ring.ApsMachineParametersDevice:
+- name: ring
+  labels: ["baseline"]
+
+
+isn.devices.undulators.UndulatorPair:
+- name: undulators
+  prefix: S19ID
+
 
 mic_common.devices.scan_record.ScanRecord:
 - name: scan1
@@ -71,26 +112,35 @@ mic_common.devices.xspress3.Xspress3:
   prefix: XSP3_7Chan:det1
   labels: ["detector"]
 
-mic_common.devices.eiger1m.Eiger1M:
+mic_common.devices.eiger.Eiger:
 - name: ptycho
-  prefix: 19idPTYCHO:cam1
+  prefix: 19idPTYCHO
   labels: ["detector"]
+
+# - name: xrd
+#   prefix: 19idXRD
+#   labels: ["detector"]
+
+# mic_common.devices.eiger1m.Eiger1M:
+# - name: ptycho
+#   prefix: 19idPTYCHO:cam1
+#   labels: ["detector"]
 
 # isn.devices.tetramm.TetraMM:
 # - name: tetramm1
 #   prefix: 19idSFT:TetrAMM1
 
-mic_common.devices.ad_fileplugin.DetHDF5:
-- name: xrf_me7_hdf
-  prefix: XSP3_7Chan:HDF1
-  labels: ["fileplugin"]
-- name: ptycho_hdf
-  prefix: 19idPTYCHO:HDF1
-  labels: ["fileplugin"]
-- name: tetramm1_hdf
+# mic_common.devices.ad_fileplugin.DetHDF5:
+# - name: xrf_me7_hdf
+#   prefix: XSP3_7Chan:HDF1
+#   labels: ["fileplugin"]
+# - name: ptycho_hdf
+#   prefix: 19idPTYCHO:HDF1
+#   labels: ["fileplugin"]
+# - name: tetramm1_hdf
 
-mic_common.devices.ad_fileplugin.DetNetCDF:
-- name: tetramm1_netcdf
+# mic_common.devices.ad_fileplugin.DetNetCDF:
+# - name: tetramm1_netcdf
 
 #     AD_XSP3_12Chan:
 #       NAME: xrf_bse

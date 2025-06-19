@@ -24,17 +24,14 @@ from apsbits.core.run_engine_init import init_RE
 # Utility functions
 from apsbits.utils.aps_functions import aps_dm_setup
 from apsbits.utils.aps_functions import host_on_aps_subnet
+# from apsbits.utils.baseline_setup import setup_baseline_stream
 
 # Configuration functions
 from apsbits.utils.config_loaders import load_config
 from apsbits.utils.helper_functions import register_bluesky_magics
-from apsbits.utils.helper_functions import running_in_queueserver
 from apsbits.utils.logging_setup import configure_logging
 
 # Utility functions from apstools and bluesky
-from apstools.utils import listobjects, listplans
-from bluesky import plan_stubs as bps  
-from bluesky import plans as bp  
 
 # Configuration block
 # Get the path to the instrument package
@@ -68,6 +65,10 @@ register_bluesky_magics()
 bec, peaks = init_bec_peaks(iconfig)
 cat = init_catalog(iconfig)
 RE, sd = init_RE(iconfig, bec_instance=bec, cat_instance=cat)
+
+# # Setup baseline stream with connect=False is default
+# # Devices with the label 'baseline' will be added to the baseline stream.
+# setup_baseline_stream(sd, oregistry, connect=False)
 
 
 # Optional Nexus callback block
@@ -107,10 +108,12 @@ if iconfig.get("SPEC_DATA_FILES", {}).get("ENABLE", False):
 RE(make_devices(clear=False, file="devices.yml"))  # Create the devices.
 
 if host_on_aps_subnet():
-    RE(make_devices(clear=False, file="device_aps_only.yml"))
+    RE(make_devices(clear=False, file="devices_aps_only.yml"))
 
-local_mountpath = iconfig.get("STORAGE")["PATH"]
-xrf_me7_hdf = oregistry["xrf_me7_hdf"]
-xrf_me7_hdf.micdata_mountpath = local_mountpath
+# local_mountpath = iconfig.get("STORAGE")["PATH"]
+# xrf_me7_hdf = oregistry["xrf_me7_hdf"]
+# xrf_me7_hdf.micdata_mountpath = local_mountpath
 
+from bluesky import plan_stubs as bps
+from bluesky import plans as bp
 from .plans import *
