@@ -172,3 +172,4 @@ dev_*
 *.dat
 *.hdf
 .re_md_dict.yml
+.github

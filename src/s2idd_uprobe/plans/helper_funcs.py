@@ -13,7 +13,7 @@ import bluesky.plan_stubs as bps
 from apsbits.utils.config_loaders import get_config
 
 iconfig = get_config()
-xmap_buffer = iconfig.get("DETECTOR")["XMAP_1Chan"]["BUFFER"]
+xmap_buffer = iconfig.get("XMAP")["BUFFER"]
 
 
 def move_to_position(motor, position, tol=0.01):

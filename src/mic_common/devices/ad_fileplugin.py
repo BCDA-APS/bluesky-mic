@@ -179,4 +179,5 @@ class DetNetCDF(DetBase, NetCDFPlugin):
 
     def __init__(self, *args, **kwargs):
         """Initialize DetNetCDF."""
+        # kwargs["prefix"] = kwargs["prefix"] + ":"
         super().__init__(*args, **kwargs)

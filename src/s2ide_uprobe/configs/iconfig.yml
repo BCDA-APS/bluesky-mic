@@ -16,69 +16,77 @@ RUN_ENGINE:
         proposal_id: commissioning
         databroker_catalog: *databroker_catalog
 
-    USE_PROGRESS_BAR: true
+    USE_PROGRESS_BAR: false
+
+# Command-line tools, such as %wa, %ct, ...
+USE_BLUESKY_MAGICS: true
 
 ### Best Effort Callback Configurations
 ### Defaults: all true (except no plots in queueserver)
-# BEC:
-#     BASELINE: false
-#     HEADING: false
-#     PLOTS: false
-#     TABLE: false
+BEC:
+    BASELINE: false
+    HEADING: false
+    PLOTS: false
+    TABLE: false
 
 STORAGE:
   PATH: "/mnt/micdata1"
 
-DEVICES:
-  TETRAMM1: "2ide:TMM1"
-  SAVE_DATA: "2xfm:saveData_"
-  SCAN1: "2xfmS1:scan1"
-  SCAN2: "2xfmS1:scan2"
-  FSCAN1: "2xfm:Fscan1"
-  FSCANH: "2xfm:FscanH"
+FILE_DELIMITER: "2ide"
+SCAN_OVERHEAD: 0.3
+XMAP:
+    BUFFER: 124
 
-POSITIONERS:
-  X_MOTOR: "2xfm:m57"
-  Y_MOTOR: "2xfm:m13"
-  Z_MOTOR: "2xfm:m59"
-  THETA_MOTOR: "2xfm:m60"
-  ENERGY: "2ide:BraggEAO"
-  SCAN_OVERHEAD: 0.3
+# DEVICES:
+#   TETRAMM1: "2ide:TMM1"
+#   SAVE_DATA: "2xfm:saveData_"
+#   SCAN1: "2xfmS1:scan1"
+#   SCAN2: "2xfmS1:scan2"
+#   FSCAN1: "2xfm:Fscan1"
+#   FSCANH: "2xfm:FscanH"
 
-DETECTOR:
-    ### General configuration for area detectors.
-    ALLOW_PLUGIN_WARMUP: true
-    BLUESKY_FILES_ROOT: &BLUESKY_DATA_ROOT "/path/to/data/"
-    IMAGE_DIR: "sub/directory/path"
-    HDF5_FILE_TEMPLATE: "%s%s_%6.6d.h5"
-    FILE_DELIMITER: "2ide"
+# POSITIONERS:
+#   X_MOTOR: "2xfm:m57"
+#   Y_MOTOR: "2xfm:m13"
+#   Z_MOTOR: "2xfm:m59"
+#   THETA_MOTOR: "2xfm:m60"
+#   ENERGY: "2ide:BraggEAO"
+#   SCAN_OVERHEAD: 0.3
 
-    XMAP_4Chan:
-      NAME: xrf
-      PV_PREFIX: "dxpXMAP2xfm3:"
-      NETCDF_PV_PREFIX: "dxpXMAP2xfm3:netCDF1:"
-      BUFFER: 124
+# DETECTOR:
+#     ### General configuration for area detectors.
+#     ALLOW_PLUGIN_WARMUP: true
+#     BLUESKY_FILES_ROOT: &BLUESKY_DATA_ROOT "/path/to/data/"
+#     IMAGE_DIR: "sub/directory/path"
+#     HDF5_FILE_TEMPLATE: "%s%s_%6.6d.h5"
+#     FILE_DELIMITER: "2ide"
 
-    SIS3820:
-      NAME: sis3820
-      PV_PREFIX: "2xfm:mcs:"
+#     XMAP_4Chan:
+#       NAME: xrf
+#       PV_PREFIX: "dxpXMAP2xfm3:"
+#       NETCDF_PV_PREFIX: "dxpXMAP2xfm3:netCDF1:"
+#       BUFFER: 124
 
-    AD_EIGER_PTYCHO:
-      NAME: eiger_ptycho
-      PV_PREFIX: "2ideEGR:cam1:"
-      # HDF5_PV_PREFIX: ""
-      HDF5_PV_PREFIX: "2ideEGR:HDF1:"
+#     SIS3820:
+#       NAME: sis3820
+#       PV_PREFIX: "2xfm:mcs:"
 
-
-
-USERCALC:
-  FSCANH_POSITIONER: "2xfm:FLYuserCalc10.A"
-  STEPSCAN_DWELL: "2xfm:userTran1.P"
-  FLYSCAN_DWELL: "2xfm:Flyscans:Setup:DwellTime.VAL"
+#     AD_EIGER_PTYCHO:
+#       NAME: eiger_ptycho
+#       PV_PREFIX: "2ideEGR:cam1:"
+#       # HDF5_PV_PREFIX: ""
+#       HDF5_PV_PREFIX: "2ideEGR:HDF1:"
 
 
-OTHER_SIGNALS:
-  HYDRA1_STARTPOSITION: "2xfm:Hydra1:StartPosition.VAL"
+
+# USERCALC:
+#   FSCANH_POSITIONER: "2xfm:FLYuserCalc10.A"
+#   STEPSCAN_DWELL: "2xfm:userTran1.P"
+#   FLYSCAN_DWELL: "2xfm:Flyscans:Setup:DwellTime.VAL"
+
+
+# OTHER_SIGNALS:
+#   HYDRA1_STARTPOSITION: "2xfm:Hydra1:StartPosition.VAL"
 
     ### Add configuration for specific detector(s).
     ### Suggestion:
