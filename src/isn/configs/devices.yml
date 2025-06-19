@@ -62,6 +62,19 @@ ophyd.EpicsMotor:
   prefix: 19idBLUE:m6
   labels: ["motor"]
 
+ophyd.EpicsSignal:
+- name: shutter_close
+  write_pv: S19ID-PSS:SES:CloseEPICSC
+  read_pv: S19ID-PSS:SES:CloseEPICSC
+  labels: ["pss-shutter"]
+- name: shutter_open
+  write_pv: S19ID-PSS:SES:OpenEPICSC
+  read_pv: S19ID-PSS:SES:OpenEPICSC
+  labels: ["pss-shutter"]
+- name: shutter_open_status
+  read_pv: 19ID:BLEPS:SES_CLOSED
+  labels: ["pss-shutter"]
+
 isn.devices.my_motor_bundle.MyMotorBundle:
 - name: xz_motor
   prefix: 19idBLUE
