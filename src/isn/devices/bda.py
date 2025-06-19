@@ -33,8 +33,10 @@ class BDA(Device):
         EpicsMotor, "{prefix}:Slit1{axis}xp", labels=("motors",), kind="config"
     )
     size = FormattedComponent(
-        EpicsMotor, "{prefix}:Slit1{axis}size", labels=("motors",), kind="config"
+        EpicsMotor, "{prefix}:Slit1{axis}size", labels=("motors","baseline"),
+          kind="config"
     )
     center = FormattedComponent(
-        EpicsMotor, "{prefix}:Slit1{axis}center", labels=("motors",), kind="config"
+        EpicsMotor, "{prefix}:Slit1{axis}center", labels=("motors","baseline"),
+          kind="config"
     )
