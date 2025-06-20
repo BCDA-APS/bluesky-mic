@@ -32,6 +32,7 @@ from apsbits.utils.helper_functions import register_bluesky_magics
 from apsbits.utils.logging_setup import configure_logging
 
 # Utility functions from apstools and bluesky
+from apstools.utils import listobjects, listplans
 
 # Configuration block
 # Get the path to the instrument package

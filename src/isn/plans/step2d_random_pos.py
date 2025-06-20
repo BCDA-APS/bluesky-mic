@@ -13,12 +13,10 @@ __all__ = """
 import logging
 import numpy as np
 from apsbits.utils.controls_setup import oregistry
-# from mic_instrument.configs.device_config import scan1, samx, samy, 
-# savedata, netcdf_delimiter, shutter_open, shutter_close, shutter_open_status
 from apsbits.utils.config_loaders import get_config
 from mic_common.utils.scan_monitor import execute_scan_1d
-# from mic_common.plans.helper_funcs import selected_dets
-from bluesky.plans import plan_patterns
+from isn.plans.utils.trajectory import generate_random_points
+from isn.plans.utils.det_setup import xrf_me7_setup, ptycho_setup
 import bluesky.plan_stubs as bps
 from epics import caput
 
@@ -141,44 +139,19 @@ def step2d_random_pos(
     yield from bps.sleep(0.1)
 
     """Configure the detectors"""
-    # logger.info("Determining which detectors are selected")
-    # dets = selected_dets(ptycho_on=ptycho_on, xrf_me7_on=xrf_me7_on)
-    # num_capture = PTS_PER_FILE
     num_capture = samx_points.shape[0]
     savedata.update_next_file_name()
     filename = savedata.next_file_name.replace(".mda", "")
         
-    if xrf_me7_on and xrf_me7.connected:
-        yield from xrf_me7.scan_init(exposure_time=dwell, num_images=num_capture)
-        if xrf_me7_hdf.connected:
-            yield from xrf_me7_hdf.setup_file_writer(
-                savedata, 
-                xrf_me7_folder, 
-                num_capture, 
-                filename=filename, 
-                beamline_delimiter=netcdf_delimiter,
-            )
-    elif ptycho_on and ptycho.connected:
-        # yield from cam.set_trigger_mode("Internal Enable")
-        yield from ptycho.set_acquire("DONE")
-        yield from ptycho.set_trigger_mode("Internal Series")
-        yield from ptycho.scan_init(exposure_time=dwell, num_images=num_capture, 
-                                    ptycho_exp_factor=ptycho_exp_factor)
-        yield from ptycho.set_acquire("Acquiring")
+    if xrf_me7_on and xrf_me7.connected and xrf_me7_hdf.connected:
+        yield from xrf_me7_setup(num_capture, dwell, filename)
 
-        if ptycho_hdf is not None:
-            yield from ptycho.set_file_writer_enable("Disable")
-            yield from ptycho_hdf.set_capture("DONE")
-            yield from ptycho_hdf.setup_file_writer(
-                savedata, 
-                ptycho_folder, 
-                num_capture, 
-                filename=filename, 
-                beamline_delimiter=netcdf_delimiter,
-            )
-            yield from ptycho_hdf.set_capture("Capturing")
-                
-        
+    elif ptycho_on and ptycho.connected and ptycho_hdf.connected:
+        trigger_mode = "Internal Series"
+        yield from ptycho_setup(trigger_mode, num_capture, dwell, 
+                                ptycho_exp_factor, filename)
+
+    """Generate the scan master file"""
 
     """Start executing scan"""
     savedata.update_next_file_name()
@@ -198,33 +171,6 @@ def step2d_random_pos(
     if ptycho_on and ptycho.connected:
         yield from ptycho.set_manual_trigger("Disable")
 
-def generate_random_points(scan_traj, x_center, y_center, width, height, 
-                           stepsize_x, stepsize_y, dr, nth):
-    """
-    Generate random points for the scan trajectory.
-    """
-    samx_points, samy_points = [], []
-    if scan_traj == "spiral":
-        scan_cyc = plan_patterns.spiral("samx", "samy", x_center, y_center, width, height, 
-                                        dr, nth)
-        
-    if scan_traj == "grid":
-        scan_cyc = plan_patterns.spiral_square_pattern("samx", "samy", x_center, y_center, 
-                                                       width, height, int(width/stepsize_x), int(height/stepsize_y))
-        
-    if scan_cyc is not None:
-        samx_points, samy_points = process_scan_cyc(scan_cyc)
-
-    return samx_points, samy_points
 
 
-def process_scan_cyc(scan_cyc):
-    samx_points, samy_points = [], []
-    for i in list(scan_cyc):
-        for k, v in i.items():
-            if k == "samx":
-                samx_points.append(v)
-            elif k == "samy":
-                samy_points.append(v)
-    return np.array(samx_points), np.array(samy_points)
                 

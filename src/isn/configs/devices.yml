@@ -127,19 +127,19 @@ mic_common.devices.xspress3.Xspress3:
   prefix: XSP3_7Chan:det1
   labels: ["detector"]
 
-mic_common.devices.eiger.Eiger:
-- name: ptycho
-  prefix: "19idPTYCHO:cam1:"
-  labels: ["detector"]
+# mic_common.devices.eiger.Eiger:
+# - name: ptycho
+#   prefix: "19idPTYCHO:cam1:"
+#   labels: ["detector"]
 
 # - name: xrd
 #   prefix: 19idXRD
 #   labels: ["detector"]
 
-# mic_common.devices.eiger1m.Eiger1M:
-# - name: ptycho
-#   prefix: 19idPTYCHO:cam1
-#   labels: ["detector"]
+mic_common.devices.eiger1m.Eiger1M:
+- name: ptycho
+  prefix: "19idPTYCHO:cam1:"
+  labels: ["detector"]
 
 # isn.devices.tetramm.TetraMM:
 # - name: tetramm1
