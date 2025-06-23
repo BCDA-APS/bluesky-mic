@@ -11,17 +11,22 @@ apstools.devices.SimulatedApsPssShutterWithStatus:
 isn.devices.hhl_mirrors.HHL_Mirrors:
 - name: hhl_mirrors
   prefix: 19idMR
-  labels: ["mirror", "baseline"]
+  labels: ["mirror"]
 
 isn.devices.mono.Mono:
 - name: mono
   prefix: 19idDCM
-  labels: ["mono", "baseline"]
+  labels: ["mono"]
 
 isn.devices.lateral_mirror.Lateral_Mirror:
 - name: lateral_mirror
   prefix: 19idMR
-  labels: ["mirror", "baseline"]
+  labels: ["mirror"]
+
+isn.devices.kb.KB:
+- name: kb
+  prefix: 19idKB
+  labels: ["mirror"]
 
 isn.devices.xrayeye.XRayEye:
 - name: xrayeye
@@ -42,6 +47,11 @@ isn.devices.bda.BDA:
   prefix: 19idBDA
   axis: H
   labels: ["bda", "baseline"]
+
+isn.devices.rayspec.Rayspec:
+- name: rayspec
+  prefix: 19idACS
+  labels: ["motor", "baseline"]
 
 isn.devices.tetramm.TetraMM:
 - name: tetramm1
@@ -127,10 +137,17 @@ mic_common.devices.xspress3.Xspress3:
   prefix: XSP3_7Chan:det1
   labels: ["detector"]
 
+<<<<<<< HEAD
 # mic_common.devices.eiger.Eiger:
 # - name: ptycho
-#   prefix: "19idPTYCHO:cam1:"
+#   prefix: 19idPTYCHO
 #   labels: ["detector"]
+=======
+mic_common.devices.eiger.Eiger:
+- name: ptycho
+  prefix: "19idPTYCHO:cam1:"
+  labels: ["detector"]
+>>>>>>> 8ec88ce1e46d99fff5beee39d1527e0f99ae62ba
 
 # - name: xrd
 #   prefix: 19idXRD
@@ -138,7 +155,7 @@ mic_common.devices.xspress3.Xspress3:
 
 mic_common.devices.eiger1m.Eiger1M:
 - name: ptycho
-  prefix: "19idPTYCHO:cam1:"
+  prefix: 19idPTYCHO:cam1
   labels: ["detector"]
 
 # isn.devices.tetramm.TetraMM:
@@ -152,10 +169,14 @@ mic_common.devices.ad_fileplugin.DetHDF5:
 - name: ptycho_hdf
   prefix: "19idPTYCHO:HDF1:"
   labels: ["fileplugin"]
+<<<<<<< HEAD
+# - name: tetramm1_hdf
+=======
 - name: tetramm1_hdf
 
 mic_common.devices.ad_fileplugin.DetNetCDF:
 - name: tetramm1_netcdf
+>>>>>>> 8ec88ce1e46d99fff5beee39d1527e0f99ae62ba
 
 
 #     AD_XSP3_12Chan:
