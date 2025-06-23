@@ -4,8 +4,3 @@
 
 apstools.devices.ApsMachineParametersDevice:
   - name: aps
-s2idd_uprobe.devices.tetramm.TetraMM:
-- name: tetramm1
-  prefix:  "2iddtmm1:"
-- name: tetramm2
-  prefix: "2iddtmm2:"

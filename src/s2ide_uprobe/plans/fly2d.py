@@ -11,24 +11,39 @@ __all__ = """
 """.split()
 
 import logging
-
-import bluesky.plan_stubs as bps
-from mic_instrument.configs.device_config import fscan1
-from mic_instrument.configs.device_config import fscanh
-from mic_instrument.configs.device_config import fscanh_dwell
-from mic_instrument.configs.device_config import fscanh_samx
-from mic_instrument.configs.device_config import netcdf_delimiter
-from mic_instrument.configs.device_config import samy
-from mic_instrument.configs.device_config import savedata
-from mic_instrument.configs.device_config import sis3820
-from mic_instrument.plans.before_after_fly import setup_flyscan_ptycho_triggers
-from mic_instrument.plans.generallized_scan_1d import generalized_scan_1d
-from mic_instrument.plans.helper_funcs import selected_dets
-
-from ..utils.scan_monitor import execute_scan_2d
+from apsbits.utils.controls_setup import oregistry
+from s2ide_uprobe.utils.scan_monitor import execute_scan_2d
+# from mic_common.utils.scan_monitor import execute_scan_2d
+from mic_common.plans.generallized_scan_1d import generalized_scan_1d
+from bluesky import plan_stubs as bps  
+from apsbits.utils.config_loaders import get_config
+from s2ide_uprobe.utils.usercalc_lib import hydra_config, sis3820_config, xrf_config
+from ophyd.status import Status
+from apstools.plans import run_blocking_function
 
 logger = logging.getLogger(__name__)
 logger.info(__file__)
+SCANNUM_DIGITS = 4
+
+samx = oregistry["sim1"]
+samy = oregistry["sim2"]
+# fscan1 = oregistry["scan2"]
+# fscanh = oregistry["scan1"]
+
+# samx = oregistry["samx"]
+# samy = oregistry["samy"]
+fscan1 = oregistry["fscan1"]
+fscanh = oregistry["fscanh"]
+fscanh_samx = oregistry["fscanh_samx"]
+flydwell = oregistry["flydwell"]
+savedata = oregistry["savedata"]
+hydra = oregistry["hydra"]
+sis3820 = oregistry["sis3820"]
+xrf = oregistry["xrf"]
+xrf_netcdf = oregistry["xrf_netcdf"]
+iconfig = get_config()
+scan_overhead = iconfig.get("SCAN_OVERHEAD")
+xmap_buffer = iconfig.get("XMAP", "BUFFER")
 
 
 def fly2d(
@@ -45,150 +60,122 @@ def fly2d(
     xrf_on=True,
     ptycho_on=False,
     preamp_on=False,
-    fpga_on=False,
     position_stream=False,
     wf_run=False,
     analysisMachine="mona2",
-    eta=0,
-    ptycho_exp_factor=3,
 ):
-    """2D Bluesky plan that drives the x- and y- sample motors in fly mode using ScanRecord"""
+    """2D Bluesky plan that drives the x- and y- sample motors in flying mode using
+    ScanRecord
+    
+    The plan will drive samx and samy to the requested x_center and y_center, 
+    and then perform a relative scan in the x and y directions.
+
+    Parameters
+    ----------
+    samplename: 
+        Str: The name of the sample
+    user_comments: 
+        Str: The user comments for the scan
+    width:
+        Float: The width of the scan
+    x_center:
+        Float: The center of the scan in the x direction. Default is None which uses the current position of samx
+    stepsize_x:
+        Float: The step size in the x direction
+    height:
+        Float: The height of the scan
+    y_center:
+        Float: The center of the scan in the y direction. Default is None which uses the current position of samy
+    stepsize_y:
+        Float: The step size in the y direction
+    dwell:
+        Float: The dwell time in the scan
+    smp_theta:
+        Float: The theta of the sample
+    xrf_on:
+        Bool: Whether to collect XRF data
+    ptycho_on:
+        Bool: Whether to collect Ptycho data
+    preamp_on:
+        Bool: Whether to collect Preamp data
+    position_stream:
+        Bool: Whether to collect position stream data
+    wf_run:
+        Bool: Whether to run the workflow
+    analysisMachine:
+        Str: The name of the analysis machine
+    """
 
     ##TODO Close shutter while setting up scan parameters
 
-    """Set up scan record based on the scan types and parameters"""
-    yield from generalized_scan_1d(
-        fscanh,
-        fscanh_samx,
-        scanmode="FLY",
-        x_center=x_center,
-        width=width,
-        stepsize_x=stepsize_x,
-        dwell=dwell,
-    )
-    yield from fscanh.set_positioner_drive(f"{fscanh_samx.pvname}")
-    yield from fscanh.set_positioner_readback("")
+    """Move to the requested x- and y- centers"""
+    logger.info("Moving to the requested x- and y- centers")
+    if x_center is not None:
+        yield from bps.mv(samx, x_center)
+    if y_center is not None:
+        yield from bps.mv(samy, y_center)
+
+    """Set up the inner loop scan record based on the scan types and parameters"""
+    yield from bps.mv(fscanh.positioners.p1.abs_rel, "absolute".upper())
+    yield from generalized_scan_1d(fscanh, samx, savedata, scan_overhead=scan_overhead,
+                                    scanmode="FLY", x_center=x_center, width=width, 
+                                    stepsize_x=stepsize_x, dwell=dwell)
+    # yield from generalized_scan_1d(fscanh, fscanh_samx, savedata, scan_overhead=scan_overhead,
+    #                                 scanmode="FLY", x_center=x_center, width=width, 
+    #                                 stepsize_x=stepsize_x, dwell=dwell)
+    # yield from fscanh.set_positioner_readback("")
 
     """Set up the outter loop scan record"""
-    yield from fscan1.set_scan_mode("linear")
-    yield from fscan1.set_positioner_drive(f"{samy.prefix}.VAL")
-    yield from fscan1.set_positioner_readback(f"{samy.prefix}.RBV")
+    yield from bps.mv(fscan1.positioners.p1.abs_rel, "relative".upper())
+    yield from generalized_scan_1d(fscan1, samy, savedata, scan_overhead=scan_overhead,
+                                   scanmode="LINEAR", x_center=0, width=height, 
+                                   stepsize_x=stepsize_y, dwell=dwell)
 
-    # check if the scan movement is relative or absolute
-    scan_movement = fscan1.scan_movement.enum_strs[fscan1.scan_movement.get()]
-    if scan_movement == "RELATIVE":
-        yield from bps.mv(samy, y_center)
-        yield from fscan1.set_center_width_stepsize(0, height, stepsize_y)
-    else:
-        yield from fscan1.set_center_width_stepsize(y_center, height, stepsize_y)
+    # """Set up the hydra (motor controller)"""
+    # yield from hydra_config(hydra, fscanh)
 
-    """Assign the per-pixel dwell time"""
-    logger.info(f"Setting per-pixel dwell time ({fscanh_dwell.pvname}) to {dwell} ms")
-    yield from bps.mv(fscanh_dwell, dwell)
+    # """Assign the per-pixel dwell time"""
+    # logger.info(f"Setting per-pixel dwell time ({flydwell.pvname}) to {dwell} ms")
+    # yield from bps.mv(flydwell, dwell)
 
-    """Check which detectors to trigger"""
-    logger.info("Determining which detectors are selected")
-    dets = selected_dets(**locals())
+    # """Set up SIS3820"""
+    # yield from sis3820_config(sis3820, fscanh)
 
-    """Update the next file name for the detector file plugin"""
-    savedata.update_next_file_name()
-    next_file_name = savedata.next_file_name
+    # """Set up XMAP and XRF_NetCDF"""
+    # savedata.update_next_file_name()
+    # yield from xrf_config(xrf, xrf_netcdf, fscanh, savedata.next_file_name)
 
-    """Initialize detectors with desired pts, exposure time and file writer """
-    if sis3820.connected:
-        # Set up triggers for FLY scans, sis3820 will be sending out pulses. The number of pulses is numpts_x - 2
-        numpts_x = fscanh.number_points.value
-        num_pulses = numpts_x - 2
-        for det_name, det_var in dets.items():
-            cam = det_var["cam"]
-            file_plugin = det_var["file_plugin"]
-            filename = next_file_name.replace(".mda", "_")
+    st = Status()
 
-            # TODO: We need to update filename in xrf file plugin, Assuming the XRF detector is handled by usercalc already
-            # if det_name == "xrf":
-            #     num_capture = calculate_num_capture(numpts_x)
-            #     yield from setup_flyscan_XRF_triggers(
-            #         fscanh, cam, file_plugin, sis3820, num_pulses
-            #     )
-            #     yield from cam.flyscan_before(num_pulses)
-            #     yield from file_plugin.setup_file_writer(
-            #         savedata,
-            #         det_name,
-            #         num_capture,
-            #         filename=filename,
-            #         beamline_delimiter=netcdf_delimiter,
-            #     )
-            #     yield from file_plugin.set_capture("capturing")
+    def outter_counter_callback(value, old_value, **kwargs):
+        logger.info(f"Outter counter callback called with value {value} and old_value {old_value}")
+        # if value >= 1:
+        logger.info(f"Sending erase start signal to sis3820")
+            # yield from sis3820.set_erase_start(1)
+        logger.info(f"Sending parameters to hydra")
+            # yield from hydra.set_send_parameters(1)
 
-            if det_name == "ptycho":
-                yield from setup_flyscan_ptycho_triggers(
-                    fscan1, fscanh, cam, eiger_filewriter=file_plugin
-                )
-                yield from cam.scan_init(dwell / 1e3, num_pulses, ptycho_exp_factor)
+    def watch_execute_scan(old_value, value, **kwargs):
+        """Monitor scan execution.
 
-                if file_plugin is not None:
-                    # If an hdf5 file plugin is used, we need to disable the Eiger's default file writer.
-                    yield from cam.set_file_writer_enable("Disable")
+        Parameters:
+            old_value (int): Previous execution value.
+            value (int): Current execution value.
+            **kwargs: Additional keyword arguments.
+        """
+        if old_value == 1 and value == 0:
+            st.set_finished()
+            logger.info(f"FINISHED: ScanMonitor.st {st}")
 
-                    next_file_number_str = str(savedata.next_scan_number.get()).zfill(3)
-                    eiger_filename = f"fly{next_file_number_str}_data"
-                    yield from file_plugin.setup_file_writer(
-                        savedata,
-                        det_name,
-                        num_pulses,
-                        filename=eiger_filename,
-                        beamline_delimiter=netcdf_delimiter,
-                    )
-                # yield from setup_eiger_filewriter(
-                #     cam,
-                #     file_plugin,
-                #     savedata,
-                #     det_name,
-                #     num_pulses,
-                #     filename,
-                #     netcdf_delimiter,
-                # )
+
 
     """Start executing scan"""
+    # yield from bps.sleep(2)
+    savedata.update_next_file_name()
+    fscan1.number_points_rbv.subscribe(outter_counter_callback)
+    yield from bps.mv(fscan1.execute_scan, 1)  # Start scan
+    yield from run_blocking_function(st.wait)
+    # yield from execute_scan_2d(fscanh, fscan1, scan_name=savedata.next_file_name, 
+    #                            print_outter_msg=True)
 
-    # yield from bps.sleep(1)
-    yield from execute_scan_2d(
-        fscanh, fscan1, scan_name=savedata.next_file_name, print_outter_msg=True
-    )
 
-    # Restore the previous scan record triggers
-    logger.info("Restoring the previous scan record triggers before exiting the plan")
-    yield from fscan1.restore_detTriggers()
-    yield from fscanh.restore_detTriggers()
-
-    #     #############################
-    #     # START THE APS DM WORKFLOW #
-    #     #############################
-
-    #     if wf_run:
-    #         dm_workflow = DM_WorkflowConnector(name=samplename, labels=("dm",))
-
-    #         if all([xrf_me7_on, ptycho_on]):
-    #             WORKFLOW = "ptycho-xrf"
-    #             argsDict = ptychoxrf_dm_args.copy()
-    #         elif xrf_me7_on:
-    #             WORKFLOW = "xrf-maps"
-    #             argsDict = xrf_dm_args.copy()
-    #         else:
-    #             WORKFLOW = "ptychodus"
-    #             argsDict = ptychodus_dm_args.copy()
-
-    #         ##TODO Modify argsDict accordingly based on the scan parameters
-    #         argsDict['analysisMachine'] = analysisMachine
-
-    #         yield from dm_submit_workflow_job(WORKFLOW, argsDict)
-    #         logger.info(f"{len(api.listProcessingJobs())=!r}")
-    #         logger.info("DM workflow Finished!")
-
-    #     logger.info("end of plan")
-
-    # else:
-    #     logger.info(f"Having issue connecting to scan record: {scan1.prefix}")
-
-    # # yield from bps.sleep(1)
-    # # print("end of plan")

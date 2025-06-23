@@ -95,10 +95,12 @@ mic_common.devices.save_data.SaveDataMic:
 
 ophyd.EpicsMotor:
 - name: samx
-  prefix: 19idBLUE:m1
+  # prefix: 19idBLUE:m1
+  prefix: 19idAERO:m2
   labels: ["motor"]
 - name: samy
-  prefix: 19idBLUE:m2
+  # prefix: 19idBLUE:m2
+  prefix: 19idAERO:SM1
   labels: ["motor"]
 - name: samz
   prefix: 19idBLUE:m3
@@ -113,6 +115,19 @@ ophyd.EpicsMotor:
   prefix: 19idBLUE:m6
   labels: ["motor"]
 
+ophyd.EpicsSignal:
+- name: shutter_close
+  write_pv: S19ID-PSS:SES:CloseEPICSC
+  read_pv: S19ID-PSS:SES:CloseEPICSC
+  labels: ["pss-shutter"]
+- name: shutter_open
+  write_pv: S19ID-PSS:SES:OpenEPICSC
+  read_pv: S19ID-PSS:SES:OpenEPICSC
+  labels: ["pss-shutter"]
+- name: shutter_open_status
+  read_pv: 19ID:BLEPS:SES_CLOSED
+  labels: ["pss-shutter"]
+
 isn.devices.my_motor_bundle.MyMotorBundle:
 - name: xz_motor
   prefix: 19idBLUE
@@ -122,10 +137,17 @@ mic_common.devices.xspress3.Xspress3:
   prefix: XSP3_7Chan:det1
   labels: ["detector"]
 
+<<<<<<< HEAD
 # mic_common.devices.eiger.Eiger:
 # - name: ptycho
 #   prefix: 19idPTYCHO
 #   labels: ["detector"]
+=======
+mic_common.devices.eiger.Eiger:
+- name: ptycho
+  prefix: "19idPTYCHO:cam1:"
+  labels: ["detector"]
+>>>>>>> 8ec88ce1e46d99fff5beee39d1527e0f99ae62ba
 
 # - name: xrd
 #   prefix: 19idXRD
@@ -147,10 +169,15 @@ mic_common.devices.ad_fileplugin.DetHDF5:
 - name: ptycho_hdf
   prefix: "19idPTYCHO:HDF1:"
   labels: ["fileplugin"]
+<<<<<<< HEAD
 # - name: tetramm1_hdf
+=======
+- name: tetramm1_hdf
 
-# mic_common.devices.ad_fileplugin.DetNetCDF:
-# - name: tetramm1_netcdf
+mic_common.devices.ad_fileplugin.DetNetCDF:
+- name: tetramm1_netcdf
+>>>>>>> 8ec88ce1e46d99fff5beee39d1527e0f99ae62ba
+
 
 #     AD_XSP3_12Chan:
 #       NAME: xrf_bse

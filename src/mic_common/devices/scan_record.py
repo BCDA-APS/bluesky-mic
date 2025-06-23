@@ -30,6 +30,7 @@ class ScanRecord(SscanRecord):
     width = Component(EpicsSignal, ".P1WD")
     number_points_rbv = Component(EpicsSignal, ".CPT")
     start_position = Component(EpicsSignal, ".P1SP")
+    end_position = Component(EpicsSignal, ".P1EP")
 
     detTrigger_1 = Component(EpicsSignal, ".T1PV")
     detTrigger_2 = Component(EpicsSignal, ".T2PV")
@@ -39,6 +40,7 @@ class ScanRecord(SscanRecord):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.P1PA = PV(f"{self.prefix}.P1PA")
+        self.P2PA = PV(f"{self.prefix}.P2PA")
 
     def set_center_width_stepsize(self, center: float, width: float, ss: float):
         """Set center, width, and stepsize in a single motion command."""
