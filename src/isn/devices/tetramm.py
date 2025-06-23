@@ -39,11 +39,10 @@ class Trigger(TriggerBase):
     def stage(self):
         '''Staging detector. Must ensure that stage signals are well defined previously.'''
 
-        # self.acquire.set(0).wait(timeout=10)
-        # self.acquire_mode.set('Single').wait(timeout=10) 
-        # self.acquisitions.set(1).wait(timeout=10)
+        self.acquire.set(0).wait(timeout=10)
+        self.acquire_mode.set('Single').wait(timeout=10) 
+        self.acquisitions.set(1).wait(timeout=10)
         self._staged = True
-
 
 
     def trigger(self):
