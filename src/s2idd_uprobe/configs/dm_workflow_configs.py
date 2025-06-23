@@ -29,5 +29,3 @@ ptychodus_dm_args = load_config_yaml(ptychodus_workflow_yaml_path)
 #     "ptycho": {"cam": None, "file_plugin": None},
 #     "struck": {"cam": sis3820, "file_plugin": None},
 # }
-
-

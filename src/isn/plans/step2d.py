@@ -11,10 +11,12 @@ __all__ = """
 """.split()
 
 import logging
+
 from apsbits.utils.controls_setup import oregistry
+from bluesky import plan_stubs as bps
 from mic_common.utils.scan_monitor import execute_scan_2d
+
 from .generallized_scan_1d import generalized_scan_1d
-from bluesky import plan_stubs as bps  
 
 logger = logging.getLogger(__name__)
 logger.info(__file__)
@@ -26,6 +28,7 @@ scan1 = oregistry["scan1"]
 scan2 = oregistry["scan2"]
 
 scanmode = "LINEAR"
+
 
 def step2d(
     samplename="smp1",
@@ -47,15 +50,15 @@ def step2d(
 ):
     """2D Bluesky plan that drives the x- and y- sample motors in stepping mode using
     ScanRecord
-    
-    The plan will drive samx and samy to the requested x_center and y_center, 
+
+    The plan will drive samx and samy to the requested x_center and y_center,
     and then perform a relative scan in the x and y directions.
 
     Parameters
     ----------
-    samplename: 
+    samplename:
         Str: The name of the sample
-    user_comments: 
+    user_comments:
         Str: The user comments for the scan
     width:
         Float: The width of the scan
@@ -98,17 +101,29 @@ def step2d(
 
     """Set up the inner loop scan record based on the scan types and parameters"""
     yield from bps.mv(scan1.positioners.p1.abs_rel, "relative".upper())
-    yield from generalized_scan_1d(scan1, samx, scanmode=scanmode, x_center=0, width=width, 
-                                stepsize_x=stepsize_x, dwell=dwell)
+    yield from generalized_scan_1d(
+        scan1,
+        samx,
+        scanmode=scanmode,
+        x_center=0,
+        width=width,
+        stepsize_x=stepsize_x,
+        dwell=dwell,
+    )
 
     """Set up the outter loop scan record"""
     yield from scan2.set_scan_mode(scanmode)
     yield from bps.mv(scan2.positioners.p1.abs_rel, "relative".upper())
-    yield from generalized_scan_1d(scan2, samy, scanmode=scanmode, x_center=0, width=height, 
-                            stepsize_x=stepsize_y, dwell=dwell)
+    yield from generalized_scan_1d(
+        scan2,
+        samy,
+        scanmode=scanmode,
+        x_center=0,
+        width=height,
+        stepsize_x=stepsize_y,
+        dwell=dwell,
+    )
 
     """Start executing scan"""
     savedata.update_next_file_name()
     yield from execute_scan_2d(scan1, scan2, scan_name=savedata.next_file_name)
-
-

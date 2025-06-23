@@ -16,7 +16,6 @@ import os
 from pathlib import Path
 
 import h5py
-
 from isn.configs.dm_workflow_configs import master_file_yaml
 from isn.configs.dm_workflow_configs import netcdf_delimiter
 from isn.configs.dm_workflow_configs import samx

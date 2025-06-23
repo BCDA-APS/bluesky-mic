@@ -16,7 +16,6 @@ from pathlib import Path
 from apsbits.utils.config_loaders import get_config
 from apsbits.utils.config_loaders import load_config_yaml
 from apsbits.utils.controls_setup import oregistry
-
 from isn.plans.generallized_scan_1d import generalized_scan_1d
 from isn.plans.helper_funcs import selected_dets
 from isn.utils.scan_monitor import execute_scan_1d

@@ -11,11 +11,11 @@ __all__ = """
 
 import bluesky.plan_stubs as bps
 from apsbits.utils.config_loaders import get_config
-
 from isn.configs.dm_workflow_configs import det_name_mapping
 
 iconfig = get_config()
 xmap_buffer = iconfig.get("XMAP")["BUFFER"]
+
 
 def move_to_position(motor, position, tol=0.01):
     """

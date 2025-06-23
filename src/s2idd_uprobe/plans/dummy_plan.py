@@ -78,7 +78,7 @@ def dummy_testing(
         prog = round(i / stepsize_x * 100, 2)
         msg = "{"
         msg += f"Filename: 2xfm_0001.mda, Scan_progress: {prog}%, "
-        msg += f"Line: 1/1, Scan_remaining: {(stepsize_x-i)*dwell}, "
+        msg += f"Line: 1/1, Scan_remaining: {(stepsize_x - i) * dwell}, "
         msg += f"Scanned {i}/{stepsize_x}"
         msg += "}"
         logger.info(msg)
