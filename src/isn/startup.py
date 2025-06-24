@@ -46,9 +46,11 @@ iconfig = load_config(iconfig_path)
 # from the one in the apsbits package
 extra_logging_configs_path = instrument_path / "configs" / "extra_logging.yml"
 configure_logging(extra_logging_configs_path=extra_logging_configs_path)
-
 logger = logging.getLogger(__name__)
 logger.info("Starting Instrument with iconfig: %s", iconfig_path)
+
+# Load the master file config
+master_file_config_path = instrument_path / "configs" / "masterFileConfig.yml"
 
 # Discard oregistry items loaded above.
 oregistry.clear()
