@@ -37,64 +37,6 @@ SCAN_OVERHEAD: 0.3
 XMAP:
     BUFFER: 124
 
-# DEVICES:
-#   TETRAMM1: "2ide:TMM1"
-#   SAVE_DATA: "2xfm:saveData_"
-#   SCAN1: "2xfmS1:scan1"
-#   SCAN2: "2xfmS1:scan2"
-#   FSCAN1: "2xfm:Fscan1"
-#   FSCANH: "2xfm:FscanH"
-
-# POSITIONERS:
-#   X_MOTOR: "2xfm:m57"
-#   Y_MOTOR: "2xfm:m13"
-#   Z_MOTOR: "2xfm:m59"
-#   THETA_MOTOR: "2xfm:m60"
-#   ENERGY: "2ide:BraggEAO"
-#   SCAN_OVERHEAD: 0.3
-
-# DETECTOR:
-#     ### General configuration for area detectors.
-#     ALLOW_PLUGIN_WARMUP: true
-#     BLUESKY_FILES_ROOT: &BLUESKY_DATA_ROOT "/path/to/data/"
-#     IMAGE_DIR: "sub/directory/path"
-#     HDF5_FILE_TEMPLATE: "%s%s_%6.6d.h5"
-#     FILE_DELIMITER: "2ide"
-
-#     XMAP_4Chan:
-#       NAME: xrf
-#       PV_PREFIX: "dxpXMAP2xfm3:"
-#       NETCDF_PV_PREFIX: "dxpXMAP2xfm3:netCDF1:"
-#       BUFFER: 124
-
-#     SIS3820:
-#       NAME: sis3820
-#       PV_PREFIX: "2xfm:mcs:"
-
-#     AD_EIGER_PTYCHO:
-#       NAME: eiger_ptycho
-#       PV_PREFIX: "2ideEGR:cam1:"
-#       # HDF5_PV_PREFIX: ""
-#       HDF5_PV_PREFIX: "2ideEGR:HDF1:"
-
-
-
-# USERCALC:
-#   FSCANH_POSITIONER: "2xfm:FLYuserCalc10.A"
-#   STEPSCAN_DWELL: "2xfm:userTran1.P"
-#   FLYSCAN_DWELL: "2xfm:Flyscans:Setup:DwellTime.VAL"
-
-
-# OTHER_SIGNALS:
-#   HYDRA1_STARTPOSITION: "2xfm:Hydra1:StartPosition.VAL"
-
-    ### Add configuration for specific detector(s).
-    ### Suggestion:
-    # ADSIM_16M:
-    #     # IOC host: workstation_name
-    #     IOC_FILES_ROOT: *BLUESKY_DATA_ROOT
-    #     NAME: simdet16M
-    #     PV_PREFIX: "simdet16m:"
 
 ### Support for known output file formats.
 ### Uncomment to use.  If undefined, will not write that type of file.

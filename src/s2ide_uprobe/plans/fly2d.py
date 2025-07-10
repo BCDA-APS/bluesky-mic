@@ -12,12 +12,12 @@ __all__ = """
 
 import logging
 from apsbits.utils.controls_setup import oregistry
-from s2ide_uprobe.utils.scan_monitor import execute_scan_2d
+# from s2ide_uprobe.utils.scan_monitor import execute_scan_2d
 # from mic_common.utils.scan_monitor import execute_scan_2d
 from mic_common.plans.generallized_scan_1d import generalized_scan_1d
 from bluesky import plan_stubs as bps  
 from apsbits.utils.config_loaders import get_config
-from s2ide_uprobe.utils.usercalc_lib import hydra_config, sis3820_config, xrf_config
+# from s2ide_uprobe.utils.usercalc_lib import hydra_config, sis3820_config, xrf_config
 from ophyd.status import Status
 from apstools.plans import run_blocking_function
 
@@ -35,12 +35,12 @@ samy = oregistry["sim2"]
 fscan1 = oregistry["fscan1"]
 fscanh = oregistry["fscanh"]
 fscanh_samx = oregistry["fscanh_samx"]
-flydwell = oregistry["flydwell"]
-savedata = oregistry["savedata"]
-hydra = oregistry["hydra"]
-sis3820 = oregistry["sis3820"]
-xrf = oregistry["xrf"]
-xrf_netcdf = oregistry["xrf_netcdf"]
+# flydwell = oregistry["flydwell"] #Commented out for testing
+# savedata = oregistry["savedata"]
+# hydra = oregistry["hydra"]
+# sis3820 = oregistry["sis3820"]
+# xrf = oregistry["xrf"]
+# xrf_netcdf = oregistry["xrf_netcdf"]
 iconfig = get_config()
 scan_overhead = iconfig.get("SCAN_OVERHEAD")
 xmap_buffer = iconfig.get("XMAP", "BUFFER")
@@ -66,8 +66,8 @@ def fly2d(
 ):
     """2D Bluesky plan that drives the x- and y- sample motors in flying mode using
     ScanRecord
-    
-    The plan will drive samx and samy to the requested x_center and y_center, 
+
+    The plan will drive samx and samy to the requested x_center and y_center,
     and then perform a relative scan in the x and y directions.
 
     Parameters
@@ -118,7 +118,7 @@ def fly2d(
     """Set up the inner loop scan record based on the scan types and parameters"""
     yield from bps.mv(fscanh.positioners.p1.abs_rel, "absolute".upper())
     yield from generalized_scan_1d(fscanh, samx, savedata, scan_overhead=scan_overhead,
-                                    scanmode="FLY", x_center=x_center, width=width, 
+                                    scanmode="FLY", x_center=x_center, width=width,
                                     stepsize_x=stepsize_x, dwell=dwell)
     # yield from generalized_scan_1d(fscanh, fscanh_samx, savedata, scan_overhead=scan_overhead,
     #                                 scanmode="FLY", x_center=x_center, width=width, 
@@ -147,13 +147,16 @@ def fly2d(
 
     st = Status()
 
+    # 1) Inside of a plan, how does one make a device, execute a device function. Look at line 157
+    # 2) When you do an execute scan, bps.mv executes a scan, and then we want it and keeps going until it finishes. Can this be done in a while?
+
     def outter_counter_callback(value, old_value, **kwargs):
         logger.info(f"Outter counter callback called with value {value} and old_value {old_value}")
         # if value >= 1:
         logger.info(f"Sending erase start signal to sis3820")
-            # yield from sis3820.set_erase_start(1)
+        # sis3820.set_erase_start(1)
         logger.info(f"Sending parameters to hydra")
-            # yield from hydra.set_send_parameters(1)
+        # hydra.set_send_parameters(1)
 
     def watch_execute_scan(old_value, value, **kwargs):
         """Monitor scan execution.
@@ -171,11 +174,11 @@ def fly2d(
 
     """Start executing scan"""
     # yield from bps.sleep(2)
-    savedata.update_next_file_name()
+    # savedata.update_next_file_name()
     fscan1.number_points_rbv.subscribe(outter_counter_callback)
     yield from bps.mv(fscan1.execute_scan, 1)  # Start scan
     yield from run_blocking_function(st.wait)
-    # yield from execute_scan_2d(fscanh, fscan1, scan_name=savedata.next_file_name, 
+    # yield from execute_scan_2d(fscanh, fscan1, scan_name=savedata.next_file_name,
     #                            print_outter_msg=True)
 
 
