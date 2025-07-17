@@ -39,9 +39,9 @@ class Trigger(TriggerBase):
     def stage(self):
         '''Staging detector. Must ensure that stage signals are well defined previously.'''
 
-        self.acquire.set(0).wait(timeout=10)
-        self.acquire_mode.set('Single').wait(timeout=10) 
-        self.acquisitions.set(1).wait(timeout=10)
+        # self.acquire.set(0).wait(timeout=10)
+        # self.acquire_mode.set('Single').wait(timeout=10) 
+        # self.acquisitions.set(1).wait(timeout=10)
         self._staged = True
 
 
@@ -98,6 +98,7 @@ class TetraMM(Trigger, TetrammDetector):
 
     current_1 = Cpt(EpicsSignalRO, ":Current1:MeanValue_RBV", name='current_1', kind='hinted')
     current_2 = Cpt(EpicsSignalRO, ":Current2:MeanValue_RBV", name='current_2', kind='hinted')
+    current_3 = Cpt(EpicsSignalRO, ":Current3:MeanValue_RBV", name='current_3', kind='hinted')
 
 
     # def initialization(self):

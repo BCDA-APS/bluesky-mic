@@ -65,6 +65,12 @@ class GateDelay(Device):
     width = Component(EpicsSignal, "_WIDTH", kind='config')
     out_signal = Component(EpicsSignal, "_OUT_Signal", kind='config')
 
+class PulseTrain(Device):
+    clock = Component(EpicsSignal, "_CLK_Signal", kind='config')
+    n = Component(EpicsSignal, "_NPULSES", kind='config')
+    period = Component(EpicsSignal, "_PERIOD", kind='config')
+    width = Component(EpicsSignal, "_WIDTH", kind='config')
+
 
 
 class SoftGlueZynq(Device):
@@ -83,12 +89,16 @@ class SoftGlueZynq(Device):
     div_by_n_3 = Component(DivByN, ":SG:DivByN-3_", kind='config') #Usr clock
     div_by_n_4 = Component(DivByN, ":SG:DivByN-4_", kind='config')
 
-    up_counter_1 = Component(UpCounter, ":SG:UpCntr-1") #1 MHz clock
-    up_counter_2 = Component(UpCounter, ":SG:UpCntr-1") #Usr clock
-    up_counter_3 = Component(UpCounter, ":SG:UpCntr-1")
-    up_counter_4 = Component(UpCounter, ":SG:UpCntr-1")
+    up_counter_1 = Component(UpCounter, ":SG:UpCntr-1_") #1 MHz clock
+    up_counter_2 = Component(UpCounter, ":SG:UpCntr-1_") #Usr clock
+    up_counter_3 = Component(UpCounter, ":SG:UpCntr-1_")
+    up_counter_4 = Component(UpCounter, ":SG:UpCntr-1_")
+
+    down_counter_1 = Component(DownCounter, ":SG:DnCntr-1_")
 
     gate_delay_1 = Component(GateDelay, ":SG:GateDly-1")
+
+    pulse_train = Component(PulseTrain, ":SG:plsTrn-1")
 
     #Ram memory components for fly scanning
     mem_address = Component(EpicsSignal, ":SG:mem_ADDRA")
@@ -101,6 +111,11 @@ class SoftGlueZynq(Device):
     ram_n = Component(EpicsSignal, ":SG:driveRAM_N")
 
     dac1_man = Component(EpicsSignal, ":SG:mux32_SEL_Signal")
+    dac1_val = Component(EpicsSignal, ":SG:DAC1_VAL")
+    dac1_write = Component(EpicsSignal, ":SG:DAC_WRITE_Signal")
+
+    threshold_pos = Component(EpicsSignal, ":SG:threshTrig-1_POSTHR")
+    threshold_neg = Component(EpicsSignal, ":SG:threshTrig-1_NEGTHR")
 
     #DMA components
     dma = DynamicDeviceComponent(_dma_fields())
@@ -109,14 +124,19 @@ class SoftGlueZynq(Device):
 
     def start(self):
         yield from mv(self.buffer_4.in_signal, "1")
+        # self.buffer_4.in_signal.set("1")
+        # yield from mv(self.buffer_4.in_signal, "1")
 
     def stop(self):
+        # self.buffer_4.in_signal.set("0")
         yield from mv(self.buffer_4.in_signal, "0")
 
     def reset(self):
+        # self.buffer_1.in_signal.set("1!")
         yield from mv(self.buffer_1.in_signal, "1!")
 
     def reset_interferometers(self):
+        # self.buffer_2.in_signal.set("1!")
         yield from mv(self.buffer_2.in_signal, "1!")
 
     def setup_gated_trigger(self, period_time, pulse_width, pulse_delay=0):
@@ -152,15 +172,20 @@ class SoftGlueZynq(Device):
             # )
             self.mem_address.put(i)
             self.mem_data.put(j)
+
             yield from sleep(0.001)
             yield from mv(self.mem_clk, "1!")
             yield from sleep(0.001)
 
         yield from mv(
             self.mem_write, "0",
-            self.ram_enable, "1"
+            self.ram_enable, "1",
+            # self.ram_n, str(len(array)),
+            # self.mem_clk, "ckIM"
             )
         
+        self.ram_n.put(str(len(array)))
+        self.mem_clk.put("funcGenPulse")
         self.ram_n.put(str(len(array)))
         
     def create_snake_bits(self, A=32767, F=0.9, npts=1000, offset=0):
@@ -172,6 +197,7 @@ class SoftGlueZynq(Device):
         # the total y extent, A, and the Y extent of the line is L, then
         # L = F*(L+1), which yields L = F/(1-F).
         L = F/(1.-F)
+
     
         # We want A to be a user-specified amplitude of the entire function, so
         # a scale factor, Sy, is given by Sy*(L+1) = A.
@@ -211,8 +237,8 @@ class SoftGlueZynq(Device):
         if y>90 or y<0:
             raise RuntimeError("Piezo scan requested exceeds 0 um - 90 um range -- Aborting.")
         
-        m = (2**16 - 1)/90
-        b = -(2**16-1)/2
+        m = (2**15 - 1)/90
+        b = -(2**15-1)/2
 
         return int(m*y+b)
 
@@ -220,7 +246,10 @@ class SoftGlueZynq(Device):
         #Takes a minimum and maximum y values and writes snake array to RAM
 
         #TODO: maybe later we can make it scan in opposite direction if max < min.
-        amplitude = self.y_to_bits(np.abs(y_max - y_min))
+        y_max_bits = self.y_to_bits(y_max)
+        y_min_bits = self.y_to_bits(y_min)
+        # amplitude = self.y_to_bits(np.abs(y_max - y_min))
+        amplitude = (y_max_bits - y_min_bits)/2
         offset = self.y_to_bits((y_max + y_min)/2)
 
         snake_array = self.create_snake_bits(A=amplitude, F=F, npts=npts, offset=offset)

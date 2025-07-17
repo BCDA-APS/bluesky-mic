@@ -24,7 +24,7 @@ from apsbits.core.run_engine_init import init_RE
 # Utility functions
 from apsbits.utils.aps_functions import aps_dm_setup
 from apsbits.utils.aps_functions import host_on_aps_subnet
-# from apsbits.utils.baseline_setup import setup_baseline_stream
+from apsbits.utils.baseline_setup import setup_baseline_stream
 
 # Configuration functions
 from apsbits.utils.config_loaders import load_config
@@ -81,10 +81,10 @@ if iconfig.get("NEXUS_DATA_FILES", {}).get("ENABLE", False):
 # Optional SPEC callback block
 # delete this block if not using SPEC
 if iconfig.get("SPEC_DATA_FILES", {}).get("ENABLE", False):
-    from .callbacks.spec_data_file_writer import init_specwriter_with_RE
-    from .callbacks.spec_data_file_writer import newSpecFile  # noqa: F401
-    from .callbacks.spec_data_file_writer import spec_comment  # noqa: F401
-    from .callbacks.spec_data_file_writer import specwriter  # noqa: F401
+    from mic_common.callbacks.spec_data_file_writer import init_specwriter_with_RE
+    from mic_common.callbacks.spec_data_file_writer import newSpecFile  # noqa: F401
+    from mic_common.callbacks.spec_data_file_writer import spec_comment  # noqa: F401
+    from mic_common.callbacks.spec_data_file_writer import specwriter  # noqa: F401
 
     init_specwriter_with_RE(RE)
 
@@ -114,6 +114,7 @@ if host_on_aps_subnet():
 # xrf_me7_hdf = oregistry["xrf_me7_hdf"]
 # xrf_me7_hdf.micdata_mountpath = local_mountpath
 
+from isn.plans.old_plans.sim_plans import *
 from bluesky import plan_stubs as bps
 from bluesky import plans as bp
 from .plans import *

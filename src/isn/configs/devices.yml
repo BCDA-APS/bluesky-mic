@@ -28,6 +28,10 @@ isn.devices.kb.KB:
   prefix: 19idKB
   labels: ["mirror"]
 
+isn.devices.sample.Sample:
+- name: sample
+  prefix: 19idAERO
+
 isn.devices.xrayeye.XRayEye:
 - name: xrayeye
   prefix: 19idXEYE
@@ -48,10 +52,10 @@ isn.devices.bda.BDA:
   axis: H
   labels: ["bda", "baseline"]
 
-isn.devices.rayspec.Rayspec:
-- name: rayspec
-  prefix: 19idACS
-  labels: ["motor", "baseline"]
+# isn.devices.rayspec.Rayspec:
+# - name: eric
+#   prefix: 19idACS
+#   labels: ["motor"]
 
 isn.devices.tetramm.TetraMM:
 - name: tetramm1
@@ -137,17 +141,10 @@ mic_common.devices.xspress3.Xspress3:
   prefix: XSP3_7Chan:det1
   labels: ["detector"]
 
-<<<<<<< HEAD
 # mic_common.devices.eiger.Eiger:
 # - name: ptycho
-#   prefix: 19idPTYCHO
+#   prefix: "19idPTYCHO:cam1"
 #   labels: ["detector"]
-=======
-mic_common.devices.eiger.Eiger:
-- name: ptycho
-  prefix: "19idPTYCHO:cam1:"
-  labels: ["detector"]
->>>>>>> 8ec88ce1e46d99fff5beee39d1527e0f99ae62ba
 
 # - name: xrd
 #   prefix: 19idXRD
@@ -169,14 +166,7 @@ mic_common.devices.ad_fileplugin.DetHDF5:
 - name: ptycho_hdf
   prefix: "19idPTYCHO:HDF1:"
   labels: ["fileplugin"]
-<<<<<<< HEAD
 # - name: tetramm1_hdf
-=======
-- name: tetramm1_hdf
-
-mic_common.devices.ad_fileplugin.DetNetCDF:
-- name: tetramm1_netcdf
->>>>>>> 8ec88ce1e46d99fff5beee39d1527e0f99ae62ba
 
 
 #     AD_XSP3_12Chan:
