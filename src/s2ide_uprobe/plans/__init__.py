@@ -10,9 +10,9 @@
 # from .profile_move_scan import profile_move_isn  # noqa: F401
 
 # # Simulated plans to test out installation
-# from .sim_plans import sim_count_plan  # noqa: F401
-# from .sim_plans import sim_print_plan  # noqa: F401
-# from .sim_plans import sim_rel_scan_plan  # noqa: F401
+from .sim_plans import sim_count_plan  # noqa: F401
+from .sim_plans import sim_print_plan  # noqa: F401
+from .sim_plans import sim_rel_scan_plan  # noqa: F401
 # from .step1d import step1d
 from .step2d import step2d
 from .fly2d import fly2d
