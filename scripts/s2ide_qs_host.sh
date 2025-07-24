@@ -5,26 +5,31 @@
 
 SHELL_SCRIPT_NAME=${BASH_SOURCE:-${0}}
 SCRIPT_DIR="$(dirname $(readlink -f  "${SHELL_SCRIPT_NAME}"))"
-CONFIGS_DIR=$(readlink -f "${SCRIPT_DIR}/../id2_e/configs")
+echo SHELL_SCRIPT_NAME="${SHELL_SCRIPT_NAME}"
+CONFIGS_DIR=$(readlink -f "${SCRIPT_DIR}/../src/s2ide_uprobe/configs")
+QSERVER_DIR=$(readlink -f "${SCRIPT_DIR}/../src/s2ide_uprobe/qserver")
 
 ###-----------------------------
 ### Change program defaults here
 
 # Instrument configuration YAML file with databroker catalog name.
-ICONFIG_YML="${CONFIGS_DIR}"/iconfig.yml
+ICONFIG_YML="${CONFIGS_DIR}/iconfig.yml"
 
 # Bluesky queueserver configuration YAML file.
 # This file contains the definition of 'redis_addr'.  (default: localhost:6379)
 # "export" is for BITS to identify when QS is running.
-export QS_CONFIG_YML="${SCRIPT_DIR}/qs-config.yml"
+export QS_CONFIG_YML="${QSERVER_DIR}/qs-config.yml"
 
 # Host name (from $hostname) where the queueserver host process runs.
 # QS_HOSTNAME=amber.xray.aps.anl.gov  # if a specific host is required
 QS_HOSTNAME="$(hostname)"
 
 PROCESS=start-re-manager  # from the conda environment
-STARTUP_COMMAND="${PROCESS} --config=${QS_CONFIG_YML}"
+STARTUP_COMMAND="${PROCESS} --config=${QS_CONFIG_YML} --user-group-permissions=${QSERVER_DIR}/user_group_permissions.yaml"
 
+# STARTUP_COMMAND="${PROCESS} --config=${QS_CONFIG_YML} \
+#     --user-group-permissions-path=\"${CONFIGS_DIR}/user_group_permissions.yaml\" \
+#     --existing-plans-and-devices-path=\"${CONFIGS_DIR}/existing_plans_and_devices.yaml\""
 #--------------------
 # internal configuration below
 

@@ -41,9 +41,9 @@ run_engine:
 
 startup:
     keep_re: true
-    startup_module: id2_e.startup
-    existing_plans_and_devices_path: ./
-    user_group_permissions_path: ./
+    startup_module: s2ide_uprobe.startup
+    # existing_plans_and_devices_path: ./
+    # user_group_permissions_path: ./
 
 worker:
     use_ipython_kernel: true
