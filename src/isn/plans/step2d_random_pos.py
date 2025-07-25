@@ -130,13 +130,13 @@ def step2d_random_pos(
     bluesky_params = get_bluesky_params()
 
 
-    # """Open the shutter"""
-    # logger.info("Opening the shutter")
-    # yield from bps.mv(shutter_open, 1)
-    # shutter_status = shutter_open_status.value  # when open, the status becomes 0
-    # while shutter_status:
-    #     shutter_status = shutter_open_status.value
-    #     yield from bps.sleep(0.2)
+    """Open the shutter"""
+    logger.info("Opening the shutter")
+    yield from bps.mv(shutter_open, 1)
+    shutter_status = shutter_open_status.value  # when open, the status becomes 0
+    while shutter_status:
+        shutter_status = shutter_open_status.value
+        yield from bps.sleep(0.2)
 
     """Move to the requested x- and y- centers"""
     logger.info("Moving to the requested x- and y- centers")
@@ -193,6 +193,10 @@ def step2d_random_pos(
 
     """Close the shutter"""
     yield from bps.mv(shutter_close, 1)
+    shutter_status = shutter_open_status.value  # when open, the status becomes 0
+    while not shutter_status:
+        shutter_status = shutter_open_status.value
+        yield from bps.sleep(0.2)
 
     """Reset the scan record to default"""
     yield from bps.sleep(1)

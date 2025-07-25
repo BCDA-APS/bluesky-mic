@@ -1,33 +1,34 @@
 """
-Creating a bluesky plan that interacts with Scan Record.
+Creating a step scan plans that uses 1 scan record and drives more than
+one positioners.
 
 @author: yluo(grace227)
-
 
 """
 
 __all__ = """
-    step2d
+    step2d_random_pos
 """.split()
 
 import logging
-from apsbits.utils.controls_setup import oregistry
-from mic_common.utils.scan_monitor import execute_scan_2d
-from .generallized_scan_1d import generalized_scan_1d
-from bluesky import plan_stubs as bps  
-from apsbits.utils.config_loaders import get_config, load_config_yaml
-from mic_common.utils.watch_pvs_write_hdf5 import write_scan_master_h5
+import numpy as np
 from pathlib import Path
+from apsbits.utils.controls_setup import oregistry
+from apsbits.utils.config_loaders import get_config, load_config_yaml
+from mic_common.utils.scan_monitor import execute_scan_1d
+from isn.plans.utils.trajectory import generate_random_points
 from isn.plans.utils.det_setup import xrf_me7_setup, ptycho_setup
+from mic_common.utils.watch_pvs_write_hdf5 import write_scan_master_h5
+import bluesky.plan_stubs as bps
+from epics import caput
 from isn.startup import master_file_config_path
-import h5py, os
+import h5py
+import os
 
 logger = logging.getLogger(__name__)
 logger.info(__file__)
 
-
 scan1 = oregistry["scan1"]
-scan2 = oregistry["scan2"]
 samx = oregistry["samx"]
 samy = oregistry["samy"]
 savedata = oregistry["savedata"]
@@ -46,25 +47,28 @@ ptycho_folder = iconfig.get("PTYCHO_FOLDER")
 
 master_file_yaml = load_config_yaml(master_file_config_path)
 
-scanmode = "LINEAR"
-
-def step2d(
+def step2d_random_pos_xrf(
     samplename="smp1",
     user_comments="",
+    scan_traj="grid",
     width=0,
-    x_center=None,
-    stepsize_x=0,
     height=0,
+    x_center=None,
     y_center=None,
+    stepsize_x=0,
     stepsize_y=0,
+    dr = 0.2,
+    nth = 3,
     dwell=0,
-    xrf_me7_on=True,
     ptycho_on=False,
+    xrf_me7_on=False,
     ptycho_exp_factor=1,
 ):
-    """2D Bluesky plan that drives the x- and y- sample motors in stepping mode using
-    ScanRecord
-    
+    """
+    Step 2D random position scan plan. This plan will drive samx and samy
+    to random positions within the width and height of the scan. This plan
+    will also use EPICS scanrecord. 
+
     The plan will drive samx and samy to the requested x_center and y_center, 
     and then perform a relative scan in the x and y directions.
 
@@ -74,28 +78,35 @@ def step2d(
         Str: The name of the sample
     user_comments: 
         Str: The user comments for the scan
-    width:
+    scan_traj: 
+        Str: The trajectory of the scan. Options are "spiral" and "grid".
+    width: 
         Float: The width of the scan
-    x_center:
-        Float: The center of the scan in the x direction. Default is None which uses the current position of samx
-    stepsize_x:
-        Float: The step size in the x direction
-    height:
+    height: 
         Float: The height of the scan
-    y_center:
-        Float: The center of the scan in the y direction. Default is None which uses the current position of samy
-    stepsize_y:
-        Float: The step size in the y direction
-    dwell:
-        Float: The dwell time in the scan
-    xrf_me7_on:
-        Bool: Whether to collect XRF data
-    ptycho_on:
-        Bool: Whether to collect Ptycho data
-    ptycho_exp_factor:
-        Float: The exposure factor for the ptycho camera
+    x_center: 
+        Float: The center of the scan. If not provided, 
+        the plan assumes it's a relative scan mode
+    y_center: 
+        Float: The center of the scan. If not provided, 
+        the plan assumes it's a relative scan mode
+    stepsize_x: 
+        Float: The step size of the scan in the x direction
+    stepsize_y: 
+        Float: The step size of the scan in the y direction
+    dr: 
+        Float: The delta radius of the scan
+    nth: 
+        Int: The number of theta steps of the scan
+    dwell: 
+        Float: The dwell time of the scan
+    ptycho_on: 
+        Bool: Whether to turn on the ptycho
+    xrf_me7_on: 
+        Bool: Whether to turn on the xrf me7
     """
 
+    
     def get_bluesky_params():
         """Create a dictionary of function name and input parameters."""
         import inspect
@@ -114,9 +125,10 @@ def step2d(
                 params.update({k:v})
 
         return params
-    
+
     """Put the plan parameters in to dict"""
     bluesky_params = get_bluesky_params()
+
 
     """Open the shutter"""
     logger.info("Opening the shutter")
@@ -133,46 +145,61 @@ def step2d(
     if y_center is not None:
         yield from bps.mv(samy, y_center)
 
-    """Set up the inner loop scan record based on the scan types and parameters"""
+    """Generate the scan trajectory"""
+    samx_points, samy_points = generate_random_points(scan_traj, 0, 0, 
+                                                      width, height, stepsize_x, stepsize_y, dr, nth)
+    logger.info(f"Generated array of {samx_points.shape[0]} points")
+
+    """Configure the scanrecord and pass the scan trajectory"""
+    yield from scan1.set_scan_mode("table")
+    yield from bps.mv(scan1.positioners.p2.mode, "table".upper())
+    logger.info(f"Setting number of points to {samx_points.shape[0]}")
+    yield from bps.mv(scan1.number_points, samx_points.shape[0])
+
+    yield from bps.mv(scan1.positioners.p1.setpoint_pv, samx.prefix+'.VAL',
+                      scan1.positioners.p1.readback_pv, samx.prefix+'.RBV')
     yield from bps.mv(scan1.positioners.p1.abs_rel, "relative".upper())
-    yield from generalized_scan_1d(scan1, samy, scanmode=scanmode, x_center=0, width=height, 
-                                stepsize_x=stepsize_y, dwell=dwell)
-
-    """Set up the outter loop scan record"""
-    yield from scan2.set_scan_mode(scanmode)
-    yield from bps.mv(scan2.positioners.p1.abs_rel, "relative".upper())
-    yield from generalized_scan_1d(scan2, samx, scanmode=scanmode, x_center=0, width=width, 
-                            stepsize_x=stepsize_x, dwell=dwell)
-
+    yield from bps.mv(scan1.positioners.p2.setpoint_pv, samy.prefix+'.VAL',
+                      scan1.positioners.p2.readback_pv, samy.prefix+'.RBV')
+    yield from bps.mv(scan1.positioners.p2.abs_rel, "relative".upper())    
+    caput(scan1.P1PA.pvname, samx_points)
+    caput(scan1.P2PA.pvname, samy_points)
     
+    # yield from bps.mv(scan1.positioner_delay, 0.1)
+    yield from bps.sleep(0.1)
+
     """Configure the detectors"""
-    num_capture = scan1.number_points.get()
+    num_capture = samx_points.shape[0]
     savedata.update_next_file_name()
     filename = savedata.next_file_name.replace(".mda", "")
-    
-    if ptycho_on and ptycho.connected and ptycho_hdf.connected:
+        
+    if xrf_me7_on and xrf_me7.connected and xrf_me7_hdf.connected:
+        yield from xrf_me7_setup(1, dwell, filename)
+
+    elif ptycho_on and ptycho.connected and ptycho_hdf.connected:
         trigger_mode = "Internal Series"
         yield from ptycho_setup(trigger_mode, num_capture, dwell, 
                                 ptycho_exp_factor, filename)
-        
+
     """Generate the scan master file"""
     next_file_name = savedata.next_file_name.replace(".mda", "_master.h5")
     scan_master_h5_path = Path(savedata.file_system.value) / next_file_name
     write_scan_master_h5(master_file_yaml, scan_master_h5_path, bluesky_params)
     logger.info(f"Scan master file saved to {scan_master_h5_path}")
-        
-    
+
     """Start executing scan"""
     savedata.update_next_file_name()
-    yield from execute_scan_2d(scan1, scan2, scan_name=savedata.next_file_name)
+    yield from execute_scan_1d(scan1, scan_name=savedata.next_file_name)
 
     """Close the shutter"""
     yield from bps.mv(shutter_close, 1)
-    shutter_status = shutter_open_status.value  # when open, the status becomes 0
-    while not shutter_status:
-        shutter_status = shutter_open_status.value
-        yield from bps.sleep(0.2)
 
+    """Reset the scan record to default"""
+    yield from bps.sleep(1)
+    yield from scan1.set_scan_mode("linear")
+    yield from bps.mv(scan1.positioners.p2.mode, "linear".upper())
+    yield from bps.mv(scan1.positioners.p2.setpoint_pv, '',
+                      scan1.positioners.p2.readback_pv, '')
 
     """Disable manual trigger of eiger"""
     if ptycho_on and ptycho.connected:
@@ -206,3 +233,7 @@ def step2d(
             group[det_name] = h5py.ExternalLink(rel_path, det_name)
 
     yield from bps.sleep(0.2)
+
+
+
+                

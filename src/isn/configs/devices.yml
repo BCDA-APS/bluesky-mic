@@ -18,10 +18,10 @@ isn.devices.mono.Mono:
   prefix: 19idDCM
   labels: ["mono", "baseline"]
 
-isn.devices.lateral_mirror.Lateral_Mirror:
-- name: lateral_mirror
-  prefix: 19idMR
-  labels: ["mirror", "baseline"]
+# isn.devices.lateral_mirror.Lateral_Mirror:
+# - name: lateral_mirror
+#   prefix: 19idMR
+#   labels: ["mirror", "baseline"]
 
 isn.devices.xrayeye.XRayEye:
 - name: xrayeye
@@ -124,7 +124,7 @@ isn.devices.my_motor_bundle.MyMotorBundle:
 
 mic_common.devices.xspress3.Xspress3:
 - name: xrf_me7
-  prefix: XSP3_7Chan:det1
+  prefix: "XSP3_7Chan:det1:"
   labels: ["detector"]
 
 # mic_common.devices.eiger.Eiger:
@@ -147,7 +147,7 @@ mic_common.devices.eiger1m.Eiger1M:
 
 mic_common.devices.ad_fileplugin.DetHDF5:
 - name: xrf_me7_hdf
-  prefix: XSP3_7Chan:HDF1
+  prefix: "XSP3_7Chan:HDF1:"
   labels: ["fileplugin"]
 - name: ptycho_hdf
   prefix: "19idPTYCHO:HDF1:"
