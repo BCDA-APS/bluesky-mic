@@ -38,8 +38,10 @@ savedata = oregistry["savedata"]
 sis3820 = oregistry["sis3820"]
 xrf = oregistry["xrf"]
 xrf_netcdf = oregistry["xrf_netcdf"]
+preamp1_netcdf = oregistry["tetramm1_netcdf"]
 iconfig = get_config()
 scan_overhead = iconfig.get("SCAN_OVERHEAD")
+netcdf_delimiter = iconfig.get("FILE_DELIMITER")
 xmap_buffer = iconfig.get("XMAP", "BUFFER")
 
 
@@ -97,8 +99,8 @@ def fly2d(
 
     """
 
-    # """Disable the usercalc that used in scan record"""
-    # yield from disable_usercalc()
+    """Disable the usercalc that used in scan record"""
+    yield from disable_usercalc()
 
     """Move the sample to the requested z position"""
     if sample_z is not None:
@@ -135,91 +137,84 @@ def fly2d(
     # """Check which detectors to trigger"""
     # logger.info("Determining which detectors are selected")
     # dets = selected_dets(**locals())
-    # """Update the next file name for the detector file plugin"""
-    # savedata.update_next_file_name()
-    # next_file_name = savedata.next_file_name
+
+    """Update the next file name for the detector file plugin"""
+    savedata.update_next_file_name()
+    next_file_name = savedata.next_file_name
 
     # """Generate scan_master.h5 file"""
 
-    # """Initialize detectors with desired pts, exposure time and file writer """
-    # if sis3820.connected:
-    #     # Set up triggers for FLY scans, sis3820 will be sending out pulses. The number of pulses is numpts_x - 2
-    #     numpts_x = fscanh.number_points.value
-    #     num_pulses = numpts_x - 2
-    #     filename = next_file_name.replace(".mda", "")
-    #     if dets:
-    #         for det_name, det_var in dets.items():
-    #             cam = det_var["cam"]
-    #             file_plugin = det_var["file_plugin"]
-    #             savedata.update_next_file_name()
+    """Initialize detectors with desired pts, exposure time and file writer """
+    if sis3820.connected:
+        # Set up triggers for FLY scans, sis3820 will be sending out pulses. The number of pulses is numpts_x - 2
+        numpts_x = fscanh.number_points.value
+        num_pulses = numpts_x - 2
+        filename = next_file_name.replace(".mda", "")
 
-    #             if det_name == "xrf":
-    #                 # num_capture = calculate_num_capture(numpts_x)
-    #                 num_capture = (
-    #                     0  # When it's zero, the num_capture won't be overwritten
-    #                 )
-    #                 yield from setup_flyscan_XRF_triggers(
-    #                     fscanh, cam, file_plugin, sis3820, num_pulses
-    #                 )
-    #                 yield from cam.flyscan_before(num_pulses)
+        if all([xrf_on, xrf.connected, xrf_netcdf.connected]):
+            num_capture = 0 # When it's zero, the num_capture won't be overwritten
+            yield from setup_flyscan_XRF_triggers(
+                fscanh, xrf, xrf_netcdf, sis3820, num_pulses
+            )
+            yield from xrf.flyscan_before(num_pulses)
+            
+            yield from xrf_netcdf.setup_file_writer(
+                savedata,
+                det_foldername["xrf"],
+                num_capture,
+                filename=filename,
+                beamline_delimiter=netcdf_delimiter,
+            )
 
-    #                 yield from file_plugin.setup_file_writer(
-    #                     savedata,
-    #                     det_foldername[det_name],
-    #                     num_capture,
-    #                     filename=filename,
-    #                     beamline_delimiter=netcdf_delimiter,
-    #                 )
-    #                 # yield from file_plugin.set_capture("capturing")
+            yield from xrf_netcdf.set_capture("capturing")
 
-    #             elif any([det_name == "preamp1", det_name == "preamp2"]):
-    #                 logger.info(
-    #                     f"Setting up file writer for {det_name}, {file_plugin.file_path.get()}"
-    #                 )
-    #                 yield from file_plugin.setup_file_writer(
-    #                     savedata,
-    #                     det_foldername[det_name],
-    #                     num_capture,
-    #                     filename=filename,
-    #                     beamline_delimiter=netcdf_delimiter,
-    #                 )
+        if all([preamp1_on, preamp1_netcdf.connected]):
+            logger.info(f"Setting up file writer for preamp1, {preamp1_netcdf.file_path.get()}")
+            yield from preamp1_netcdf.setup_file_writer(
+                savedata,
+                det_foldername["preamp1"],
+                num_pulses,
+                filename=filename,
+                beamline_delimiter=netcdf_delimiter,
+            )
+        
+            yield from preamp1_netcdf.set_capture("capturing")
 
-    #             yield from file_plugin.set_capture("capturing")
+        
 
-    # """Print the scan parameters and the updated file name """
-    # parm_list = [
-    #     "samplename",
-    #     "user_comments",
-    #     "width",
-    #     "x_center",
-    #     "stepsize_x",
-    #     "height",
-    #     "y_center",
-    #     "stepsize_y",
-    #     "dwell",
-    #     "inc_eng",
-    #     "adjust_zp",
-    #     "xrf_on",
-    #     "preamp1_on",
-    #     "preamp2_on",
-    # ]
-    # local_parms = locals()
-    # parm_dict = {parm: local_parms[parm] for parm in parm_list}
-    # logger.info(
-    #     f"-------------------------------- File {savedata.next_file_name} "
-    #     f"--------------------------------"
-    # )
-    # logger.info(f"Scan parameters: {parm_dict}")
-    # logger.info(
-    #     f"-------------------------------- File {savedata.next_file_name} --------------------------------"
-    # )
+    """Print the scan parameters and the updated file name """
+    parm_list = [
+        "samplename",
+        "user_comments",
+        "width",
+        "x_center",
+        "stepsize_x",
+        "height",
+        "y_center",
+        "stepsize_y",
+        "dwell",
+        "inc_eng",
+        "adjust_zp",
+        "xrf_on",
+        "preamp1_on",
+        "preamp2_on",
+    ]
+    local_parms = locals()
+    parm_dict = {parm: local_parms[parm] for parm in parm_list}
+    logger.info(
+        f"-------------------------------- File {savedata.next_file_name} "
+        f"--------------------------------"
+    )
+    logger.info(f"Scan parameters: {parm_dict}")
+    logger.info(
+        f"-------------------------------- File {savedata.next_file_name} --------------------------------"
+    )
 
     """Start executing scan"""
     # yield from bps.sleep(1)
     fname = savedata.next_file_name
     yield from execute_scan_2d(fscanh, fscan1, scan_name=fname, print_outter_msg=True)
 
-    # """Enable the usercalc that used in scan record"""
-    # yield from enable_usercalc()
+    """Enable the usercalc that used in scan record"""
+    yield from enable_usercalc()
 
-    # return fname
