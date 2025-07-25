@@ -36,7 +36,9 @@ FILE_DELIMITER: "2ide"
 SCAN_OVERHEAD: 0.3
 XMAP:
     BUFFER: 124
-
+SAM_X:
+    PRECISION: 0.001
+    
 # DEVICES:
 #   TETRAMM1: "2ide:TMM1"
 #   SAVE_DATA: "2xfm:saveData_"

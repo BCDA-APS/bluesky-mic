@@ -17,7 +17,24 @@ sis3820 = oregistry["sis3820"]
 samx = oregistry["samx"]
 iconfig = get_config()
 xmap_buffer = iconfig.get("XMAP", "BUFFER")
-sam_x_precision = iconfig.get("SAM_X", "PRECISION")
+
+
+def stop_dets(sis3820, xrf, xrf_netcdf):
+    """
+    Stop all detectors
+    Parameters:
+        sis3820: SIS3820
+            The SIS3820 device
+        xrf: XRF
+            The XRF device
+        xrf_netcdf: XRF_NetCDF
+            The XRF_NetCDF fileplugin
+    """
+    yield from sis3820.set_stop_all(1)
+    yield from xrf.set_stop_all(1)
+    yield from xrf_netcdf.set_capture("done")       
+
+
 
 def check_xstage_stuck(elapsed_realtime = 1, sis3820_current_channel = 0):
     """
@@ -70,40 +87,18 @@ def unstuck_xstage():
 
 
 
-def hydra_config(hydra, fscanh):
-    """Set up Hydra (motor controller) based on the fscanh parameters
-    
-    Parameters:
-        hydra: Hydra
-            The Hydra device
-        fscanh: FScanH
-            The fly scan record
-    """
-    stepsize = fscanh.stepsize.get()
-    end_position = fscanh.end_position.get()
-    start_position = fscanh.start_position.get()
-    total_trigger = fscanh.number_points.get()
-
-    yield from hydra.set_start_position(start_position+stepsize)
-    yield from hydra.set_end_position(end_position)
-    yield from hydra.set_total_trigger(total_trigger)
-    yield from hydra.set_mode("Equidistant / Standard")
-    yield from hydra.set_send_parameters(1)
-
-
-def sis3820_config(sis3820, fscanh):
-    """Set up SIS3820 based on the fscanh parameters
+def sis3820_config(sis3820, fscan1):
+    """Set up SIS3820 based on the fscan1 parameters
     
     Parameters:
         sis3820: SIS3820
             The SIS3820 device
-        fscanh: FScanH
-            The fly scan record
+        fscan1: FScan1
+            The linear scan record
     """
 
-    total_points = fscanh.number_points.get()
+    total_points = fscan1.number_points.get()
     total_trigger = total_points - 2
-    sis3820_prescale = abs(fscanh.stepsize.get()/sam_x_precision) + 0.0001
     yield from sis3820.set_stop_all(1)
     yield from sis3820.set_num_ch_used(total_trigger)
 

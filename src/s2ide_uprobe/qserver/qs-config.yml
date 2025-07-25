@@ -30,18 +30,18 @@ operation:
     # choices: NEVER ON_REQUEST ON_STARTUP
     user_group_permissions_reload: ON_STARTUP
 
-run_engine:
+# run_engine:
     # databroker_config: name_of_databroker_config_file
 
     # kafka_server: 127.0.0.1:9092
     # kafka_topic: custom_topic_name
 
-    use_persistent_metadata: true
-    zmq_data_proxy_addr: localhost:5567
+    # use_persistent_metadata: true
+    # zmq_data_proxy_addr: localhost:5567
 
 startup:
     keep_re: true
-    startup_module: id2_e.startup
+    startup_module: s2ide_uprobe.startup
     existing_plans_and_devices_path: ./
     user_group_permissions_path: ./
 
