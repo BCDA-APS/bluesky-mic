@@ -13,12 +13,11 @@ Includes:
 import logging
 from pathlib import Path
 
+# Core Functions
 from apsbits.core.best_effort_init import init_bec_peaks
 from apsbits.core.catalog_init import init_catalog
 from apsbits.core.instrument_init import make_devices
 from apsbits.core.instrument_init import oregistry
-
-# Core Functions
 from apsbits.core.run_engine_init import init_RE
 
 # Utility functions
@@ -32,9 +31,10 @@ from apsbits.utils.helper_functions import running_in_queueserver
 from apsbits.utils.logging_setup import configure_logging
 
 # Utility functions from apstools and bluesky
-from apstools.utils import listobjects, listplans
-from bluesky import plan_stubs as bps  
-from bluesky import plans as bp  
+from apstools.utils import listobjects
+from apstools.utils import listplans
+from bluesky import plan_stubs as bps
+from bluesky import plans as bp
 
 # Configuration block
 # Get the path to the instrument package
@@ -89,28 +89,35 @@ if iconfig.get("SPEC_DATA_FILES", {}).get("ENABLE", False):
 
 # # These imports must come after the above setup.
 # # Queue server block
-# if running_in_queueserver():
-#     ### To make all the standard plans available in QS, import by '*', otherwise import
-#     ### plan by plan.
-#     from apstools.plans import lineup2  # noqa: F401
-#     from bluesky.plans import *  # noqa: F403
-# else:
-#     # Import bluesky plans and stubs with prefixes set by common conventions.
-#     # The apstools plans and utils are imported by '*'.
-#     from apstools.plans import *  # noqa: F403
-#     from apstools.utils import *  # noqa: F403
-#     from bluesky import plan_stubs as bps  # noqa: F401
-#     from bluesky import plans as bp  # noqa: F401
+if running_in_queueserver():
+    ### To make all the standard plans available in QS, import by '*', otherwise import
+    ### plan by plan.
+    from apstools.plans import lineup2  # noqa: F401
+    from bluesky.plans import *  # noqa: F403
+else:
+    # Import bluesky plans and stubs with prefixes set by common conventions.
+    # The apstools plans and utils are imported by '*'.
+    from apstools.plans import *  # noqa: F403
+    from apstools.utils import *  # noqa: F403
+    from bluesky import plan_stubs as bps  # noqa: F401
+    from bluesky import plans as bp  # noqa: F401
 
 
 # Experiment specific logic, device and plan loading
-RE(make_devices(clear=False, file="devices.yml"))  # Create the devices.
+# RE(make_devices(clear=False, file="devices.yml"))  # Create the devices.
 
-if host_on_aps_subnet():
-    RE(make_devices(clear=False, file="device_aps_only.yml"))
+# if host_on_aps_subnet():
+#     RE(make_devices(clear=False, file="device_aps_only.yml"))
 
-local_mountpath = iconfig.get("STORAGE")["PATH"]
-xrf_netcdf = oregistry["xrf_netcdf"]
-xrf_netcdf.micdata_mountpath = local_mountpath
+# local_mountpath = iconfig.get("STORAGE")["PATH"]
+# xrf_netcdf = oregistry["xrf_netcdf"]
+# xrf_netcdf.micdata_mountpath = local_mountpath
 
-from .plans import *
+RE(make_devices(clear=False, file="sim_devices.yml"))
+
+# from .plans.step2d import step2d
+# from .plans.fly2d import fly2d
+
+from .plans.sim_plans import sim_count_plan
+from .plans.sim_plans import sim_print_plan
+from .plans.sim_plans import sim_rel_scan_plan
