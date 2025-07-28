@@ -174,3 +174,4 @@ dev_*
 *.hdf
 .re_md_dict.yml
 .github
+.loglogin

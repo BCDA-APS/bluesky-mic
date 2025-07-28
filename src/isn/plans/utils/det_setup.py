@@ -42,7 +42,7 @@ def xrf_me7_setup(num_capture, dwell, filename):
         filename=filename, 
         beamline_delimiter=netcdf_delimiter,
     )
-
+    yield from xrf_me7_hdf.set_capture("Capturing")
 
 def ptycho_setup(trigger_mode, num_capture, dwell, ptycho_exp_factor, filename):
     """

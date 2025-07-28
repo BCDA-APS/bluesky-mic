@@ -134,7 +134,7 @@ isn.devices.my_motor_bundle.MyMotorBundle:
 
 mic_common.devices.xspress3.Xspress3:
 - name: xrf_me7
-  prefix: XSP3_7Chan:det1
+  prefix: "XSP3_7Chan:det1:"
   labels: ["detector"]
 
 <<<<<<< HEAD
@@ -164,7 +164,7 @@ mic_common.devices.eiger1m.Eiger1M:
 
 mic_common.devices.ad_fileplugin.DetHDF5:
 - name: xrf_me7_hdf
-  prefix: XSP3_7Chan:HDF1
+  prefix: "XSP3_7Chan:HDF1:"
   labels: ["fileplugin"]
 - name: ptycho_hdf
   prefix: "19idPTYCHO:HDF1:"

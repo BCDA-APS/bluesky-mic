@@ -12,7 +12,6 @@ import logging
 from ophyd import Component
 from ophyd import EpicsSignal
 from ophyd.areadetector.cam import Xspress3DetectorCam
-
 from mic_common.utils.device_utils import mode_setter
 from mic_common.utils.device_utils import value_setter
 from mic_common.utils.writeDetH5 import write_det_h5
@@ -24,7 +23,8 @@ logger.info(__file__)
 class Xspress3(Xspress3DetectorCam):
     """Xspress3 detector camera for X-ray spectroscopy."""
 
-    erase_on_start = Component(EpicsSignal, ":EraseOnStart")
+    erase_on_start = Component(EpicsSignal, "EraseOnStart")
+    soft_trigger = Component(EpicsSignal, "SoftTrigger")
 
     def __init__(self, *args, **kwargs):
         """Initialize Xspress3 detector."""
