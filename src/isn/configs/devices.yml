@@ -52,31 +52,57 @@ isn.devices.bda.BDA:
   axis: H
   labels: ["bda", "baseline"]
 
+
 # isn.devices.rayspec.Rayspec:
 # - name: eric
 #   prefix: 19idACS
 #   labels: ["motor"]
 
-isn.devices.tetramm.TetraMM:
+
+isn.devices.tetramm.MyTetrAMM:
 - name: tetramm1
-  prefix: 19idSFT:TetrAMM1
+  prefix: "19idSFT:TetrAMM1:"
+  port_name: "TetrAMM1"
   labels: ["detector"]
 
 - name: tetramm2
-  prefix: 19idSFT2:TetrAMM2
+  prefix: "19idSFT2:TetrAMM2:"
+  port_name: "TetrAMM2"
   labels: ["detector"]
 
 - name: tetramm3
-  prefix: 19idSFT3:TetrAMM3
+  prefix: "19idSFT3:TetrAMM3:"
+  port_name: "TetrAMM3"
   labels: ["detector"]
 
 - name: tetramm4
-  prefix: 19idSFT4:T4
+  prefix: "19idSFT4:T4:"
+  port_name: "TetrAMM4"
   labels: ["detector"]
+
 
 mic_common.devices.ring.ApsMachineParametersDevice:
 - name: ring
   labels: ["baseline"]
+
+apstools.devices.hhl_slits.HHLSlits:
+- name: wbs
+  prefix: "19idWBS:US:"
+  pitch_motor: m3
+  yaw_motor: m4
+  horizontal_motor: m1
+  diagonal_motor: m2
+  labels: ["baseline"]
+
+- name: pbs
+  prefix: "19idWBS:DS:"
+  pitch_motor: m7
+  yaw_motor: m8
+  horizontal_motor: m5
+  diagonal_motor: m6
+  labels: ["baseline"]
+
+
 
 
 isn.devices.undulators.UndulatorPair:
@@ -141,19 +167,19 @@ mic_common.devices.xspress3.Xspress3:
   prefix: XSP3_7Chan:det1
   labels: ["detector"]
 
-# mic_common.devices.eiger.Eiger:
-# - name: ptycho
-#   prefix: "19idPTYCHO:cam1"
-#   labels: ["detector"]
-
-# - name: xrd
-#   prefix: 19idXRD
-#   labels: ["detector"]
-
-mic_common.devices.eiger1m.Eiger1M:
+mic_common.devices.eiger.Eiger:
 - name: ptycho
-  prefix: 19idPTYCHO:cam1
+  prefix: 19idPTYCHO
   labels: ["detector"]
+
+- name: xrd
+  prefix: 19idXRD
+  labels: ["detector"]
+
+# mic_common.devices.eiger1m.Eiger1M:
+# - name: ptycho
+#   prefix: 19idPTYCHO:cam1
+#   labels: ["detector"]
 
 # isn.devices.tetramm.TetraMM:
 # - name: tetramm1
@@ -167,6 +193,10 @@ mic_common.devices.ad_fileplugin.DetHDF5:
   prefix: "19idPTYCHO:HDF1:"
   labels: ["fileplugin"]
 # - name: tetramm1_hdf
+
+# isn.devices.flipflop.FlipFlop:
+# - name: flip_flop_1
+#   prefix: abc
 
 
 #     AD_XSP3_12Chan:

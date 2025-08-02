@@ -4,6 +4,7 @@ from ophyd import (
     EpicsSignal,
     EpicsSignalRO
 )
+
 from ophyd.areadetector import (
     SingleTrigger,
     EigerDetectorCam, 
@@ -29,12 +30,29 @@ class Trigger(SingleTrigger):
         self._acquisition_signal_pv = "cam1."
         self._min_period = min_period
 
-    def setup_internal_trigger(self):
+    def setup_internal_trigger(self, num_images=None):
         self.cam.stage_sigs["trigger_mode"] = "Internal Enable"
         self.cam.stage_sigs["manual_trigger"] = "Enable"
-        self.cam.stage_sigs["num_images"] = 1
+        if not num_images:
+            self.cam.stage_sigs["num_images"] = 1
+            self.cam.stage_sigs["num_triggers"] = int(1e5)
+        else:
+            self.cam.stage_sigs["num_images"] = num_images
+            self.cam.stage_sigs["num_triggers"] = num_images
         self.cam.stage_sigs["num_exposures"] = 1
-        self.cam.stage_sigs["num_triggers"] = int(1e5)
+
+    def setup_flyscan_mode(self, num_images=1, gate_mode=True, acq_time=0.01):
+        self.cam.stage_sigs["num_triggers"] = num_images
+        self.cam.stage_sigs.move_to_end("num_triggers", last=False)
+        if gate_mode:
+            self.cam.stage_sigs["trigger_mode"] = "External Gate"
+        else:
+            self.cam.stage_sigs["trigger_mode"] = "External Enable"
+            self.cam.stage_sigs["acquire_time"] = acq_time
+            self.cam.stage_sigs["acquire_period"]= acq_time
+        self.cam.stage_sigs["manual_trigger"] = "Disable"
+        self.cam.stage_sigs["num_exposures"] = 1
+
 
     def stage(self):
         '''Staging detector. Must ensure that stage signals are well defined previously.'''
@@ -103,5 +121,5 @@ class Eiger(Trigger, DetectorBase):
     cam = ADComponent(EigerCam, ':cam1:')
     # image = ADComponent(ImagePlugin, 'image1:')
     # stats = ADComponent(StatsPlugin, 'stats1:')
-    hdf5 = ADComponent(HDF5Plugin, ':HDF1:')
+    # hdf5 = ADComponent(HDF5Plugin, ':HDF1:')
     # roi1 = ADComponent(ROIPlugin, 'ROI1:')

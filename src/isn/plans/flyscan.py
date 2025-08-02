@@ -7,8 +7,11 @@ logger.info(__file__)
 
 softglue = oregistry['softglue']
 sample = oregistry['sample']
+ptycho = oregistry['ptycho'] #temporary while we fix external gating
+xrd = oregistry['xrd'] #temporary while we fix external gating
 
 def flyscan(
+        detectors,
         x_min=0, # in um
         x_max=100, #in um
         x_npts=10,
@@ -59,7 +62,8 @@ def flyscan(
     # --- Defining waveform clock --- #
 
     waveform_period = 2*trigger_period*1e-3*y_npts/(F*snake_npts*1e-7)
-    softglue.pulse_train.n.put(x_npts*snake_npts)
+    total_scan_points = x_npts*snake_npts
+    softglue.pulse_train.n.put(total_scan_points)
     softglue.pulse_train.period.put(waveform_period)
     softglue.pulse_train.width.put(int(waveform_period/2))
 
@@ -94,7 +98,6 @@ def flyscan(
 
     logger.info(f"Samply Y stage moved to {y_cen:0.3e} um.")
 
-    yield from sleep(5)
 
     yield from softglue.disable_waveform()
     y_cen_bits = softglue.y_to_bits(y_cen)
@@ -126,8 +129,6 @@ def flyscan(
 
     logger.info("Softglue has taken over y-stage control.")
 
-    yield from sleep(5)
-
 
 
     # --- Load waveform --- #
@@ -137,13 +138,39 @@ def flyscan(
 
     logging.info("Flyscan waveform loaded.")
 
-    yield from sleep(5)
 
+    # --- Arm detectors --- #
 
+    logging.info("Arming detectors")
+
+    for detector in detectors:
+        if detector in [ptycho, xrd]: #temporary patch while we fix external gating mode
+            total_images = 2*int((x_npts*y_npts)/F-1)
+            detector.setup_flyscan_mode(num_images=total_images, gate_mode=False)
+        else:
+            detector.setup_flyscan_mode()
+
+        detector.stage()
+
+    if detector in [ptycho, xrd]:
+        logging.info(f"Expecting {total_images} images.")
+
+    
     # --- Start softglue --- #
 
-    yield from softglue.start()
+    logging.info("Takeoff!")
 
+    yield from softglue.start_flyscan()
+
+
+    # --- Unstage detectors --- #
+
+    logging.info("Scanning done.")
+
+    yield from sleep(5)
+
+    for detector in detectors:
+        detector.unstage()
 
     # --- Return sample to initial positions ---
 

@@ -1,6 +1,7 @@
 """SoftGlueZynq implementation for ISN."""
 
 from ophyd import Device, Component, EpicsSignal, EpicsSignalRO, DynamicDeviceComponent
+from ophyd.status import DeviceStatus
 from collections import OrderedDict
 from bluesky.plan_stubs import mv, sleep
 import numpy as np
@@ -71,9 +72,18 @@ class PulseTrain(Device):
     period = Component(EpicsSignal, "_PERIOD", kind='config')
     width = Component(EpicsSignal, "_WIDTH", kind='config')
 
+class FlipFlop(Device):
+    set_signal = Component(EpicsSignal, "_SET_Signal", kind='config')
+    d = Component(EpicsSignal, "_D_Signal", kind='config')
+    clock = Component(EpicsSignal, "_CLOCK_Signal", kind='config')
+    clear = Component(EpicsSignal, "_CLEAR_Signal", kind='config')
+    out_bi = Component(EpicsSignal, "_OUT_BI", kind='config')
+
 
 
 class SoftGlueZynq(Device):
+
+    _status_type = DeviceStatus
 
     ### Components
 
@@ -100,6 +110,8 @@ class SoftGlueZynq(Device):
 
     pulse_train = Component(PulseTrain, ":SG:plsTrn-1")
 
+    flip_flop_1 = Component(FlipFlop, ":SG:DFF-1")
+
     #Ram memory components for fly scanning
     mem_address = Component(EpicsSignal, ":SG:mem_ADDRA")
     mem_data = Component(EpicsSignal, ":SG:mem_DINA")
@@ -117,6 +129,7 @@ class SoftGlueZynq(Device):
     threshold_pos = Component(EpicsSignal, ":SG:threshTrig-1_POSTHR")
     threshold_neg = Component(EpicsSignal, ":SG:threshTrig-1_NEGTHR")
 
+
     #DMA components
     dma = DynamicDeviceComponent(_dma_fields())
 
@@ -126,6 +139,21 @@ class SoftGlueZynq(Device):
         yield from mv(self.buffer_4.in_signal, "1")
         # self.buffer_4.in_signal.set("1")
         # yield from mv(self.buffer_4.in_signal, "1")
+
+    def start_flyscan(self):
+        yield from mv(self.buffer_4.in_signal, "1")
+        yield from sleep(1)
+
+        self._status = self._status_type(self)
+
+        enable_out = self.flip_flop_1.out_bi.get()
+
+        while enable_out == 1:
+            enable_out = self.flip_flop_1.out_bi.get()
+
+        self._status.set_finished()
+        return self._status
+
 
     def stop(self):
         # self.buffer_4.in_signal.set("0")
