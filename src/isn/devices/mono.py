@@ -5,12 +5,12 @@ from ophyd.pseudopos import pseudo_position_argument, real_position_argument
 
 class Mono(PseudoPositioner):
 
-    bragg = Component(EpicsMotor, ':m1', labels=('motor',))
-    gap = Component(EpicsMotor, ':m2', labels=('motor',))
-    pitch = Component(EpicsMotor, ':m5', labels=('motor',))
-    roll = Component(EpicsMotor, ':m6', labels=('motor',))
-    lateral = Component(EpicsMotor, ':m8', labels=('motor',))
-    flag = Component(EpicsMotor, ':m3', labels=('motor', 'flag'))
+    bragg = Component(EpicsMotor, ':m1', labels=('motors'))
+    gap = Component(EpicsMotor, ':m2', labels=('motors'))
+    pitch = Component(EpicsMotor, ':m5', labels=('motors'))
+    roll = Component(EpicsMotor, ':m6', labels=('motors'))
+    lateral = Component(EpicsMotor, ':m8', labels=('motors'))
+    flag = Component(EpicsMotor, ':m3', labels=('motors'))
 
     #Specifying the real motors that need to be used for energy change
 

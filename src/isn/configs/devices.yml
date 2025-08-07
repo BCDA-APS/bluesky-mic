@@ -16,7 +16,6 @@ isn.devices.hhl_mirrors.HHL_Mirrors:
 isn.devices.mono.Mono:
 - name: mono
   prefix: 19idDCM
-  labels: ["mono"]
 
 isn.devices.lateral_mirror.Lateral_Mirror:
 - name: lateral_mirror
@@ -81,7 +80,14 @@ isn.devices.tetramm.MyTetrAMM:
   labels: ["detector"]
 
 
-mic_common.devices.ring.ApsMachineParametersDevice:
+isn.devices.bpm.BasicQuadEM:
+- name: bpm_c
+  prefix: "19idBPM:C:T4U:"
+
+- name: bpm_d
+  prefix: "19idBPM:D:T4U:"
+
+apstools.devices.aps_machine.ApsMachineParametersDevice:
 - name: ring
   labels: ["baseline"]
 
@@ -103,11 +109,24 @@ apstools.devices.hhl_slits.HHLSlits:
   labels: ["baseline"]
 
 
-
-
 isn.devices.undulators.UndulatorPair:
 - name: undulators
   prefix: S19ID
+
+
+isn.devices.flag.Flag:
+- name: flag_e1
+  cam_prefix: "19ide1:cam1:"
+  motor_prefix: "19idMMC:m6"
+  in_position: -20
+  out_position: 0
+
+- name: flag_e2
+  cam_prefix: "19ide2:cam1:"
+  motor_prefix: "19idMMC:m5"
+  in_position: -20
+  out_position: 0
+
 
 
 mic_common.devices.scan_record.ScanRecord:
