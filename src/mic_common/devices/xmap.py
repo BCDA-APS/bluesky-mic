@@ -100,3 +100,8 @@ class XMAP(Device):
     def set_stop_all(stop_all):
         """Set stop all signal."""
         pass
+
+    @value_setter("erase_start")
+    def set_erase_start(erase_start):
+        """Set erase start signal."""
+        pass

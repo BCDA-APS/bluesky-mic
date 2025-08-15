@@ -77,11 +77,11 @@ mic_common.devices.xmap.XMAP:
 
 mic_common.devices.ad_fileplugin.DetNetCDF:
 - name: xrf_netcdf
-  prefix: 2iddXMAP:netCDF1
+  prefix: "2iddXMAP:netCDF1:"
   labels: ["netcdf"]
 - name: tetramm1_netcdf
-  prefix: 2iddtmm1:netCDF1
+  prefix: "2iddtmm1:netCDF1:"
   labels: ["netcdf"]
 - name: tetramm2_netcdf
-  prefix: 2iddtmm2:netCDF1
+  prefix: "2iddtmm2:netCDF1:"
   labels: ["netcdf"]
