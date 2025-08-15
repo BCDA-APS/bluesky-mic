@@ -1,5 +1,5 @@
 """
-Modify the motor ophyd motor device to add additional fields.
+Add more attributes to the ophyd.EpicsMotor device.
 
 @author: yluo(grace227)
 
@@ -7,12 +7,21 @@ Modify the motor ophyd motor device to add additional fields.
 """
 
 from ophyd import Component
-from ophyd import Device
+from ophyd import EpicsMotor
 from ophyd import EpicsSignal
 
-class Motor(Device):
+class Motor(EpicsMotor):
     """
-    Motor device for controlling motor in Bluesky workflows.
+    Motor class inherits from ophyd.EpicsMotor to add additional attributes.
     """
-
-    pass
+    max_velocity = Component(EpicsSignal, ".VMAX")
+    resolution = Component(EpicsSignal, ".MRES")
+    
+    def get_max_velocity(self):
+        return self.max_velocity.get()
+    
+    def get_resolution(self):
+        return self.resolution.get()
+    
+    def calculate_scan_speed(self, stepsize, dwell):
+        return stepsize / dwell * 1000

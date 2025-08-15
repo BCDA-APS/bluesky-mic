@@ -19,7 +19,7 @@ mic_common.devices.save_data.SaveDataMic:
   prefix: "2idd:saveData_"
   labels: ["savedata"]
 
-ophyd.EpicsMotor:
+s2idd_uprobe.devices.motor.Motor:
 - name: samx
   prefix: 2idd:m40
   labels: ["motor"]

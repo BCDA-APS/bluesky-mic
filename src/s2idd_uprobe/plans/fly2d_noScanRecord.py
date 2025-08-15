@@ -15,9 +15,11 @@ import bluesky.plan_stubs as bps
 from apsbits.core.instrument_init import oregistry
 from apsbits.utils.config_loaders import get_config
 from s2idd_uprobe.plans.before_after_fly import setup_flyscan_SIS3820_XMAP
+from s2idd_uprobe.plans.fly1d_noScanRecord import fly1d
 import numpy as np
 from ophyd.status import Status
 from apstools.plans import run_blocking_function
+
 
 
 logger = logging.getLogger(__name__)
@@ -35,10 +37,6 @@ iconfig = get_config()
 scan_overhead = iconfig.get("SCAN_OVERHEAD")
 netcdf_delimiter = iconfig.get("FILE_DELIMITER")
 xmap_buffer = iconfig.get("XMAP")["BUFFER"]
-
-# Hard code the maximum speed and resolution of the x-motor
-MAX_X_MOTOR_SPEED = 500
-X_MOTOR_RESOLUTION = 0.0008
 
 det_foldername = {"xrf": "flyXRF", "preamp1": "tetramm", "preamp2": "tetramm2"}
 
@@ -86,13 +84,13 @@ def fly2d(
     width :
         Float: The width of the scan.
     x_center :
-        Float: The center of the scan in the x-direction.
+        Float: The center of the scan in the x-direction. If not provided, the current x-motor position will be used.
     stepsize_x :
         Float: The step size of the scan in the x-direction.
     height :
         Float: The height of the scan.
     y_center :
-        Float: The center of the scan in the y-direction.
+        Float: The center of the scan in the y-direction. If not provided, the current y-motor position will be used.
     stepsize_y :
         Float: The step size of the scan in the y-direction.
     dwell :
@@ -116,25 +114,23 @@ def fly2d(
         raise ValueError("Step size cannot be 0, please check the input parameters")
 
     devices = [sis3820, xrf, xrf_netcdf]
-    device_names = ['SIS3820', 'XRF', 'XRF netCDF']
-
-    for device, name in zip(devices, device_names):
+    for device in devices:
         if not device.connected:
-            raise ValueError(f"{name} is not connected, please check the status")
+            raise ValueError(f"{device.name} is not connected, please check the status")
     
-    """Setup the sample z position"""
+    """Setup the sample z, x, and y position"""
     if sample_z is not None:
         yield from bps.mv(samz, sample_z)
-    
-    yield from bps.mv(samx, x_center - width/2)
-    yield from bps.mv(samy, y_center - height/2)
+    if x_center is None:
+        yield from bps.mv(samx, samx.position - width/2)
+    if y_center is not None:
+        yield from bps.mv(samy, samy.position - height/2)
 
     """Construct the scan points and calculate the motor speeds"""
     yarr = np.arange(y_center - height/2, y_center + height/2, stepsize_y)
     xarr = np.arange(x_center - width/2, x_center + width/2, stepsize_x)
-
-    x_motor_scan_speed = stepsize_x / dwell * 1000
-    x_motor_retrace = MAX_X_MOTOR_SPEED
+    x_motor_scan_speed = samx.calculate_scan_speed(stepsize_x, dwell)
+    x_motor_retrace = samx.get_max_velocity()
 
     """Setup detectors and file IO"""
     numpts_x = len(xarr)
@@ -176,6 +172,9 @@ def fly2d(
             print("Open shutter")
             yield from savedata.set_next_scan_number(savedata.next_scan_number.get() + 1)
 
+        #TODO: try to use fly1d plan to replace the following code
+        yield from fly1d()
+
         ready = Status()
         def wait(old_value, value, **kwargs):
             if old_value == 1 and value == 0:
@@ -183,7 +182,7 @@ def fly2d(
                 xrf_netcdf.capture.unsubscribe(wait)
 
         xrf_netcdf.capture.subscribe(wait)
-        # yield from bps.mv(xrf_netcdf.capture, 1)
+        
         yield from xrf_netcdf.set_capture("CAPTURING")
         yield from xrf.set_erase_start(1)
         yield from sis3820.set_erase_start(1)
