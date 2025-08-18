@@ -22,7 +22,7 @@ from apsbits.core.run_engine_init import init_RE
 
 # Utility functions
 from apsbits.utils.aps_functions import aps_dm_setup
-from apsbits.utils.aps_functions import host_on_aps_subnet
+# from apsbits.utils.aps_functions import host_on_aps_subnet
 
 # Configuration functions
 from apsbits.utils.config_loaders import load_config
@@ -72,20 +72,10 @@ RE, sd = init_RE(iconfig, bec_instance=bec, cat_instance=cat)
 
 # Optional Nexus callback block
 # delete this block if not using Nexus
-if iconfig.get("NEXUS_DATA_FILES", {}).get("ENABLE", False):
-    from .callbacks.nexus_data_file_writer import nxwriter_init
-
-    nxwriter = nxwriter_init(RE)
-
-# Optional SPEC callback block
-# delete this block if not using SPEC
-if iconfig.get("SPEC_DATA_FILES", {}).get("ENABLE", False):
-    from .callbacks.spec_data_file_writer import init_specwriter_with_RE
-    from .callbacks.spec_data_file_writer import newSpecFile  # noqa: F401
-    from .callbacks.spec_data_file_writer import spec_comment  # noqa: F401
-    from .callbacks.spec_data_file_writer import specwriter  # noqa: F401
-
-    init_specwriter_with_RE(RE)
+# if iconfig.get("NEXUS_DATA_FILES", {}).get("ENABLE", False):
+from .callbacks.demo_nexus_callback import nxwriter_init
+print("iom here \n\n\n\n")
+nxwriter = nxwriter_init(RE)
 
 # # These imports must come after the above setup.
 # # Queue server block
