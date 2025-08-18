@@ -39,6 +39,7 @@ user_api = UserDsApi()
 
 DEFAULT_USERS = [
     "d284110",  # yluo
+    "d326436",  # plozano
 ]
 
 
@@ -155,7 +156,7 @@ def create_dm_experiment(
         rootPath = get_current_run()["name"]
     return exp_api.addExperiment(
         experiment_name,
-        typeName="4IDD",
+        typeName="ISN",
         description=description,
         rootPath=rootPath,
         startDate=startDate,

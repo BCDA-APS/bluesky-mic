@@ -119,18 +119,20 @@ from bluesky import plan_stubs as bps
 from bluesky import plans as bp
 from .plans import *
 
-baseline_devices = [
-    "ring",
-    "undulators",
-    "wbs",
-    "hhl_mirrors",
-    "pbs",
-    "mono",
-    "lateral_mirror",
-    "bpm_c",
-    "bda_vert",
-    "bpm_d",
-    "bda_hor"
-]
+from mic_common.utils.dm_utils import dm_experiment_setup
 
-sd.baseline = [oregistry[device] for device in baseline_devices]
+# baseline_devices = [
+#     "ring",
+#     "undulators",
+#     "wbs",
+#     "hhl_mirrors",
+#     "pbs",
+#     "mono",
+#     "lateral_mirror",
+#     "bpm_c",
+#     "bda_vert",
+#     "bpm_d",
+#     "bda_hor"
+# ]
+
+# sd.baseline = [oregistry[device] for device in baseline_devices]

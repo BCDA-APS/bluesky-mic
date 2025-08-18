@@ -15,22 +15,22 @@ def _io_fields(num=16):
 
 def _dma_fields(num=8, first_letter="I"):
     defn = OrderedDict()
-    defn["enable"] = (EpicsSignal, "1acquireDmaEnable", {"kind": "config"})
-    defn["scan"] = (EpicsSignal, "1acquireDma.SCAN", {"kind": "config"})
-    defn["read_button"] = (EpicsSignal, "1acquireDma.PROC", {"kind": "omitted"})
-    defn["clear_button"] = (EpicsSignal, "1acquireDma.D", {"kind": "omitted"})
-    defn["clear_buffer"] = (EpicsSignal, "1acquireDma.F", {"kind": "omitted"})
+    defn["enable"] = (EpicsSignal, ":1acquireDmaEnable", {"kind": "config"})
+    defn["scan"] = (EpicsSignal, ":1acquireDma.SCAN", {"kind": "config"})
+    defn["read_button"] = (EpicsSignal, ":1acquireDma.PROC", {"kind": "omitted"})
+    defn["clear_button"] = (EpicsSignal, ":1acquireDma.D", {"kind": "omitted"})
+    defn["clear_buffer"] = (EpicsSignal, ":1acquireDma.F", {"kind": "omitted"})
     defn["words_in_buffer"] = (
-        EpicsSignalRO, "1acquireDma.VALJ", {"kind": "config"}
+        EpicsSignalRO, ":1acquireDma.VALJ", {"kind": "config"}
     )
-    defn["events"] = (EpicsSignalRO, "1acquireDma.VALI", {"kind": "config"})
+    defn["events"] = (EpicsSignalRO, ":1acquireDma.VALI", {"kind": "config"})
     for i in range(1, num+1):
         defn[f"channel_{i}_name"] = (
             EpicsSignal, f"1s{i}name", {"kind": "config"}
         )
         defn[f"channel_{i}_scale"] = (
             EpicsSignal,
-            f"1acquireDma.{chr(ord(first_letter)+i-1)}",
+            f":1acquireDma.{chr(ord(first_letter)+i-1)}",
             {"kind": "config"}
         )
     return defn
@@ -283,3 +283,14 @@ class SoftGlueZynq(Device):
         snake_array = self.create_snake_bits(A=amplitude, F=F, npts=npts, offset=offset)
         # return snake_array
         yield from self.write_RAM(snake_array)
+
+    
+    def move_y_analog(self, y):
+        
+        #Should we put this in the sample instead?
+        #TODO: We need to check that the sample y is in analog control mode
+
+        y_bits = self.y_to_bits(y=y)
+        yield from self.disable_waveform()
+        yield from mv(self.dac1_val, y_bits)
+        yield from mv(self.dac1_write, "1!")
