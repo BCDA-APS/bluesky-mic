@@ -31,6 +31,21 @@ logger = logging.getLogger(__name__)
 # SCAN_OVERHEAD = 0.3
 # XMAP_BUFFER = 124
 
+# Hard code the maximum speed and resolution of the x-motor
+MAX_X_MOTOR_SPEED = 500
+X_MOTOR_RESOLUTION = 0.0008
+
+def setup_flyscan_SIS3820_XMAP(sis3820, xmap, stepsize_x, num_pulses):
+    """
+    Setup the SIS3820 and XMAP for the fly scan.
+
+    """
+    yield from sis3820.before_flyscan(num_pulses, stepsize=stepsize_x, 
+                                      motor_resolution=X_MOTOR_RESOLUTION,
+                                      update_prescale=True)
+    
+    yield from xmap.flyscan_before(num_pulses)
+
 
 def setup_flyscan_XRF_triggers(scanrecord, xrf, xrf_netcdf, sis3820, num_pulses):
     """

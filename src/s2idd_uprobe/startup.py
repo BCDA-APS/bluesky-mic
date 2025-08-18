@@ -96,12 +96,16 @@ if iconfig.get("NEXUS_DATA_FILES", {}).get("ENABLE", False):
 
 # Experiment specific logic, device and plan loading
 RE(make_devices(clear=False, file="devices.yml"))  # Create the devices.
+RE(make_devices(clear=False, file="sim_devices.yml"))  # Create the devices.
 
 if host_on_aps_subnet():
     RE(make_devices(clear=False, file="device_aps_only.yml"))
+
 
 local_mountpath = iconfig.get("STORAGE")["PATH"]
 xrf_netcdf = oregistry["xrf_netcdf"]
 xrf_netcdf.micdata_mountpath = local_mountpath
 
-from .plans import *
+# from .plans import *
+from .plans.sim_plans import sim_rel_scan_plan
+from .plans.fly2d_noScanRecord import fly2d
