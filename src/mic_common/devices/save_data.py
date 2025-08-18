@@ -43,3 +43,8 @@ class SaveDataMic(SaveData):
     def set_basename(self, basename):
         """Set base name for files."""
         pass
+
+    @value_setter("next_scan_number")
+    def set_next_scan_number(self, next_scan_number):
+        """Set next scan number."""
+        pass

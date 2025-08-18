@@ -1,7 +1,9 @@
 """Bluesky plans."""
 
 # from .dummy_plan import dummy_testing
-from .fly2d import fly2d
+# from .fly2d import fly2d
+from .fly2d_noScanRecord import fly2d
+from .fly1d_noScanRecord import fly1d
 # from .generallized_scan_1d import generalized_scan_1d
 # from .step1d import step1d
 # from .step2d import step2d
