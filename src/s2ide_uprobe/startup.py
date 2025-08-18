@@ -73,9 +73,10 @@ RE, sd = init_RE(iconfig, bec_instance=bec, cat_instance=cat)
 # Optional Nexus callback block
 # delete this block if not using Nexus
 # if iconfig.get("NEXUS_DATA_FILES", {}).get("ENABLE", False):
-from .callbacks.demo_nexus_callback import nxwriter_init
-print("iom here \n\n\n\n")
-nxwriter = nxwriter_init(RE)
+if iconfig.get("NEXUS_DATA_FILES", {}).get("ENABLE", False):
+    from .callbacks.demo_nexus_callback import nxwriter_init
+
+    nxwriter = nxwriter_init(RE)
 
 # # These imports must come after the above setup.
 # # Queue server block
