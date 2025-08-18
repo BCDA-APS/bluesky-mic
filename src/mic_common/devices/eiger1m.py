@@ -1,5 +1,5 @@
 """
-eiger500k.py
+eiger1m.py
 
 Author: grace227 (yluo89)
 Date: 2025-02-14

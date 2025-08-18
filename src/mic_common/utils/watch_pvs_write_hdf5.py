@@ -225,7 +225,9 @@ def developer_report(db):
     print(table)
 
 
-def write_scan_master_h5(master_file_yaml: dict, master_scan_file: str):
+def write_scan_master_h5(master_file_yaml: dict,
+                         master_scan_file: str,
+                         bluesky_params: dict):
     """Demonstrate this code."""
     # specifications = master_file_yaml
     pv_db = {}
@@ -238,6 +240,10 @@ def write_scan_master_h5(master_file_yaml: dict, master_scan_file: str):
             h5root.attrs["filename"] = str(master_scan_file)
             h5root.attrs["datetime"] = str(datetime.datetime.now())
             write_h5_watched_pvs(h5root, pv_db, master_file_yaml)
+            if bluesky_params is not None:
+                group = h5root.create_group("SCAN")
+                for desc, value in bluesky_params.items():
+                    ds = group.create_dataset(desc, data=str(value))
     except PermissionError as reason:
         print(f"PermissionError: {reason}")
 

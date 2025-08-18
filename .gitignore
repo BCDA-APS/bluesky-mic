@@ -19,6 +19,7 @@ lib64/
 parts/
 sdist/
 var/
+notebooks/
 wheels/
 share/python-wheels/
 *.egg-info/
@@ -173,3 +174,4 @@ dev_*
 *.hdf
 .re_md_dict.yml
 .github
+.loglogin

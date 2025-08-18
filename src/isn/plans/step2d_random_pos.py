@@ -12,15 +12,18 @@ __all__ = """
 
 import logging
 import numpy as np
+from pathlib import Path
 from apsbits.utils.controls_setup import oregistry
-# from mic_instrument.configs.device_config import scan1, samx, samy, 
-# savedata, netcdf_delimiter, shutter_open, shutter_close, shutter_open_status
-from apsbits.utils.config_loaders import get_config
+from apsbits.utils.config_loaders import get_config, load_config_yaml
 from mic_common.utils.scan_monitor import execute_scan_1d
-# from mic_common.plans.helper_funcs import selected_dets
-from bluesky.plans import plan_patterns
+from isn.plans.utils.trajectory import generate_random_points
+from isn.plans.utils.det_setup import xrf_me7_setup, ptycho_setup
+from mic_common.utils.watch_pvs_write_hdf5 import write_scan_master_h5
 import bluesky.plan_stubs as bps
 from epics import caput
+from isn.startup import master_file_config_path
+import h5py
+import os
 
 logger = logging.getLogger(__name__)
 logger.info(__file__)
@@ -42,6 +45,7 @@ netcdf_delimiter = iconfig.get("FILE_DELIMITER")
 xrf_me7_folder = iconfig.get("XRF_ME7_FOLDER")
 ptycho_folder = iconfig.get("PTYCHO_FOLDER")
 
+master_file_yaml = load_config_yaml(master_file_config_path)
 
 def step2d_random_pos(
     samplename="smp1",
@@ -102,13 +106,37 @@ def step2d_random_pos(
         Bool: Whether to turn on the xrf me7
     """
 
-    # """Open the shutter"""
-    # logger.info("Opening the shutter")
-    # yield from bps.mv(shutter_open, 1)
-    # shutter_status = shutter_open_status.value  # when open, the status becomes 0
-    # while shutter_status:
-    #     shutter_status = shutter_open_status.value
-    #     yield from bps.sleep(0.2)
+    
+    def get_bluesky_params():
+        """Create a dictionary of function name and input parameters."""
+        import inspect
+
+        # Get the name of the outer function
+        outer_frame = inspect.currentframe().f_back
+        func_name = outer_frame.f_code.co_name
+
+        # Get all local variables from the outer function
+        outer_locals = outer_frame.f_locals
+
+        # Filter out special variables and functions
+        params = {"plan_name": func_name.replace("_masterfile", "")}
+        for k, v in outer_locals.items():
+            if not k.startswith('__') and not callable(v):
+                params.update({k:v})
+
+        return params
+
+    """Put the plan parameters in to dict"""
+    bluesky_params = get_bluesky_params()
+
+
+    """Open the shutter"""
+    logger.info("Opening the shutter")
+    yield from bps.mv(shutter_open, 1)
+    shutter_status = shutter_open_status.value  # when open, the status becomes 0
+    while shutter_status:
+        shutter_status = shutter_open_status.value
+        yield from bps.sleep(0.2)
 
     """Move to the requested x- and y- centers"""
     logger.info("Moving to the requested x- and y- centers")
@@ -141,51 +169,34 @@ def step2d_random_pos(
     yield from bps.sleep(0.1)
 
     """Configure the detectors"""
-    # logger.info("Determining which detectors are selected")
-    # dets = selected_dets(ptycho_on=ptycho_on, xrf_me7_on=xrf_me7_on)
-    # num_capture = PTS_PER_FILE
     num_capture = samx_points.shape[0]
     savedata.update_next_file_name()
     filename = savedata.next_file_name.replace(".mda", "")
         
-    if xrf_me7_on and xrf_me7.connected:
-        yield from xrf_me7.scan_init(exposure_time=dwell, num_images=num_capture)
-        if xrf_me7_hdf.connected:
-            yield from xrf_me7_hdf.setup_file_writer(
-                savedata, 
-                xrf_me7_folder, 
-                num_capture, 
-                filename=filename, 
-                beamline_delimiter=netcdf_delimiter,
-            )
-    elif ptycho_on and ptycho.connected:
-        # yield from cam.set_trigger_mode("Internal Enable")
-        yield from ptycho.set_acquire("DONE")
-        yield from ptycho.set_trigger_mode("Internal Series")
-        yield from ptycho.scan_init(exposure_time=dwell, num_images=num_capture, 
-                                    ptycho_exp_factor=ptycho_exp_factor)
-        yield from ptycho.set_acquire("Acquiring")
+    if xrf_me7_on and xrf_me7.connected and xrf_me7_hdf.connected:
+        yield from xrf_me7_setup(num_capture, dwell, filename)
 
-        if ptycho_hdf is not None:
-            yield from ptycho.set_file_writer_enable("Disable")
-            yield from ptycho_hdf.set_capture("DONE")
-            yield from ptycho_hdf.setup_file_writer(
-                savedata, 
-                ptycho_folder, 
-                num_capture, 
-                filename=filename, 
-                beamline_delimiter=netcdf_delimiter,
-            )
-            yield from ptycho_hdf.set_capture("Capturing")
-                
-        
+    elif ptycho_on and ptycho.connected and ptycho_hdf.connected:
+        trigger_mode = "Internal Series"
+        yield from ptycho_setup(trigger_mode, num_capture, dwell, 
+                                ptycho_exp_factor, filename)
+
+    """Generate the scan master file"""
+    next_file_name = savedata.next_file_name.replace(".mda", "_master.h5")
+    scan_master_h5_path = Path(savedata.file_system.value) / next_file_name
+    write_scan_master_h5(master_file_yaml, scan_master_h5_path, bluesky_params)
+    logger.info(f"Scan master file saved to {scan_master_h5_path}")
 
     """Start executing scan"""
     savedata.update_next_file_name()
     yield from execute_scan_1d(scan1, scan_name=savedata.next_file_name)
 
-    # """Close the shutter"""
-    # yield from bps.mv(shutter_close, 1)
+    """Close the shutter"""
+    yield from bps.mv(shutter_close, 1)
+    shutter_status = shutter_open_status.value  # when open, the status becomes 0
+    while not shutter_status:
+        shutter_status = shutter_open_status.value
+        yield from bps.sleep(0.2)
 
     """Reset the scan record to default"""
     yield from bps.sleep(1)
@@ -197,34 +208,36 @@ def step2d_random_pos(
     """Disable manual trigger of eiger"""
     if ptycho_on and ptycho.connected:
         yield from ptycho.set_manual_trigger("Disable")
+    
+    """Generate detector master file and update detector h5 master file in the scan master file"""
+    det_h5_master_path = {}
+    dets = {}
+    logger.info(f"Generating detector master file and updating detector h5 master file in the scan master file")
+    if ptycho_on and ptycho.connected and ptycho_hdf.connected:
+        dets.update({'ptycho':{'cam':ptycho, 'file_plugin':ptycho_hdf}})
+    if xrf_me7_on and xrf_me7.connected and xrf_me7_hdf.connected:
+        dets.update({'xrf_me7':{'cam':xrf_me7, 'file_plugin':xrf_me7_hdf}})
+    
+    for det_name, det_var in dets.items():
+        cam = det_var['cam']
+        file_plugin = det_var['file_plugin']
+        cap_det_name = det_name.upper()
+        det_dir = file_plugin.file_path.value
+        master_h5_path = Path(det_dir) / next_file_name.replace("_master.h5", ".h5")
+        try:
+            cam.write_h5(master_h5_path, det_dir, filename, cap_det_name)
+            det_h5_master_path[cap_det_name] = master_h5_path
+        except Exception as e:
+            logger.error(f"Error writing HDF5 file for {cap_det_name}: {e}")
 
-def generate_random_points(scan_traj, x_center, y_center, width, height, 
-                           stepsize_x, stepsize_y, dr, nth):
-    """
-    Generate random points for the scan trajectory.
-    """
-    samx_points, samy_points = [], []
-    if scan_traj == "spiral":
-        scan_cyc = plan_patterns.spiral("samx", "samy", x_center, y_center, width, height, 
-                                        dr, nth)
-        
-    if scan_traj == "grid":
-        scan_cyc = plan_patterns.spiral_square_pattern("samx", "samy", x_center, y_center, 
-                                                       width, height, int(width/stepsize_x), int(height/stepsize_y))
-        
-    if scan_cyc is not None:
-        samx_points, samy_points = process_scan_cyc(scan_cyc)
+    with h5py.File(scan_master_h5_path, 'r+') as f:
+        group = f.create_group("DETECTORS")
+        for det_name, master_h5_path in det_h5_master_path.items():
+            rel_path = os.path.relpath(Path(master_h5_path), Path(scan_master_h5_path).parent)
+            group[det_name] = h5py.ExternalLink(rel_path, det_name)
 
-    return samx_points, samy_points
+    yield from bps.sleep(0.2)
 
 
-def process_scan_cyc(scan_cyc):
-    samx_points, samy_points = [], []
-    for i in list(scan_cyc):
-        for k, v in i.items():
-            if k == "samx":
-                samx_points.append(v)
-            elif k == "samy":
-                samy_points.append(v)
-    return np.array(samx_points), np.array(samy_points)
+
                 

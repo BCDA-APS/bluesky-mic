@@ -45,9 +45,11 @@ iconfig = load_config(iconfig_path)
 # from the one in the apsbits package
 extra_logging_configs_path = instrument_path / "configs" / "extra_logging.yml"
 configure_logging(extra_logging_configs_path=extra_logging_configs_path)
-
 logger = logging.getLogger(__name__)
 logger.info("Starting Instrument with iconfig: %s", iconfig_path)
+
+# Load the master file config
+master_file_config_path = instrument_path / "configs" / "masterFileConfig.yml"
 
 # Discard oregistry items loaded above.
 oregistry.clear()
@@ -65,6 +67,10 @@ register_bluesky_magics()
 bec, peaks = init_bec_peaks(iconfig)
 cat = init_catalog(iconfig)
 RE, sd = init_RE(iconfig, bec_instance=bec, cat_instance=cat)
+
+# # Setup baseline stream with connect=False is default
+# # Devices with the label 'baseline' will be added to the baseline stream.
+# setup_baseline_stream(sd, oregistry, connect=False)
 
 # # Setup baseline stream with connect=False is default
 # # Devices with the label 'baseline' will be added to the baseline stream.
@@ -109,7 +115,11 @@ RE(make_devices(clear=False, file="devices.yml"))  # Create the devices.
 
 if host_on_aps_subnet():
     RE(make_devices(clear=False, file="devices_aps_only.yml"))
+    RE(make_devices(clear=False, file="devices_aps_only.yml"))
 
+# local_mountpath = iconfig.get("STORAGE")["PATH"]
+# xrf_me7_hdf = oregistry["xrf_me7_hdf"]
+# xrf_me7_hdf.micdata_mountpath = local_mountpath
 # local_mountpath = iconfig.get("STORAGE")["PATH"]
 # xrf_me7_hdf = oregistry["xrf_me7_hdf"]
 # xrf_me7_hdf.micdata_mountpath = local_mountpath
