@@ -6,22 +6,25 @@ Fly1D plan for 2idd. A building block for fly2d_noScanRecord plan
 
 import bluesky.plan_stubs as bps
 from apsbits.core.instrument_init import oregistry
-from apsbits.utils.config_loaders import get_config
+from apstools.plans import run_blocking_function
+from s2idd_uprobe.plans.flyscan_core import (
+    setup_detectors_and_fileio,
+    setup_motor_positions_and_speeds,
+    create_file_done_signal,
+    calculate_x_scan_parameters
+)
 import inspect
 import logging
+import numpy as np
+from ophyd.status import Status
 
 logger = logging.getLogger(__name__)
 
-
-sis3820 = oregistry["sis3820"]
 savedata = oregistry["savedata"]
+samx = oregistry["samx"]
+sis3820 = oregistry["sis3820"]
 xrf = oregistry["xrf"]
 xrf_netcdf = oregistry["xrf_netcdf"]
-samx = oregistry["samx"]
-
-iconfig = get_config()
-netcdf_delimiter = iconfig.get("FILE_DELIMITER")
-xmap_buffer = iconfig.get("XMAP")["BUFFER"]
 
 def fly1d(
     samplename="smp1",
@@ -34,6 +37,12 @@ def fly1d(
     xrf_on=True,
     preamp1_on=False,
     preamp2_on=False,
+    x_end=None,
+    x_start=None,
+    x_motor_retrace=None,
+    x_motor_scan_speed=None,
+    ready=None,
+    unsubscribe=False,
 ):
     """
     Fly 1D scan that does not rely on Scan Record.
@@ -82,14 +91,54 @@ def fly1d(
         caller_name = current_frame.f_back.f_code.co_name
         logger.info(f"Called from {caller_name}")
     
+    
     if caller_name == "plan_mutator":
         logger.info(f"Called from {caller_name}")
+        
+        # Calculate scan parameters
+        xarr, x_start, x_end, x_motor_scan_speed, x_motor_retrace, num_pulses = calculate_x_scan_parameters(
+            width, x_center, stepsize_x, dwell
+        )
+
+        # Setup detectors and file I/O
+        filename = yield from setup_detectors_and_fileio(stepsize_x, num_pulses, samx.resolution.get())
+        
+        # Setup motor positions and speeds
+        yield from setup_motor_positions_and_speeds(x_start, x_end, x_motor_scan_speed, x_motor_retrace)
+
+        # Create file done signal
+        ready = create_file_done_signal()
+
+        yield from savedata.set_next_scan_number(savedata.next_scan_number.get() + 1)
+        yield from _fly1d(xrf_netcdf, xrf, sis3820, samx, x_end, x_start, 
+                          x_motor_retrace, ready)
+        
+        yield from bps.sleep(0.2)
+
 
     else:
-        logger.info(f"Called from {caller_name}")
+        yield from _fly1d(xrf_netcdf, xrf, sis3820, samx, x_end, x_start, 
+                          x_motor_retrace, ready)
+        if unsubscribe:
+            xrf_netcdf.capture.unsubscribe_all()
 
     
-    yield from bps.sleep(1)
+
+
+def _fly1d(xrf_netcdf, xrf, sis3820, samx, x_end, x_start, 
+            x_motor_retrace, ready):
+
+    yield from xrf_netcdf.set_capture("CAPTURING")
+    yield from xrf.set_erase_start(1)
+    yield from sis3820.set_erase_start(1)
+
+    yield from bps.sleep(0.2)
+    yield from bps.mv(samx, x_end)
+    yield from run_blocking_function(ready.wait)
+
+    yield from bps.mv(samx.velocity, x_motor_retrace)
+    yield from bps.mv(samx, x_start)
+    
         
 
 

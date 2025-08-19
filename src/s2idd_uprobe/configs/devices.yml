@@ -59,6 +59,10 @@ ophyd.EpicsSignal:
   write_pv: 2iddfS1:userStringCalc7Enable
   read_pv: 2iddfS1:userStringCalc7Enable
   labels: ["usercalc"]
+- name: usercalc_samx_speed
+  write_pv: 2iddfS1:userCalc8Enable
+  read_pv: 2iddfS1:userCalc8Enable
+  labels: ["usercalc"]
 
 mic_common.devices.sis3820.SIS3820:
 - name: sis3820

@@ -1,5 +1,5 @@
 """
-Creating a bluesky plan that interacts with Scan Record.
+Creating a bluesky plan that does not use Scan Record.
 
 @author: yluo(grace227)
 
@@ -8,42 +8,30 @@ Creating a bluesky plan that interacts with Scan Record.
 
 __all__ = """
     fly2d
-""".split()
+""".split() 
 
 import logging
-
 import bluesky.plan_stubs as bps
 from apsbits.core.instrument_init import oregistry
-from apsbits.utils.config_loaders import get_config
-from mic_common.utils.scan_monitor import execute_scan_2d
-from s2idd_uprobe.plans.before_after_fly import setup_flyscan_XRF_triggers
-from mic_common.plans.generallized_scan_1d import generalized_scan_1d
-from s2idd_uprobe.plans.helper_funcs import selected_dets
+from s2idd_uprobe.plans.flyscan_core import (
+    setup_detectors_and_fileio,
+    setup_motor_positions_and_speeds,
+    create_file_done_signal,
+    validate_scan_parameters,
+    validate_device_connections,
+    calculate_x_scan_parameters
+)
+from s2idd_uprobe.plans.fly1d import fly1d
 from s2idd_uprobe.plans.toggle_usercalc import disable_usercalc
 from s2idd_uprobe.plans.toggle_usercalc import enable_usercalc
+import numpy as np
 
 logger = logging.getLogger(__name__)
 
-det_foldername = {"xrf": "flyXRF", "preamp1": "tetramm", "preamp2": "tetramm2"}
-
-fscan1 = oregistry["fscan1"]
-fscanh = oregistry["fscanh"]
-fscanh_dwell = oregistry["fscanh_dwell"]
-fscanh_samx = oregistry["fscanh_samx"]
-# netcdf_delimiter = oregistry["netcdf_delimiter"]
+savedata = oregistry["savedata"]
 samx = oregistry["samx"]
 samy = oregistry["samy"]
 samz = oregistry["samz"]
-savedata = oregistry["savedata"]
-sis3820 = oregistry["sis3820"]
-xrf = oregistry["xrf"]
-xrf_netcdf = oregistry["xrf_netcdf"]
-preamp1_netcdf = oregistry["tetramm1_netcdf"]
-iconfig = get_config()
-scan_overhead = iconfig.get("SCAN_OVERHEAD")
-netcdf_delimiter = iconfig.get("FILE_DELIMITER")
-xmap_buffer = iconfig.get("XMAP", "BUFFER")
-
 
 def fly2d(
     samplename="smp1",
@@ -62,7 +50,23 @@ def fly2d(
     preamp1_on=False,
     preamp2_on=False,
 ):
-    """2D Bluesky plan that drives the x- and y- sample motors in fly mode using ScanRecord
+    
+    """
+    Fly 2D scan that does not rely on Scan Record. 
+
+    The detail scan plan is as follows:
+    Before the scan loop:
+        1. Setup struck SIS3820 based on the number of scan points and dwell time.
+        2. Setup the sample z position.
+
+    In the scan loop, indented by inner and outer loops:
+        - Drive the y-motor to start position (y_center - height/2)
+        - Arm and setup proper filePlugin for selected detectors
+            - Drive x-motor to the start position (x_center - width/2)
+            - Adjust x-motor speed to the desired speed
+            - Drive x-motor to the end position (x_center + width/2)
+            - Adjust to fast x-motor speed
+            - Drive x-motor to the start position (x_center - width/2)
 
     Parameters
     ----------
@@ -73,148 +77,93 @@ def fly2d(
     width :
         Float: The width of the scan.
     x_center :
-        Float: The center of the scan in the x-direction.
+        Float: The center of the scan in the x-direction. If not provided, the current x-motor position will be used.
     stepsize_x :
-        Float: The stepsize of the scan in the x-direction.
+        Float: The step size of the scan in the x-direction.
     height :
         Float: The height of the scan.
     y_center :
-        Float: The center of the scan in the y-direction.
+        Float: The center of the scan in the y-direction. If not provided, the current y-motor position will be used.
     stepsize_y :
-        Float: The stepsize of the scan in the y-direction.
-    sample_z :
-        Float: The z position of the sample.
+        Float: The step size of the scan in the y-direction.
     dwell :
         Float: The dwell time of the scan.
+    sample_z :
+        Float: The sample z position.
     inc_eng :
-        Float: The incident energy of the scan.
+        Float: The increment in energy.
     adjust_zp :
-        Bool: Whether to adjust the zone plate position based on the incident energy.
+        Bool: Whether to adjust the zero point.
     xrf_on :
-        Bool: Whether to run XRF.
+        Bool: Whether to turn on the x-ray fluorescence.
     preamp1_on :
-        Bool: Whether to run Preamp1.
+        Bool: Whether to turn on the preamp1.
     preamp2_on :
-        Bool: Whether to run Preamp2.
-
+        Bool: Whether to turn on the preamp2.
     """
 
-    """Disable the usercalc that used in scan record"""
+    """Disable usercalc"""
     yield from disable_usercalc()
 
-    """Move the sample to the requested z position"""
+    """Check input parameters and detector status"""
+    validate_scan_parameters(stepsize_x, stepsize_y)
+    validate_device_connections()
+    
+    """Setup the sample z, x, and y position"""
     if sample_z is not None:
         yield from bps.mv(samz, sample_z)
-    """Move to the requested x- and y- centers"""
-    if x_center is not None:
-        yield from bps.mv(samx, x_center)
+    if x_center is None:
+        yield from bps.mv(samx, samx.position - width/2)
     if y_center is not None:
-        yield from bps.mv(samy, y_center)
+        yield from bps.mv(samy, samy.position - height/2)
 
-    """Set up inner scan record based on the scan types and parameters"""
-    yield from generalized_scan_1d(fscanh, fscanh_samx, savedata, scan_overhead=scan_overhead,
-                                scanmode="FLY", x_center=x_center, width=width, 
-                                stepsize_x=stepsize_x, dwell=dwell)
-    yield from fscanh.set_positioner_readback("")
-
-    """Set up the outter loop scan record"""
-    yield from bps.mv(fscan1.positioners.p1.abs_rel, "relative".upper())
-    yield from fscan1.set_positioner_drive(f"{samy.prefix}.VAL")
-    yield from fscan1.set_positioner_readback(f"{samy.prefix}.RBV")
-
-    # check if the scan movement is relative or absolute
-    scan_movement = fscan1.scan_movement.enum_strs[fscan1.scan_movement.get()]
-    if scan_movement == "RELATIVE":
-        yield from bps.mv(samy, y_center)
-        yield from fscan1.set_center_width_stepsize(0, height, stepsize_y)
-    else:
-        yield from fscan1.set_center_width_stepsize(y_center, height, stepsize_y)
-
-    """Assign the per-pixel dwell time"""
-    logger.info(f"Setting per-pixel dwell time ({fscanh_dwell.pvname}) to {dwell} ms")
-    yield from bps.mv(fscanh_dwell, dwell)
-
-    # """Check which detectors to trigger"""
-    # logger.info("Determining which detectors are selected")
-    # dets = selected_dets(**locals())
-
-    """Update the next file name for the detector file plugin"""
-    savedata.update_next_file_name()
-    next_file_name = savedata.next_file_name
-
-    # """Generate scan_master.h5 file"""
-
-    """Initialize detectors with desired pts, exposure time and file writer """
-    if sis3820.connected:
-        # Set up triggers for FLY scans, sis3820 will be sending out pulses. The number of pulses is numpts_x - 2
-        numpts_x = fscanh.number_points.value
-        num_pulses = numpts_x - 2
-        filename = next_file_name.replace(".mda", "")
-
-        if all([xrf_on, xrf.connected, xrf_netcdf.connected]):
-            num_capture = 0 # When it's zero, the num_capture won't be overwritten
-            yield from setup_flyscan_XRF_triggers(
-                fscanh, xrf, xrf_netcdf, sis3820, num_pulses
-            )
-            yield from xrf.flyscan_before(num_pulses)
-            
-            yield from xrf_netcdf.setup_file_writer(
-                savedata,
-                det_foldername["xrf"],
-                num_capture,
-                filename=filename,
-                beamline_delimiter=netcdf_delimiter,
-            )
-
-            yield from xrf_netcdf.set_capture("capturing")
-
-        if all([preamp1_on, preamp1_netcdf.connected]):
-            logger.info(f"Setting up file writer for preamp1, {preamp1_netcdf.file_path.get()}")
-            yield from preamp1_netcdf.setup_file_writer(
-                savedata,
-                det_foldername["preamp1"],
-                num_pulses,
-                filename=filename,
-                beamline_delimiter=netcdf_delimiter,
-            )
-        
-            yield from preamp1_netcdf.set_capture("capturing")
-
-        
-
-    """Print the scan parameters and the updated file name """
-    parm_list = [
-        "samplename",
-        "user_comments",
-        "width",
-        "x_center",
-        "stepsize_x",
-        "height",
-        "y_center",
-        "stepsize_y",
-        "dwell",
-        "inc_eng",
-        "adjust_zp",
-        "xrf_on",
-        "preamp1_on",
-        "preamp2_on",
-    ]
-    local_parms = locals()
-    parm_dict = {parm: local_parms[parm] for parm in parm_list}
-    logger.info(
-        f"-------------------------------- File {savedata.next_file_name} "
-        f"--------------------------------"
-    )
-    logger.info(f"Scan parameters: {parm_dict}")
-    logger.info(
-        f"-------------------------------- File {savedata.next_file_name} --------------------------------"
+    """Construct the scan points and calculate the motor speeds"""
+    yarr = np.arange(y_center - height/2, y_center + height/2, stepsize_y)
+    # Calculate scan parameters
+    xarr, x_start, x_end, x_motor_scan_speed, x_motor_retrace, num_pulses = calculate_x_scan_parameters(
+        width, x_center, stepsize_x, dwell
     )
 
-    """Start executing scan"""
-    # yield from bps.sleep(1)
-    fname = savedata.next_file_name
-    yield from execute_scan_2d(fscanh, fscan1, scan_name=fname, print_outter_msg=True)
+    """Setup detectors and file IO"""
+    numpts_x = len(xarr)
+    num_pulses = numpts_x - 2
 
-    """Enable the usercalc that used in scan record"""
+    # Setup detectors and file I/O
+    filename = yield from setup_detectors_and_fileio(stepsize_x, num_pulses, samx.resolution.get())
+    
+    # Setup motor positions and speeds
+    yield from setup_motor_positions_and_speeds(x_start, x_motor_scan_speed, x_motor_retrace)
+    
+    # Create file done signal
+    ready = create_file_done_signal()
+    unsubscribe = False
+
+    # Drive the y-motor to the start position
+    for i, y in enumerate(yarr):
+
+        logger.info(f"Moving to y = {y}")
+        yield from bps.mv(samy, y)
+
+        yield from bps.mv(samx.velocity, x_motor_scan_speed)
+        logger.info(f"x_motor velocity = {samx.velocity.get()}")
+
+        if i == 0:
+            print("Open shutter")
+            yield from savedata.set_next_scan_number(savedata.next_scan_number.get() + 1)
+        if y == yarr[-1]:
+            unsubscribe = True
+
+        yield from fly1d(x_end=x_end, x_start=x_start, 
+                        x_motor_retrace=x_motor_retrace, ready=ready, unsubscribe=unsubscribe)
+        yield from bps.sleep(0.2)
+        
+    # xrf_netcdf.capture.unsubscribe(wait)
+    yield from bps.mv(samx.velocity, x_motor_retrace)
+    
+
+    """Enable usercalc"""
     yield from enable_usercalc()
 
+# RE(fly2d(width = 10, x_center = 5281, stepsize_x=0.1, height = 10, y_center = -2200, stepsize_y=1, dwell=100, sample_z=0, xrf_on=True, preamp1_on=False, preamp2_on=False))
+
+    

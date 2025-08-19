@@ -30,6 +30,7 @@ usercalcs = {
     "usercalc_tmm2_filename": oregistry["usercalc_tmm2_filename"],
     "usercalc_tmm2_filetemplate": oregistry["usercalc_tmm2_filetemplate"],
     "usercalc_xmap_filename": oregistry["usercalc_xmap_filename"],
+    "usercalc_samx_speed": oregistry["usercalc_samx_speed"],
 }
 
 
