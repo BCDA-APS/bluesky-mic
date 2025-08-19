@@ -21,7 +21,6 @@ from ophyd.status import Status, SubscriptionStatus
 from apstools.plans import run_blocking_function
 
 
-
 logger = logging.getLogger(__name__)
 
 sis3820 = oregistry["sis3820"]
@@ -39,6 +38,7 @@ netcdf_delimiter = iconfig.get("FILE_DELIMITER")
 xmap_buffer = iconfig.get("XMAP")["BUFFER"]
 
 det_foldername = {"xrf": "flyXRF", "preamp1": "tetramm", "preamp2": "tetramm2"}
+
 
 def fly2d(
     samplename="smp1",
