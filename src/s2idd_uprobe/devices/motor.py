@@ -24,4 +24,4 @@ class Motor(EpicsMotor):
         return self.resolution.get()
     
     def calculate_scan_speed(self, stepsize, dwell):
-        return stepsize / dwell * 1000
+        return stepsize / (dwell / 1000)

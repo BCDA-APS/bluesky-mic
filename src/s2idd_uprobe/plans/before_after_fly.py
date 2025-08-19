@@ -22,7 +22,7 @@ import logging
 # from ..utils.dm_utils import dm_upload_wait
 # from ..devices.data_management import api
 # from apstools.devices import DM_WorkflowConnector
-# import bluesky.plan_stubs as bps
+import bluesky.plan_stubs as bps
 # from mic_instrument.configs.device_config import xmap_buffer
 
 
@@ -35,15 +35,14 @@ logger = logging.getLogger(__name__)
 MAX_X_MOTOR_SPEED = 500
 X_MOTOR_RESOLUTION = 0.0008
 
-def setup_flyscan_SIS3820_XMAP(sis3820, xmap, stepsize_x, num_pulses):
+def setup_flyscan_SIS3820_XMAP(sis3820, xmap, stepsize_x, num_pulses, motor_resolution):
     """
     Setup the SIS3820 and XMAP for the fly scan.
 
     """
     yield from sis3820.before_flyscan(num_pulses, stepsize=stepsize_x, 
-                                      motor_resolution=X_MOTOR_RESOLUTION,
+                                      motor_resolution=motor_resolution,
                                       update_prescale=True)
-    
     yield from xmap.flyscan_before(num_pulses)
 
 

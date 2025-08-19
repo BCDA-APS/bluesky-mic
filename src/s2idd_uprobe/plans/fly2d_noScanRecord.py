@@ -17,7 +17,7 @@ from apsbits.utils.config_loaders import get_config
 from s2idd_uprobe.plans.before_after_fly import setup_flyscan_SIS3820_XMAP
 from s2idd_uprobe.plans.fly1d_noScanRecord import fly1d
 import numpy as np
-from ophyd.status import Status
+from ophyd.status import Status, SubscriptionStatus
 from apstools.plans import run_blocking_function
 
 
@@ -141,7 +141,8 @@ def fly2d(
     filename = next_file_name.replace(".mda", "")
 
     # Setup the SIS3820 and XMAP (XRF)
-    yield from setup_flyscan_SIS3820_XMAP(sis3820, xrf, stepsize_x, num_pulses)
+    yield from setup_flyscan_SIS3820_XMAP(sis3820, xrf, stepsize_x, 
+                                        num_pulses, samx.resolution.get())
 
     # Setup the XRF netCD
     num_capture = int(np.ceil(num_pulses / xmap_buffer))
@@ -158,15 +159,29 @@ def fly2d(
     x_end = xarr[-1]
     yield from bps.mv(samx.velocity, x_motor_retrace)
     yield from bps.mv(samx, x_start)
-    yield from bps.mv(samx.velocity, x_motor_scan_speed)
+    yield from bps.mv(samx.max_velocity, x_motor_scan_speed)
+    yield from bps.sleep(0.2)
+    logger.info(f"x_motor velocity = {samx.velocity.get()}")
     
+    # # File done signal
+    ready = Status()
+    def wait(old_value, value, **kwargs):
+        if old_value == 1 and value == 0:
+            if not ready.done:
+                ready.set_finished()
+            else:
+                logger.info("File done signal already received")
+    xrf_netcdf.capture.unsubscribe_all()
+    xrf_netcdf.capture.subscribe(wait)
 
     # Drive the y-motor to the start position
     for i, y in enumerate(yarr):
 
         logger.info(f"Moving to y = {y}")
-        logger.info(f"x_motor velocity = {samx.velocity.get()}")
         yield from bps.mv(samy, y)
+
+        yield from bps.mv(samx.max_velocity, x_motor_scan_speed)
+        logger.info(f"x_motor velocity = {samx.velocity.get()}")
 
         if i == 0:
             print("Open shutter")
@@ -174,14 +189,6 @@ def fly2d(
 
         #TODO: try to use fly1d plan to replace the following code
         yield from fly1d()
-
-        ready = Status()
-        def wait(old_value, value, **kwargs):
-            if old_value == 1 and value == 0:
-                ready.set_finished()
-                xrf_netcdf.capture.unsubscribe(wait)
-
-        xrf_netcdf.capture.subscribe(wait)
         
         yield from xrf_netcdf.set_capture("CAPTURING")
         yield from xrf.set_erase_start(1)
@@ -191,11 +198,13 @@ def fly2d(
         yield from bps.mv(samx, x_end)
         yield from run_blocking_function(ready.wait)
 
-        yield from bps.mv(samx.velocity, x_motor_retrace)
+        yield from bps.mv(samx.max_velocity, x_motor_retrace)
         yield from bps.mv(samx, x_start)
+        yield from bps.sleep(0.2)
         
+    # xrf_netcdf.capture.unsubscribe(wait)
+    yield from bps.mv(samx.max_velocity, x_motor_retrace)
 
+# RE(fly2d(width = 10, x_center = 5281, stepsize_x=0.1, height = 10, y_center = -2200, stepsize_y=1, dwell=100, sample_z=0, xrf_on=True, preamp1_on=False, preamp2_on=False))
 
-
-    
     
