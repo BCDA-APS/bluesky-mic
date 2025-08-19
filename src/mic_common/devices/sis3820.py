@@ -21,7 +21,7 @@ class SIS3820(Device):
     def setup_prescale(self, stepsize, motor_resolution):
         """Set prescale based on stepsize and motor resolution"""
         prescale = abs(stepsize / motor_resolution) + 0.0001
-        self.set_prescale(prescale)
+        yield from self.set_prescale(int(prescale))
 
     def before_flyscan(self, num_pts, update_prescale=True, stepsize=None, motor_resolution=None):
         """Configure scaler before flyscan."""
@@ -29,7 +29,7 @@ class SIS3820(Device):
         yield from self.set_num_ch_used(num_pts)
         if update_prescale:
             if stepsize is not None and motor_resolution is not None:
-                self.setup_prescale(stepsize, motor_resolution)
+                yield from self.setup_prescale(stepsize, motor_resolution)
             else:
                 raise ValueError("Stepsize and motor resolution must be provided")
 
