@@ -38,14 +38,16 @@ __all__ = """
 """.split() 
 
 import logging
+import numpy as np
 import bluesky.plan_stubs as bps
 from apsbits.core.instrument_init import oregistry
+from s2idd_uprobe.utils.fly import get_next_file_name
 from s2idd_uprobe.plans.flyscan_core import (
     _common_flyscan_setup,
     _common_flyscan_cleanup,
     _fly1d
 )
-import numpy as np
+from mic_common.utils.timer_decorator import loop_timer_context
 
 logger = logging.getLogger(__name__)
 
@@ -141,25 +143,29 @@ def fly2d(
     
     # Drive the y-motor to the start position
     x_target = [x_end, x_start]
-    for i, y in enumerate(yarr):
+    filename = get_next_file_name(savedata)
+    filename = filename.replace(".mda", "")
 
-        logger.info(f"Moving to y = {y}")
-        yield from bps.mv(samy, y)
+    with loop_timer_context(f"Data saved to {filename}", total_iterations=len(yarr)) as timer:
+        for i, y in enumerate(yarr):
+            timer.iteration(i + 1, samy=y)
+            yield from bps.mv(samy, y)
 
-        if i == 0:
-            print("Open shutter")
-            yield from savedata.set_next_scan_number(savedata.next_scan_number.get() + 1)
-        
-        if snake_scan:
-            x_target_pos = x_target[i%2]
-            yield from _fly1d(devices, fileplugins, samx, x_target_pos)
-        else:
-            x_target_pos = x_end
-            yield from _fly1d(devices, fileplugins, samx, x_target_pos)
-            yield from bps.mv(samx.velocity, x_motor_retrace)
-            yield from bps.mv(samx, x_start)
-            yield from bps.mv(samx.velocity, x_motor_scan_speed)
-            logger.debug(f"x_motor velocity = {samx.velocity.get()}")
+            if i == 0:
+                print("Open shutter")
+                yield from savedata.set_next_scan_number(savedata.next_scan_number.get() + 1)
+            
+            if snake_scan:
+                x_target_pos = x_target[i%2]
+                yield from _fly1d(devices, fileplugins, samx, x_target_pos)
+            else:
+                x_target_pos = x_end
+                yield from _fly1d(devices, fileplugins, samx, x_target_pos)
+                yield from bps.mv(samx.velocity, x_motor_retrace)
+                yield from bps.mv(samx, x_start)
+                yield from bps.mv(samx.velocity, x_motor_scan_speed)
+                logger.debug(f"x_motor velocity = {samx.velocity.get()}")
+            timer.end_iteration()
 
     """Common cleanup for flyscan plans"""
     yield from _common_flyscan_cleanup()
