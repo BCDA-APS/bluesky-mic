@@ -112,5 +112,7 @@ if host_on_aps_subnet():
 local_mountpath = iconfig.get("STORAGE")["PATH"]
 xrf_netcdf = oregistry["xrf_netcdf"]
 xrf_netcdf.micdata_mountpath = local_mountpath
+tmm1_hdf = oregistry["tmm1_hdf"]
+tmm1_hdf.micdata_mountpath = local_mountpath
 
 from .plans import *

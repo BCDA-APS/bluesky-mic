@@ -1,188 +1,169 @@
 """
-Core functions for flyscan plans.
+Common functionality for flyscan plans (fly1d and fly2d).
+
+This module provides shared functions and utilities that are used by both fly1d and fly2d
+flyscan plans, eliminating code duplication and providing a centralized location for
+common operations.
+
+Functions:
+----------
+_common_flyscan_setup(xrf_on, preamp1_on, preamp2_on, x_center, width, stepsize_x, 
+                      stepsize_y, dwell)
+    Common setup function that handles parameter validation, device connections,
+    detector configuration, and motor setup for both 1D and 2D flyscans.
+
+_common_flyscan_cleanup()
+    Common cleanup function that re-enables usercalc after scan completion.
+
+_fly1d(devices, fileplugins, samx, x_end)
+    Core detector execution function used by both fly1d and fly2d plans.
+    Handles detector synchronization and data capture during the scan.
+
+Key Features:
+-------------
+- Centralized parameter validation and device connection checking
+- Automatic detector setup and file I/O configuration
+- Motor speed calculation and positioning
+- Device reordering for optimal scan execution
+- Detector status monitoring and synchronization
 
 @author: yluo(grace227)
 """
 
-import logging
 import bluesky.plan_stubs as bps
 from apsbits.core.instrument_init import oregistry
-from apsbits.utils.config_loaders import get_config
-import numpy as np
-from ophyd.status import Status
+from apstools.plans import run_blocking_function
+from s2idd_uprobe.plans.toggle_usercalc import enable_usercalc, disable_usercalc
+from s2idd_uprobe.utils.fly import (
+    reorder_devices,
+    validate_scan_parameters,
+    validate_device_connections,
+    setup_detectors_and_fileio,
+    setup_motor_positions_and_speeds,
+    calculate_x_scan_parameters,
+    DetectorFileSignal
+)
+import logging
 
 logger = logging.getLogger(__name__)
 
-# Get common devices and config
-sis3820 = oregistry["sis3820"]
 savedata = oregistry["savedata"]
-xrf = oregistry["xrf"]
-xrf_netcdf = oregistry["xrf_netcdf"]
 samx = oregistry["samx"]
 
-iconfig = get_config()
-netcdf_delimiter = iconfig.get("FILE_DELIMITER")
-xmap_buffer = iconfig.get("XMAP")["BUFFER"]
-det_foldername = {"xrf": "flyXRF", "preamp1": "tetramm", "preamp2": "tetramm2"}
 
-
-def setup_flyscan_SIS3820_XMAP(sis3820, xmap, stepsize_x, num_pulses, motor_resolution):
+def _common_flyscan_setup(
+    xrf_on=True, 
+    preamp1_on=True, 
+    preamp2_on=False,
+    x_center=None,
+    width=0,
+    stepsize_x=0,
+    stepsize_y=None,
+    dwell=0
+):
     """
-    Setup the SIS3820 and XMAP for the fly scan.
-
-    """
-    yield from sis3820.before_flyscan(num_pulses, stepsize=stepsize_x, 
-                                      motor_resolution=motor_resolution,
-                                      update_prescale=True)
-    yield from xmap.flyscan_before(num_pulses)
-
-
-def setup_detectors_and_fileio(stepsize_x, num_pulses, motor_resolution):
-    """
-    Common setup for SIS3820, XMAP, and XRF netCDF file writer.
+    Common setup for both fly1d and fly2d plans.
     
     Parameters
     ----------
-    stepsize_x : float
-        Step size in x direction
-    num_pulses : int
-        Number of pulses for the scan
-    motor_resolution : float
-        Motor resolution for prescale calculation
-        
-    Returns
-    -------
-    str
-        Filename for the scan
-    """
-    # Update file name
-    savedata.update_next_file_name()
-    next_file_name = savedata.next_file_name
-    filename = next_file_name.replace(".mda", "")
-    
-    # Setup the SIS3820 and XMAP (XRF)
-    yield from setup_flyscan_SIS3820_XMAP(sis3820, xrf, stepsize_x, 
-                                        num_pulses, motor_resolution)
-    
-    # Setup the XRF netCDF
-    num_capture = int(np.ceil(num_pulses / xmap_buffer))
-    
-    yield from xrf_netcdf.setup_file_writer(
-        savedata,
-        det_foldername["xrf"],
-        num_capture,
-        filename=filename,
-        beamline_delimiter=netcdf_delimiter,
-    )
-    
-    return filename
-
-
-def setup_motor_positions_and_speeds(x_start, x_motor_scan_speed, x_motor_retrace):
-    """
-    Common setup for motor positions and speeds.
-    
-    Parameters
-    ----------
-    x_start : float
-        Starting x position
-    x_motor_scan_speed : float
-        Scan speed for x motor
-    x_motor_retrace : float
-        Retrace speed for x motor
-    """
-    yield from bps.mv(samx.velocity, x_motor_retrace)
-    yield from bps.mv(samx, x_start)
-    yield from bps.mv(samx.velocity, x_motor_scan_speed)
-    yield from bps.sleep(0.2)
-    logger.info(f"x_motor velocity = {samx.velocity.get()}")
-
-
-def create_file_done_signal():
-    """
-    Create a Status object and subscribe to file done signal.
-    
-    Returns
-    -------
-    Status
-        Status object that will be finished when file is done
-    """
-    ready = Status()
-    
-    def wait(old_value, value, **kwargs):
-        if old_value == 1 and value == 0:
-            if not ready.done:
-                ready.set_finished()
-            else:
-                logger.info("File done signal already received")
-    
-    xrf_netcdf.capture.unsubscribe_all()
-    xrf_netcdf.capture.subscribe(wait)
-    
-    return ready
-
-
-def calculate_x_scan_parameters(width, x_center, stepsize_x, dwell):
-    """
-    Calculate common scan parameters.
-    
-    Parameters
-    ----------
+    xrf_on : bool
+        Whether x-ray fluorescence is on
+    preamp1_on : bool
+        Whether preamp1 is on
+    preamp2_on : bool
+        Whether preamp2 is on
+    x_center : float, optional
+        Center of scan in x direction
     width : float
-        Width of the scan
-    x_center : float
-        Center of the scan in x direction
+        Width of scan
     stepsize_x : float
         Step size in x direction
+    stepsize_y : float, optional
+        Step size in y direction (for 2D scans)
     dwell : float
         Dwell time
         
     Returns
     -------
     tuple
-        (xarr, x_start, x_end, x_motor_scan_speed, x_motor_retrace, num_pulses)
+        (devices, fileplugins, xarr, x_start, x_end, x_motor_scan_speed, x_motor_retrace, num_pulses)
     """
-    xarr = np.arange(x_center - width/2, x_center + width/2, stepsize_x)
-    x_motor_scan_speed = samx.calculate_scan_speed(stepsize_x, dwell)
-    x_motor_retrace = samx.get_max_velocity()
-    num_pulses = len(xarr) - 2
+    """Disable usercalc"""
+    yield from disable_usercalc()
+
+    """Check input parameters and detector status"""
+    logger.info("Validating scan parameters and detector status")
+    validate_scan_parameters(stepsize_x=stepsize_x, stepsize_y=stepsize_y)
+    devices, fileplugins = validate_device_connections(xrf_on, preamp1_on, preamp2_on, return_devices=True)
+
+    """Construct the scan points and calculate the motor speeds"""
+    logger.info("Constructing the scan points and calculating the motor speeds")
+    xarr, x_start, x_end, x_motor_scan_speed, x_motor_retrace, num_pulses = calculate_x_scan_parameters(
+        width, x_center, stepsize_x, dwell
+    )
+    logger.info(f"x_start: {x_start}, x_end: {x_end}, x_motor_scan_speed: {x_motor_scan_speed}, num_pulses: {num_pulses}")
+
+    """Setup detectors and file I/O"""
+    logger.info("Setting up detectors and file I/O")
+    numpts_x = len(xarr)
+    num_pulses = numpts_x - 2
+    yield from setup_detectors_and_fileio(stepsize_x, num_pulses, samx.resolution.get(), dwell,
+                                          xrf_on=xrf_on, preamp1_on=preamp1_on, preamp2_on=preamp2_on)
+        
+    """Setup motor positions and speeds"""
+    yield from setup_motor_positions_and_speeds(x_start, x_motor_scan_speed, x_motor_retrace)
     
-    x_start = xarr[0]
-    x_end = xarr[-1]
+    """Lets move the sis3820 device to the end of the list of devices"""
+    devices = reorder_devices(devices)
     
-    return xarr, x_start, x_end, x_motor_scan_speed, x_motor_retrace, num_pulses
+    return devices, fileplugins, x_start, x_end, x_motor_scan_speed, x_motor_retrace
 
 
-def validate_scan_parameters(stepsize_x, stepsize_y):
+def _common_flyscan_cleanup():
     """
-    Validate common scan parameters.
+    Common cleanup for both fly1d and fly2d plans.
+    """
+    """Enable usercalc"""
+    yield from enable_usercalc()
+
+
+def _fly1d(devices, fileplugins, samx, x_end):
+    """
+    This function is being used in both fly1d and fly2d plans.
     
     Parameters
     ----------
-    stepsize_x : float
-        Step size in x direction
-    stepsize_y : float
-        Step size in y direction
-        
-    Raises
-    ------
-    ValueError
-        If step sizes are invalid
+    devices : list
+        List of ophyd devices
+    fileplugins : list
+        List of file plugins
+    samx : ophyd.Device
+        Sample x motor
+    x_end : float
+        End position for x motor
     """
-    if any([stepsize_y == 0, stepsize_x == 0]):
-        raise ValueError("Step size cannot be 0, please check the input parameters")
-
-
-def validate_device_connections():
-    """
-    Validate that required devices are connected.
+    status = DetectorFileSignal(fileplugins, devices)
     
-    Raises
-    ------
-    ValueError
-        If any required device is not connected
-    """
-    devices = [sis3820, xrf, xrf_netcdf]
-    for device in devices:
-        if not device.connected:
-            raise ValueError(f"{device.name} is not connected, please check the status")
+    for fileplugin in fileplugins:
+        if fileplugin is not None:
+            yield from fileplugin.set_capture("CAPTURING")
+
+    for det in devices:
+        if det.name == "sis3820":
+            yield from det.set_erase_start(1)
+        elif det.name == "xrf":
+            yield from det.set_erase_start(1)
+        elif det.name == "tmm1":
+            yield from det.start_acquire()
+        elif det.name == "tmm2":
+            yield from det.start_acquire()
+
+    yield from bps.sleep(0.2)
+    status.scan_active = True
+    logger.debug(f"scan_active: {status.scan_active}")
+    yield from bps.mv(samx, x_end)
+    yield from bps.sleep(0.2)
+    yield from run_blocking_function(status.st.wait)
+    status.unsubscribe()
+
+

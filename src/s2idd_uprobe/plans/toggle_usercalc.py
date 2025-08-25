@@ -40,7 +40,7 @@ def disable_usercalc():
     """
     for usercalc_name, usercalc_pv in usercalcs.items():
         # signal = EpicsSignal(usercalc_pv, name=usercalc_name)
-        logger.info(f"Disabling {usercalc_name}: {usercalc_pv}")
+        logger.info(f"Disabling {usercalc_name}: {usercalc_pv.pvname}")
         yield from bps.mv(usercalc_pv, 0)
 
 
@@ -50,5 +50,5 @@ def enable_usercalc():
     """
     for usercalc_name, usercalc_pv in usercalcs.items():
         # signal = EpicsSignal(usercalc_pv, name=usercalc_name)
-        logger.info(f"Enabling {usercalc_name}: {usercalc_pv}")
+        logger.info(f"Enabling {usercalc_name}: {usercalc_pv.pvname}")
         yield from bps.mv(usercalc_pv, 1)

@@ -1,30 +1,48 @@
 """
-Fly1D plan for 2idd. A building block for fly2d_noScanRecord plan
+Fly1D plan for 2idd. A building block for fly2d_noScanRecord plan.
+
+This module provides a 1D flyscan plan that performs continuous motion scanning along the x-axis
+without relying on Scan Record.
+
+Plan Description:
+----------------
+Execute a 1D flyscan where the x-motor moves at a calculated speed while detectors continuously 
+capture data. The scan follows this sequence:
+
+1. Setup and validation of scan parameters and detector connections
+2. Configure detector settings and file I/O based on scan parameters
+3. Position the x-motor at the start position and set scan speed
+4. Execute the scan by moving the x-motor to the end position
+5. Wait for all detector data to be captured and saved
+6. Retrace the x-motor to the start position at high speed
+7. Restore motor speed to scan speed for potential subsequent scans
+
+Key Features:
+-------------
+- Automatic motor speed calculation based on step size and dwell time
+- Detector synchronization for data integrity
+- Configurable detector selection (XRF, preamp1, preamp2)
+- Automatic file I/O configuration
+- Motor speed optimization for scan and retrace operations
 
 @author: yluo(grace227)
 """
 
 import bluesky.plan_stubs as bps
 from apsbits.core.instrument_init import oregistry
-from apstools.plans import run_blocking_function
 from s2idd_uprobe.plans.flyscan_core import (
-    setup_detectors_and_fileio,
-    setup_motor_positions_and_speeds,
-    create_file_done_signal,
-    calculate_x_scan_parameters
+    _common_flyscan_setup,
+    _common_flyscan_cleanup,
+    _fly1d,
 )
-import inspect
+from s2idd_uprobe.utils.fly import get_next_file_name
+
 import logging
-import numpy as np
-from ophyd.status import Status
 
 logger = logging.getLogger(__name__)
 
 savedata = oregistry["savedata"]
 samx = oregistry["samx"]
-sis3820 = oregistry["sis3820"]
-xrf = oregistry["xrf"]
-xrf_netcdf = oregistry["xrf_netcdf"]
 
 def fly1d(
     samplename="smp1",
@@ -37,110 +55,64 @@ def fly1d(
     xrf_on=True,
     preamp1_on=False,
     preamp2_on=False,
-    x_end=None,
-    x_start=None,
-    x_motor_retrace=None,
-    x_motor_scan_speed=None,
-    ready=None,
-    unsubscribe=False,
 ):
     """
-    Fly 1D scan that does not rely on Scan Record.
-
-    This plan is a building block for fly2d_noScanRecord plan. 
-    When called from anyone except plan_mutator, this fly1D plan will be commanding:
-    - detectors to capture
-    - get struck3820 to be ready
-    - move the x-motor to the end position
-    - wait until detector files are saved
-    - retrace the x-motor to the start position
-
-    When called from plan_mutator, this fly1D plan will:
-    - calculate the scan points and the motor speeds
-    - setup detectors and file IO
-    - perform the same steps as the caller from the non plan_mutator plan
-
+    Execute a 1D flyscan along the x-axis.
+    
+    See module header for detailed description of the scan process and features.
+    
     Parameters
     ----------
-    samplename : 
-        Str: The name of the sample.
-    user_comments :
-        Str: The user comments for the scan.
-    width :
-        Float: The width of the scan.
-    x_center :
-        Float: The center of the scan in the x-direction. If not provided, the current x-motor position will be used.
-    stepsize_x :
-        Float: The step size of the scan in the x-direction.
-    dwell :
-        Float: The dwell time of the scan.
-    sample_z :
-        Float: The sample z position. If not provided, the current sample z position will be used.
-    xrf_on :
-        Bool: Whether to turn on the x-ray fluorescence detector.
-    preamp1_on :
-        Bool: Whether to turn on the preamp1.
-    preamp2_on :
-        Bool: Whether to turn on the preamp2.
+    samplename : str, optional
+        The name of the sample for file naming. Default is "smp1".
+    user_comments : str, optional
+        User comments to be recorded with the scan data. Default is "".
+    width : float
+        The total width of the scan in motor units.
+    x_center : float, optional
+        The center position of the scan in the x-direction. If not provided, 
+        the current x-motor position will be used as the center.
+    stepsize_x : float
+        The step size (spatial resolution) of the scan in motor units.
+    dwell : float
+        The dwell time per step in milliseconds.
+    sample_z : float, optional
+        The sample z position. If not provided, the current sample z position 
+        will be maintained.
+    xrf_on : bool, optional
+        Whether to enable the x-ray fluorescence detector. Default is True.
+    preamp1_on : bool, optional
+        Whether to enable preamp1. Default is False.
+    preamp2_on : bool, optional
+        Whether to enable preamp2. Default is False.
     """
 
-    """Check who is calling the function"""
-    caller_name = "unknown"
-    current_frame = inspect.currentframe()
-    if current_frame and current_frame.f_back:
-        caller_name = current_frame.f_back.f_code.co_name
-        logger.info(f"Called from {caller_name}")
+    #TODO: open shutter
+    print("open shutter")
+
+    """Common setup for flyscan plans"""
+    devices, fileplugins, x_start, x_end, x_motor_scan_speed, x_motor_retrace = yield from _common_flyscan_setup(
+        xrf_on=xrf_on, 
+        preamp1_on=preamp1_on, 
+        preamp2_on=preamp2_on,
+        x_center=x_center,
+        width=width,
+        stepsize_x=stepsize_x,
+        dwell=dwell
+    )
     
-    
-    if caller_name == "plan_mutator":
-        logger.info(f"Called from {caller_name}")
-        
-        # Calculate scan parameters
-        xarr, x_start, x_end, x_motor_scan_speed, x_motor_retrace, num_pulses = calculate_x_scan_parameters(
-            width, x_center, stepsize_x, dwell
-        )
-
-        # Setup detectors and file I/O
-        filename = yield from setup_detectors_and_fileio(stepsize_x, num_pulses, samx.resolution.get())
-        
-        # Setup motor positions and speeds
-        yield from setup_motor_positions_and_speeds(x_start, x_end, x_motor_scan_speed, x_motor_retrace)
-
-        # Create file done signal
-        ready = create_file_done_signal()
-
-        yield from savedata.set_next_scan_number(savedata.next_scan_number.get() + 1)
-        yield from _fly1d(xrf_netcdf, xrf, sis3820, samx, x_end, x_start, 
-                          x_motor_retrace, ready)
-        
-        yield from bps.sleep(0.2)
-
-
-    else:
-        yield from _fly1d(xrf_netcdf, xrf, sis3820, samx, x_end, x_start, 
-                          x_motor_retrace, ready)
-        if unsubscribe:
-            xrf_netcdf.capture.unsubscribe_all()
-
-    
-
-
-def _fly1d(xrf_netcdf, xrf, sis3820, samx, x_end, x_start, 
-            x_motor_retrace, ready):
-
-    yield from xrf_netcdf.set_capture("CAPTURING")
-    yield from xrf.set_erase_start(1)
-    yield from sis3820.set_erase_start(1)
-
-    yield from bps.sleep(0.2)
-    yield from bps.mv(samx, x_end)
-    yield from run_blocking_function(ready.wait)
-
+    """Execute the fly1d scan"""
+    filename = get_next_file_name(savedata)
+    logger.info(f"Starting the scan, filename: {filename}")
+    yield from savedata.set_next_scan_number(savedata.next_scan_number.get() + 1)
+    yield from _fly1d(devices, fileplugins, samx, x_end)
     yield from bps.mv(samx.velocity, x_motor_retrace)
     yield from bps.mv(samx, x_start)
-    
-        
+    yield from bps.mv(samx.velocity, x_motor_scan_speed)
+    logger.info(f"Scan is finished, filename: {filename}")
 
+    """Common cleanup for flyscan plans"""
+    yield from _common_flyscan_cleanup()
 
 
 

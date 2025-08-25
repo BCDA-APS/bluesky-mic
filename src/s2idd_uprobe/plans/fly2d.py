@@ -1,9 +1,36 @@
 """
 Creating a bluesky plan that does not use Scan Record.
 
+This module provides a 2D flyscan plan that performs raster scanning without relying on Scan Record.
+
+Plan Description:
+----------------
+Execute a 2D flyscan over a rectangular area by performing multiple 1D flyscans along the x-axis
+at different y positions. The scan follows this sequence:
+
+1. Setup and validation of scan parameters and detector connections
+2. Configure detector settings and file I/O based on scan parameters
+3. Position the sample at the specified z-height and y-start position
+4. For each y-position:
+   a. Move y-motor to the target y-coordinate
+   b. Execute a 1D flyscan along the x-axis
+   c. Retrace x-motor to start position (unless snake_scan is enabled)
+5. Continue until all y-positions are scanned
+
+Scan Patterns:
+--------------
+- **Standard raster**: Always scans from left to right, retracing after each line
+- **Snake scan**: Alternates scan direction (left-to-right, then right-to-left) to reduce scan time
+
+Key Features:
+-------------
+- Automatic motor speed calculation based on step size and dwell time
+- Detector synchronization for data integrity
+- Configurable detector selection (XRF, preamp1, preamp2)
+- Automatic file I/O configuration
+- Support for both standard and snake scan patterns
+
 @author: yluo(grace227)
-
-
 """
 
 __all__ = """
@@ -14,16 +41,10 @@ import logging
 import bluesky.plan_stubs as bps
 from apsbits.core.instrument_init import oregistry
 from s2idd_uprobe.plans.flyscan_core import (
-    setup_detectors_and_fileio,
-    setup_motor_positions_and_speeds,
-    create_file_done_signal,
-    validate_scan_parameters,
-    validate_device_connections,
-    calculate_x_scan_parameters
+    _common_flyscan_setup,
+    _common_flyscan_cleanup,
+    _fly1d
 )
-from s2idd_uprobe.plans.fly1d import fly1d
-from s2idd_uprobe.plans.toggle_usercalc import disable_usercalc
-from s2idd_uprobe.plans.toggle_usercalc import enable_usercalc
 import numpy as np
 
 logger = logging.getLogger(__name__)
@@ -46,68 +67,66 @@ def fly2d(
     sample_z=None,
     inc_eng=None,
     adjust_zp=False,
-    xrf_on=True,
-    preamp1_on=False,
     preamp2_on=False,
+    preamp1_on=True,
+    xrf_on=True,
+    snake_scan=False,
 ):
     
     """
-    Fly 2D scan that does not rely on Scan Record. 
-
-    The detail scan plan is as follows:
-    Before the scan loop:
-        1. Setup struck SIS3820 based on the number of scan points and dwell time.
-        2. Setup the sample z position.
-
-    In the scan loop, indented by inner and outer loops:
-        - Drive the y-motor to start position (y_center - height/2)
-        - Arm and setup proper filePlugin for selected detectors
-            - Drive x-motor to the start position (x_center - width/2)
-            - Adjust x-motor speed to the desired speed
-            - Drive x-motor to the end position (x_center + width/2)
-            - Adjust to fast x-motor speed
-            - Drive x-motor to the start position (x_center - width/2)
-
+    Execute a 2D flyscan over a rectangular area.
+    
     Parameters
     ----------
-    samplename :
-        Str: The name of the sample.
-    user_comments :
-        Str: The user comments for the scan.
-    width :
-        Float: The width of the scan.
-    x_center :
-        Float: The center of the scan in the x-direction. If not provided, the current x-motor position will be used.
-    stepsize_x :
-        Float: The step size of the scan in the x-direction.
-    height :
-        Float: The height of the scan.
-    y_center :
-        Float: The center of the scan in the y-direction. If not provided, the current y-motor position will be used.
-    stepsize_y :
-        Float: The step size of the scan in the y-direction.
-    dwell :
-        Float: The dwell time of the scan.
-    sample_z :
-        Float: The sample z position.
-    inc_eng :
-        Float: The increment in energy.
-    adjust_zp :
-        Bool: Whether to adjust the zero point.
-    xrf_on :
-        Bool: Whether to turn on the x-ray fluorescence.
-    preamp1_on :
-        Bool: Whether to turn on the preamp1.
-    preamp2_on :
-        Bool: Whether to turn on the preamp2.
+    samplename : str, optional
+        The name of the sample for file naming. Default is "smp1".
+    user_comments : str, optional
+        User comments to be recorded with the scan data. Default is "".
+    width : float
+        The total width of the scan area in motor units.
+    x_center : float, optional
+        The center position of the scan in the x-direction. If not provided, 
+        the current x-motor position will be used as the center.
+    stepsize_x : float
+        The step size (spatial resolution) in the x-direction in motor units.
+    height : float
+        The total height of the scan area in motor units.
+    y_center : float, optional
+        The center position of the scan in the y-direction. If not provided, 
+        the current y-motor position will be used as the center.
+    stepsize_y : float
+        The step size (spatial resolution) in the y-direction in motor units.
+    dwell : float
+        The dwell time per step in milliseconds.
+    sample_z : float, optional
+        The sample z position. If not provided, the current sample z position 
+        will be maintained.
+    inc_eng : float, optional
+        The increment in energy (currently not implemented).
+    adjust_zp : bool, optional
+        Whether to adjust the zero point (currently not implemented).
+    xrf_on : bool, optional
+        Whether to enable the x-ray fluorescence detector. Default is True.
+    preamp1_on : bool, optional
+        Whether to enable preamp1. Default is True. Preamp1 is used to record metadata.
+    preamp2_on : bool, optional
+        Whether to enable preamp2. Default is False.
+    snake_scan : bool, optional
+        Whether to use snake scan pattern (alternating scan directions). 
+        Default is False (standard left-to-right raster).
     """
 
-    """Disable usercalc"""
-    yield from disable_usercalc()
-
-    """Check input parameters and detector status"""
-    validate_scan_parameters(stepsize_x, stepsize_y)
-    validate_device_connections()
+    """Common setup for flyscan plans"""
+    devices, fileplugins, x_start, x_end, x_motor_scan_speed, x_motor_retrace = yield from _common_flyscan_setup(
+        xrf_on=xrf_on, 
+        preamp1_on=preamp1_on, 
+        preamp2_on=preamp2_on,
+        x_center=x_center,
+        width=width,
+        stepsize_x=stepsize_x,
+        stepsize_y=stepsize_y,
+        dwell=dwell
+    )
     
     """Setup the sample z, x, and y position"""
     if sample_z is not None:
@@ -117,53 +136,32 @@ def fly2d(
     if y_center is not None:
         yield from bps.mv(samy, samy.position - height/2)
 
-    """Construct the scan points and calculate the motor speeds"""
+    """Construct the y scan points"""
     yarr = np.arange(y_center - height/2, y_center + height/2, stepsize_y)
-    # Calculate scan parameters
-    xarr, x_start, x_end, x_motor_scan_speed, x_motor_retrace, num_pulses = calculate_x_scan_parameters(
-        width, x_center, stepsize_x, dwell
-    )
-
-    """Setup detectors and file IO"""
-    numpts_x = len(xarr)
-    num_pulses = numpts_x - 2
-
-    # Setup detectors and file I/O
-    filename = yield from setup_detectors_and_fileio(stepsize_x, num_pulses, samx.resolution.get())
     
-    # Setup motor positions and speeds
-    yield from setup_motor_positions_and_speeds(x_start, x_motor_scan_speed, x_motor_retrace)
-    
-    # Create file done signal
-    ready = create_file_done_signal()
-    unsubscribe = False
-
     # Drive the y-motor to the start position
+    x_target = [x_end, x_start]
     for i, y in enumerate(yarr):
 
         logger.info(f"Moving to y = {y}")
         yield from bps.mv(samy, y)
 
-        yield from bps.mv(samx.velocity, x_motor_scan_speed)
-        logger.info(f"x_motor velocity = {samx.velocity.get()}")
-
         if i == 0:
             print("Open shutter")
             yield from savedata.set_next_scan_number(savedata.next_scan_number.get() + 1)
-        if y == yarr[-1]:
-            unsubscribe = True
-
-        yield from fly1d(x_end=x_end, x_start=x_start, 
-                        x_motor_retrace=x_motor_retrace, ready=ready, unsubscribe=unsubscribe)
-        yield from bps.sleep(0.2)
         
-    # xrf_netcdf.capture.unsubscribe(wait)
-    yield from bps.mv(samx.velocity, x_motor_retrace)
-    
+        if snake_scan:
+            x_target_pos = x_target[i%2]
+            yield from _fly1d(devices, fileplugins, samx, x_target_pos)
+        else:
+            x_target_pos = x_end
+            yield from _fly1d(devices, fileplugins, samx, x_target_pos)
+            yield from bps.mv(samx.velocity, x_motor_retrace)
+            yield from bps.mv(samx, x_start)
+            yield from bps.mv(samx.velocity, x_motor_scan_speed)
+            logger.debug(f"x_motor velocity = {samx.velocity.get()}")
 
-    """Enable usercalc"""
-    yield from enable_usercalc()
-
-# RE(fly2d(width = 10, x_center = 5281, stepsize_x=0.1, height = 10, y_center = -2200, stepsize_y=1, dwell=100, sample_z=0, xrf_on=True, preamp1_on=False, preamp2_on=False))
+    """Common cleanup for flyscan plans"""
+    yield from _common_flyscan_cleanup()
 
     

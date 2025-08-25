@@ -1,0 +1,206 @@
+<?xml version="1.0" standalone="no" ?>
+<Attributes xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://epics.aps.anl.gov/areaDetector/attributes ../attributes.xsd">
+    <!-- Attributes -->
+    <Attribute name="filesystem" type="EPICS_PV" source="2idd:saveData_fileSystem" dbrtype="DBR_STRING" description="filesystem"/>
+    <Attribute name="2idd_userCalc1" type="EPICS_PV" source="2idd:userCalc1.CALC" dbrtype="DBR_NATIVE" description="2idd:userCalc1.CALC"/>
+    <Attribute name="scanNumber" type="EPICS_PV" source="2idd:saveData_scanNumber" dbrtype="DBR_LONG" description="Current scan number"/>
+    <Attribute name="comment1" type="EPICS_PV" source="2idd:saveData_comment1" dbrtype="DBR_STRING" description="Data or file comment 1"/>
+    <Attribute name="comment2" type="EPICS_PV" source="2idd:saveData_comment2" dbrtype="DBR_STRING" description="Data or file comment 2"/>
+    <Attribute name="2idd:scaler1.TP" type="EPICS_PV" source="2idd:scaler1.TP" dbrtype="DBR_NATIVE" description="2idd:scaler1.TP"/>
+    <Attribute name="ch_used" type="EPICS_PV" source="2iddXMAP:mca1.NUSE" dbrtype="DBR_LONG" description="Number of channels used in MCA1"/>
+    <Attribute name="real_time" type="EPICS_PV" source="2iddXMAP:mca1.ERTM" dbrtype="DBR_NATIVE" description="Real time of XRF detector"/>
+    <Attribute name="live_time" type="EPICS_PV" source="2iddXMAP:mca1.ELTM" dbrtype="DBR_NATIVE" description="Live time of XRF detector"/>
+    <Attribute name="cal_offset" type="EPICS_PV" source="2iddXMAP:mca1.CALO" dbrtype="DBR_NATIVE" description="Calibration offset of XRF detector"/>
+    <Attribute name="cal_slope" type="EPICS_PV" source="2iddXMAP:mca1.CALS" dbrtype="DBR_NATIVE" description="Calibration slope of XRF detector"/>
+    <Attribute name="cal_quadratic" type="EPICS_PV" source="2iddXMAP:mca1.CALQ" dbrtype="DBR_NATIVE" description="Calibration quadratic value of XRF detector"/>
+    <Attribute name="cal_twotheta" type="EPICS_PV" source="2iddXMAP:mca1.TTH" dbrtype="DBR_NATIVE" description="Calibration two theta value of XRF detector"/>
+    <Attribute name="ROI0_lo" type="EPICS_PV" source="2iddXMAP:mca1.R0LO" dbrtype="DBR_NATIVE" description="ROI0 lower limit"/>
+    <Attribute name="ROI0_hi" type="EPICS_PV" source="2iddXMAP:mca1.R0HI" dbrtype="DBR_NATIVE" description="ROI0 upper limit"/>
+    <Attribute name="ROI0_name" type="EPICS_PV" source="2iddXMAP:mca1.R0NM" dbrtype="DBR_STRING" description="ROI0 name"/>
+    <Attribute name="ROI1_lo" type="EPICS_PV" source="2iddXMAP:mca1.R1LO" dbrtype="DBR_NATIVE" description="ROI1 lower limit"/>
+    <Attribute name="ROI1_hi" type="EPICS_PV" source="2iddXMAP:mca1.R1HI" dbrtype="DBR_NATIVE" description="ROI1 upper limit"/>
+    <Attribute name="ROI1_name" type="EPICS_PV" source="2iddXMAP:mca1.R1NM" dbrtype="DBR_STRING" description="ROI1 name"/>
+    <Attribute name="ROI2_lo" type="EPICS_PV" source="2iddXMAP:mca1.R2LO" dbrtype="DBR_NATIVE" description="ROI2 lower limit"/>
+    <Attribute name="ROI2_hi" type="EPICS_PV" source="2iddXMAP:mca1.R2HI" dbrtype="DBR_NATIVE" description="ROI2 upper limit"/>
+    <Attribute name="ROI2_name" type="EPICS_PV" source="2iddXMAP:mca1.R2NM" dbrtype="DBR_STRING" description="ROI2 name"/>
+    <Attribute name="ROI3_lo" type="EPICS_PV" source="2iddXMAP:mca1.R3LO" dbrtype="DBR_NATIVE" description="ROI3 lower limit"/>
+    <Attribute name="ROI3_hi" type="EPICS_PV" source="2iddXMAP:mca1.R3HI" dbrtype="DBR_NATIVE" description="ROI3 upper limit"/>
+    <Attribute name="ROI3_name" type="EPICS_PV" source="2iddXMAP:mca1.R3NM" dbrtype="DBR_STRING" description="ROI3 name"/>
+    <Attribute name="ROI4_lo" type="EPICS_PV" source="2iddXMAP:mca1.R4LO" dbrtype="DBR_NATIVE" description="ROI4 lower limit"/>
+    <Attribute name="ROI4_hi" type="EPICS_PV" source="2iddXMAP:mca1.R4HI" dbrtype="DBR_NATIVE" description="ROI4 upper limit"/>
+    <Attribute name="ROI4_name" type="EPICS_PV" source="2iddXMAP:mca1.R4NM" dbrtype="DBR_STRING" description="ROI4 name"/>
+    <Attribute name="ROI5_lo" type="EPICS_PV" source="2iddXMAP:mca1.R5LO" dbrtype="DBR_NATIVE" description="ROI5 lower limit"/>
+    <Attribute name="ROI5_hi" type="EPICS_PV" source="2iddXMAP:mca1.R5HI" dbrtype="DBR_NATIVE" description="ROI5 upper limit"/>
+    <Attribute name="ROI5_name" type="EPICS_PV" source="2iddXMAP:mca1.R5NM" dbrtype="DBR_STRING" description="ROI5 name"/>
+    <Attribute name="ROI6_lo" type="EPICS_PV" source="2iddXMAP:mca1.R6LO" dbrtype="DBR_NATIVE" description="ROI6 lower limit"/>
+    <Attribute name="ROI6_hi" type="EPICS_PV" source="2iddXMAP:mca1.R6HI" dbrtype="DBR_NATIVE" description="ROI6 upper limit"/>
+    <Attribute name="ROI6_name" type="EPICS_PV" source="2iddXMAP:mca1.R6NM" dbrtype="DBR_STRING" description="ROI6 name"/>
+    <Attribute name="ROI7_lo" type="EPICS_PV" source="2iddXMAP:mca1.R7LO" dbrtype="DBR_NATIVE" description="ROI7 lower limit"/>
+    <Attribute name="ROI7_hi" type="EPICS_PV" source="2iddXMAP:mca1.R7HI" dbrtype="DBR_NATIVE" description="ROI7 upper limit"/>
+    <Attribute name="ROI7_name" type="EPICS_PV" source="2iddXMAP:mca1.R7NM" dbrtype="DBR_STRING" description="ROI7 name"/>
+    <Attribute name="ROI8_lo" type="EPICS_PV" source="2iddXMAP:mca1.R8LO" dbrtype="DBR_NATIVE" description="ROI8 lower limit"/>
+    <Attribute name="ROI8_hi" type="EPICS_PV" source="2iddXMAP:mca1.R8HI" dbrtype="DBR_NATIVE" description="ROI8 upper limit"/>
+    <Attribute name="ROI8_name" type="EPICS_PV" source="2iddXMAP:mca1.R8NM" dbrtype="DBR_STRING" description="ROI8 name"/>
+    <Attribute name="ROI9_lo" type="EPICS_PV" source="2iddXMAP:mca1.R9LO" dbrtype="DBR_NATIVE" description="ROI9 lower limit"/>
+    <Attribute name="ROI9_hi" type="EPICS_PV" source="2iddXMAP:mca1.R9HI" dbrtype="DBR_NATIVE" description="ROI9 upper limit"/>
+    <Attribute name="ROI9_name" type="EPICS_PV" source="2iddXMAP:mca1.R9NM" dbrtype="DBR_STRING" description="ROI9 name"/>
+    <Attribute name="ROI10_lo" type="EPICS_PV" source="2iddXMAP:mca1.R10LO" dbrtype="DBR_NATIVE" description="ROI10 lower limit"/>
+    <Attribute name="ROI10_hi" type="EPICS_PV" source="2iddXMAP:mca1.R10HI" dbrtype="DBR_NATIVE" description="ROI10 upper limit"/>
+    <Attribute name="ROI10_name" type="EPICS_PV" source="2iddXMAP:mca1.R10NM" dbrtype="DBR_STRING" description="ROI10 name"/>
+    <Attribute name="ROI11_lo" type="EPICS_PV" source="2iddXMAP:mca1.R11LO" dbrtype="DBR_NATIVE" description="ROI11 lower limit"/>
+    <Attribute name="ROI11_hi" type="EPICS_PV" source="2iddXMAP:mca1.R11HI" dbrtype="DBR_NATIVE" description="ROI11 upper limit"/>
+    <Attribute name="ROI11_name" type="EPICS_PV" source="2iddXMAP:mca1.R11NM" dbrtype="DBR_STRING" description="ROI11 name"/>
+    <Attribute name="ROI12_lo" type="EPICS_PV" source="2iddXMAP:mca1.R12LO" dbrtype="DBR_NATIVE" description="ROI12 lower limit"/>
+    <Attribute name="ROI12_hi" type="EPICS_PV" source="2iddXMAP:mca1.R12HI" dbrtype="DBR_NATIVE" description="ROI12 upper limit"/>
+    <Attribute name="ROI12_name" type="EPICS_PV" source="2iddXMAP:mca1.R12NM" dbrtype="DBR_STRING" description="ROI12 name"/>
+    <Attribute name="ROI13_lo" type="EPICS_PV" source="2iddXMAP:mca1.R13LO" dbrtype="DBR_NATIVE" description="ROI13 lower limit"/>
+    <Attribute name="ROI13_hi" type="EPICS_PV" source="2iddXMAP:mca1.R13HI" dbrtype="DBR_NATIVE" description="ROI13 upper limit"/>
+    <Attribute name="ROI13_name" type="EPICS_PV" source="2iddXMAP:mca1.R13NM" dbrtype="DBR_STRING" description="ROI13 name"/>
+    <Attribute name="ROI14_lo" type="EPICS_PV" source="2iddXMAP:mca1.R14LO" dbrtype="DBR_NATIVE" description="ROI14 lower limit"/>
+    <Attribute name="ROI14_hi" type="EPICS_PV" source="2iddXMAP:mca1.R14HI" dbrtype="DBR_NATIVE" description="ROI14 upper limit"/>
+    <Attribute name="ROI14_name" type="EPICS_PV" source="2iddXMAP:mca1.R14NM" dbrtype="DBR_STRING" description="ROI14 name"/>
+    <Attribute name="ROI15_lo" type="EPICS_PV" source="2iddXMAP:mca1.R15LO" dbrtype="DBR_NATIVE" description="ROI15 lower limit"/>
+    <Attribute name="ROI15_hi" type="EPICS_PV" source="2iddXMAP:mca1.R15HI" dbrtype="DBR_NATIVE" description="ROI15 upper limit"/>
+    <Attribute name="ROI15_name" type="EPICS_PV" source="2iddXMAP:mca1.R15NM" dbrtype="DBR_STRING" description="ROI15 name"/>
+    <Attribute name="ROI16_lo" type="EPICS_PV" source="2iddXMAP:mca1.R16LO" dbrtype="DBR_NATIVE" description="ROI16 lower limit"/>
+    <Attribute name="ROI16_hi" type="EPICS_PV" source="2iddXMAP:mca1.R16HI" dbrtype="DBR_NATIVE" description="ROI16 upper limit"/>
+    <Attribute name="ROI16_name" type="EPICS_PV" source="2iddXMAP:mca1.R16NM" dbrtype="DBR_STRING" description="ROI16 name"/>
+    <Attribute name="ROI17_lo" type="EPICS_PV" source="2iddXMAP:mca1.R17LO" dbrtype="DBR_NATIVE" description="ROI17 lower limit"/>
+    <Attribute name="ROI17_hi" type="EPICS_PV" source="2iddXMAP:mca1.R17HI" dbrtype="DBR_NATIVE" description="ROI17 upper limit"/>
+    <Attribute name="ROI17_name" type="EPICS_PV" source="2iddXMAP:mca1.R17NM" dbrtype="DBR_STRING" description="ROI17 name"/>
+    <Attribute name="ROI18_lo" type="EPICS_PV" source="2iddXMAP:mca1.R18LO" dbrtype="DBR_NATIVE" description="ROI18 lower limit"/>
+    <Attribute name="ROI18_hi" type="EPICS_PV" source="2iddXMAP:mca1.R18HI" dbrtype="DBR_NATIVE" description="ROI18 upper limit"/>
+    <Attribute name="ROI18_name" type="EPICS_PV" source="2iddXMAP:mca1.R18NM" dbrtype="DBR_STRING" description="ROI18 name"/>
+    <Attribute name="ROI19_lo" type="EPICS_PV" source="2iddXMAP:mca1.R19LO" dbrtype="DBR_NATIVE" description="ROI19 lower limit"/>
+    <Attribute name="ROI19_hi" type="EPICS_PV" source="2iddXMAP:mca1.R19HI" dbrtype="DBR_NATIVE" description="ROI19 upper limit"/>
+    <Attribute name="ROI19_name" type="EPICS_PV" source="2iddXMAP:mca1.R19NM" dbrtype="DBR_STRING" description="ROI19 name"/>
+    <Attribute name="ROI20_lo" type="EPICS_PV" source="2iddXMAP:mca1.R20LO" dbrtype="DBR_NATIVE" description="ROI20 lower limit"/>
+    <Attribute name="ROI20_hi" type="EPICS_PV" source="2iddXMAP:mca1.R20HI" dbrtype="DBR_NATIVE" description="ROI20 upper limit"/>
+    <Attribute name="ROI20_name" type="EPICS_PV" source="2iddXMAP:mca1.R20NM" dbrtype="DBR_STRING" description="ROI20 name"/>
+    <Attribute name="ROI21_lo" type="EPICS_PV" source="2iddXMAP:mca1.R21LO" dbrtype="DBR_NATIVE" description="ROI21 lower limit"/>
+    <Attribute name="ROI21_hi" type="EPICS_PV" source="2iddXMAP:mca1.R21HI" dbrtype="DBR_NATIVE" description="ROI21 upper limit"/>
+    <Attribute name="ROI21_name" type="EPICS_PV" source="2iddXMAP:mca1.R21NM" dbrtype="DBR_STRING" description="ROI21 name"/>
+    <Attribute name="ROI22_lo" type="EPICS_PV" source="2iddXMAP:mca1.R22LO" dbrtype="DBR_NATIVE" description="ROI22 lower limit"/>
+    <Attribute name="ROI22_hi" type="EPICS_PV" source="2iddXMAP:mca1.R22HI" dbrtype="DBR_NATIVE" description="ROI22 upper limit"/>
+    <Attribute name="ROI22_name" type="EPICS_PV" source="2iddXMAP:mca1.R22NM" dbrtype="DBR_STRING" description="ROI22 name"/>
+    <Attribute name="ROI23_lo" type="EPICS_PV" source="2iddXMAP:mca1.R23LO" dbrtype="DBR_NATIVE" description="ROI23 lower limit"/>
+    <Attribute name="ROI23_hi" type="EPICS_PV" source="2iddXMAP:mca1.R23HI" dbrtype="DBR_NATIVE" description="ROI23 upper limit"/>
+    <Attribute name="ROI23_name" type="EPICS_PV" source="2iddXMAP:mca1.R23NM" dbrtype="DBR_STRING" description="ROI23 name"/>
+    <Attribute name="ROI24_lo" type="EPICS_PV" source="2iddXMAP:mca1.R24LO" dbrtype="DBR_NATIVE" description="ROI24 lower limit"/>
+    <Attribute name="ROI24_hi" type="EPICS_PV" source="2iddXMAP:mca1.R24HI" dbrtype="DBR_NATIVE" description="ROI24 upper limit"/>
+    <Attribute name="ROI24_name" type="EPICS_PV" source="2iddXMAP:mca1.R24NM" dbrtype="DBR_STRING" description="ROI24 name"/>
+    <Attribute name="user_string_calc10_aa" type="EPICS_PV" source="2idd:userStringCalc10.AA" dbrtype="DBR_STRING" description="2idd:userStringCalc10.AA"/>
+    <Attribute name="user_string_calc10_bb" type="EPICS_PV" source="2idd:userStringCalc10.BB" dbrtype="DBR_STRING" description="2idd:userStringCalc10.BB"/>
+    <Attribute name="user_string_calc10_cc" type="EPICS_PV" source="2idd:userStringCalc10.CC" dbrtype="DBR_NATIVE" description="2idd:userStringCalc10.CC"/>
+    <Attribute name="user_string_calc10_dd" type="EPICS_PV" source="2idd:userStringCalc10.DD" dbrtype="DBR_NATIVE" description="2idd:userStringCalc10.DD"/>
+    <Attribute name="user_string_calc10_ee" type="EPICS_PV" source="2idd:userStringCalc10.EE" dbrtype="DBR_NATIVE" description="2idd:userStringCalc10.EE"/>
+    <Attribute name="user_string_calc10_ff" type="EPICS_PV" source="2idd:userStringCalc10.FF" dbrtype="DBR_NATIVE" description="2idd:userStringCalc10.FF"/>
+    <Attribute name="user_string_calc10_gg" type="EPICS_PV" source="2idd:userStringCalc10.GG" dbrtype="DBR_NATIVE" description="2idd:userStringCalc10.GG"/>
+    <Attribute name="user_string_calc10_hh" type="EPICS_PV" source="2idd:userStringCalc10.HH" dbrtype="DBR_NATIVE" description="2idd:userStringCalc10.HH"/>
+    <Attribute name="user_string_calc10_ii" type="EPICS_PV" source="2idd:userStringCalc10.II" dbrtype="DBR_NATIVE" description="2idd:userStringCalc10.II"/>
+    <Attribute name="user_string_calc10_jj" type="EPICS_PV" source="2idd:userStringCalc10.JJ" dbrtype="DBR_NATIVE" description="2idd:userStringCalc10.JJ"/>
+    <Attribute name="user_string_calc10_kk" type="EPICS_PV" source="2idd:userStringCalc10.KK" dbrtype="DBR_NATIVE" description="2idd:userStringCalc10.KK"/>
+    <Attribute name="user_string_calc10_ll" type="EPICS_PV" source="2idd:userStringCalc10.LL" dbrtype="DBR_NATIVE" description="2idd:userStringCalc10.LL"/>
+    <Attribute name="tmm1_current1_name" type="EPICS_PV" source="2iddtmm1:CurrentName1" dbrtype="DBR_STRING" description="Name of current1 in tmm1"/>
+    <Attribute name="tmm1_current2_name" type="EPICS_PV" source="2iddtmm1:CurrentName2" dbrtype="DBR_STRING" description="Name of current2 in tmm1"/>
+    <Attribute name="tmm1_current3_name" type="EPICS_PV" source="2iddtmm1:CurrentName3" dbrtype="DBR_STRING" description="Name of current3 in tmm1"/>
+    <Attribute name="tmm1_current4_name" type="EPICS_PV" source="2iddtmm1:CurrentName4" dbrtype="DBR_STRING" description="Name of current4 in tmm1"/>
+    <Attribute name="tmm1_current1_scale" type="EPICS_PV" source="2iddtmm1:CurrentScale1" dbrtype="DBR_NATIVE" description="Scale of current1 in tmm1"/>
+    <Attribute name="tmm1_current2_scale" type="EPICS_PV" source="2iddtmm1:CurrentScale2" dbrtype="DBR_NATIVE" description="Scale of current2 in tmm1"/>
+    <Attribute name="tmm1_current3_scale" type="EPICS_PV" source="2iddtmm1:CurrentScale3" dbrtype="DBR_NATIVE" description="Scale of current3 in tmm1"/>
+    <Attribute name="tmm1_current4_scale" type="EPICS_PV" source="2iddtmm1:CurrentScale4" dbrtype="DBR_NATIVE" description="Scale of current4 in tmm1"/>
+    <Attribute name="tmm1_current1_mean" type="EPICS_PV" source="2iddtmm1:Current1:MeanValue_RBV" dbrtype="DBR_NATIVE" description="Mean value of current1 in tmm1"/>
+    <Attribute name="tmm1_current2_mean" type="EPICS_PV" source="2iddtmm1:Current2:MeanValue_RBV" dbrtype="DBR_NATIVE" description="Mean value of current2 in tmm1"/>
+    <Attribute name="tmm1_current3_mean" type="EPICS_PV" source="2iddtmm1:Current3:MeanValue_RBV" dbrtype="DBR_NATIVE" description="Mean value of current3 in tmm1"/>
+    <Attribute name="tmm1_current4_mean" type="EPICS_PV" source="2iddtmm1:Current4:MeanValue_RBV" dbrtype="DBR_NATIVE" description="Mean value of current4 in tmm1"/>
+    <Attribute name="tmm1_current1_index" type="EPICS_PV" source="2iddtmm1:Current1:NDArrayAddress" dbrtype="DBR_NATIVE" description="Index of current1 in tmm1 NDArray"/>
+    <Attribute name="tmm1_current2_index" type="EPICS_PV" source="2iddtmm1:Current2:NDArrayAddress" dbrtype="DBR_NATIVE" description="Index of current2 in tmm1 NDArray"/>
+    <Attribute name="tmm1_current3_index" type="EPICS_PV" source="2iddtmm1:Current3:NDArrayAddress" dbrtype="DBR_NATIVE" description="Index of current3 in tmm1 NDArray"/>
+    <Attribute name="tmm1_current4_index" type="EPICS_PV" source="2iddtmm1:Current4:NDArrayAddress" dbrtype="DBR_NATIVE" description="Index of current4 in tmm1 NDArray"/>
+    <Attribute name="tmm1_sumx_index" type="EPICS_PV" source="2iddtmm1:SumX:NDArrayAddress" dbrtype="DBR_NATIVE" description="Index of sumx in tmm1 NDArray"/>
+    <Attribute name="tmm1_sumy_index" type="EPICS_PV" source="2iddtmm1:SumY:NDArrayAddress" dbrtype="DBR_NATIVE" description="Index of sumy in tmm1 NDArray"/>
+    <Attribute name="tmm1_sum_all_index" type="EPICS_PV" source="2iddtmm1:SumAll:NDArrayAddress" dbrtype="DBR_NATIVE" description="Index of sum-all in tmm1 NDArray"/>
+    <Attribute name="tmm1_diffx_index" type="EPICS_PV" source="2iddtmm1:DiffX:NDArrayAddress" dbrtype="DBR_NATIVE" description="Index of differential x in tmm1 NDArray"/>
+    <Attribute name="tmm1_diffy_index" type="EPICS_PV" source="2iddtmm1:DiffY:NDArrayAddress" dbrtype="DBR_NATIVE" description="Index of differential y in tmm1 NDArray"/>
+    <Attribute name="tmm1_posx_index" type="EPICS_PV" source="2iddtmm1:PosX:NDArrayAddress" dbrtype="DBR_NATIVE" description="Index of position x in tmm1 NDArray"/>
+    <Attribute name="tmm1_posy_index" type="EPICS_PV" source="2iddtmm1:PosY:NDArrayAddress" dbrtype="DBR_NATIVE" description="Index of position y in tmm1 NDArray"/>
+    <Attribute name="tmm2_current1_name" type="EPICS_PV" source="2iddtmm2:CurrentName1" dbrtype="DBR_STRING" description="Name of current1 in tmm2"/>
+    <Attribute name="tmm2_current2_name" type="EPICS_PV" source="2iddtmm2:CurrentName2" dbrtype="DBR_STRING" description="Name of current2 in tmm2"/>
+    <Attribute name="tmm2_current3_name" type="EPICS_PV" source="2iddtmm2:CurrentName3" dbrtype="DBR_STRING" description="Name of current3 in tmm2"/>
+    <Attribute name="tmm2_current4_name" type="EPICS_PV" source="2iddtmm2:CurrentName4" dbrtype="DBR_STRING" description="Name of current4 in tmm2"/>
+    <Attribute name="tmm2_current1_scale" type="EPICS_PV" source="2iddtmm2:CurrentScale1" dbrtype="DBR_NATIVE" description="Scale of current1 in tmm2"/>
+    <Attribute name="tmm2_current2_scale" type="EPICS_PV" source="2iddtmm2:CurrentScale2" dbrtype="DBR_NATIVE" description="Scale of current2 in tmm2"/>
+    <Attribute name="tmm2_current3_scale" type="EPICS_PV" source="2iddtmm2:CurrentScale3" dbrtype="DBR_NATIVE" description="Scale of current3 in tmm2"/>
+    <Attribute name="tmm2_current4_scale" type="EPICS_PV" source="2iddtmm2:CurrentScale4" dbrtype="DBR_NATIVE" description="Scale of current4 in tmm2"/>
+    <Attribute name="tmm2_current1_mean" type="EPICS_PV" source="2iddtmm2:Current1:MeanValue_RBV" dbrtype="DBR_NATIVE" description="Mean value of current1 in tmm2"/>
+    <Attribute name="tmm2_current2_mean" type="EPICS_PV" source="2iddtmm2:Current2:MeanValue_RBV" dbrtype="DBR_NATIVE" description="Mean value of current2 in tmm2"/>
+    <Attribute name="tmm2_current3_mean" type="EPICS_PV" source="2iddtmm2:Current3:MeanValue_RBV" dbrtype="DBR_NATIVE" description="Mean value of current3 in tmm2"/>
+    <Attribute name="tmm2_current4_mean" type="EPICS_PV" source="2iddtmm2:Current4:MeanValue_RBV" dbrtype="DBR_NATIVE" description="Mean value of current4 in tmm2"/>
+    <Attribute name="tmm2_current1_index" type="EPICS_PV" source="2iddtmm2:Current1:NDArrayAddress" dbrtype="DBR_NATIVE" description="Index of current1 in tmm2 NDArray"/>
+    <Attribute name="tmm2_current2_index" type="EPICS_PV" source="2iddtmm2:Current2:NDArrayAddress" dbrtype="DBR_NATIVE" description="Index of current2 in tmm2 NDArray"/>
+    <Attribute name="tmm2_current3_index" type="EPICS_PV" source="2iddtmm2:Current3:NDArrayAddress" dbrtype="DBR_NATIVE" description="Index of current3 in tmm2 NDArray"/>
+    <Attribute name="tmm2_current4_index" type="EPICS_PV" source="2iddtmm2:Current4:NDArrayAddress" dbrtype="DBR_NATIVE" description="Index of current4 in tmm2 NDArray"/>
+    <Attribute name="tmm2_sumx_index" type="EPICS_PV" source="2iddtmm2:SumX:NDArrayAddress" dbrtype="DBR_NATIVE" description="Index of sumx in tmm2 NDArray"/>
+    <Attribute name="tmm2_sumy_index" type="EPICS_PV" source="2iddtmm2:SumY:NDArrayAddress" dbrtype="DBR_NATIVE" description="Index of sumy in tmm2 NDArray"/>
+    <Attribute name="tmm2_sum_all_index" type="EPICS_PV" source="2iddtmm2:SumAll:NDArrayAddress" dbrtype="DBR_NATIVE" description="Index of sum-all in tmm2 NDArray"/>
+    <Attribute name="tmm2_diffx_index" type="EPICS_PV" source="2iddtmm2:DiffX:NDArrayAddress" dbrtype="DBR_NATIVE" description="Index of differential x in tmm2 NDArray"/>
+    <Attribute name="tmm2_diffy_index" type="EPICS_PV" source="2iddtmm2:DiffY:NDArrayAddress" dbrtype="DBR_NATIVE" description="Index of differential y in tmm2 NDArray"/>
+    <Attribute name="tmm2_posx_index" type="EPICS_PV" source="2iddtmm2:PosX:NDArrayAddress" dbrtype="DBR_NATIVE" description="Index of position x in tmm2 NDArray"/>
+    <Attribute name="tmm2_posy_index" type="EPICS_PV" source="2iddtmm2:PosY:NDArrayAddress" dbrtype="DBR_NATIVE" description="Index of position y in tmm2 NDArray"/>
+    <Attribute name="source_current" type="EPICS_PV" source="S:SRcurrentAI" dbrtype="DBR_NATIVE" description="Source ring current in mA"/>
+    <Attribute name="mono_energy" type="EPICS_PV" source="2ida2:BraggERdbkAO" dbrtype="DBR_NATIVE" description="Monochromator energy in keV"/>
+    <Attribute name="usic_preamp_sens_num" type="EPICS_PV" source="2idd:A1sens_num.VAL" dbrtype="DBR_NATIVE" description="US-IC preamp sensitivity"/>
+    <Attribute name="usic_preamp_sens_unit" type="EPICS_PV" source="2idd:A1sens_unit.VAL" dbrtype="DBR_NATIVE" description="US-IC preamp sensitivity unit"/>
+    <Attribute name="preamp2_sens_num" type="EPICS_PV" source="2idd:A2sens_num.VAL" dbrtype="DBR_NATIVE" description="Preamp2 sensitivity"/>
+    <Attribute name="preamp2_sens_unit" type="EPICS_PV" source="2idd:A2sens_unit.VAL" dbrtype="DBR_NATIVE" description="Preamp2 sensitivity unit"/>
+    <Attribute name="preamp3_sens_num" type="EPICS_PV" source="2idd:A3sens_num.VAL" dbrtype="DBR_NATIVE" description="Preamp3 sensitivity"/>
+    <Attribute name="preamp3_sens_unit" type="EPICS_PV" source="2idd:A3sens_unit.VAL" dbrtype="DBR_NATIVE" description="Preamp3 sensitivity unit"/>
+    <Attribute name="preamp4_sens_num" type="EPICS_PV" source="2idd:A4sens_num.VAL" dbrtype="DBR_NATIVE" description="Preamp4 sensitivity"/>
+    <Attribute name="preamp4_sens_unit" type="EPICS_PV" source="2idd:A4sens_unit.VAL" dbrtype="DBR_NATIVE" description="Preamp4 sensitivity unit"/>
+    <Attribute name="sft_ai6" type="EPICS_PV" source="2idsft:u1:Ai6" dbrtype="DBR_NATIVE" description="SFT AI6"/>
+    <Attribute name="x_pos_start" type="EPICS_PV" source="2idd:m40" dbrtype="DBR_NATIVE" description="X motor position in um at start"/>
+    <Attribute name="x_pos_end" type="EPICS_PV" source="2idd:m40" dbrtype="DBR_NATIVE" description="X motor position in um at end"/>
+    <Attribute name="x_speed" type="EPICS_PV" source="2idd:m40.VELO" dbrtype="DBR_NATIVE" description="X motor speed in um/s"/>
+    <Attribute name="x_resolution" type="EPICS_PV" source="2idd:m40.MRES" dbrtype="DBR_NATIVE" description="X motor resolution"/>
+    <Attribute name="x_val" type="EPICS_PV" source="2idd:m40.RBV" dbrtype="DBR_NATIVE" description="X motor position in um"/>
+    <Attribute name="y_pos_start" type="EPICS_PV" source="2idd:m39" dbrtype="DBR_NATIVE" description="Y motor position in um at start"/>
+    <Attribute name="y_pos_end" type="EPICS_PV" source="2idd:m39" dbrtype="DBR_NATIVE" description="Y motor position in um at end"/>
+    <Attribute name="y_val" type="EPICS_PV" source="2idd:m39.RBV" dbrtype="DBR_NATIVE" description="Y motor position in um"/>
+    <Attribute name="z_pos" type="EPICS_PV" source="2idd:m36" dbrtype="DBR_NATIVE" description="Z motor position in um"/>
+    <Attribute name="sis3820_prescale" type="EPICS_PV" source="2idd:3820:Prescale" dbrtype="DBR_NATIVE" description="SIS3820 prescale"/>
+    <Attribute name="sis3820_pulses" type="EPICS_PV" source="2idd:3820:NuseAll" dbrtype="DBR_LONG" description="Number of pulses sent via SIS3820"/>
+    <Attribute name="sis3820_mca1" type="EPICS_PV" source="2idd:3820:mca1.VAL" dbrtype="DBR_LONG" description="SIS3820 mca1 clock"/>
+    <Attribute name="sis3820_mca2" type="EPICS_PV" source="2idd:3820:mca2" dbrtype="DBR_LONG" description="SIS3820 mca2 clock"/>
+    <Attribute name="sis3820_mca3" type="EPICS_PV" source="2idd:3820:mca3" dbrtype="DBR_LONG" description="SIS3820 mca3 clock"/>
+    <Attribute name="sis3820_mca4" type="EPICS_PV" source="2idd:3820:mca4" dbrtype="DBR_LONG" description="SIS3820 mca4 clock"/>
+    <Attribute name="sis3820_mca5" type="EPICS_PV" source="2idd:3820:mca5" dbrtype="DBR_LONG" description="SIS3820 mca5 clock"/>
+    <Attribute name="sis3820_mca6" type="EPICS_PV" source="2idd:3820:mca6" dbrtype="DBR_LONG" description="SIS3820 mca6 clock"/>
+    <Attribute name="sis3820_mca7" type="EPICS_PV" source="2idd:3820:mca7" dbrtype="DBR_LONG" description="SIS3820 mca7 clock"/>
+    <Attribute name="sis3820_mca8" type="EPICS_PV" source="2idd:3820:mca8" dbrtype="DBR_LONG" description="SIS3820 mca8 clock"/>
+    <Attribute name="sis3820_mca9" type="EPICS_PV" source="2idd:3820:mca9" dbrtype="DBR_NATIVE" description="SIS3820 mca9 clock"/>
+    <Attribute name="sis3820_mca10" type="EPICS_PV" source="2idd:3820:mca10" dbrtype="DBR_NATIVE" description="SIS3820 mca10 clock"/>
+    <Attribute name="sis3820_mca11" type="EPICS_PV" source="2idd:3820:mca11" dbrtype="DBR_NATIVE" description="SIS3820 mca11 clock"/>
+    <Attribute name="sis3820_mca12" type="EPICS_PV" source="2idd:3820:mca12" dbrtype="DBR_NATIVE" description="SIS3820 mca12 clock"/>
+    <Attribute name="sis3820_mca13" type="EPICS_PV" source="2idd:3820:mca13" dbrtype="DBR_NATIVE" description="SIS3820 mca13 clock"/>
+    <Attribute name="sis3820_mca14" type="EPICS_PV" source="2idd:3820:mca14" dbrtype="DBR_NATIVE" description="SIS3820 mca14 clock"/>
+    <Attribute name="sis3820_mca15" type="EPICS_PV" source="2idd:3820:mca15" dbrtype="DBR_NATIVE" description="SIS3820 mca15 clock"/>
+    <Attribute name="sis3820_mca16" type="EPICS_PV" source="2idd:3820:mca16" dbrtype="DBR_NATIVE" description="SIS3820 mca16 clock"/>
+    <Attribute name="sis3820_mca17" type="EPICS_PV" source="2idd:3820:mca17" dbrtype="DBR_NATIVE" description="SIS3820 mca17 clock"/>
+    <Attribute name="sis3820_mca18" type="EPICS_PV" source="2idd:3820:mca18" dbrtype="DBR_NATIVE" description="SIS3820 mca18 clock"/>
+    <Attribute name="sis3820_mca19" type="EPICS_PV" source="2idd:3820:mca19" dbrtype="DBR_NATIVE" description="SIS3820 mca19 clock"/>
+    <Attribute name="sis3820_mca20" type="EPICS_PV" source="2idd:3820:mca20" dbrtype="DBR_NATIVE" description="SIS3820 mca20 clock"/>
+    <Attribute name="sis3820_mca21" type="EPICS_PV" source="2idd:3820:mca21" dbrtype="DBR_NATIVE" description="SIS3820 mca21 clock"/>
+    <Attribute name="sis3820_mca22" type="EPICS_PV" source="2idd:3820:mca22" dbrtype="DBR_NATIVE" description="SIS3820 mca22 clock"/>
+    <Attribute name="sis3820_mca23" type="EPICS_PV" source="2idd:3820:mca23" dbrtype="DBR_NATIVE" description="SIS3820 mca23 clock"/>
+    <Attribute name="sis3820_mca24" type="EPICS_PV" source="2idd:3820:mca24" dbrtype="DBR_NATIVE" description="SIS3820 mca24 clock"/>
+    <Attribute name="sis3820_mca25" type="EPICS_PV" source="2idd:3820:mca25" dbrtype="DBR_NATIVE" description="SIS3820 mca25 clock"/>
+    <Attribute name="sis3820_mca26" type="EPICS_PV" source="2idd:3820:mca26" dbrtype="DBR_NATIVE" description="SIS3820 mca26 clock"/>
+    <Attribute name="sis3820_mca27" type="EPICS_PV" source="2idd:3820:mca27" dbrtype="DBR_NATIVE" description="SIS3820 mca27 clock"/>
+    <Attribute name="sis3820_mca28" type="EPICS_PV" source="2idd:3820:mca28" dbrtype="DBR_NATIVE" description="SIS3820 mca28 clock"/>
+    <Attribute name="sis3820_mca29" type="EPICS_PV" source="2idd:3820:mca29" dbrtype="DBR_NATIVE" description="SIS3820 mca29 clock"/>
+    <Attribute name="sis3820_mca30" type="EPICS_PV" source="2idd:3820:mca30" dbrtype="DBR_NATIVE" description="SIS3820 mca30 clock"/>
+    <Attribute name="sis3820_mca31" type="EPICS_PV" source="2idd:3820:mca31" dbrtype="DBR_NATIVE" description="SIS3820 mca31 clock"/>
+    <Attribute name="sis3820_mca32" type="EPICS_PV" source="2idd:3820:mca32" dbrtype="DBR_NATIVE" description="SIS3820 mca32 clock"/>
+    <Attribute name="sis3820_preset_real" type="EPICS_PV" source="2idd:3820:PresetReal" dbrtype="DBR_NATIVE" description="SIS3820 preset real"/>
+    <Attribute name="sis3820_elapsed_real" type="EPICS_PV" source="2idd:3820:ElapsedReal" dbrtype="DBR_NATIVE" description="SIS3820 elapsed real"/>
+</Attributes>

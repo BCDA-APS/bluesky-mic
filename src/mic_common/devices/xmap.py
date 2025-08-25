@@ -47,7 +47,7 @@ class XMAP(Device):
         yield from self.set_status_rate(".2 SECOND")
         yield from self.set_read_rate(".2 SECOND")
 
-    def flyscan_before(self, num_pts):
+    def before_flyscan(self, num_pts):
         """Initialize XMAP before fly scan.
 
         Parameters:

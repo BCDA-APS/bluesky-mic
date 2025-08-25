@@ -175,3 +175,5 @@ dev_*
 .re_md_dict.yml
 .github
 .loglogin
+.xml
+.json
