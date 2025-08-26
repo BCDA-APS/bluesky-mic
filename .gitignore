@@ -175,3 +175,8 @@ dev_*
 .re_md_dict.yml
 .github
 .loglogin
+
+
+# Beamline specific PVs
+*.xml
+*.json

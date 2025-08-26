@@ -101,11 +101,17 @@ RE(make_devices(clear=False, file="sim_devices.yml"))  # Create the devices.
 if host_on_aps_subnet():
     RE(make_devices(clear=False, file="device_aps_only.yml"))
 
-
-local_mountpath = iconfig.get("STORAGE")["PATH"]
+local_mountpath = iconfig.get("STORAGE")["MICDATA_MOUNTPATH"]
+xmap_mountpath = iconfig.get("STORAGE")["XMAP_MOUNTPATH"]
 xrf_netcdf = oregistry["xrf_netcdf"]
-xrf_netcdf.micdata_mountpath = local_mountpath
+xrf_netcdf.micdata_mountpath = xmap_mountpath
+tmm1_hdf = oregistry["tmm1_hdf"]
+tmm1_hdf.micdata_mountpath = local_mountpath
 
-# from .plans import *
-from .plans.sim_plans import sim_rel_scan_plan
-from .plans.fly2d_noScanRecord import fly2d
+try:
+    tmm2_hdf = oregistry["tmm2_hdf"]
+    tmm2_hdf.micdata_mountpath = local_mountpath
+except KeyError:
+    logger.info("tmm2_hdf not found, skipping")
+
+from .plans import *

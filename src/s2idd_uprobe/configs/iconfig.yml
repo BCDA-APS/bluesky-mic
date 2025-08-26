@@ -51,9 +51,19 @@ NEXUS_DATA_FILES:
     ENABLE: true
     FILE_EXTENSION: hdf
 
-### APS Data Management
-### Use bash shell, deactivate all conda environments, source this file:
-DM_SETUP_FILE: "/home/dm_id/etc/dm.setup.sh"
+SPEC_DATA_FILES:
+    ENABLE: false
+    FILE_EXTENSION: dat
+
+STORAGE:
+  MICDATA_MOUNTPATH: "/mnt/micdata1"
+  XMAP_MOUNTPATH: "W:"
+
+
+FILE_DELIMITER: "2idd"
+SCAN_OVERHEAD: 0.3
+XMAP:
+    BUFFER: 124
 
 
 # USERCALC:
