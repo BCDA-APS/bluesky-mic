@@ -43,6 +43,7 @@ from s2idd_uprobe.utils.fly import (
     calculate_x_scan_parameters,
     DetectorFileSignal
 )
+from s2idd_uprobe.utils.nexus_bps_func import save_ophyd_value
 import logging
 
 logger = logging.getLogger(__name__)
@@ -116,7 +117,7 @@ def _common_flyscan_setup(
     """Lets move the sis3820 device to the end of the list of devices"""
     devices = reorder_devices(devices)
     
-    return devices, fileplugins, x_start, x_end, x_motor_scan_speed, x_motor_retrace
+    return devices, fileplugins, xarr, x_start, x_end, x_motor_scan_speed, x_motor_retrace
 
 
 def _common_flyscan_cleanup():
@@ -161,9 +162,14 @@ def _fly1d(devices, fileplugins, samx, x_end):
     yield from bps.sleep(0.2)
     status.scan_active = True
     logger.debug(f"scan_active: {status.scan_active}")
+    yield from save_ophyd_value(samx)
     yield from bps.mv(samx, x_end)
+    yield from save_ophyd_value(samx)
     yield from bps.sleep(0.2)
     yield from run_blocking_function(status.st.wait)
     status.unsubscribe()
+
+
+
 
 

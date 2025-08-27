@@ -17,6 +17,7 @@ logger.info(__file__)
 iconfig = get_config()
 
 
+
 if host_on_aps_subnet():
     from apstools.callbacks import NXWriterAPS as NXWriter
 else:
@@ -26,6 +27,8 @@ else:
 class MyNXWriter(NXWriter):
     """Patch to get sample title from metadata, if available."""
 
+    
+    
     def get_sample_title(self) -> str:
         """
         Get the title from the metadata or modify the default.
