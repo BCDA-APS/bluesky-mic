@@ -73,19 +73,11 @@ RE, sd = init_RE(iconfig, bec_instance=bec, cat_instance=cat)
 # Optional Nexus callback block
 # delete this block if not using Nexus
 if iconfig.get("NEXUS_DATA_FILES", {}).get("ENABLE", False):
-    from .callbacks.nexus_data_file_writer import nxwriter_init
+    # from .callbacks.demo_nexus_callback import nxwriter_init
+    from mic_common.callbacks.nexus_data_file_writer import nxwriter_init
 
     nxwriter = nxwriter_init(RE)
 
-# Optional SPEC callback block
-# delete this block if not using SPEC
-if iconfig.get("SPEC_DATA_FILES", {}).get("ENABLE", False):
-    from .callbacks.spec_data_file_writer import init_specwriter_with_RE
-    from .callbacks.spec_data_file_writer import newSpecFile  # noqa: F401
-    from .callbacks.spec_data_file_writer import spec_comment  # noqa: F401
-    from .callbacks.spec_data_file_writer import specwriter  # noqa: F401
-
-    init_specwriter_with_RE(RE)
 
 # # These imports must come after the above setup.
 # # Queue server block
@@ -105,6 +97,7 @@ if iconfig.get("SPEC_DATA_FILES", {}).get("ENABLE", False):
 
 # Experiment specific logic, device and plan loading
 RE(make_devices(clear=False, file="devices.yml"))  # Create the devices.
+RE(make_devices(clear=False, file="sim_devices.yml"))  # Create the devices.
 
 if host_on_aps_subnet():
     RE(make_devices(clear=False, file="device_aps_only.yml"))
@@ -122,4 +115,12 @@ try:
 except KeyError:
     logger.info("tmm2_hdf not found, skipping")
 
-from .plans import *
+# Set the nxwriter to savedata ophyd object
+savedata = oregistry["savedata"]
+# savedata.nxwriter = nxwriter
+nxwriter.set_savedata(savedata)
+
+# from .plans import *
+from .plans.test_nexus import test_nexus
+from .plans.fly2d import fly2d
+

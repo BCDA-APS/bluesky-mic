@@ -40,14 +40,17 @@ __all__ = """
 import logging
 import numpy as np
 import bluesky.plan_stubs as bps
+import bluesky.preprocessors as bpp
 from apsbits.core.instrument_init import oregistry
 from s2idd_uprobe.utils.fly import get_next_file_name
+from s2idd_uprobe.utils.param_capture import capture_params
 from s2idd_uprobe.plans.flyscan_core import (
     _common_flyscan_setup,
     _common_flyscan_cleanup,
     _fly1d
 )
 from mic_common.utils.timer_decorator import loop_timer_context
+from s2idd_uprobe.utils.nexus_bps_func import save_ophyd_value
 
 logger = logging.getLogger(__name__)
 
@@ -118,8 +121,11 @@ def fly2d(
         Default is False (standard left-to-right raster).
     """
 
+    """Capture the input plan parameters"""
+    plan_args = capture_params(fly2d, **locals())
+
     """Common setup for flyscan plans"""
-    devices, fileplugins, x_start, x_end, x_motor_scan_speed, x_motor_retrace = yield from _common_flyscan_setup(
+    devices, fileplugins, xarr, x_start, x_end, x_motor_scan_speed, x_motor_retrace = yield from _common_flyscan_setup(
         xrf_on=xrf_on, 
         preamp1_on=preamp1_on, 
         preamp2_on=preamp2_on,
@@ -146,27 +152,37 @@ def fly2d(
     filename = get_next_file_name(savedata)
     filename = filename.replace(".mda", "")
 
-    with loop_timer_context(f"Data saved to {filename}", total_iterations=len(yarr)) as timer:
-        for i, y in enumerate(yarr):
-            timer.iteration(i + 1, samy=y)
-            yield from bps.mv(samy, y)
+    md = {"plan_args": plan_args,
+          "shape": (len(yarr), len(xarr)),
+          "extents": [[x_start, x_end], [yarr[0], yarr[-1]]],
+          }
 
-            if i == 0:
-                print("Open shutter")
-                yield from savedata.set_next_scan_number(savedata.next_scan_number.get() + 1)
-            
-            if snake_scan:
-                x_target_pos = x_target[i%2]
-                yield from _fly1d(devices, fileplugins, samx, x_target_pos)
-            else:
-                x_target_pos = x_end
-                yield from _fly1d(devices, fileplugins, samx, x_target_pos)
-                yield from bps.mv(samx.velocity, x_motor_retrace)
-                yield from bps.mv(samx, x_start)
-                yield from bps.mv(samx.velocity, x_motor_scan_speed)
-                logger.debug(f"x_motor velocity = {samx.velocity.get()}")
-            timer.end_iteration()
+    @bpp.run_decorator(md=md)
+    def _fly2d():
+        with loop_timer_context(f"Data saved to {filename}", total_iterations=len(yarr)) as timer:
+            for i, y in enumerate(yarr):
+                timer.iteration(i + 1, samy=y)
+                yield from bps.mv(samy, y)
+                yield from save_ophyd_value(samy)
 
+                if i == 0:
+                    print("Open shutter")
+                    yield from savedata.set_next_scan_number(savedata.next_scan_number.get() + 1)
+                
+                if snake_scan:
+                    x_target_pos = x_target[i%2]
+                    yield from _fly1d(devices, fileplugins, samx, x_target_pos)
+                else:
+                    x_target_pos = x_end
+                    yield from _fly1d(devices, fileplugins, samx, x_target_pos)
+                    yield from bps.mv(samx.velocity, x_motor_retrace)
+                    yield from bps.mv(samx, x_start)
+                    yield from bps.mv(samx.velocity, x_motor_scan_speed)
+                    logger.debug(f"x_motor velocity = {samx.velocity.get()}")
+                timer.end_iteration()
+
+    yield from _fly2d()
+    
     """Common cleanup for flyscan plans"""
     yield from _common_flyscan_cleanup()
 

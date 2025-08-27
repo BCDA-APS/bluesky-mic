@@ -1,7 +1,7 @@
 # Configuration for the Bluesky instrument package.
 
 # identify the version of this iconfig.yml file
-ICONFIG_VERSION: 2.0.0
+ICONFIG_VERSION: 2.0.1
 
 # Add additional configuration for use with your instrument.
 
@@ -29,6 +29,12 @@ RUN_ENGINE:
     ### Default: False
     USE_PROGRESS_BAR: false
 
+### Baseline stream
+### When ENABLE=true, all ophyd objects with a "baseline" label
+### will be added to the baseline stream.
+BASELINE_LABEL:
+    ENABLE: true
+
 ### Best Effort Callback Configurations
 ### Defaults: all true
 ### except no plots in queueserver
@@ -42,7 +48,7 @@ BEC:
 ### Uncomment to use.  If undefined, will not write that type of file.
 ### Each callback should apply its configuration from here.
 NEXUS_DATA_FILES:
-    ENABLE: false
+    ENABLE: true
     FILE_EXTENSION: hdf
 
 SPEC_DATA_FILES:
@@ -52,7 +58,6 @@ SPEC_DATA_FILES:
 STORAGE:
   MICDATA_MOUNTPATH: "/mnt/micdata1"
   XMAP_MOUNTPATH: "W:"
-
 
 FILE_DELIMITER: "2idd"
 SCAN_OVERHEAD: 0.3
@@ -71,9 +76,7 @@ XMAP:
 #   TETRAMM2_FILETEMPLATE: "2iddfS1:userStringCalc5Enable"
 #   XMAP_FILENAME: "2iddfS1:userStringCalc7Enable"
 
-### APS Data Management
-### Use bash shell, deactivate all conda environments, source this file:
-DM_SETUP_FILE: "/home/dm_id/etc/dm.setup.sh"
+
 
 # ----------------------------------
 

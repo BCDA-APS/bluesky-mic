@@ -91,7 +91,7 @@ def fly1d(
     print("open shutter")
 
     """Common setup for flyscan plans"""
-    devices, fileplugins, x_start, x_end, x_motor_scan_speed, x_motor_retrace = yield from _common_flyscan_setup(
+    devices, fileplugins, xarr, x_start, x_end, x_motor_scan_speed, x_motor_retrace = yield from _common_flyscan_setup(
         xrf_on=xrf_on, 
         preamp1_on=preamp1_on, 
         preamp2_on=preamp2_on,

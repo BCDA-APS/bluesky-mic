@@ -1,7 +1,7 @@
 # Configuration for the Bluesky instrument package.
 
 # identify the version of this iconfig.yml file
-ICONFIG_VERSION: 2.0.0
+ICONFIG_VERSION: 2.0.1
 
 # Add additional configuration for use with your instrument.
 
@@ -16,96 +16,44 @@ RUN_ENGINE:
         proposal_id: commissioning
         databroker_catalog: *databroker_catalog
 
+    ### EPICS PV to use for the `scan_id`.
+    ### Default: `RE.md["scan_id"]` (not using an EPICS PV)
+    # SCAN_ID_PV: "IOC:bluesky_scan_id"
+
+    ### Where to "autosave" the RE.md dictionary.
+    ### Defaults:
+    MD_PATH: .re_md_dict.yml
+
+    ### The progress bar is nice to see,
+    ### except when it clutters the output in Jupyter notebooks.
+    ### Default: False
     USE_PROGRESS_BAR: false
 
-# Command-line tools, such as %wa, %ct, ...
-USE_BLUESKY_MAGICS: true
+### Baseline stream
+### When ENABLE=true, all ophyd objects with a "baseline" label
+### will be added to the baseline stream.
+BASELINE_LABEL:
+    ENABLE: true
 
 ### Best Effort Callback Configurations
-### Defaults: all true (except no plots in queueserver)
+### Defaults: all true
+### except no plots in queueserver
 BEC:
-    BASELINE: false
-    HEADING: false
+    BASELINE: true
+    HEADING: true
     PLOTS: false
-    TABLE: false
-
-STORAGE:
-  PATH: "/mnt/micdata1"
-
-FILE_DELIMITER: "2ide"
-SCAN_OVERHEAD: 0.3
-XMAP:
-    BUFFER: 124
-SAM_X:
-    PRECISION: 0.001
-    
-# DEVICES:
-#   TETRAMM1: "2ide:TMM1"
-#   SAVE_DATA: "2xfm:saveData_"
-#   SCAN1: "2xfmS1:scan1"
-#   SCAN2: "2xfmS1:scan2"
-#   FSCAN1: "2xfm:Fscan1"
-#   FSCANH: "2xfm:FscanH"
-
-# POSITIONERS:
-#   X_MOTOR: "2xfm:m57"
-#   Y_MOTOR: "2xfm:m13"
-#   Z_MOTOR: "2xfm:m59"
-#   THETA_MOTOR: "2xfm:m60"
-#   ENERGY: "2ide:BraggEAO"
-#   SCAN_OVERHEAD: 0.3
-
-# DETECTOR:
-#     ### General configuration for area detectors.
-#     ALLOW_PLUGIN_WARMUP: true
-#     BLUESKY_FILES_ROOT: &BLUESKY_DATA_ROOT "/path/to/data/"
-#     IMAGE_DIR: "sub/directory/path"
-#     HDF5_FILE_TEMPLATE: "%s%s_%6.6d.h5"
-#     FILE_DELIMITER: "2ide"
-
-#     XMAP_4Chan:
-#       NAME: xrf
-#       PV_PREFIX: "dxpXMAP2xfm3:"
-#       NETCDF_PV_PREFIX: "dxpXMAP2xfm3:netCDF1:"
-#       BUFFER: 124
-
-#     SIS3820:
-#       NAME: sis3820
-#       PV_PREFIX: "2xfm:mcs:"
-
-#     AD_EIGER_PTYCHO:
-#       NAME: eiger_ptycho
-#       PV_PREFIX: "2ideEGR:cam1:"
-#       # HDF5_PV_PREFIX: ""
-#       HDF5_PV_PREFIX: "2ideEGR:HDF1:"
-
-
-
-# USERCALC:
-#   FSCANH_POSITIONER: "2xfm:FLYuserCalc10.A"
-#   STEPSCAN_DWELL: "2xfm:userTran1.P"
-#   FLYSCAN_DWELL: "2xfm:Flyscans:Setup:DwellTime.VAL"
-
-
-# OTHER_SIGNALS:
-#   HYDRA1_STARTPOSITION: "2xfm:Hydra1:StartPosition.VAL"
-
-    ### Add configuration for specific detector(s).
-    ### Suggestion:
-    # ADSIM_16M:
-    #     # IOC host: workstation_name
-    #     IOC_FILES_ROOT: *BLUESKY_DATA_ROOT
-    #     NAME: simdet16M
-    #     PV_PREFIX: "simdet16m:"
+    TABLE: true
 
 ### Support for known output file formats.
 ### Uncomment to use.  If undefined, will not write that type of file.
 ### Each callback should apply its configuration from here.
-# NEXUS_DATA_FILES:
-#     FILE_EXTENSION: hdf
-#     WARN_MISSING_CONTENT: true
-# SPEC_DATA_FILES:
-#     FILE_EXTENSION: dat
+NEXUS_DATA_FILES:
+    ENABLE: true
+    FILE_EXTENSION: hdf
+
+SPEC_DATA_FILES:
+    ENABLE: false
+    FILE_EXTENSION: dat
 
 ### APS Data Management
 ### Use bash shell, deactivate all conda environments, source this file:
@@ -117,7 +65,7 @@ OPHYD:
     ### Control layer for ophyd to communicate with EPICS.
     ### Default: PyEpics
     ### Choices: "PyEpics" or "caproto"
-    # CONTROL_LAYER: caproto
+    CONTROL_LAYER: PyEpics
 
     ### default timeouts (seconds)
     TIMEOUTS:
@@ -125,5 +73,15 @@ OPHYD:
         PV_WRITE: *TIMEOUT
         PV_CONNECTION: *TIMEOUT
 
-# Control detail of exception traces in IPython (console and notebook).
 XMODE_DEBUG_LEVEL: Plain
+
+# ----------------------------------
+STORAGE:
+  PATH: "/mnt/micdata1"
+
+FILE_DELIMITER: "2ide"
+SCAN_OVERHEAD: 0.3
+XMAP:
+    BUFFER: 124
+SAM_X:
+    PRECISION: 0.001

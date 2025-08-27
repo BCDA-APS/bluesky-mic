@@ -4,6 +4,7 @@
 # from .fly2d import fly2d
 from .fly2d import fly2d
 from .fly1d import fly1d
+from .test_nexus import test_nexus
 # from .generallized_scan_1d import generalized_scan_1d
 # from .step1d import step1d
 # from .step2d import step2d
