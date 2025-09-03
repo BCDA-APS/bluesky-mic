@@ -27,9 +27,9 @@ apstools.devices.SimulatedApsPssShutterWithStatus:
 #   prefix: 19idKB
 #   labels: ["mirror"]
 
-# isn.devices.sample.Sample:
-# - name: sample
-#   prefix: 19idAERO
+isn.devices.sample.Sample:
+- name: sample
+  prefix: 19idAERO
 
 # isn.devices.xrayeye.XRayEye:
 # - name: xrayeye

@@ -152,8 +152,8 @@ def flyscan(
 
         detector.stage()
 
-    if detector in [ptycho, xrd]:
-        logging.info(f"Expecting {total_images} images.")
+        if detector in [ptycho, xrd]:
+            logging.info(f"Expecting {total_images} images.")
 
     
     # --- Start softglue --- #
