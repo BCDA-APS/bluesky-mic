@@ -44,12 +44,13 @@ class Trigger(SingleTrigger):
     def setup_flyscan_mode(self, num_images=1, acq_time=0.01):
         self.cam.stage_sigs["num_triggers"] = num_images
         self.cam.stage_sigs.move_to_end("num_triggers", last=False)
-        self.cam.stage_sigs["num_images"] = num_images
+        # self.cam.stage_sigs["num_images"] = num_images
         self.cam.stage_sigs["trigger_mode"] = "External Enable"
         self.cam.stage_sigs["acquire_time"] = acq_time
         self.cam.stage_sigs["acquire_period"]= acq_time
         self.cam.stage_sigs["manual_trigger"] = "Disable"
         self.cam.stage_sigs["num_exposures"] = 1
+        # self.cam.stage_sigs["acquire"] = "Start"
 
 
     def stage(self):
@@ -118,7 +119,8 @@ class Eiger(Trigger, DetectorBase):
 
     cam = ADComponent(EigerCam, 'cam1:')
     image = ADComponent(ImagePlugin, 'image1:')
-    hdf1 = ADComponent(HDF5Plugin, 'HDF1:')
+    # hdf1 = ADComponent(HDF5Plugin, 'HDF1:')
+    hdf1 = None
 
 
     roi1 = ADComponent(ROIPlugin, 'ROI1:')
@@ -146,17 +148,17 @@ class Eiger(Trigger, DetectorBase):
         """Stop detector"""
         self.cam.acquire.set(0).wait(timeout=10)
 
-    def save_images_on(self):
-        self.hdf1.enable.set("Enable").wait(timeout=10)
+    # def save_images_on(self):
+    #     self.hdf1.enable.set("Enable").wait(timeout=10)
 
-    def save_images_off(self):
-        self.hdf1.enable.set("Disable").wait(timeout=10)
+    # def save_images_off(self):
+    #     self.hdf1.enable.set("Disable").wait(timeout=10)
 
-    def auto_save_on(self):
-        self.hdf1.autosave.put("on")
+    # def auto_save_on(self):
+    #     self.hdf1.autosave.put("on")
 
-    def auto_save_off(self):
-        self.hdf1.autosave.put("off")
+    # def auto_save_off(self):
+    #     self.hdf1.autosave.put("off")
 
     def plot_all(self):
         self.plot_select([1, 2, 3, 4, 5])
@@ -197,3 +199,6 @@ class Eiger(Trigger, DetectorBase):
             getattr(self, f"stats{i}").enable.put(
                 1 if i in stats else 0
             )
+
+    def set_filewriter(self, fileplugin):
+        self.hdf1 = fileplugin

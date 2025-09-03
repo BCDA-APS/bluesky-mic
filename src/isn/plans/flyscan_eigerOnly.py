@@ -1,6 +1,7 @@
 from apsbits.utils.controls_setup import oregistry
 from bluesky.plan_stubs import mv, sleep
 import logging
+from apsbits.utils.config_loaders import get_config
 
 logger = logging.getLogger(__name__)
 logger.info(__file__)
@@ -8,7 +9,11 @@ logger.info(__file__)
 softglue = oregistry['softglue']
 # sample = oregistry['sample']
 ptycho = oregistry['ptycho'] #temporary while we fix external gating
+savedata = oregistry['savedata']
 # xrd = oregistry['xrd'] #temporary while we fix external gating
+
+iconfig = get_config()
+netcdf_delimiter = iconfig.get("FILE_DELIMITER")
 
 def flyscan(
 	x_min=0, # in um
@@ -20,7 +25,11 @@ def flyscan(
 	acquire_time=8, # in ms
 	det_dead=2, # in ms (detector dead time)
 	F=0.9, # Fraction of wave in straight line 0-1
-	interferometer_frequency = 1000 #in Hz
+	interferometer_frequency = 1000, #in Hz
+	ptycho_on=False,
+	xrd_on=False,
+	xrf_me7_on=False,
+	xrf_rayspect_on=False,
 ):
 	
 	#Temporarily fixed parameter:
@@ -141,7 +150,40 @@ def flyscan(
 
 	# --- Arm detectors --- #
 
-	# logging.info("Arming detectors")
+	logging.info("Arming detectors")
+
+	dets = []
+	dets_flags = ["ptycho_on", "xrd_on", "xrf_me7_on", "xrf_rayspect_on"]
+	for dflag in dets_flags:
+		if eval(dflag):
+			det_name = dflag.replace("_on", "")
+			dets.append(oregistry[det_name])
+
+
+	num_frames_per_file = 200
+	savedata.update_next_file_name()
+	filename = savedata.next_file_name.replace(".mda", "_")
+	for det in dets:
+		if det.name == "ptycho":
+			total_images = int((x_npts*y_npts)/F-1)
+			det.setup_flyscan_mode(num_images=total_images, acq_time=acquire_time/1000)
+			det.stage()
+
+			if det.hdf1 is not None:
+				yield from det.hdf1.setup_file_writer(
+					savedata,
+					det.name,
+					num_frames_per_file,
+					filename=filename,
+					beamline_delimiter=netcdf_delimiter,
+					is19ID=True,
+				)
+
+
+
+
+
+
 
 	# for detector in detectors:
 	#     if detector in [ptycho, xrd]: #temporary patch while we fix external gating mode
@@ -162,6 +204,10 @@ def flyscan(
 
 	yield from softglue.start_flyscan()
 
+	for det in dets:
+		det.unstage()
+
+	yield from savedata.set_next_scan_number(savedata.next_scan_number.get() + 1)
 
 	# --- Unstage detectors --- #
 

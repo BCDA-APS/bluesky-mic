@@ -31,6 +31,7 @@ from apsbits.utils.config_loaders import load_config
 from apsbits.utils.helper_functions import register_bluesky_magics
 from apsbits.utils.logging_setup import configure_logging
 
+
 # Utility functions from apstools and bluesky
 
 # Configuration block
@@ -80,8 +81,8 @@ RE, sd = init_RE(iconfig, bec_instance=bec, cat_instance=cat)
 # Optional Nexus callback block
 # delete this block if not using Nexus
 if iconfig.get("NEXUS_DATA_FILES", {}).get("ENABLE", False):
-    from .callbacks.nexus_data_file_writer import nxwriter_init
-
+    # from .callbacks.nexus_data_file_writer import nxwriter_init
+    from mic_common.callbacks.nexus_data_file_writer import nxwriter_init
     nxwriter = nxwriter_init(RE)
 
 # Optional SPEC callback block
@@ -116,6 +117,10 @@ RE(make_devices(clear=False, file="devices.yml"))  # Create the devices.
 if host_on_aps_subnet():
     RE(make_devices(clear=False, file="devices_aps_only.yml"))
     RE(make_devices(clear=False, file="devices_aps_only.yml"))
+
+## Re-initialize eiger hdf5 fileplugin
+ptycho = oregistry['ptycho']
+ptycho.set_filewriter(oregistry['ptycho_hdf'])
 
 # local_mountpath = iconfig.get("STORAGE")["PATH"]
 # xrf_me7_hdf = oregistry["xrf_me7_hdf"]
