@@ -11,8 +11,11 @@ __all__ = """
 """.split()
 
 import logging
+
 from apsbits.utils.controls_setup import oregistry
+from bluesky import plan_stubs as bps
 from mic_common.utils.scan_monitor import execute_scan_2d
+
 from .generallized_scan_1d import generalized_scan_1d
 from bluesky import plan_stubs as bps  
 from apsbits.utils.config_loaders import get_config, load_config_yaml
@@ -48,6 +51,7 @@ master_file_yaml = load_config_yaml(master_file_config_path)
 
 scanmode = "LINEAR"
 
+
 def step2d(
     samplename="smp1",
     user_comments="",
@@ -64,15 +68,15 @@ def step2d(
 ):
     """2D Bluesky plan that drives the x- and y- sample motors in stepping mode using
     ScanRecord
-    
-    The plan will drive samx and samy to the requested x_center and y_center, 
+
+    The plan will drive samx and samy to the requested x_center and y_center,
     and then perform a relative scan in the x and y directions.
 
     Parameters
     ----------
-    samplename: 
+    samplename:
         Str: The name of the sample
-    user_comments: 
+    user_comments:
         Str: The user comments for the scan
     width:
         Float: The width of the scan

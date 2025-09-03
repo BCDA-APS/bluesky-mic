@@ -17,7 +17,6 @@ from pathlib import Path
 
 import h5py
 from apstools.devices import DM_WorkflowConnector
-
 from isn.configs.dm_workflow_configs import master_file_yaml
 from isn.configs.dm_workflow_configs import netcdf_delimiter
 from isn.configs.dm_workflow_configs import ptychoxrf_dm_args

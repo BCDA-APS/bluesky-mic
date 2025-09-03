@@ -24,15 +24,15 @@ from apsbits.core.run_engine_init import init_RE
 # Utility functions
 from apsbits.utils.aps_functions import aps_dm_setup
 from apsbits.utils.aps_functions import host_on_aps_subnet
-# from apsbits.utils.baseline_setup import setup_baseline_stream
+from apsbits.utils.baseline_setup import setup_baseline_stream
 
 # Configuration functions
 from apsbits.utils.config_loaders import load_config
 from apsbits.utils.helper_functions import register_bluesky_magics
 from apsbits.utils.logging_setup import configure_logging
 
+
 # Utility functions from apstools and bluesky
-from apstools.utils import listobjects, listplans
 
 # Configuration block
 # Get the path to the instrument package
@@ -73,21 +73,25 @@ RE, sd = init_RE(iconfig, bec_instance=bec, cat_instance=cat)
 # # Devices with the label 'baseline' will be added to the baseline stream.
 # setup_baseline_stream(sd, oregistry, connect=False)
 
+# # Setup baseline stream with connect=False is default
+# # Devices with the label 'baseline' will be added to the baseline stream.
+# setup_baseline_stream(sd, oregistry, connect=False)
+
 
 # Optional Nexus callback block
 # delete this block if not using Nexus
 if iconfig.get("NEXUS_DATA_FILES", {}).get("ENABLE", False):
-    from .callbacks.nexus_data_file_writer import nxwriter_init
-
+    # from .callbacks.nexus_data_file_writer import nxwriter_init
+    from mic_common.callbacks.nexus_data_file_writer import nxwriter_init
     nxwriter = nxwriter_init(RE)
 
 # Optional SPEC callback block
 # delete this block if not using SPEC
 if iconfig.get("SPEC_DATA_FILES", {}).get("ENABLE", False):
-    from .callbacks.spec_data_file_writer import init_specwriter_with_RE
-    from .callbacks.spec_data_file_writer import newSpecFile  # noqa: F401
-    from .callbacks.spec_data_file_writer import spec_comment  # noqa: F401
-    from .callbacks.spec_data_file_writer import specwriter  # noqa: F401
+    from mic_common.callbacks.spec_data_file_writer import init_specwriter_with_RE
+    from mic_common.callbacks.spec_data_file_writer import newSpecFile  # noqa: F401
+    from mic_common.callbacks.spec_data_file_writer import spec_comment  # noqa: F401
+    from mic_common.callbacks.spec_data_file_writer import specwriter  # noqa: F401
 
     init_specwriter_with_RE(RE)
 
@@ -112,11 +116,38 @@ RE(make_devices(clear=False, file="devices.yml"))  # Create the devices.
 
 if host_on_aps_subnet():
     RE(make_devices(clear=False, file="devices_aps_only.yml"))
+    RE(make_devices(clear=False, file="devices_aps_only.yml"))
+
+## Re-initialize eiger hdf5 fileplugin
+ptycho = oregistry['ptycho']
+ptycho.set_filewriter(oregistry['ptycho_hdf'])
 
 # local_mountpath = iconfig.get("STORAGE")["PATH"]
 # xrf_me7_hdf = oregistry["xrf_me7_hdf"]
 # xrf_me7_hdf.micdata_mountpath = local_mountpath
+# local_mountpath = iconfig.get("STORAGE")["PATH"]
+# xrf_me7_hdf = oregistry["xrf_me7_hdf"]
+# xrf_me7_hdf.micdata_mountpath = local_mountpath
 
+from isn.plans.old_plans.sim_plans import *
 from bluesky import plan_stubs as bps
 from bluesky import plans as bp
 from .plans import *
+
+from mic_common.utils.dm_utils import dm_experiment_setup
+
+# baseline_devices = [
+#     "ring",
+#     "undulators",
+#     "wbs",
+#     "hhl_mirrors",
+#     "pbs",
+#     "mono",
+#     "lateral_mirror",
+#     "bpm_c",
+#     "bda_vert",
+#     "bpm_d",
+#     "bda_hor"
+# ]
+
+# sd.baseline = [oregistry[device] for device in baseline_devices]

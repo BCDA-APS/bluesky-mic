@@ -71,6 +71,7 @@ class DetBase:
         num_capture,
         filename="test_$id",
         beamline_delimiter="",
+        is19ID=False
     ):
         """
         Set up the EPICS AreaDetector HDF5 filewriter.
@@ -85,7 +86,10 @@ class DetBase:
         # Stop capturing in case the filewriter is busy
         yield from self.set_capture("done")
         det_path = self.generate_det_filepath(savedata, det_name)
-        newpath = self.sync_file_path(det_path, beamline_delimiter)
+        if is19ID:
+            newpath = det_path
+        else:
+            newpath = self.sync_file_path(det_path, beamline_delimiter)
 
         yield from self.set_enable("Enable")
         yield from self.set_filepath(newpath)
