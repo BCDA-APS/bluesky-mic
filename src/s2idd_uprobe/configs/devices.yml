@@ -59,6 +59,10 @@ ophyd.EpicsSignal:
   write_pv: 2iddfS1:userStringCalc7Enable
   read_pv: 2iddfS1:userStringCalc7Enable
   labels: ["usercalc"]
+- name: usercalc_samx_speed
+  write_pv: 2iddfS1:userCalc8Enable
+  read_pv: 2iddfS1:userCalc8Enable
+  labels: ["usercalc"]
 
 mic_common.devices.sis3820.SIS3820:
 - name: sis3820
@@ -75,13 +79,27 @@ mic_common.devices.xmap.XMAP:
   prefix: 2iddXMAP
   labels: ["xmap"]
 
+s2idd_uprobe.devices.tetramm.MicTetrAMM:
+- name: tmm1
+  prefix: "2iddtmm1:"
+  labels: ["tetramm"]
+# - name: tmm2
+#   prefix: "2iddtmm2:"
+#   labels: ["tetramm"]
+
 mic_common.devices.ad_fileplugin.DetNetCDF:
 - name: xrf_netcdf
   prefix: "2iddXMAP:netCDF1:"
   labels: ["netcdf"]
-- name: tetramm1_netcdf
-  prefix: "2iddtmm1:netCDF1:"
-  labels: ["netcdf"]
-- name: tetramm2_netcdf
-  prefix: "2iddtmm2:netCDF1:"
-  labels: ["netcdf"]
+
+mic_common.devices.ad_fileplugin.DetHDF5:
+- name: tmm1_hdf
+  prefix: "2iddtmm1:HDF1:"
+  labels: ["fileplugin"]
+
+# - name: tetramm1_netcdf
+#   prefix: "2iddtmm1:netCDF1:"
+#   labels: ["netcdf"]
+# - name: tetramm2_netcdf
+#   prefix: "2iddtmm2:netCDF1:"
+#   labels: ["netcdf"]

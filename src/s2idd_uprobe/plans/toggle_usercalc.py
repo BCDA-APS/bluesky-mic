@@ -30,6 +30,7 @@ usercalcs = {
     "usercalc_tmm2_filename": oregistry["usercalc_tmm2_filename"],
     "usercalc_tmm2_filetemplate": oregistry["usercalc_tmm2_filetemplate"],
     "usercalc_xmap_filename": oregistry["usercalc_xmap_filename"],
+    "usercalc_samx_speed": oregistry["usercalc_samx_speed"],
 }
 
 
@@ -39,7 +40,7 @@ def disable_usercalc():
     """
     for usercalc_name, usercalc_pv in usercalcs.items():
         # signal = EpicsSignal(usercalc_pv, name=usercalc_name)
-        logger.info(f"Disabling {usercalc_name}: {usercalc_pv}")
+        logger.info(f"Disabling {usercalc_name}: {usercalc_pv.pvname}")
         yield from bps.mv(usercalc_pv, 0)
 
 
@@ -49,5 +50,5 @@ def enable_usercalc():
     """
     for usercalc_name, usercalc_pv in usercalcs.items():
         # signal = EpicsSignal(usercalc_pv, name=usercalc_name)
-        logger.info(f"Enabling {usercalc_name}: {usercalc_pv}")
+        logger.info(f"Enabling {usercalc_name}: {usercalc_pv.pvname}")
         yield from bps.mv(usercalc_pv, 1)
