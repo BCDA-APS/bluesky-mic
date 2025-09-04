@@ -1,5 +1,5 @@
 """
-Creating a bluesky plan that does not use Scan Record.
+Creating a bluesky fly2d plan that does not use Scan Record.
 
 This module provides a 2D flyscan plan that performs raster scanning without relying on Scan Record.
 
@@ -68,7 +68,7 @@ def fly2d(
     height=0,
     y_center=None,
     stepsize_y=0,
-    dwell=0,
+    dwell_ms=0,
     sample_z=None,
     inc_eng=None,
     adjust_zp=False,
@@ -101,7 +101,7 @@ def fly2d(
         the current y-motor position will be used as the center.
     stepsize_y : float
         The step size (spatial resolution) in the y-direction in motor units.
-    dwell : float
+    dwell_ms : float
         The dwell time per step in milliseconds.
     sample_z : float, optional
         The sample z position. If not provided, the current sample z position 
@@ -131,9 +131,10 @@ def fly2d(
         preamp2_on=preamp2_on,
         x_center=x_center,
         width=width,
+        height=height,
         stepsize_x=stepsize_x,
         stepsize_y=stepsize_y,
-        dwell=dwell
+        dwell_ms=dwell_ms
     )
     
     """Setup the sample z, x, and y position"""

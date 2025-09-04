@@ -34,15 +34,17 @@ class XMAP(Device):
     read_rate = Component(EpicsSignal, ":ReadAll.SCAN")
     pixels_per_run = Component(EpicsSignal, ":PixelsPerRun")
 
-    def stepscan_before(self):
+    def before_stepscan(self, dwell_ms):
         """Initialize XMAP before step scan."""
+        dwell_sec = dwell_ms / 1000
         yield from self.set_stop_all(1)
         yield from self.set_collection_mode("MCA SPECTRA")
         yield from self.set_preset_mode("Real Time")
+        yield from self.set_real_time(dwell_sec)
         yield from self.set_status_rate("Passive")
         yield from self.set_read_rate("Passive")
 
-    def stepscan_after(self):
+    def after_stepscan(self):
         """Configure XMAP after step scan."""
         yield from self.set_status_rate(".2 SECOND")
         yield from self.set_read_rate(".2 SECOND")

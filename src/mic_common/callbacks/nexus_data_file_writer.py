@@ -67,8 +67,8 @@ class MicNXWriter(NXWriter):
             path = self.file_path or pathlib.Path(".")
             return path / fname
         else:
-            self.savedata.update_next_file_name()
-            fname = self.savedata.next_file_name.replace(".mda", "_run.h5")
+            self.savedata.update_current_file_name()
+            fname = self.savedata.current_file_name.replace(".mda", "_run.h5")
             path = pathlib.Path(self.savedata.get().file_system.replace("//micdata/data1", micdata_mountpath))
             self.file_path = path
             return path / fname

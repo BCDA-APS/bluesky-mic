@@ -9,6 +9,7 @@ import time
 import functools
 from typing import Callable, Any, Optional, Union
 from contextlib import contextmanager
+from s2idd_uprobe.devices.motor import Motor
 
 
 def timer(func: Callable) -> Callable:
@@ -140,8 +141,11 @@ def loop_timer_context(description: str = "Loop", total_iterations: Optional[int
             self.iteration_times = []
             self.current_iteration = 0
             self.samy = None
+            self.samx = None
+            self.samz = None
+            self.motors = None
             
-        def iteration(self, iteration_num: Optional[int] = None, samy: Optional[float] = None):
+        def iteration(self, iteration_num: Optional[int] = None, samy: Optional[float] = None, samx: Optional[float] = None, samz: Optional[float] = None, motorlist: Optional[list[Motor]] = None):
             """Mark the start of an iteration."""
             if iteration_num is not None:
                 self.current_iteration = iteration_num
@@ -150,7 +154,12 @@ def loop_timer_context(description: str = "Loop", total_iterations: Optional[int
 
             if samy is not None:
                 self.samy = samy
-            
+            if samx is not None:
+                self.samx = samx
+            if samz is not None:
+                self.samz = samz
+            if motorlist is not None:
+                self.motors = motorlist
             # Store start time for this iteration
             self.iteration_start = time.time()
             
@@ -166,15 +175,18 @@ def loop_timer_context(description: str = "Loop", total_iterations: Optional[int
                     avg_time = sum(self.iteration_times) / len(self.iteration_times)
                     remaining_iterations = total_iterations - self.current_iteration
                     eta = remaining_iterations * avg_time
-                    if self.samy is not None:
-                        samy_str = f"samy position: {self.samy:.2f}um"
-                    else:
-                        samy_str = f"samy position: {self.samy}"
+
+                    sam_str = ""
+                    sam_str += f"samy position: {self.samy:.2f}um" if self.samy is not None else ""
+                    sam_str += f"samx position: {self.samx:.2f}um" if self.samx is not None else ""
+                    sam_str += f"samz position: {self.samz:.4f}mm" if self.samz is not None else ""
+                    if self.motors is not None:
+                        sam_str += " ".join([f"{motor.name}: {motor.position:.4f} {motor.egu}, " for motor in self.motors if motor is not None])
                     
                     print(f"{description}: Line {self.current_iteration}/{total_iterations} "
                           f"({progress:.1f}%) - Remaining: {eta:.1f}s, "
                           f"Per line: {iteration_time:.2f}s, "
-                          f"{samy_str}")
+                          f"{sam_str}")
                 else:
                     avg_time = sum(self.iteration_times) / len(self.iteration_times)
                     print(f"{description}: Line {self.current_iteration} - "

@@ -58,9 +58,10 @@ def _common_flyscan_setup(
     preamp2_on=False,
     x_center=None,
     width=0,
+    height=0,
     stepsize_x=0,
     stepsize_y=None,
-    dwell=0
+    dwell_ms=0
 ):
     """
     Common setup for both fly1d and fly2d plans.
@@ -77,6 +78,8 @@ def _common_flyscan_setup(
         Center of scan in x direction
     width : float
         Width of scan
+    height : float
+        Height of scan
     stepsize_x : float
         Step size in x direction
     stepsize_y : float, optional
@@ -94,13 +97,13 @@ def _common_flyscan_setup(
 
     """Check input parameters and detector status"""
     logger.info("Validating scan parameters and detector status")
-    validate_scan_parameters(stepsize_x=stepsize_x, stepsize_y=stepsize_y)
+    validate_scan_parameters(stepsize_x=stepsize_x, stepsize_y=stepsize_y, width=width, height=height)
     devices, fileplugins = validate_device_connections(xrf_on, preamp1_on, preamp2_on, return_devices=True)
 
     """Construct the scan points and calculate the motor speeds"""
     logger.info("Constructing the scan points and calculating the motor speeds")
     xarr, x_start, x_end, x_motor_scan_speed, x_motor_retrace, num_pulses = calculate_x_scan_parameters(
-        width, x_center, stepsize_x, dwell
+        width, x_center, stepsize_x, dwell_ms
     )
     logger.info(f"x_start: {x_start}, x_end: {x_end}, x_motor_scan_speed: {x_motor_scan_speed}, num_pulses: {num_pulses}")
 
@@ -108,8 +111,8 @@ def _common_flyscan_setup(
     logger.info("Setting up detectors and file I/O")
     numpts_x = len(xarr)
     num_pulses = numpts_x - 2
-    yield from setup_detectors_and_fileio(stepsize_x, num_pulses, samx.resolution.get(), dwell,
-                                          xrf_on=xrf_on, preamp1_on=preamp1_on, preamp2_on=preamp2_on)
+    yield from setup_detectors_and_fileio(stepsize_x, num_pulses, samx.resolution.get(), dwell_ms,
+                                          devices, fileplugins)
         
     """Setup motor positions and speeds"""
     yield from setup_motor_positions_and_speeds(x_start, x_motor_scan_speed, x_motor_retrace)

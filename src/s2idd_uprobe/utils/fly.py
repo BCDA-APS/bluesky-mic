@@ -19,8 +19,8 @@ setup_motor_positions_and_speeds(x_start, x_motor_scan_speed, x_motor_retrace)
 calculate_x_scan_parameters(width, x_center, stepsize_x, dwell)
     Calculate scan parameters including motor speeds and scan points.
 
-validate_scan_parameters(stepsize_x=None, stepsize_y=None)
-    Validate that step sizes are non-zero and valid.
+validate_scan_parameters(stepsize_x=None, stepsize_y=None, width=None, height=None, dwell_ms=None)
+    Validate that step sizes, width, height, and dwell time are non-zero and valid.
 
 validate_device_connections(xrf_on, preamp1_on, preamp2_on, return_devices=False)
     Validate that required devices are connected and return device lists.
@@ -76,7 +76,7 @@ def get_next_file_name(savedata):
 
 
 def setup_detectors_and_fileio(stepsize_x, num_pulses, motor_resolution, dwell_time,
-                               xrf_on=True, preamp1_on=True, preamp2_on=False):
+                               devices, fileplugins):
     """
     Common setup for SIS3820, XMAP, and XRF netCDF file writer.
     
@@ -90,31 +90,19 @@ def setup_detectors_and_fileio(stepsize_x, num_pulses, motor_resolution, dwell_t
         Motor resolution for prescale calculation
     dwell_time : float
         Dwell time for the scan in ms
-    xrf_on : bool
-        Whether x-ray fluorescence is on
-    preamp1_on : bool
-        Whether preamp1 is on
-    preamp2_on : bool
-        Whether preamp2 is on
+    devices : list
+        List of ophyd devices
+    fileplugins : list
+        List of ophyd fileplugins
     Returns
     -------
     str
         Filename for the scan
     """
     
-    # Validate the devices
-    devices, fileplugins = validate_device_connections(xrf_on, preamp1_on, preamp2_on, return_devices=True)
-    logger.debug(f"devices: {devices}")
-    logger.debug(f"fileplugins: {fileplugins}")
-
     # Get the next file name
     savedata = oregistry["savedata"]
     filename = get_next_file_name(savedata)
-
-
-    # # Setup the SIS3820 and XMAP (XRF)
-    # yield from setup_flyscan_SIS3820_XMAP(sis3820, xrf, stepsize_x, 
-    #                                     num_pulses, motor_resolution)
 
     # Setup detector and fileio
     for det, fileplugin in zip(devices, fileplugins):
@@ -202,7 +190,7 @@ def calculate_x_scan_parameters(width, x_center, stepsize_x, dwell):
     return xarr, x_start, x_end, x_motor_scan_speed, x_motor_retrace, num_pulses
 
 
-def validate_scan_parameters(stepsize_x=None, stepsize_y=None):
+def validate_scan_parameters(stepsize_x=None, stepsize_y=None, width=None, height=None, dwell_ms=None):
     """
     Validate common scan parameters.
     
@@ -212,7 +200,13 @@ def validate_scan_parameters(stepsize_x=None, stepsize_y=None):
         Step size in x direction
     stepsize_y : float
         Step size in y direction
-        
+    width : float
+        Width of the scan
+    height : float
+        Height of the scan
+    dwell_ms : float
+        Dwell time in ms
+
     Raises
     ------
     ValueError
@@ -222,7 +216,12 @@ def validate_scan_parameters(stepsize_x=None, stepsize_y=None):
         raise ValueError("Step size cannot be 0, please check the input parameters")
     if stepsize_y is not None and stepsize_y == 0:
         raise ValueError("Step size cannot be 0, please check the input parameters")
-
+    if width is not None and width == 0:
+        raise ValueError("Width cannot be 0, please check the input parameters")
+    if height is not None and height == 0:
+        raise ValueError("Height cannot be 0, please check the input parameters")
+    if dwell_ms is not None and dwell_ms == 0:
+        raise ValueError("Dwell time cannot be 0, please check the input parameters")
 
 def validate_device_connections(xrf_on, preamp1_on, preamp2_on, return_devices=False):
     """
@@ -317,7 +316,7 @@ class DetectorFileSignal:
         DetectorFileSignal object that will be finished when all ophyd devices or fileplugins are done
     """
 
-    def __init__(self, fileplugins, devices):
+    def __init__(self, fileplugins, devices, subscribe_fileplugins=True):
         
         self.fileplugins = fileplugins
         self.devices = devices
@@ -325,11 +324,12 @@ class DetectorFileSignal:
         self.st = Status()
         self.scan_active = False
 
-        for fileplugin in self.fileplugins:
-            if fileplugin is not None:
-                self.ophyd_status.update({fileplugin.name: {'status':False, 'ophyd_obj':fileplugin}})
-                fileplugin.capture.unsubscribe_all()
-                fileplugin.capture.subscribe(self.update_status)
+        if subscribe_fileplugins:
+            for fileplugin in self.fileplugins:
+                if fileplugin is not None:
+                    self.ophyd_status.update({fileplugin.name: {'status':False, 'ophyd_obj':fileplugin}})
+                    fileplugin.capture.unsubscribe_all()
+                    fileplugin.capture.subscribe(self.update_status)
 
         for det in self.devices:
             if det is not None:

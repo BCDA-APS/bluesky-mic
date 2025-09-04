@@ -22,6 +22,7 @@ class DetBase:
     """Base class for detector file plugins."""
 
     micdata_mountpath = ""
+    data_path = ""
 
     def __init__(self, *args, **kwargs):
         """Initialize DetBase."""
@@ -38,11 +39,15 @@ class DetBase:
         - delimiter: str
             The delimiter used in the file path.
         """
-        fileplugin_path = self.file_path.get()
-        fileplugin_path_split = fileplugin_path.split(delimiter)
+        file_mountpath = self.data_path
         det_path_split = det_path.split(delimiter)
-        fileplugin_path_new = fileplugin_path_split[0] + delimiter + det_path_split[-1]
+        fileplugin_path_new = file_mountpath + delimiter + det_path_split[-1]
         return fileplugin_path_new
+        # fileplugin_path = self.file_path.get()
+        # fileplugin_path_split = fileplugin_path.split(delimiter)
+        # det_path_split = det_path.split(delimiter)
+        # fileplugin_path_new = fileplugin_path_split[0] + delimiter + det_path_split[-1]
+        # return fileplugin_path_new
 
     def generate_det_filepath(self, savedata, det_name):
         """
@@ -50,7 +55,7 @@ class DetBase:
         for the EPICS AreaDetector filewriter.
         """
         basepath = savedata.get().file_system
-        basepath = basepath.replace("//micdata/data1", self.micdata_mountpath)
+        basepath = basepath.replace("//micdata/data1/", self.micdata_mountpath)
         det_path = os.path.join(basepath, det_name.upper())
         logger.info(f"Setting up {det_name} to have data saved at {det_path}")
         if not os.path.exists(det_path):
