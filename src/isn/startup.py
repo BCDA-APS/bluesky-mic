@@ -114,13 +114,10 @@ if iconfig.get("SPEC_DATA_FILES", {}).get("ENABLE", False):
 # Experiment specific logic, device and plan loading
 RE(make_devices(clear=False, file="devices.yml"))  # Create the devices.
 
-if host_on_aps_subnet():
-    RE(make_devices(clear=False, file="devices_aps_only.yml"))
-    RE(make_devices(clear=False, file="devices_aps_only.yml"))
+# if host_on_aps_subnet():
+#     RE(make_devices(clear=False, file="devices_aps_only.yml"))
+#     RE(make_devices(clear=False, file="devices_aps_only.yml"))
 
-## Re-initialize eiger hdf5 fileplugin
-ptycho = oregistry['ptycho']
-ptycho.set_filewriter(oregistry['ptycho_hdf'])
 
 # local_mountpath = iconfig.get("STORAGE")["PATH"]
 # xrf_me7_hdf = oregistry["xrf_me7_hdf"]

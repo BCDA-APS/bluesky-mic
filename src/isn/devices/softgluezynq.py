@@ -79,6 +79,12 @@ class FlipFlop(Device):
     clear = Component(EpicsSignal, "_CLEAR_Signal", kind='config')
     out_bi = Component(EpicsSignal, "_OUT_BI", kind='config')
 
+class ScalToStream(Device):
+    reset = Component(EpicsSignal, "_RESET_Signal")
+    channel_advance = Component(EpicsSignal, "_CHADV_Signal")
+    im_trig = Component(EpicsSignal, "_IMTRIG_Signal")
+    flush = Component(EpicsSignal, "_FLUSH_Signal")
+
 
 
 class SoftGlueZynq(Device):
@@ -112,6 +118,8 @@ class SoftGlueZynq(Device):
 
     flip_flop_1 = Component(FlipFlop, ":SG:DFF-1")
 
+    scal_to_stream_1 = Component(ScalToStream, ":SG:scalToStream-1")
+
     #Ram memory components for fly scanning
     mem_address = Component(EpicsSignal, ":SG:mem_ADDRA")
     mem_data = Component(EpicsSignal, ":SG:mem_DINA")
@@ -125,6 +133,7 @@ class SoftGlueZynq(Device):
     dac1_man = Component(EpicsSignal, ":SG:mux32_SEL_Signal")
     dac1_val = Component(EpicsSignal, ":SG:DAC1_VAL")
     dac1_write = Component(EpicsSignal, ":SG:DAC_WRITE_Signal")
+    dac1_init = Component(EpicsSignal, ":SG:DAC_INIT_Signal")
 
     threshold_pos = Component(EpicsSignal, ":SG:threshTrig-1_POSTHR")
     threshold_neg = Component(EpicsSignal, ":SG:threshTrig-1_NEGTHR")
@@ -132,6 +141,9 @@ class SoftGlueZynq(Device):
 
     #DMA components
     dma = DynamicDeviceComponent(_dma_fields())
+    # dma_clear = Component(EpicsSignal, ":1acquireDma.F")
+    # dma_screen_clear = Component(EpicsSignal, ":1acquireDma.D")
+    # dma_enable = Component(EpicsSignal, ":1acquireDmaEnable")
 
     ### Functions
 
@@ -141,6 +153,11 @@ class SoftGlueZynq(Device):
         # yield from mv(self.buffer_4.in_signal, "1")
 
     def start_flyscan(self):
+        yield from mv(self.dma.enable, 1)
+        yield from mv(self.dma.clear_button, 1)
+        yield from mv(self.dma.clear_buffer, 1)
+        yield from sleep(1)
+
         yield from mv(self.buffer_4.in_signal, "1")
         yield from sleep(1)
 
@@ -160,7 +177,8 @@ class SoftGlueZynq(Device):
         yield from mv(self.buffer_4.in_signal, "0")
 
     def reset(self):
-        # self.buffer_1.in_signal.set("1!")
+        # Repeated it on purpose to clear ScalToStream 1 FIFO CT
+        yield from mv(self.buffer_1.in_signal, "1!")
         yield from mv(self.buffer_1.in_signal, "1!")
 
     def reset_interferometers(self):
@@ -176,7 +194,8 @@ class SoftGlueZynq(Device):
 
     def enable_waveform(self):
         yield from mv(self.mem_enable, "1",
-                      self.dac1_man, "0")
+                      self.dac1_man, "0",
+                      self.dac1_write, "funcGenPulse")
         
     def disable_waveform(self):
         yield from mv(self.mem_enable, "0",
@@ -281,7 +300,6 @@ class SoftGlueZynq(Device):
         offset = self.y_to_bits((y_max + y_min)/2)
 
         snake_array = self.create_snake_bits(A=amplitude, F=F, npts=npts, offset=offset)
-        # return snake_array
         yield from self.write_RAM(snake_array)
 
     
@@ -292,5 +310,6 @@ class SoftGlueZynq(Device):
 
         y_bits = self.y_to_bits(y=y)
         yield from self.disable_waveform()
+        yield from mv(self.dac1_init, "1!")
         yield from mv(self.dac1_val, y_bits)
         yield from mv(self.dac1_write, "1!")

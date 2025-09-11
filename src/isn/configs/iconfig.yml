@@ -1,7 +1,7 @@
 # Configuration for the Bluesky instrument package.
 
 # identify the version of this iconfig.yml file
-ICONFIG_VERSION: 2.0.0
+ICONFIG_VERSION: 2.0.1
 
 # Add additional configuration for use with your instrument.
 
@@ -38,7 +38,7 @@ USE_BLUESKY_MAGICS: true
 ### except no plots in queueserver
 BEC:
     BASELINE: false
-    HEADING: false
+    HEADING: true
     PLOTS: true
     TABLE: false
 
