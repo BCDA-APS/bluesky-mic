@@ -77,7 +77,8 @@ XMODE_DEBUG_LEVEL: Plain
 
 # ----------------------------------
 STORAGE:
-  PATH: "/mnt/micdata1"
+  MICDATA_MOUNTPATH: "/mnt/micdata1"
+  XMAP_MOUNTPATH: "W:"
 
 FILE_DELIMITER: "2ide"
 SCAN_OVERHEAD: 0.3

@@ -1,50 +1,65 @@
 """
-Creating a bluesky plan that interacts with Scan Record.
+Creating a bluesky plan that does not use Scan Record.
+
+This module provides a 2D flyscan plan that performs raster scanning without relying on Scan Record.
+
+Plan Description:
+----------------
+Execute a 2D flyscan over a rectangular area by performing multiple 1D flyscans along the x-axis
+at different y positions. The scan follows this sequence:
+
+1. Setup and validation of scan parameters and detector connections
+2. Configure detector settings and file I/O based on scan parameters
+3. Position the sample at the specified z-height and y-start position
+4. For each y-position:
+   a. Move y-motor to the target y-coordinate
+   b. Execute a 1D flyscan along the x-axis
+   c. Retrace x-motor to start position (unless snake_scan is enabled)
+5. Continue until all y-positions are scanned
+
+Scan Patterns:
+--------------
+- **Standard raster**: Always scans from left to right, retracing after each line
+- **Snake scan**: Alternates scan direction (left-to-right, then right-to-left) to reduce scan time
+
+Key Features:
+-------------
+- Automatic motor speed calculation based on step size and dwell time
+- Detector synchronization for data integrity
+- Configurable detector selection (XRF, preamp1, preamp2)
+- Automatic file I/O configuration
+- Support for both standard and snake scan patterns
 
 @author: yluo(grace227)
-
-
 """
 
 __all__ = """
     fly2d
-""".split()
+""".split() 
 
 import logging
-from apsbits.utils.controls_setup import oregistry
-from s2ide_uprobe.utils.scan_monitor import execute_scan_2d
-# from mic_common.utils.scan_monitor import execute_scan_2d
-from mic_common.plans.generallized_scan_1d import generalized_scan_1d
-from bluesky import plan_stubs as bps  
-from apsbits.utils.config_loaders import get_config
-from s2ide_uprobe.utils.usercalc_lib import hydra_config, sis3820_config, xrf_config
-from ophyd.status import Status
-from apstools.plans import run_blocking_function
+import numpy as np
+import bluesky.plan_stubs as bps
+import bluesky.preprocessors as bpp
+from apsbits.core.instrument_init import oregistry
+# from s2idd_uprobe.utils.fly import get_next_file_name
+# from s2idd_uprobe.utils.param_capture import capture_params
+from mic_common.utils.s2_fly import get_next_file_name
+from mic_common.utils.param_capture import capture_params
+from s2idd_uprobe.plans.flyscan_core import (
+    _common_flyscan_setup,
+    _common_flyscan_cleanup,
+    _fly1d
+)
+from mic_common.utils.timer_decorator import loop_timer_context
+from s2idd_uprobe.utils.nexus_bps_func import save_ophyd_value
 
 logger = logging.getLogger(__name__)
-logger.info(__file__)
-SCANNUM_DIGITS = 4
 
-samx = oregistry["sim1"]
-samy = oregistry["sim2"]
-# fscan1 = oregistry["scan2"]
-# fscanh = oregistry["scan1"]
-
-# samx = oregistry["samx"]
-# samy = oregistry["samy"]
-fscan1 = oregistry["fscan1"]
-fscanh = oregistry["fscanh"]
-fscanh_samx = oregistry["fscanh_samx"]
-flydwell = oregistry["flydwell"]
 savedata = oregistry["savedata"]
-hydra = oregistry["hydra"]
-sis3820 = oregistry["sis3820"]
-xrf = oregistry["xrf"]
-xrf_netcdf = oregistry["xrf_netcdf"]
-iconfig = get_config()
-scan_overhead = iconfig.get("SCAN_OVERHEAD")
-xmap_buffer = iconfig.get("XMAP", "BUFFER")
-
+samx = oregistry["samx"]
+samy = oregistry["samy"]
+samz = oregistry["samz"]
 
 def fly2d(
     samplename="smp1",
@@ -56,126 +71,121 @@ def fly2d(
     y_center=None,
     stepsize_y=0,
     dwell=0,
-    smp_theta=None,
+    sample_z=None,
+    inc_eng=None,
+    adjust_zp=False,
+    preamp2_on=False,
+    preamp1_on=True,
     xrf_on=True,
-    ptycho_on=False,
-    preamp_on=False,
-    position_stream=False,
-    wf_run=False,
-    analysisMachine="mona2",
+    snake_scan=False,
 ):
-    """2D Bluesky plan that drives the x- and y- sample motors in flying mode using
-    ScanRecord
     
-    The plan will drive samx and samy to the requested x_center and y_center, 
-    and then perform a relative scan in the x and y directions.
-
+    """
+    Execute a 2D flyscan over a rectangular area.
+    
     Parameters
     ----------
-    samplename: 
-        Str: The name of the sample
-    user_comments: 
-        Str: The user comments for the scan
-    width:
-        Float: The width of the scan
-    x_center:
-        Float: The center of the scan in the x direction. Default is None which uses the current position of samx
-    stepsize_x:
-        Float: The step size in the x direction
-    height:
-        Float: The height of the scan
-    y_center:
-        Float: The center of the scan in the y direction. Default is None which uses the current position of samy
-    stepsize_y:
-        Float: The step size in the y direction
-    dwell:
-        Float: The dwell time in the scan
-    smp_theta:
-        Float: The theta of the sample
-    xrf_on:
-        Bool: Whether to collect XRF data
-    ptycho_on:
-        Bool: Whether to collect Ptycho data
-    preamp_on:
-        Bool: Whether to collect Preamp data
-    position_stream:
-        Bool: Whether to collect position stream data
-    wf_run:
-        Bool: Whether to run the workflow
-    analysisMachine:
-        Str: The name of the analysis machine
+    samplename : str, optional
+        The name of the sample for file naming. Default is "smp1".
+    user_comments : str, optional
+        User comments to be recorded with the scan data. Default is "".
+    width : float
+        The total width of the scan area in motor units.
+    x_center : float, optional
+        The center position of the scan in the x-direction. If not provided, 
+        the current x-motor position will be used as the center.
+    stepsize_x : float
+        The step size (spatial resolution) in the x-direction in motor units.
+    height : float
+        The total height of the scan area in motor units.
+    y_center : float, optional
+        The center position of the scan in the y-direction. If not provided, 
+        the current y-motor position will be used as the center.
+    stepsize_y : float
+        The step size (spatial resolution) in the y-direction in motor units.
+    dwell : float
+        The dwell time per step in milliseconds.
+    sample_z : float, optional
+        The sample z position. If not provided, the current sample z position 
+        will be maintained.
+    inc_eng : float, optional
+        The increment in energy (currently not implemented).
+    adjust_zp : bool, optional
+        Whether to adjust the zero point (currently not implemented).
+    xrf_on : bool, optional
+        Whether to enable the x-ray fluorescence detector. Default is True.
+    preamp1_on : bool, optional
+        Whether to enable preamp1. Default is True. Preamp1 is used to record metadata.
+    preamp2_on : bool, optional
+        Whether to enable preamp2. Default is False.
+    snake_scan : bool, optional
+        Whether to use snake scan pattern (alternating scan directions). 
+        Default is False (standard left-to-right raster).
     """
 
-    ##TODO Close shutter while setting up scan parameters
+    """Capture the input plan parameters"""
+    plan_args = capture_params(fly2d, **locals())
 
-    """Move to the requested x- and y- centers"""
-    logger.info("Moving to the requested x- and y- centers")
-    if x_center is not None:
-        yield from bps.mv(samx, x_center)
+    """Common setup for flyscan plans"""
+    devices, fileplugins, xarr, x_start, x_end, x_motor_scan_speed, x_motor_retrace = yield from _common_flyscan_setup(
+        xrf_on=xrf_on, 
+        preamp1_on=preamp1_on, 
+        preamp2_on=preamp2_on,
+        x_center=x_center,
+        width=width,
+        stepsize_x=stepsize_x,
+        stepsize_y=stepsize_y,
+        dwell=dwell
+    )
+    
+    """Setup the sample z, x, and y position"""
+    if sample_z is not None:
+        yield from bps.mv(samz, sample_z)
+    if x_center is None:
+        yield from bps.mv(samx, samx.position - width/2)
     if y_center is not None:
-        yield from bps.mv(samy, y_center)
+        yield from bps.mv(samy, samy.position - height/2)
 
-    """Set up the inner loop scan record based on the scan types and parameters"""
-    yield from bps.mv(fscanh.positioners.p1.abs_rel, "absolute".upper())
-    yield from generalized_scan_1d(fscanh, samx, savedata, scan_overhead=scan_overhead,
-                                    scanmode="FLY", x_center=x_center, width=width, 
-                                    stepsize_x=stepsize_x, dwell=dwell)
-    # yield from generalized_scan_1d(fscanh, fscanh_samx, savedata, scan_overhead=scan_overhead,
-    #                                 scanmode="FLY", x_center=x_center, width=width, 
-    #                                 stepsize_x=stepsize_x, dwell=dwell)
-    # yield from fscanh.set_positioner_readback("")
+    """Construct the y scan points"""
+    yarr = np.arange(y_center - height/2, y_center + height/2, stepsize_y)
+    
+    # Drive the y-motor to the start position
+    x_target = [x_end, x_start]
+    filename = get_next_file_name(savedata)
+    filename = filename.replace(".mda", "")
 
-    """Set up the outter loop scan record"""
-    yield from bps.mv(fscan1.positioners.p1.abs_rel, "relative".upper())
-    yield from generalized_scan_1d(fscan1, samy, savedata, scan_overhead=scan_overhead,
-                                   scanmode="LINEAR", x_center=0, width=height, 
-                                   stepsize_x=stepsize_y, dwell=dwell)
+    md = {"plan_args": plan_args,
+          "shape": (len(yarr), len(xarr)),
+          "extents": [[x_start, x_end], [yarr[0], yarr[-1]]],
+          }
 
-    # """Set up the hydra (motor controller)"""
-    # yield from hydra_config(hydra, fscanh)
+    @bpp.run_decorator(md=md)
+    def _fly2d():
+        with loop_timer_context(f"Data saved to {filename}", total_iterations=len(yarr)) as timer:
+            for i, y in enumerate(yarr):
+                timer.iteration(i + 1, samy=y)
+                yield from bps.mv(samy, y)
+                yield from save_ophyd_value(samy)
 
-    # """Assign the per-pixel dwell time"""
-    # logger.info(f"Setting per-pixel dwell time ({flydwell.pvname}) to {dwell} ms")
-    # yield from bps.mv(flydwell, dwell)
+                if i == 0:
+                    print("Open shutter")
+                    yield from savedata.set_next_scan_number(savedata.next_scan_number.get() + 1)
+                
+                if snake_scan:
+                    x_target_pos = x_target[i%2]
+                    yield from _fly1d(devices, fileplugins, samx, x_target_pos)
+                else:
+                    x_target_pos = x_end
+                    yield from _fly1d(devices, fileplugins, samx, x_target_pos)
+                    yield from bps.mv(samx.velocity, x_motor_retrace)
+                    yield from bps.mv(samx, x_start)
+                    yield from bps.mv(samx.velocity, x_motor_scan_speed)
+                    logger.debug(f"x_motor velocity = {samx.velocity.get()}")
+                timer.end_iteration()
 
-    # """Set up SIS3820"""
-    # yield from sis3820_config(sis3820, fscanh)
+    yield from _fly2d()
+    
+    """Common cleanup for flyscan plans"""
+    yield from _common_flyscan_cleanup()
 
-    # """Set up XMAP and XRF_NetCDF"""
-    # savedata.update_next_file_name()
-    # yield from xrf_config(xrf, xrf_netcdf, fscanh, savedata.next_file_name)
-
-    st = Status()
-
-    def outter_counter_callback(value, old_value, **kwargs):
-        logger.info(f"Outter counter callback called with value {value} and old_value {old_value}")
-        # if value >= 1:
-        logger.info(f"Sending erase start signal to sis3820")
-            # yield from sis3820.set_erase_start(1)
-        logger.info(f"Sending parameters to hydra")
-            # yield from hydra.set_send_parameters(1)
-
-    def watch_execute_scan(old_value, value, **kwargs):
-        """Monitor scan execution.
-
-        Parameters:
-            old_value (int): Previous execution value.
-            value (int): Current execution value.
-            **kwargs: Additional keyword arguments.
-        """
-        if old_value == 1 and value == 0:
-            st.set_finished()
-            logger.info(f"FINISHED: ScanMonitor.st {st}")
-
-
-
-    """Start executing scan"""
-    # yield from bps.sleep(2)
-    savedata.update_next_file_name()
-    fscan1.number_points_rbv.subscribe(outter_counter_callback)
-    yield from bps.mv(fscan1.execute_scan, 1)  # Start scan
-    yield from run_blocking_function(st.wait)
-    # yield from execute_scan_2d(fscanh, fscan1, scan_name=savedata.next_file_name, 
-    #                            print_outter_msg=True)
-
-
+    

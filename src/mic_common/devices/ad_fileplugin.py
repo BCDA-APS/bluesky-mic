@@ -39,10 +39,13 @@ class DetBase:
             The delimiter used in the file path.
         """
         fileplugin_path = self.file_path.get()
-        fileplugin_path_split = fileplugin_path.split(delimiter)
-        det_path_split = det_path.split(delimiter)
-        fileplugin_path_new = fileplugin_path_split[0] + delimiter + det_path_split[-1]
-        return fileplugin_path_new
+        if fileplugin_path == "":
+            return det_path
+        else:
+            fileplugin_path_split = fileplugin_path.split(delimiter)
+            det_path_split = det_path.split(delimiter)
+            fileplugin_path_new = fileplugin_path_split[0] + delimiter + det_path_split[-1]
+            return fileplugin_path_new
 
     def generate_det_filepath(self, savedata, det_name):
         """
@@ -53,7 +56,7 @@ class DetBase:
         basepath = basepath.replace("//micdata/data1", self.micdata_mountpath)
         det_path = os.path.join(basepath, det_name.upper())
         logger.info(f"Setting up {det_name} to have data saved at {det_path}")
-        if not os.path.exists(det_path):
+        if not os.path.exists(det_path) and "W:" not in det_path:
             try:
                 os.makedirs(det_path, exist_ok=True)
                 logger.info(f"Directory '{det_path}' created for {det_name}.")
@@ -69,6 +72,7 @@ class DetBase:
         savedata,
         det_name,
         num_capture,
+        next_filenum = 0,
         filename="test_$id",
         beamline_delimiter="",
         is19ID=False
@@ -96,7 +100,7 @@ class DetBase:
 
         if self.file_path_exists.get():
             logger.info(f"File path is set to {self.file_path.get()}")
-            yield from self.set_filenumber(0)
+            yield from self.set_filenumber(next_filenum)
             yield from self.set_filename(filename)
             if num_capture:
                 yield from self.set_num_capture(num_capture)

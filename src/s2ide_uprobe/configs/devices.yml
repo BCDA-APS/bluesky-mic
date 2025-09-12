@@ -8,15 +8,15 @@ mic_common.devices.scan_record.ScanRecord:
   prefix: 2ideBS:scan2
   labels: ["scanrecord"]
 - name: fscan1
-  prefix: 2ideBS:Fscan1
+  prefix: 2xfm:Fscan1
   labels: ["scanrecord"]
 - name: fscanh
-  prefix: 2ideBS:FscanH
+  prefix: 2xfm:FscanH
   labels: ["scanrecord"]
 
 mic_common.devices.save_data.SaveDataMic:
 - name: savedata
-  prefix: 2ideBS:saveData_
+  prefix: 2xfm:saveData_
   labels: ["savedata"]
 
 ophyd.EpicsMotor:
@@ -26,26 +26,29 @@ ophyd.EpicsMotor:
 - name: samy
   prefix: 2xfm:m13
   labels: ["motor"]
-- name: sim1
-  prefix: 2ideBS:m1
+- name: samtheta
+  prefix: 2xfm:m60
   labels: ["motor"]
-- name: sim2
-  prefix: 2ideBS:m2
-  labels: ["motor"]
+# - name: sim1
+#   prefix: 2ideBS:m1
+#   labels: ["motor"]
+# - name: sim2
+#   prefix: 2ideBS:m2
+#   labels: ["motor"]
 
 mic_common.devices.eiger500k.Eiger500k:
 - name: ptycho
-  prefix: 2ideEGR:cam1
+  prefix: "2ideEGR:cam1:"
   labels: ["detector"]
 
 mic_common.devices.ad_fileplugin.DetHDF5:
 - name: ptycho_hdf
-  prefix: 2ideEGR:HDF1
+  prefix: "2ideEGR:HDF1:"
   labels: ["fileplugin"]
 
 mic_common.devices.ad_fileplugin.DetNetCDF:
 - name: xrf_netcdf
-  prefix: dxpXMAP2xfm3:netCDF1
+  prefix: "dxpXMAP2xfm3:netCDF1:"
   labels: ["fileplugin"]
 
 mic_common.devices.xmap.XMAP:
@@ -73,10 +76,16 @@ ophyd.EpicsSignal:
   write_pv: 2xfm:Flyscans:Setup:DwellTime.VAL
   labels: ["signal"]
 - name: fscanh_samx
-  read_pv: 2idsft:userCalc5.A
-  write_pv: 2idsft:userCalc5.A
+  read_pv: 2xfmS1:userCalc3.A
+  write_pv: 2xfmS1:userCalc3.A
+  # read_pv: 2idsft:userCalc5.A
+  # write_pv: 2idsft:userCalc5.A
   labels: ["signal"]
-# - name: hydra_startposition
-#   read_pv: 2xfm:Hydra1:StartPosition.VAL
-#   write_pv: 2xfm:Hydra1:StartPosition.VAL
-#   labels: ["signal"]
+- name: usercalc_xmap_filename
+  write_pv: 2xfmS1:userStringCalc1Enable
+  read_pv: 2iddfS1:userStringCalc1Enable
+  labels: ["usercalc"]
+- name: hydra_startposition
+  read_pv: 2xfm:Hydra1:StartPosition.VAL
+  write_pv: 2xfm:Hydra1:StartPosition.VAL
+  labels: ["signal"]

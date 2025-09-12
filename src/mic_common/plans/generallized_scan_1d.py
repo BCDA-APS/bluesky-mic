@@ -20,8 +20,8 @@ logger.info(__file__)
 
 def generalized_scan_1d(
     scanrecord,
-    positioner,
-    savedata,
+    savedata=None,
+    positioner=None,
     scan_overhead=0,
     scanmode="LINEAR",
     x_center=None,
@@ -37,22 +37,24 @@ def generalized_scan_1d(
 
     logger.info(f"Using {scanrecord.prefix} as the scanRecord")
     logger.info(f"Using {positioner} as the motor")
-    if scanrecord.connected and positioner.connected:
-        logger.info(f"{scanrecord.prefix} is connected")
-        logger.info(f"{positioner} is connected")
+    
+    if scanrecord.connected: 
+        if positioner is not None and positioner.connected:
+            logger.info(f"{scanrecord.prefix} is connected")
+            logger.info(f"{positioner} is connected")
 
-        """Set up scan mode to be either FLY or STEP """
-        yield from scanrecord.set_scan_mode(scanmode)
+            """Set up scan mode to be either FLY or STEP """
+            yield from scanrecord.set_scan_mode(scanmode)
 
-        """Assign the desired positioner in scanrecord """
-        try:
-            yield from scanrecord.set_positioner_drive(f"{positioner.prefix}.VAL")
-            yield from scanrecord.set_positioner_readback(f"{positioner.prefix}.RBV")
-        except Exception as e:
-            msg = f"Fail to set positioner in {scanrecord.prefix} due to {e}"
-            logger.info(msg)
-            yield from scanrecord.set_positioner_drive(f"{positioner.pvname}")
-            yield from scanrecord.set_positioner_readback(f"{positioner.pvname}")
+            """Assign the desired positioner in scanrecord """
+            try:
+                yield from scanrecord.set_positioner_drive(f"{positioner.prefix}.VAL")
+                yield from scanrecord.set_positioner_readback(f"{positioner.prefix}.RBV")
+            except Exception as e:
+                msg = f"Fail to set positioner in {scanrecord.prefix} due to {e}"
+                logger.info(msg)
+                yield from scanrecord.set_positioner_drive(f"{positioner.pvname}")
+                yield from scanrecord.set_positioner_readback(f"{positioner.pvname}")
 
         """Set up scan parameters and get estimated time of a scan"""
         yield from scanrecord.set_center_width_stepsize(x_center, width, stepsize_x)

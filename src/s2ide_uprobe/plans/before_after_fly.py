@@ -14,9 +14,9 @@ __all__ = """
 
 import logging
 
-from ..configs.device_config import hydra1_startposition
+# from ..configs.device_config import hydra1_startposition
 
-# import os
+import os
 # from ..utils.scan_monitor import execute_scan_1d
 # from .dm_plans import dm_submit_workflow_job
 
@@ -24,7 +24,8 @@ from ..configs.device_config import hydra1_startposition
 # from ..utils.dm_utils import dm_upload_wait
 # from ..devices.data_management import api
 # from apstools.devices import DM_WorkflowConnector
-# import bluesky.plan_stubs as bps
+import bluesky.plan_stubs as bps
+from apsbits.utils.controls_setup import oregistry
 # from mic_instrument.configs.device_config import xmap_buffer
 
 
@@ -34,6 +35,7 @@ logger.info(__file__)
 # SCAN_OVERHEAD = 0.3
 # XMAP_BUFFER = 124
 
+hydra_startposition = oregistry["hydra_startposition"]
 
 def setup_flyscan_XRF_triggers(scanrecord, xrf, xrf_netcdf, sis3820, num_pulses):
     """
@@ -48,18 +50,18 @@ def setup_flyscan_XRF_triggers(scanrecord, xrf, xrf_netcdf, sis3820, num_pulses)
     Trigger 3: Toggle SIS3820 (struck card) erase and start state
     """
 
-    yield from sis3820.before_flyscan(num_pulses)
+    yield from sis3820.before_flyscan(num_pulses, update_prescale=False)
 
     trigger_pvs = [
         xrf_netcdf.capture.pvname.replace("_RBV", ""),
         xrf.erase_start.pvname,
         sis3820.erase_start.pvname,
     ]
-    yield from scanrecord.set_trigger_pv(trigger_pvs)
+    yield from scanrecord.set_detTriggers(trigger_pvs)
 
     start_position = scanrecord.start_position.get()
     stepsize = scanrecord.stepsize.get()
-    yield from bps.mv(hydra1_startposition, start_position + stepsize)
+    yield from bps.mv(hydra_startposition, start_position + stepsize)
 
 
 def setup_flyscan_ptycho_triggers(
@@ -85,6 +87,7 @@ def setup_flyscan_ptycho_triggers(
         filewriter_capture_pv,
         eiger.acquire.pvname.replace("_RBV", ""),
     ]
+    outter_scanrecord.save_current_detTriggers()
     yield from outter_scanrecord.set_detTriggers(trigger_pvs)
 
 

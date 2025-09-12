@@ -39,6 +39,34 @@ class Eiger500k(EigerDetectorCam):
     file_name_pattern = Component(EpicsSignal, "FWNamePattern")
     save_files = Component(EpicsSignal, "SaveFiles")
 
+
+    def scan_init(self, exposure_time, num_images, ptycho_exp_factor):
+        """
+        Initialize the detector for a scan.
+        Based on the current trigger mode, this function will choose corresponding setup functions.
+
+        Parameters:
+        - dwell: Dwell time for each pixel in seconds.
+        - num_images: Number of images to be set.
+        - ptycho_exp_factor: Exposure factor to adjust the acquisition time.
+                             When is set to 1, the exposure time is the same as the dwell time.
+                             Otherwise, the exposure time is the dwell time divided by the ptycho_exp_factor.
+        """
+        trigger_mode = self.trigger_mode.get(as_string=True)
+        print(f"trigger_mode: {trigger_mode}")
+        yield from self.set_acquire("DONE")
+
+        if trigger_mode == "Internal":
+            yield from self.setup_internal_trigger(num_images)
+        elif trigger_mode == "External Enable":
+            yield from self.setup_external_enable_trigger(num_images)
+        elif trigger_mode == "External Series":
+            yield from self.setup_external_series_trigger(num_images)
+        
+        yield from self.set_acquire_period(exposure_time)
+        yield from self.set_acquire_time(exposure_time / ptycho_exp_factor)
+        
+
     def sync_file_path(self, savedatapath: str, delimiter: str) -> str:
         """
         Synchronize the file path of the SaveData object with the EPICS AreaDetector
