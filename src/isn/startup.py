@@ -32,6 +32,7 @@ from apsbits.utils.helper_functions import register_bluesky_magics
 from apsbits.utils.logging_setup import configure_logging
 
 
+
 # Utility functions from apstools and bluesky
 
 # Configuration block
@@ -41,13 +42,13 @@ instrument_path = Path(__file__).parent
 iconfig_path = instrument_path / "configs" / "iconfig.yml"
 iconfig = load_config(iconfig_path)
 
-# Additional logging configuration
-# only needed if using different logging setup
-# from the one in the apsbits package
-extra_logging_configs_path = instrument_path / "configs" / "extra_logging.yml"
-configure_logging(extra_logging_configs_path=extra_logging_configs_path)
-logger = logging.getLogger(__name__)
-logger.info("Starting Instrument with iconfig: %s", iconfig_path)
+# # Additional logging configuration
+# # only needed if using different logging setup
+# # from the one in the apsbits package
+# extra_logging_configs_path = instrument_path / "configs" / "extra_logging.yml"
+# configure_logging(extra_logging_configs_path=extra_logging_configs_path)
+# logger = logging.getLogger(__name__)
+# logger.info("Starting Instrument with iconfig: %s", iconfig_path)
 
 # Load the master file config
 master_file_config_path = instrument_path / "configs" / "masterFileConfig.yml"
@@ -80,10 +81,10 @@ RE, sd = init_RE(iconfig, bec_instance=bec, cat_instance=cat)
 
 # Optional Nexus callback block
 # delete this block if not using Nexus
-if iconfig.get("NEXUS_DATA_FILES", {}).get("ENABLE", False):
-    # from .callbacks.nexus_data_file_writer import nxwriter_init
-    from mic_common.callbacks.nexus_data_file_writer import nxwriter_init
-    nxwriter = nxwriter_init(RE)
+# if iconfig.get("NEXUS_DATA_FILES", {}).get("ENABLE", False):
+#     # from .callbacks.nexus_data_file_writer import nxwriter_init
+#     from mic_common.callbacks.nexus_data_file_writer import nxwriter_init
+#     nxwriter = nxwriter_init(RE)
 
 # Optional SPEC callback block
 # delete this block if not using SPEC
@@ -113,6 +114,18 @@ if iconfig.get("SPEC_DATA_FILES", {}).get("ENABLE", False):
 
 # Experiment specific logic, device and plan loading
 RE(make_devices(clear=False, file="devices.yml"))  # Create the devices.
+
+#Diffractometer utilities:
+import hklpy2
+sim_psic = hklpy2.creator(
+    name="sim_psic", solver="hkl_soleil", geometry="E6C",
+    reals="mu eta chi phi yaw pitch".split(),
+)
+sim_psic.core.mode="lifting_detector_mu"
+
+psic = oregistry['psic']
+psic.wait_for_connection()
+psic.core.mode = "lifting_detector_mu"
 
 # if host_on_aps_subnet():
 #     RE(make_devices(clear=False, file="devices_aps_only.yml"))

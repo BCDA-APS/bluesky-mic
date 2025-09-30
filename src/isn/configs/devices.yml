@@ -8,19 +8,19 @@ apstools.devices.SimulatedApsPssShutterWithStatus:
 - name: shutter
   labels: ["shutters"]
 
-# isn.devices.hhl_mirrors.HHL_Mirrors:
-# - name: hhl_mirrors
-#   prefix: 19idMR
-#   labels: ["mirror"]
+isn.devices.hhl_mirrors.HHL_Mirrors:
+- name: hhl_mirrors
+  prefix: 19idMR
+  labels: ["mirror"]
 
-# isn.devices.mono.Mono:
-# - name: mono
-#   prefix: 19idDCM
+isn.devices.mono.Mono:
+- name: mono
+  prefix: 19idDCM
 
-# isn.devices.lateral_mirror.Lateral_Mirror:
-# - name: lateral_mirror
-#   prefix: 19idMR
-#   labels: ["mirror"]
+isn.devices.lateral_mirror.Lateral_Mirror:
+- name: lateral_mirror
+  prefix: 19idMR
+  labels: ["mirror"]
 
 # isn.devices.kb.KB:
 # - name: kb
@@ -40,16 +40,16 @@ isn.devices.softgluezynq.SoftGlueZynq:
   prefix: acq_isn
   labels: ["softglue"]
 
-# isn.devices.bda.BDA:
-# - name: bda_vert
-#   prefix: 19idBDA
-#   axis: V
-#   labels: ["bda", "baseline"]
+isn.devices.bda.BDA:
+- name: bda_vert
+  prefix: 19idBDA
+  axis: V
+  labels: ["bda", "baseline"]
 
-# - name: bda_hor
-#   prefix: 19idBDA
-#   axis: H
-#   labels: ["bda", "baseline"]
+- name: bda_hor
+  prefix: 19idBDA
+  axis: H
+  labels: ["bda", "baseline"]
 
 
 # isn.devices.rayspec.Rayspec:
@@ -58,11 +58,11 @@ isn.devices.softgluezynq.SoftGlueZynq:
 #   labels: ["motor"]
 
 
-# isn.devices.tetramm.MyTetrAMM:
-# - name: tetramm1
-#   prefix: "19idSFT:TetrAMM1:"
-#   port_name: "TetrAMM1"
-#   labels: ["detector"]
+isn.devices.tetramm.MyTetrAMM:
+- name: tetramm1
+  prefix: "19idSFT:TetrAMM1:"
+  port_name: "TetrAMM1"
+  labels: ["detector"]
 
 # - name: tetramm2
 #   prefix: "19idSFT2:TetrAMM2:"
@@ -74,10 +74,10 @@ isn.devices.softgluezynq.SoftGlueZynq:
 #   port_name: "TetrAMM3"
 #   labels: ["detector"]
 
-# - name: tetramm4
-#   prefix: "19idSFT4:T4:"
-#   port_name: "TetrAMM4"
-#   labels: ["detector"]
+- name: tetramm4
+  prefix: "19idSFT4:T4:"
+  port_name: "TetrAMM4"
+  labels: ["detector"]
 
 
 # isn.devices.bpm.BasicQuadEM:
@@ -91,41 +91,86 @@ apstools.devices.aps_machine.ApsMachineParametersDevice:
 - name: ring
   labels: ["baseline"]
 
-# apstools.devices.hhl_slits.HHLSlits:
-# - name: wbs
-#   prefix: "19idWBS:US:"
-#   pitch_motor: m3
-#   yaw_motor: m4
-#   horizontal_motor: m1
-#   diagonal_motor: m2
-#   labels: ["baseline"]
+apstools.devices.hhl_slits.HHLSlits:
+- name: wbs
+  prefix: "19idWBS:US:"
+  pitch_motor: m3
+  yaw_motor: m4
+  horizontal_motor: m1
+  diagonal_motor: m2
+  labels: ["baseline"]
 
-# - name: pbs
-#   prefix: "19idWBS:DS:"
-#   pitch_motor: m7
-#   yaw_motor: m8
-#   horizontal_motor: m5
-#   diagonal_motor: m6
-#   labels: ["baseline"]
+- name: pbs
+  prefix: "19idWBS:DS:"
+  pitch_motor: m7
+  yaw_motor: m8
+  horizontal_motor: m5
+  diagonal_motor: m6
+  labels: ["baseline"]
 
 
 isn.devices.undulators.UndulatorPair:
 - name: undulators
   prefix: S19ID
 
+# isn.devices.robot.RobotArmPositioner:
+# - name: robot_pitch
+#   prefix: "19IDRobot:"
+#   setpoint: "Pitch"
+#   readback: "Last_Position_Pitch"
+#   done: "MC"
+#   execute: "EXE"
+#   command: "CMD"
 
-# isn.devices.flag.Flag:
-# - name: flag_e1
-#   cam_prefix: "19ide1:cam1:"
-#   motor_prefix: "19idMMC:m6"
-#   in_position: -20
-#   out_position: 0
+isn.devices.diffractometer.RobotArmDiffractometer:
+- name: psic
+  prefix: ""
 
-# - name: flag_e2
-#   cam_prefix: "19ide2:cam1:"
-#   motor_prefix: "19idMMC:m5"
-#   in_position: -20
-#   out_position: 0
+
+# isn.devices.kb.CapSensorMotor:
+# - name: cap_motor
+#   prefix: "19idKB:"
+#   positioner_pv: "m18"
+#   cap_sensor_pv: "cap4:"
+#   coarse_pv: "m12"
+#   fine_pv: "m6"
+
+isn.devices.kb.KB:
+- name: kb
+  # prefix: "19idKB:"
+
+
+isn.devices.flag.Flag:
+- name: flag_a
+  flag_prefix: "19idFlag1:"
+  motor_prefix: "19idMR:m6"
+  in_position: 0
+  out_position: 20.9
+
+- name: flag_dcm
+  flag_prefix: "19idFlagDCM:"
+  motor_prefix: "19idDCM:m3"
+  in_position: 3
+  out_position: 16.5
+
+- name: flag_c
+  flag_prefix: "19idFlagC:"
+  motor_prefix: "19idBDA:m7"
+  in_position: -8
+  out_position: 0
+  
+
+- name: flag_e1
+  flag_prefix: "19ide1:"
+  motor_prefix: "19idMMC:m6"
+  in_position: 0
+  out_position: 20
+
+- name: flag_e2
+  flag_prefix: "19ide2:"
+  motor_prefix: "19idMMC:m5"
+  in_position: -20
+  out_position: 0
 
 
 
@@ -194,6 +239,14 @@ mic_common.devices.eiger.Eiger:
 - name: xrd
   prefix: "19idXRD:"
   labels: ["detector"]
+
+# isn.devices.me7.ME7:
+# - name: me7
+#   prefix: "XSP3_7Chan:"
+
+isn.devices.vortex_xpress3_me7.VortexXspress37:
+- name: me7
+  prefix: "XSP3_7Chan:"
 
 # mic_common.devices.eiger1m.Eiger1M:
 # - name: ptycho
