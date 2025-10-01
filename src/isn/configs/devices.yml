@@ -1,4 +1,4 @@
-# Guarneri-style device YAML configuration
+# # Guarneri-style device YAML configuration
 
 apsbits.utils.sim_creator.predefined_device:
 - {creator: ophyd.sim.motor, name: sim_motor}
@@ -22,18 +22,13 @@ isn.devices.lateral_mirror.Lateral_Mirror:
   prefix: 19idMR
   labels: ["mirror"]
 
-# isn.devices.kb.KB:
-# - name: kb
-#   prefix: 19idKB
-#   labels: ["mirror"]
-
 isn.devices.sample.Sample:
 - name: sample
   prefix: 19idAERO
 
-# isn.devices.xrayeye.XRayEye:
-# - name: xrayeye
-#   prefix: 19idXEYE
+isn.devices.xrayeye.XRayEye:
+- name: xrayeye
+  prefix: 19idXEYE
 
 isn.devices.softgluezynq.SoftGlueZynq:
 - name: softglue
@@ -52,10 +47,10 @@ isn.devices.bda.BDA:
   labels: ["bda", "baseline"]
 
 
-# isn.devices.rayspec.Rayspec:
-# - name: eric
-#   prefix: 19idACS
-#   labels: ["motor"]
+# # isn.devices.rayspec.Rayspec:
+# # - name: eric
+# #   prefix: 19idACS
+# #   labels: ["motor"]
 
 
 isn.devices.tetramm.MyTetrAMM:
@@ -64,32 +59,31 @@ isn.devices.tetramm.MyTetrAMM:
   port_name: "TetrAMM1"
   labels: ["detector"]
 
-# - name: tetramm2
-#   prefix: "19idSFT2:TetrAMM2:"
-#   port_name: "TetrAMM2"
-#   labels: ["detector"]
+# # - name: tetramm2
+# #   prefix: "19idSFT2:TetrAMM2:"
+# #   port_name: "TetrAMM2"
+# #   labels: ["detector"]
 
-# - name: tetramm3
-#   prefix: "19idSFT3:TetrAMM3:"
-#   port_name: "TetrAMM3"
-#   labels: ["detector"]
+# # - name: tetramm3
+# #   prefix: "19idSFT3:TetrAMM3:"
+# #   port_name: "TetrAMM3"
+# #   labels: ["detector"]
 
 - name: tetramm4
   prefix: "19idSFT4:T4:"
   port_name: "TetrAMM4"
   labels: ["detector"]
 
+isn.devices.bpm.BasicQuadEM:
+- name: bpm_c
+  prefix: "19idBPM:C:T4U:"
 
-# isn.devices.bpm.BasicQuadEM:
-# - name: bpm_c
-#   prefix: "19idBPM:C:T4U:"
+- name: bpm_d
+  prefix: "19idBPM:D:T4U:"
 
-# - name: bpm_d
-#   prefix: "19idBPM:D:T4U:"
-
-apstools.devices.aps_machine.ApsMachineParametersDevice:
-- name: ring
-  labels: ["baseline"]
+# apstools.devices.aps_machine.ApsMachineParametersDevice:
+# - name: ring
+#   labels: ["baseline"]
 
 apstools.devices.hhl_slits.HHLSlits:
 - name: wbs
@@ -108,37 +102,18 @@ apstools.devices.hhl_slits.HHLSlits:
   diagonal_motor: m6
   labels: ["baseline"]
 
-
 isn.devices.undulators.UndulatorPair:
 - name: undulators
   prefix: S19ID
-
-# isn.devices.robot.RobotArmPositioner:
-# - name: robot_pitch
-#   prefix: "19IDRobot:"
-#   setpoint: "Pitch"
-#   readback: "Last_Position_Pitch"
-#   done: "MC"
-#   execute: "EXE"
-#   command: "CMD"
 
 isn.devices.diffractometer.RobotArmDiffractometer:
 - name: psic
   prefix: ""
 
-
-# isn.devices.kb.CapSensorMotor:
-# - name: cap_motor
-#   prefix: "19idKB:"
-#   positioner_pv: "m18"
-#   cap_sensor_pv: "cap4:"
-#   coarse_pv: "m12"
-#   fine_pv: "m6"
-
 isn.devices.kb.KB:
 - name: kb
-  # prefix: "19idKB:"
-
+  prefix: "19idKB:"
+  labels: ["baseline"]
 
 isn.devices.flag.Flag:
 - name: flag_a
@@ -158,6 +133,7 @@ isn.devices.flag.Flag:
   motor_prefix: "19idBDA:m7"
   in_position: -8
   out_position: 0
+  labels: ["baseline"]
   
 
 - name: flag_e1
@@ -172,6 +148,34 @@ isn.devices.flag.Flag:
   in_position: -20
   out_position: 0
 
+mic_common.devices.eiger.Eiger:
+- name: ptycho
+  prefix: "19idPTYCHO:"
+  labels: ["detector"]
+
+- name: xrd
+  prefix: "19idXRD:"
+  labels: ["detector"]
+
+# # isn.devices.me7.ME7:
+# # - name: me7
+# #   prefix: "XSP3_7Chan:"
+
+isn.devices.vortex_xpress3_me7.VortexXspress37:
+- name: me7
+  prefix: "XSP3_7Chan:"
+
+isn.devices.socketserver.SocketServer:
+- name: socketserver
+  prefix: "19idSGSocket:"
+
+
+
+
+mic_common.devices.save_data.SaveDataMic:
+- name: savedata
+  prefix: 19idBLUE:saveData_
+  labels: ["scandata"]
 
 
 mic_common.devices.scan_record.ScanRecord:
@@ -182,10 +186,7 @@ mic_common.devices.scan_record.ScanRecord:
   prefix: 19idBLUE:scan2
   labels: ["scanrecord"]
 
-mic_common.devices.save_data.SaveDataMic:
-- name: savedata
-  prefix: 19idBLUE:saveData_
-  labels: ["scandata"]
+
 
 ophyd.EpicsMotor:
 - name: samx
@@ -222,67 +223,50 @@ ophyd.EpicsSignal:
   read_pv: 19ID:BLEPS:SES_CLOSED
   labels: ["pss-shutter"]
 
-# isn.devices.my_motor_bundle.MyMotorBundle:
-# - name: xz_motor
-#   prefix: 19idBLUE
+# # isn.devices.my_motor_bundle.MyMotorBundle:
+# # - name: xz_motor
+# #   prefix: 19idBLUE
 
-# mic_common.devices.xspress3.Xspress3:
-# - name: xrf_me7
-#   prefix: XSP3_7Chan:det1
-#   labels: ["detector"]
-
-mic_common.devices.eiger.Eiger:
-- name: ptycho
-  prefix: "19idPTYCHO:"
-  labels: ["detector"]
-
-- name: xrd
-  prefix: "19idXRD:"
-  labels: ["detector"]
-
-# isn.devices.me7.ME7:
-# - name: me7
-#   prefix: "XSP3_7Chan:"
-
-isn.devices.vortex_xpress3_me7.VortexXspress37:
-- name: me7
-  prefix: "XSP3_7Chan:"
-
-# mic_common.devices.eiger1m.Eiger1M:
-# - name: ptycho
-#   prefix: 19idPTYCHO:cam1
-#   labels: ["detector"]
-
-# isn.devices.tetramm.TetraMM:
-# - name: tetramm1
-#   prefix: 19idSFT:TetrAMM1
-
-# mic_common.devices.ad_fileplugin.DetHDF5:
-# - name: xrf_me7_hdf
-#   prefix: XSP3_7Chan:HDF1
-#   labels: ["fileplugin"]
-# - name: ptycho_hdf
-#   prefix: "19idPTYCHO:HDF1:"
-#   labels: ["fileplugin"]
-# - name: tetramm1_hdf
-
-isn.devices.socketserver.SocketServer:
-- name: socketserver
-  prefix: "19idSGSocket:"
-
-#     AD_XSP3_12Chan:
-#       NAME: xrf_bse
-#       PV_PREFIX: "XSP3_12Chan:det1:"
-#       HDF5_PV_PREFIX: "XSP3_12Chan:HDF1:"
+# # mic_common.devices.xspress3.Xspress3:
+# # - name: xrf_me7
+# #   prefix: XSP3_7Chan:det1
+# #   labels: ["detector"]
 
 
-#     AD_EIGER_DIFFRACTION:
-#       NAME: eigher_xrd
-#       PV_PREFIX: "temp"
+
+# # mic_common.devices.eiger1m.Eiger1M:
+# # - name: ptycho
+# #   prefix: 19idPTYCHO:cam1
+# #   labels: ["detector"]
+
+# # isn.devices.tetramm.TetraMM:
+# # - name: tetramm1
+# #   prefix: 19idSFT:TetrAMM1
+
+# # mic_common.devices.ad_fileplugin.DetHDF5:
+# # - name: xrf_me7_hdf
+# #   prefix: XSP3_7Chan:HDF1
+# #   labels: ["fileplugin"]
+# # - name: ptycho_hdf
+# #   prefix: "19idPTYCHO:HDF1:"
+# #   labels: ["fileplugin"]
+# # - name: tetramm1_hdf
 
 
-# TETRAMM1: "19idBPM:C:T4U"
-# XSPRESS3_1: "XSP3_8Chan:det1"
-# XSPRESS3_1_HDF5: "XSP3_8Chan:HDF1"
-# SIMDET_CAM: "2idsimdet:cam1"
-# SIMDET_HDF5: "2idsimdet:HDF1"
+
+# #     AD_XSP3_12Chan:
+# #       NAME: xrf_bse
+# #       PV_PREFIX: "XSP3_12Chan:det1:"
+# #       HDF5_PV_PREFIX: "XSP3_12Chan:HDF1:"
+
+
+# #     AD_EIGER_DIFFRACTION:
+# #       NAME: eigher_xrd
+# #       PV_PREFIX: "temp"
+
+
+# # TETRAMM1: "19idBPM:C:T4U"
+# # XSPRESS3_1: "XSP3_8Chan:det1"
+# # XSPRESS3_1_HDF5: "XSP3_8Chan:HDF1"
+# # SIMDET_CAM: "2idsimdet:cam1"
+# # SIMDET_HDF5: "2idsimdet:HDF1"

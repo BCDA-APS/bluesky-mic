@@ -40,6 +40,8 @@ class CapSensorMotor(EpicsMotor):
 
 class KB(Device):
 
+    _default_configuration_attrs = ("x", "y_ds")
+
     x = Component(CapSensorMotor,
                   positioner_pv="19idKB:m18",
                   cap_sensor_pv="19idKB:cap4:",

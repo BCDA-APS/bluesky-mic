@@ -1,5 +1,3 @@
-import logging
-import time as ttime
 import numpy as np
 
 from ophyd import Component
@@ -14,8 +12,6 @@ from ophyd.status import DeviceStatus
 
 from apstools.utils import run_in_thread
 
-logger = logging.getLogger(__name__)
-logger.info(__file__)
 
 
 class MyTetrAMM(TetrAMM):
