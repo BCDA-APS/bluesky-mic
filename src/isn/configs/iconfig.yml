@@ -44,7 +44,7 @@ BASELINE_LABEL:
 
 
 BEC:
-    BASELINE: true
+    BASELINE: false
     HEADING: true
     PLOTS: true
     TABLE: true

@@ -11,20 +11,22 @@ apstools.devices.SimulatedApsPssShutterWithStatus:
 isn.devices.hhl_mirrors.HHL_Mirrors:
 - name: hhl_mirrors
   prefix: 19idMR
-  labels: ["mirror"]
+  labels: ["baseline"]
 
 isn.devices.mono.Mono:
 - name: mono
   prefix: 19idDCM
+  labels: ["baseline"]
 
 isn.devices.lateral_mirror.Lateral_Mirror:
 - name: lateral_mirror
   prefix: 19idMR
-  labels: ["mirror"]
+  labels: ["baseline"]
 
 isn.devices.sample.Sample:
 - name: sample
   prefix: 19idAERO
+  labels: ["baseline"]
 
 isn.devices.xrayeye.XRayEye:
 - name: xrayeye
@@ -85,6 +87,10 @@ isn.devices.bpm.BasicQuadEM:
 # - name: ring
 #   labels: ["baseline"]
 
+mic_common.devices.ring.PatchedApsMachineParametersDevice:
+- name: ring
+  labels: ["baseline"]
+
 apstools.devices.hhl_slits.HHLSlits:
 - name: wbs
   prefix: "19idWBS:US:"
@@ -105,10 +111,11 @@ apstools.devices.hhl_slits.HHLSlits:
 isn.devices.undulators.UndulatorPair:
 - name: undulators
   prefix: S19ID
+  labels: ["baseline"]
 
-isn.devices.diffractometer.RobotArmDiffractometer:
-- name: psic
-  prefix: ""
+# isn.devices.diffractometer.RobotArmDiffractometer:
+# - name: psic
+#   prefix: ""
 
 isn.devices.kb.KB:
 - name: kb
@@ -157,9 +164,9 @@ mic_common.devices.eiger.Eiger:
   prefix: "19idXRD:"
   labels: ["detector"]
 
-# # isn.devices.me7.ME7:
-# # - name: me7
-# #   prefix: "XSP3_7Chan:"
+# isn.devices.me7.ME7:
+# - name: me7
+#   prefix: "XSP3_7Chan:"
 
 isn.devices.vortex_xpress3_me7.VortexXspress37:
 - name: me7
