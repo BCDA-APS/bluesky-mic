@@ -14,14 +14,14 @@ xrd = oregistry['xrd'] #temporary while we fix external gating
 
 def flyscan(
         detectors,
-        x_min=0, # in um
-        x_max=100, #in um
+        x_min=-50, # in um
+        x_max=50, #in um
         x_npts=11,
         y_min=0, #in um
         y_max=90, #in um
         y_npts=11,
-        acquire_time=8, # in ms
-        det_dead=2, # in ms (detector dead time)
+        acquire_time=80, # in ms
+        det_dead=20, # in ms (detector dead time)
         F=0.9, # Fraction of wave in straight line 0-1
         interferometer_frequency = 1000 #in Hz
 ):
