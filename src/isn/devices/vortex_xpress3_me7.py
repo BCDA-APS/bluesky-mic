@@ -1,4 +1,4 @@
-"""Eiger 1M setup"""
+"""ME7 setup"""
 
 from ophyd import (
     ADComponent,
@@ -17,6 +17,7 @@ import asyncio
 from pathlib import Path
 from collections import OrderedDict
 from time import time as ttime
+from time import sleep
 from .ad_mixins import (
     ROIPlugin,
     AttributePlugin,
@@ -27,6 +28,9 @@ from .ad_mixins import (
 
 MAX_IMAGES = 12216
 MAX_ROIS = 8
+
+import logging
+logger = logging.getLogger(__name__)
 
 
 class Trigger(TriggerBase):
@@ -44,6 +48,7 @@ class Trigger(TriggerBase):
         self._acquisition_signal = self.cam.acquire
         self._acquire_busy_signal = self.cam.acquire_busy
         self._flysetup = False
+        self._softsetup = False
         self._status = None
 
     def setup_manual_trigger(self):
@@ -58,27 +63,51 @@ class Trigger(TriggerBase):
         self.cam.stage_sigs["num_images"] = MAX_IMAGES
         self.cam.stage_sigs["wait_for_plugins"] = "No"
 
+    # def setup_soft_trigger(self):
+    #     # Stage signals
+    #     self.cam.stage_sigs["trigger_mode"] = "Software + Internal"
+    #     self.cam.stage_sigs["num_images"] = MAX_IMAGES
+    #     self.cam.stage_sigs["wait_for_plugins"] = "Yes"
+    #     self._softsetup = True
+
+    def setup_soft_trigger(self):
+        # Stage signals
+        self.cam.stage_sigs["trigger_mode"] = "Software"
+        self.cam.stage_sigs["num_images"] = MAX_IMAGES
+        self.cam.stage_sigs["wait_for_plugins"] = "Yes"
+        self._softsetup = True
+
     def stage(self):
 
-        self.cam.erase.set(1).wait(timeout=10)
+        self.cam.erase.put(1)
 
         if self._flysetup:
             self.setup_external_trigger()
 
+        if self._softsetup:
+            self.setup_soft_trigger()
+            self._acquire_time = self.cam.acquire_time.get()
+            self.cam.soft_trigger.put(0)
+
         # Make sure that detector is not armed.
         self._acquisition_signal.set(0).wait(timeout=10)
-        self._acquire_busy_signal.subscribe(self._acquire_changed)
+        if not self._softsetup: #TODO: find a better way to address this.
+            self._acquire_busy_signal.subscribe(self._acquire_changed)
 
         super().stage()
 
-        if self._flysetup:
+
+        if self._flysetup or self._softsetup:
             self._acquisition_signal.set(1).wait(timeout=10)
+            sleep(0.1)
+
 
     def unstage(self):
         super().unstage()
         self.cam.acquire.set(0).wait(timeout=10)
         self._flysetup = False
-        self._acquire_busy_signal.clear_sub(self._acquire_changed)
+        if not self._softsetup:
+            self._acquire_busy_signal.clear_sub(self._acquire_changed)
         self._collect_image = False
         self.setup_manual_trigger()
 
@@ -91,7 +120,13 @@ class Trigger(TriggerBase):
 
         # Click the Acquire_button
         self._status = self._status_type(self)
-        self._acquisition_signal.put(1, wait=False)
+        if self._softsetup:
+            self.cam.soft_trigger.put(1)
+            sleep(self._acquire_time)
+            self.cam.soft_trigger.put(0)
+            self._status.set_finished()
+        else:
+            self._acquisition_signal.put(1, wait=False)
         if self.hdf1.enable.get() in (True, 1, "on", "Enable"):
             self.generate_datum(self._image_name, ttime(), {})
 
@@ -291,7 +326,7 @@ class VortexXspress37(Trigger, DetectorBase):
 
     total = DynamicDeviceComponent(_totals("roi", range(1, MAX_ROIS + 1)))
 
-    hdf1 = ADComponent(VortexHDF1Plugin, "HDF1:")
+    hdf1 = ADComponent(PolarHDF5Plugin, "HDF1:")
 
     # TODO: REMOVE AFTER THE DETECTOR HAS SERVER ACCESS
     _local_folder = "/home/beams/STAFF19ID/pml/xpress3/data"
@@ -308,6 +343,9 @@ class VortexXspress37(Trigger, DetectorBase):
         self.default_folder = default_folder
         self.hdf1_file_format = hdf1_file_format
         super().__init__(*args, **kwargs)
+
+        self.default_settings()
+        self.setup_soft_trigger()
 
 
     # Make this compatible with other detectors

@@ -65,10 +65,13 @@ class Trigger(TriggerBase):
         self._acquisition_signal.set(0).wait(timeout=10)
         self._acquire_busy_signal.subscribe(self._acquire_changed)
 
-        super().stage()
+        # super().stage()
+        self.cam.stage()
 
         if self._flysetup:
             self._acquisition_signal.set(1).wait(timeout=10)
+
+        self._staged = True
 
     def unstage(self):
         super().unstage()
@@ -196,6 +199,8 @@ class VortexROIStatPlugin(ROIStatPlugin):
     roi7 = Component(ROIStatN, "7:")
     roi8 = Component(ROIStatN, "8:")
 
+    total = DynamicDeviceComponent(_totals("roi", range(1, MAX_ROIS + 1)))
+
 
 class ME7Cam(CamMixin_V34, Xspress3DetectorCam):
 
@@ -210,11 +215,11 @@ class ME7(Trigger, DetectorBase):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.stage_sigs["_acquisition_signal"] = 0
-        # self.stage_sigs.popitem('cam.image_mode')
+        self.stage_sigs.popitem('cam.image_mode')
 
     _default_configuration_attrs = ("cam",)
     _default_read_attrs = (
-        "hdf1",
+        # "hdf1",
         "stats1",
         "stats2",
         "stats3",
@@ -225,7 +230,7 @@ class ME7(Trigger, DetectorBase):
     )
 
     cam = ADComponent(ME7Cam, "det1:")
-    hdf1 = ADComponent(MicHDF5, "HDF1:")
+    # hdf1 = ADComponent(MicHDF5, "HDF1:")
 
     chan1 = ADComponent(ROIPlugin, "ROI1:")
     chan2 = ADComponent(ROIPlugin, "ROI2:")
