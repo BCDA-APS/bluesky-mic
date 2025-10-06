@@ -50,12 +50,13 @@ logger = logging.getLogger(__name__)
 
 savedata = oregistry["savedata"]
 samx = oregistry["samx"]
+usercalc_xmap_filename = oregistry["usercalc_xmap_filename"]
 
 
 def _common_flyscan_setup(
     xrf_on=True, 
-    preamp1_on=True, 
-    preamp2_on=False,
+    ptycho_on=False,
+    preamp_on=False,
     x_center=None,
     width=0,
     stepsize_x=0,
@@ -69,10 +70,8 @@ def _common_flyscan_setup(
     ----------
     xrf_on : bool
         Whether x-ray fluorescence is on
-    preamp1_on : bool
-        Whether preamp1 is on
-    preamp2_on : bool
-        Whether preamp2 is on
+    preamp_on : bool
+        Whether preamp is on
     x_center : float, optional
         Center of scan in x direction
     width : float
@@ -89,13 +88,14 @@ def _common_flyscan_setup(
     tuple
         (devices, fileplugins, xarr, x_start, x_end, x_motor_scan_speed, x_motor_retrace, num_pulses)
     """
+    
     """Disable usercalc"""
-    yield from disable_usercalc()
+    usercalc_xmap_filename.set(0)
 
     """Check input parameters and detector status"""
     logger.info("Validating scan parameters and detector status")
     validate_scan_parameters(stepsize_x=stepsize_x, stepsize_y=stepsize_y)
-    devices, fileplugins = validate_device_connections(xrf_on, preamp1_on, preamp2_on, return_devices=True)
+    devices, fileplugins = validate_device_connections(xrf_on, preamp_on, ptycho_on, return_devices=True)
 
     """Construct the scan points and calculate the motor speeds"""
     logger.info("Constructing the scan points and calculating the motor speeds")

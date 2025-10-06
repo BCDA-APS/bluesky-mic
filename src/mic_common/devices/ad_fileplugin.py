@@ -61,21 +61,63 @@ class DetBase:
                 os.makedirs(det_path, exist_ok=True)
                 logger.info(f"Directory '{det_path}' created for {det_name}.")
             except Exception as e:
-                logger.error(
-                    f"Failed to create directory '{det_path}' for {det_name}: {e}"
-                )
+                logger.error(f"Failed to create directory '{det_path}' for {det_name}: {e}")
                 raise e
         return det_path
+
+    def stage(self):
+        super().stage()
+        if not self.file_path_exists.get():
+            raise ValueError(f"File path {self.file_path.get()} does not exist")
+
+    def stage_file_writer(
+        self,
+        savedata,
+        det_name,
+        num_capture,
+        next_filenum=0,
+        filename="test_$id",
+        beamline_delimiter="",
+        is19ID=False,
+    ):
+        """
+        Set up the EPICS AreaDetector HDF5 filewriter.
+
+        Parameters:
+        - file_path: str
+            The path where the files will be saved.
+        - filename_pattern: str, optional
+        - eiger_filewriter: The default file writer from Eiger (default is None).
+        """
+
+        # Stop capturing in case the filewriter is busy
+        yield from self.set_capture("done")
+        det_path = self.generate_det_filepath(savedata, det_name)
+        if is19ID:
+            newpath = det_path
+        else:
+            newpath = self.sync_file_path(det_path, beamline_delimiter)
+
+        # TODO: this is a hack to set the file path
+        self.file_path.put(newpath)
+
+        self.stage_sigs["enable"] = 1
+        # self.stage_sigs["file_path"] = newpath
+        self.stage_sigs["file_number"] = next_filenum
+        self.stage_sigs["file_name"] = filename
+        self.stage_sigs["num_capture"] = num_capture
+        self.stage_sigs["auto_save"] = 1
+        self.stage_sigs["blocking_callbacks"] = "Yes"
 
     def setup_file_writer(
         self,
         savedata,
         det_name,
         num_capture,
-        next_filenum = 0,
+        next_filenum=0,
         filename="test_$id",
         beamline_delimiter="",
-        is19ID=False
+        is19ID=False,
     ):
         """
         Set up the EPICS AreaDetector HDF5 filewriter.

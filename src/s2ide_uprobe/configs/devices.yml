@@ -2,10 +2,10 @@
 
 mic_common.devices.scan_record.ScanRecord:
 - name: scan1
-  prefix: 2ideBS:scan1
+  prefix: 2xfm:scan1
   labels: ["scanrecord"]
 - name: scan2
-  prefix: 2ideBS:scan2
+  prefix: 2xfm:scan2
   labels: ["scanrecord"]
 - name: fscan1
   prefix: 2xfm:Fscan1
@@ -25,6 +25,12 @@ ophyd.EpicsMotor:
   labels: ["motor"]
 - name: samy
   prefix: 2xfm:m13
+  labels: ["motor"]
+- name: samz
+  prefix: 2xfm:m12
+  labels: ["motor"]
+- name: zp_z
+  prefix: 2xfm:m11
   labels: ["motor"]
 - name: samtheta
   prefix: 2xfm:m60
@@ -83,7 +89,11 @@ ophyd.EpicsSignal:
   labels: ["signal"]
 - name: usercalc_xmap_filename
   write_pv: 2xfmS1:userStringCalc1Enable
-  read_pv: 2iddfS1:userStringCalc1Enable
+  read_pv: 2xfmS1:userStringCalc1Enable
+  labels: ["usercalc"]
+- name: usercalc_stepscan_dwell
+  write_pv: 2xfmS1:userTran4Enable
+  read_pv: 2xfmS1:userTran4Enable
   labels: ["usercalc"]
 - name: hydra_startposition
   read_pv: 2xfm:Hydra1:StartPosition.VAL

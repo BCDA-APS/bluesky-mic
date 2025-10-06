@@ -5376,6 +5376,127 @@ existing_devices:
     is_movable: true
     is_readable: true
     module: ophyd.epics_motor
+  samz:
+    classname: EpicsMotor
+    components:
+      acceleration:
+        classname: EpicsSignal
+        is_flyable: false
+        is_movable: true
+        is_readable: true
+        module: ophyd.signal
+      direction_of_travel:
+        classname: EpicsSignal
+        is_flyable: false
+        is_movable: true
+        is_readable: true
+        module: ophyd.signal
+      high_limit_switch:
+        classname: EpicsSignalRO
+        is_flyable: false
+        is_movable: true
+        is_readable: true
+        module: ophyd.signal
+      high_limit_travel:
+        classname: EpicsSignal
+        is_flyable: false
+        is_movable: true
+        is_readable: true
+        module: ophyd.signal
+      home_forward:
+        classname: EpicsSignal
+        is_flyable: false
+        is_movable: true
+        is_readable: true
+        module: ophyd.signal
+      home_reverse:
+        classname: EpicsSignal
+        is_flyable: false
+        is_movable: true
+        is_readable: true
+        module: ophyd.signal
+      low_limit_switch:
+        classname: EpicsSignalRO
+        is_flyable: false
+        is_movable: true
+        is_readable: true
+        module: ophyd.signal
+      low_limit_travel:
+        classname: EpicsSignal
+        is_flyable: false
+        is_movable: true
+        is_readable: true
+        module: ophyd.signal
+      motor_done_move:
+        classname: EpicsSignalRO
+        is_flyable: false
+        is_movable: true
+        is_readable: true
+        module: ophyd.signal
+      motor_egu:
+        classname: EpicsSignal
+        is_flyable: false
+        is_movable: true
+        is_readable: true
+        module: ophyd.signal
+      motor_is_moving:
+        classname: EpicsSignalRO
+        is_flyable: false
+        is_movable: true
+        is_readable: true
+        module: ophyd.signal
+      motor_stop:
+        classname: EpicsSignal
+        is_flyable: false
+        is_movable: true
+        is_readable: true
+        module: ophyd.signal
+      offset_freeze_switch:
+        classname: EpicsSignal
+        is_flyable: false
+        is_movable: true
+        is_readable: true
+        module: ophyd.signal
+      set_use_switch:
+        classname: EpicsSignal
+        is_flyable: false
+        is_movable: true
+        is_readable: true
+        module: ophyd.signal
+      user_offset:
+        classname: EpicsSignal
+        is_flyable: false
+        is_movable: true
+        is_readable: true
+        module: ophyd.signal
+      user_offset_dir:
+        classname: EpicsSignal
+        is_flyable: false
+        is_movable: true
+        is_readable: true
+        module: ophyd.signal
+      user_readback:
+        classname: EpicsSignalRO
+        is_flyable: false
+        is_movable: true
+        is_readable: true
+        module: ophyd.signal
+      user_setpoint:
+        classname: EpicsSignal
+        is_flyable: false
+        is_movable: true
+        is_readable: true
+        module: ophyd.signal
+      velocity:
+        classname: EpicsSignal
+        is_flyable: false
+        is_movable: true
+        is_readable: true
+        module: ophyd.signal
+    is_flyable: false
+    is_movable: true
+    is_readable: true
+    module: ophyd.epics_motor
   savedata:
     classname: SaveDataMic
     components:
@@ -10462,6 +10583,12 @@ existing_devices:
     is_movable: true
     is_readable: true
     module: ophyd.signal
+  usercalc_stepscan_dwell:
+    classname: EpicsSignal
+    is_flyable: false
+    is_movable: true
+    is_readable: true
+    module: ophyd.signal
   usercalc_xmap_filename:
     classname: EpicsSignal
     is_flyable: false
@@ -10565,6 +10692,127 @@ existing_devices:
     is_movable: false
     is_readable: true
     module: mic_common.devices.ad_fileplugin
+  zp_z:
+    classname: EpicsMotor
+    components:
+      acceleration:
+        classname: EpicsSignal
+        is_flyable: false
+        is_movable: true
+        is_readable: true
+        module: ophyd.signal
+      direction_of_travel:
+        classname: EpicsSignal
+        is_flyable: false
+        is_movable: true
+        is_readable: true
+        module: ophyd.signal
+      high_limit_switch:
+        classname: EpicsSignalRO
+        is_flyable: false
+        is_movable: true
+        is_readable: true
+        module: ophyd.signal
+      high_limit_travel:
+        classname: EpicsSignal
+        is_flyable: false
+        is_movable: true
+        is_readable: true
+        module: ophyd.signal
+      home_forward:
+        classname: EpicsSignal
+        is_flyable: false
+        is_movable: true
+        is_readable: true
+        module: ophyd.signal
+      home_reverse:
+        classname: EpicsSignal
+        is_flyable: false
+        is_movable: true
+        is_readable: true
+        module: ophyd.signal
+      low_limit_switch:
+        classname: EpicsSignalRO
+        is_flyable: false
+        is_movable: true
+        is_readable: true
+        module: ophyd.signal
+      low_limit_travel:
+        classname: EpicsSignal
+        is_flyable: false
+        is_movable: true
+        is_readable: true
+        module: ophyd.signal
+      motor_done_move:
+        classname: EpicsSignalRO
+        is_flyable: false
+        is_movable: true
+        is_readable: true
+        module: ophyd.signal
+      motor_egu:
+        classname: EpicsSignal
+        is_flyable: false
+        is_movable: true
+        is_readable: true
+        module: ophyd.signal
+      motor_is_moving:
+        classname: EpicsSignalRO
+        is_flyable: false
+        is_movable: true
+        is_readable: true
+        module: ophyd.signal
+      motor_stop:
+        classname: EpicsSignal
+        is_flyable: false
+        is_movable: true
+        is_readable: true
+        module: ophyd.signal
+      offset_freeze_switch:
+        classname: EpicsSignal
+        is_flyable: false
+        is_movable: true
+        is_readable: true
+        module: ophyd.signal
+      set_use_switch:
+        classname: EpicsSignal
+        is_flyable: false
+        is_movable: true
+        is_readable: true
+        module: ophyd.signal
+      user_offset:
+        classname: EpicsSignal
+        is_flyable: false
+        is_movable: true
+        is_readable: true
+        module: ophyd.signal
+      user_offset_dir:
+        classname: EpicsSignal
+        is_flyable: false
+        is_movable: true
+        is_readable: true
+        module: ophyd.signal
+      user_readback:
+        classname: EpicsSignalRO
+        is_flyable: false
+        is_movable: true
+        is_readable: true
+        module: ophyd.signal
+      user_setpoint:
+        classname: EpicsSignal
+        is_flyable: false
+        is_movable: true
+        is_readable: true
+        module: ophyd.signal
+      velocity:
+        classname: EpicsSignal
+        is_flyable: false
+        is_movable: true
+        is_readable: true
+        module: ophyd.signal
+    is_flyable: false
+    is_movable: true
+    is_readable: true
+    module: ophyd.epics_motor
 existing_plans:
   fly2d_scanrecord:
     description: '2D Bluesky plan that drives the x- and y- sample motors in flying
@@ -10587,49 +10835,49 @@ existing_plans:
         value: 1
       name: user_comments
     - default: '0'
-      description: 'Float: The width of the scan'
+      description: 'Float: The width of the scan in unit of mm'
       kind:
         name: POSITIONAL_OR_KEYWORD
         value: 1
-      name: width
+      name: width_mm
     - default: None
       description: 'Float: The center of the scan in the x direction. Default is None
         which uses the current position of samx'
       kind:
         name: POSITIONAL_OR_KEYWORD
         value: 1
-      name: x_center
+      name: x_center_mm
     - default: '0'
-      description: 'Float: The step size in the x direction'
+      description: 'Float: The step size in the x direction in unit of mm'
       kind:
         name: POSITIONAL_OR_KEYWORD
         value: 1
-      name: stepsize_x
+      name: stepsize_x_mm
     - default: '0'
-      description: 'Float: The height of the scan'
+      description: 'Float: The height of the scan in unit of mm'
       kind:
         name: POSITIONAL_OR_KEYWORD
         value: 1
-      name: height
+      name: height_mm
     - default: None
       description: 'Float: The center of the scan in the y direction. Default is None
         which uses the current position of samy'
       kind:
         name: POSITIONAL_OR_KEYWORD
         value: 1
-      name: y_center
+      name: y_center_mm
     - default: '0'
-      description: 'Float: The step size in the y direction'
+      description: 'Float: The step size in the y direction in unit of mm'
       kind:
         name: POSITIONAL_OR_KEYWORD
         value: 1
-      name: stepsize_y
+      name: stepsize_y_mm
     - default: '0'
-      description: 'Float: The dwell time in the scan'
+      description: 'Float: The dwell time in the scan in unit of ms'
       kind:
         name: POSITIONAL_OR_KEYWORD
         value: 1
-      name: dwell
+      name: dwell_ms
     - default: None
       description: 'Float: The theta of the sample'
       kind:
@@ -10660,12 +10908,6 @@ existing_plans:
         name: POSITIONAL_OR_KEYWORD
         value: 1
       name: preamp_on
-    - default: 'False'
-      description: 'Bool: Whether to collect position stream data'
-      kind:
-        name: POSITIONAL_OR_KEYWORD
-        value: 1
-      name: position_stream
     - default: 'False'
       description: 'Bool: Whether to run the workflow'
       kind:
@@ -10714,42 +10956,37 @@ existing_plans:
       kind:
         name: POSITIONAL_OR_KEYWORD
         value: 1
-      name: width
+      name: width_mm
     - default: None
       kind:
         name: POSITIONAL_OR_KEYWORD
         value: 1
-      name: x_center
+      name: x_center_mm
     - default: '0'
       kind:
         name: POSITIONAL_OR_KEYWORD
         value: 1
-      name: stepsize_x
+      name: stepsize_x_mm
     - default: '0'
       kind:
         name: POSITIONAL_OR_KEYWORD
         value: 1
-      name: height
+      name: height_mm
     - default: None
       kind:
         name: POSITIONAL_OR_KEYWORD
         value: 1
-      name: y_center
+      name: y_center_mm
     - default: '0'
       kind:
         name: POSITIONAL_OR_KEYWORD
         value: 1
-      name: stepsize_y
+      name: stepsize_y_mm
     - default: '0'
       kind:
         name: POSITIONAL_OR_KEYWORD
         value: 1
-      name: dwell
-    - default: None
-      kind:
-        name: POSITIONAL_OR_KEYWORD
-        value: 1
-      name: smp_theta
+      name: dwell_ms
     - default: 'True'
       kind:
         name: POSITIONAL_OR_KEYWORD
@@ -10760,11 +10997,6 @@ existing_plans:
         name: POSITIONAL_OR_KEYWORD
         value: 1
       name: ptycho_on
-    - default: '0'
-      kind:
-        name: POSITIONAL_OR_KEYWORD
-        value: 1
-      name: eta
     - default: '3'
       kind:
         name: POSITIONAL_OR_KEYWORD
@@ -10802,5 +11034,125 @@ existing_plans:
         name: KEYWORD_ONLY
         value: 3
       name: path
+    properties:
+      is_generator: true
+  step1d_focusing:
+    description: "Step 1D focusing plan that drives the samx motor. \nIf zp_z_mm is\
+      \ not provided, the plan will use the current \nposition of zp_z"
+    module: s2ide_uprobe.plans.sscan_scanrecord
+    name: step1d_focusing
+    parameters:
+    - default: '''smp1'''
+      kind:
+        name: POSITIONAL_OR_KEYWORD
+        value: 1
+      name: samplename
+    - default: ''''''
+      kind:
+        name: POSITIONAL_OR_KEYWORD
+        value: 1
+      name: user_comments
+    - default: '0'
+      kind:
+        name: POSITIONAL_OR_KEYWORD
+        value: 1
+      name: width_mm
+    - default: None
+      kind:
+        name: POSITIONAL_OR_KEYWORD
+        value: 1
+      name: x_center_mm
+    - default: '0'
+      kind:
+        name: POSITIONAL_OR_KEYWORD
+        value: 1
+      name: stepsize_x_mm
+    - default: None
+      kind:
+        name: POSITIONAL_OR_KEYWORD
+        value: 1
+      name: samz_mm
+    - default: '0'
+      kind:
+        name: POSITIONAL_OR_KEYWORD
+        value: 1
+      name: dwell_ms
+    - default: None
+      kind:
+        name: POSITIONAL_OR_KEYWORD
+        value: 1
+      name: zp_z_mm
+    properties:
+      is_generator: true
+  step2d_scanrecord:
+    description: '2D Bluesky plan that drives the x- and y- sample motors in stepping
+      mode using
+
+      ScanRecord'
+    module: s2ide_uprobe.plans.sscan_scanrecord
+    name: step2d_scanrecord
+    parameters:
+    - default: '''smp1'''
+      description: 'Str: The name of the sample'
+      kind:
+        name: POSITIONAL_OR_KEYWORD
+        value: 1
+      name: samplename
+    - default: ''''''
+      description: 'Str: The user comments for the scan'
+      kind:
+        name: POSITIONAL_OR_KEYWORD
+        value: 1
+      name: user_comments
+    - default: '0'
+      description: 'Float: The width of the scan in unit of mm'
+      kind:
+        name: POSITIONAL_OR_KEYWORD
+        value: 1
+      name: width_mm
+    - default: None
+      description: 'Float: The center of the scan in the x direction. Default is None
+        which uses the current position of samx'
+      kind:
+        name: POSITIONAL_OR_KEYWORD
+        value: 1
+      name: x_center_mm
+    - default: '0'
+      description: 'Float: The step size in the x direction in unit of mm'
+      kind:
+        name: POSITIONAL_OR_KEYWORD
+        value: 1
+      name: stepsize_x_mm
+    - default: '0'
+      description: 'Float: The height of the scan in unit of mm'
+      kind:
+        name: POSITIONAL_OR_KEYWORD
+        value: 1
+      name: height_mm
+    - default: None
+      description: 'Float: The center of the scan in the y direction. Default is None
+        which uses the current position of samy'
+      kind:
+        name: POSITIONAL_OR_KEYWORD
+        value: 1
+      name: y_center_mm
+    - default: '0'
+      description: 'Float: The step size in the y direction in unit of mm'
+      kind:
+        name: POSITIONAL_OR_KEYWORD
+        value: 1
+      name: stepsize_y_mm
+    - default: '0'
+      description: 'Float: The dwell time in the scan in unit of ms'
+      kind:
+        name: POSITIONAL_OR_KEYWORD
+        value: 1
+      name: dwell_ms
+    - default: None
+      description: 'Float: The theta of the sample'
+      kind:
+        name: POSITIONAL_OR_KEYWORD
+        value: 1
+      name: smp_theta
     properties:
       is_generator: true

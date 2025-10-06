@@ -11,6 +11,7 @@ __all__ = """
 """.split()
 
 import logging
+import inspect
 from apsbits.utils.controls_setup import oregistry
 from mic_common.utils.scan_monitor import execute_scan_2d
 from mic_common.plans.generallized_scan_1d import generalized_scan_1d
@@ -21,6 +22,8 @@ from ophyd.status import Status
 from apstools.plans import run_blocking_function
 from s2ide_uprobe.plans.before_after_fly import setup_flyscan_ptycho_triggers, setup_flyscan_XRF_triggers
 from apsbits.utils.config_loaders import get_config
+from mic_common.utils.param_capture import capture_params
+import bluesky.preprocessors as bpp
 
 logger = logging.getLogger(__name__)
 logger.info(__file__)
@@ -53,19 +56,18 @@ det_foldername = {"xrf": "flyXRF", "preamp1": "tetramm", "preamp2": "tetramm2", 
 def fly2d_scanrecord(
     samplename="smp1",
     user_comments="",
-    width=0,
-    x_center=None,
-    stepsize_x=0,
-    height=0,
-    y_center=None,
-    stepsize_y=0,
-    dwell=0,
+    width_mm=0,
+    x_center_mm=None,
+    stepsize_x_mm=0,
+    height_mm=0,
+    y_center_mm=None,
+    stepsize_y_mm=0,
+    dwell_ms=0,
     smp_theta=None,
     xrf_on=True,
     ptycho_on=False,
     ptycho_exp_factor=1,
     preamp_on=False,
-    position_stream=False,
     wf_run=False,
     analysisMachine="mona2",
 ):
@@ -81,20 +83,20 @@ def fly2d_scanrecord(
         Str: The name of the sample
     user_comments:
         Str: The user comments for the scan
-    width:
-        Float: The width of the scan
-    x_center:
+    width_mm:
+        Float: The width of the scan in unit of mm
+    x_center_mm:
         Float: The center of the scan in the x direction. Default is None which uses the current position of samx
-    stepsize_x:
-        Float: The step size in the x direction
-    height:
-        Float: The height of the scan
-    y_center:
+    stepsize_x_mm:
+        Float: The step size in the x direction in unit of mm
+    height_mm:
+        Float: The height of the scan in unit of mm
+    y_center_mm:
         Float: The center of the scan in the y direction. Default is None which uses the current position of samy
-    stepsize_y:
-        Float: The step size in the y direction
-    dwell:
-        Float: The dwell time in the scan
+    stepsize_y_mm:
+        Float: The step size in the y direction in unit of mm
+    dwell_ms:
+        Float: The dwell time in the scan in unit of ms
     smp_theta:
         Float: The theta of the sample
     xrf_on:
@@ -105,13 +107,41 @@ def fly2d_scanrecord(
         Float: The exposure factor for the Ptycho detector
     preamp_on:
         Bool: Whether to collect Preamp data
-    position_stream:
-        Bool: Whether to collect position stream data
     wf_run:
         Bool: Whether to run the workflow
     analysisMachine:
         Str: The name of the analysis machine
     """
+
+    """Capture the input plan parameters"""
+    plan_args = capture_params(fly2d_scanrecord, **locals())
+    md = {"plan_args": plan_args}
+
+    @bpp.run_decorator(md=md)
+    def _fly2d():
+        yield from _fly2d_scanrecord(**plan_args)
+
+    yield from _fly2d()
+
+
+def _fly2d_scanrecord(
+    samplename="smp1",
+    user_comments="",
+    width_mm=0,
+    x_center_mm=None,
+    stepsize_x_mm=0,
+    height_mm=0,
+    y_center_mm=None,
+    stepsize_y_mm=0,
+    dwell_ms=0,
+    smp_theta=None,
+    xrf_on=True,
+    ptycho_on=False,
+    ptycho_exp_factor=1,
+    preamp_on=False,
+    wf_run=False,
+    analysisMachine="mona2",
+):
 
     ##TODO Close shutter while setting up scan parameters
 
@@ -125,17 +155,17 @@ def fly2d_scanrecord(
         logger.info(f"Moved sample theta to {smp_theta} degrees")
 
     """Move to the requested x- and y- positions"""
-    yield from bps.mv(samx, x_center)
-    yield from bps.mv(samy, y_center)
+    yield from bps.mv(samx, x_center_mm)
+    yield from bps.mv(samy, y_center_mm)
 
     """Set up scan record based on the scan types and parameters"""
     yield from generalized_scan_1d(
         scanrecord=fscanh,
         scanmode="FLY",
-        x_center=x_center,
-        width=width,
-        stepsize_x=stepsize_x,
-        dwell=dwell,
+        x_center=x_center_mm,
+        width=width_mm,
+        stepsize_x=stepsize_x_mm,
+        dwell=dwell_ms,
         savedata=savedata,
     )
     yield from fscanh.set_positioner_drive(f"{fscanh_samx.pvname}")
@@ -149,14 +179,14 @@ def fly2d_scanrecord(
     # check if the scan movement is relative or absolute
     scan_movement = fscan1.scan_movement.enum_strs[fscan1.scan_movement.get()]
     if scan_movement == "RELATIVE":
-        yield from bps.mv(samy, y_center)
-        yield from fscan1.set_center_width_stepsize(0, height, stepsize_y)
+        yield from bps.mv(samy, y_center_mm)
+        yield from fscan1.set_center_width_stepsize(0, height_mm, stepsize_y_mm)
     else:
-        yield from fscan1.set_center_width_stepsize(y_center, height, stepsize_y)
+        yield from fscan1.set_center_width_stepsize(y_center_mm, height_mm, stepsize_y_mm)
 
     """Assign the per-pixel dwell time"""
-    logger.info(f"Setting per-pixel dwell time ({flydwell.pvname}) to {dwell} ms")
-    yield from bps.mv(flydwell, dwell)
+    logger.info(f"Setting per-pixel dwell time ({flydwell.pvname}) to {dwell_ms} ms")
+    yield from bps.mv(flydwell, dwell_ms)
 
     """Update the next file name for the detector file plugin"""
     savedata.update_next_file_name()
@@ -186,7 +216,7 @@ def fly2d_scanrecord(
 
         if ptycho_on:
             yield from setup_flyscan_ptycho_triggers(fscan1, fscanh, ptycho, eiger_filewriter=ptycho_hdf)
-            yield from ptycho.scan_init(dwell / 1e3, num_pulses, ptycho_exp_factor)
+            yield from ptycho.scan_init(dwell_ms / 1e3, num_pulses, ptycho_exp_factor)
 
             if ptycho_hdf is not None:
                 # If an hdf5 file plugin is used, we need to disable the Eiger's default file writer.
@@ -216,4 +246,4 @@ def fly2d_scanrecord(
         yield from fscan1.restore_detTriggers()
 
     """Enable the usercalc that used in scan record"""
-    usercalc_xmap_filename.set(1)
+    usercalc_xmap_filename.put(1)

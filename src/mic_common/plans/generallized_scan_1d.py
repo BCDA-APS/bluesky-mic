@@ -36,7 +36,8 @@ def generalized_scan_1d(
     """
 
     logger.info(f"Using {scanrecord.prefix} as the scanRecord")
-    logger.info(f"Using {positioner} as the motor")
+    if positioner is not None:
+        logger.info(f"Using {positioner} as the motor")
     
     if scanrecord.connected: 
         if positioner is not None and positioner.connected:

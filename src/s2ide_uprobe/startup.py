@@ -74,7 +74,8 @@ RE, sd = init_RE(iconfig, bec_instance=bec, cat_instance=cat)
 # delete this block if not using Nexus
 # if iconfig.get("NEXUS_DATA_FILES", {}).get("ENABLE", False):
 if iconfig.get("NEXUS_DATA_FILES", {}).get("ENABLE", False):
-    from .callbacks.demo_nexus_callback import nxwriter_init
+    # from .callbacks.demo_nexus_callback import nxwriter_init
+    from mic_common.callbacks.nexus_data_file_writer import nxwriter_init
 
     nxwriter = nxwriter_init(RE)
 
@@ -108,9 +109,16 @@ xrf_netcdf.micdata_mountpath = xmap_mountpath
 ptycho_hdf = oregistry["ptycho_hdf"]
 ptycho_hdf.micdata_mountpath = local_mountpath
 
+# Set the nxwriter to savedata ophyd object
+savedata = oregistry["savedata"]
+# savedata.nxwriter = nxwriter
+nxwriter.set_savedata(savedata)
+
 
 from .plans.fly2d_scanrecord import fly2d_scanrecord
 from .plans.fly3d_scanrecord import fly3d_scanrecord
+from .plans.sscan_scanrecord import step2d_scanrecord
+from .plans.sscan_scanrecord import step1d_focusing
 
 # RE(make_devices(clear=False, file="sim_devices.yml"))
 # from .plans.sim_plans import sim_count_plan
