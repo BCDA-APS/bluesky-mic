@@ -48,7 +48,7 @@ class MicNXWriter(NXWriter):
             title = f"S{self.scan_id:05d}-{self.plan_name}-{self.uid[:7]}"
         return title
 
-    def make_file_name(self, micdata_mountpath = "/mnt/micdata1"):
+    def make_file_name(self, micdata_mountpath="/mnt/micdata1"):
         """
         Override the default file name to use the savedata.next_file_name
 
@@ -67,9 +67,16 @@ class MicNXWriter(NXWriter):
             path = self.file_path or pathlib.Path(".")
             return path / fname
         else:
-            self.savedata.update_current_file_name()
-            fname = self.savedata.current_file_name.replace(".mda", "_run.h5")
-            path = pathlib.Path(self.savedata.get().file_system.replace("//micdata/data1", micdata_mountpath))
+            # self.savedata.update_next_file_name()
+            # fname = self.savedata.next_file_name.replace(".mda", "_run.h5")
+            fname = self.savedata.full_name.get().replace(".mda", "_run.h5")
+            path = pathlib.Path(
+                self.savedata.get().file_system.replace("//micdata/data1", micdata_mountpath), "bluesky"
+            )
+
+            # Check if path exists, create it if it doesn't
+            path.mkdir(parents=True, exist_ok=True)
+
             self.file_path = path
             return path / fname
 
@@ -82,9 +89,7 @@ def nxwriter_init(RE):
     if iconfig.get("NEXUS_DATA_FILES", {}).get("ENABLE", False):
         RE.subscribe(nxwriter.receiver)  # write data to NeXus files
 
-    nxwriter.file_extension = iconfig.get("NEXUS_DATA_FILES", {}).get(
-        "FILE_EXTENSION", "hdf"
-    )
+    nxwriter.file_extension = iconfig.get("NEXUS_DATA_FILES", {}).get("FILE_EXTENSION", "hdf")
 
     print(nxwriter.file_extension)
     warn_missing = iconfig.get("NEXUS_DATA_FILES", {}).get("WARN_MISSING", False)

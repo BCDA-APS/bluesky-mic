@@ -170,6 +170,9 @@ dev_*
 
 .vscode/
 .logs/
+.logs_s2ide/
+.logs_s2idd/
+.logs_isn/
 *.dat
 *.hdf
 .re_md_dict.yml
@@ -177,6 +180,9 @@ dev_*
 .loglogin
 
 
-# Beamline specific PVs
+# Beamline specific PVs or files
 *.xml
 *.json
+*.h5
+*.mda
+*.log

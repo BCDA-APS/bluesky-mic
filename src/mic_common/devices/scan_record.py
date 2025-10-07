@@ -37,6 +37,11 @@ class ScanRecord(SscanRecord):
     detTrigger_3 = Component(EpicsSignal, ".T3PV")
     detTrigger_4 = Component(EpicsSignal, ".T4PV")
 
+    detTrigger_1_old = ''
+    detTrigger_2_old = ''
+    detTrigger_3_old = ''
+    detTrigger_4_old = ''
+
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.P1PA = PV(f"{self.prefix}.P1PA")
@@ -70,7 +75,26 @@ class ScanRecord(SscanRecord):
         for detTri, pv_name in zip(trigger_list, trigger_pvs, strict=False):
             yield from bps.mv(detTri, pv_name)
             logger.info(f"Set {detTri.pvname} to {pv_name} in {self.prefix}.")
+    
+    def save_current_detTriggers(self):
+        self.detTrigger_1_old = self.detTrigger_1.get()
+        self.detTrigger_2_old = self.detTrigger_2.get()
+        self.detTrigger_3_old = self.detTrigger_3.get()
+        self.detTrigger_4_old = self.detTrigger_4.get()
 
+    def restore_detTriggers(self):
+        """
+        Restore the detector triggers to the previous values.
+        This function assumes that the old values are saved
+        """
+        yield from bps.mv(self.detTrigger_1, self.detTrigger_1_old,
+                          self.detTrigger_2, self.detTrigger_2_old,
+                          self.detTrigger_3, self.detTrigger_3_old,
+                          self.detTrigger_4, self.detTrigger_4_old)
+
+    
+    
+    
     @mode_setter("scan_mode")
     def set_scan_mode(self, mode):
         pass

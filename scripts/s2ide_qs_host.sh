@@ -45,6 +45,7 @@ if [ "${DATABROKER_CATALOG}" == "" ]; then
         # echo "Using catalog ${DATABROKER_CATALOG}"
     fi
 fi
+
 DEFAULT_SESSION_NAME="bluesky_queueserver-${DATABROKER_CATALOG}"
 
 #--------------------
@@ -174,7 +175,11 @@ function start() {
         echo "Starting ${SESSION_NAME}"
         cd "${STARTUP_DIR}"
         # Run SESSION_NAME inside a screen session
+        # TIMESTAMP=$(date +"%Y%m%d-%H%M")
+        # LOG_FILE="${SESSION_NAME}.${TIMESTAMP}.log"
+        # CMD="screen -DmS ${SESSION_NAME} -h 5000 -L -Logfile ${LOG_FILE} ${STARTUP_COMMAND}"
         CMD="screen -DmS ${SESSION_NAME} -h 5000 ${STARTUP_COMMAND}"
+        # ${CMD} 2>&1| tee -a ${SESSION_NAME}.${TIMESTAMP}.log &
         ${CMD} &
     fi
 }

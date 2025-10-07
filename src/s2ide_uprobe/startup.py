@@ -22,7 +22,7 @@ from apsbits.core.run_engine_init import init_RE
 
 # Utility functions
 from apsbits.utils.aps_functions import aps_dm_setup
-# from apsbits.utils.aps_functions import host_on_aps_subnet
+from apsbits.utils.aps_functions import host_on_aps_subnet
 
 # Configuration functions
 from apsbits.utils.config_loaders import load_config
@@ -74,7 +74,8 @@ RE, sd = init_RE(iconfig, bec_instance=bec, cat_instance=cat)
 # delete this block if not using Nexus
 # if iconfig.get("NEXUS_DATA_FILES", {}).get("ENABLE", False):
 if iconfig.get("NEXUS_DATA_FILES", {}).get("ENABLE", False):
-    from .callbacks.demo_nexus_callback import nxwriter_init
+    # from .callbacks.demo_nexus_callback import nxwriter_init
+    from mic_common.callbacks.nexus_data_file_writer import nxwriter_init
 
     nxwriter = nxwriter_init(RE)
 
@@ -83,32 +84,43 @@ if iconfig.get("NEXUS_DATA_FILES", {}).get("ENABLE", False):
 if running_in_queueserver():
     ### To make all the standard plans available in QS, import by '*', otherwise import
     ### plan by plan.
-    from apstools.plans import lineup2  # noqa: F401
-    from bluesky.plans import *  # noqa: F403
+    # from apstools.plans import lineup2  # noqa: F401
+    # from bluesky.plans import *  # noqa: F403
+    pass
 else:
     # Import bluesky plans and stubs with prefixes set by common conventions.
     # The apstools plans and utils are imported by '*'.
-    from apstools.plans import *  # noqa: F403
+    # from apstools.plans import *  # noqa: F403
     from apstools.utils import *  # noqa: F403
     from bluesky import plan_stubs as bps  # noqa: F401
     from bluesky import plans as bp  # noqa: F401
 
 
 # Experiment specific logic, device and plan loading
-# RE(make_devices(clear=False, file="devices.yml"))  # Create the devices.
+RE(make_devices(clear=False, file="devices.yml"))  # Create the devices.
 
-# if host_on_aps_subnet():
-#     RE(make_devices(clear=False, file="device_aps_only.yml"))
+if host_on_aps_subnet():
+    RE(make_devices(clear=False, file="device_aps_only.yml"))
 
-# local_mountpath = iconfig.get("STORAGE")["PATH"]
-# xrf_netcdf = oregistry["xrf_netcdf"]
-# xrf_netcdf.micdata_mountpath = local_mountpath
+local_mountpath = iconfig.get("STORAGE")["MICDATA_MOUNTPATH"]
+xmap_mountpath = iconfig.get("STORAGE")["XMAP_MOUNTPATH"]
+xrf_netcdf = oregistry["xrf_netcdf"]
+xrf_netcdf.micdata_mountpath = xmap_mountpath
+ptycho_hdf = oregistry["ptycho_hdf"]
+ptycho_hdf.micdata_mountpath = local_mountpath
 
-RE(make_devices(clear=False, file="sim_devices.yml"))
+# Set the nxwriter to savedata ophyd object
+savedata = oregistry["savedata"]
+# savedata.nxwriter = nxwriter
+nxwriter.set_savedata(savedata)
 
-# from .plans.step2d import step2d
-# from .plans.fly2d import fly2d
 
-from .plans.sim_plans import sim_count_plan
-from .plans.sim_plans import sim_print_plan
-from .plans.sim_plans import sim_rel_scan_plan
+from .plans.fly2d_scanrecord import fly2d_scanrecord
+from .plans.fly3d_scanrecord import fly3d_scanrecord
+from .plans.sscan_scanrecord import step2d_scanrecord
+from .plans.sscan_scanrecord import step1d_focusing
+
+# RE(make_devices(clear=False, file="sim_devices.yml"))
+# from .plans.sim_plans import sim_count_plan
+# from .plans.sim_plans import sim_print_plan
+# from .plans.sim_plans import sim_rel_scan_plan
