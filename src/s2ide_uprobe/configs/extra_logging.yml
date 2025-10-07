@@ -8,7 +8,7 @@ console_logs:
 
 file_logs:
   date_format: "%Y-%m-%d %H:%M:%S"
-  log_directory: .logs
+  log_directory: .logs_s2ide
   log_filename_base: logging.log
   log_format: "|\
     %(asctime)s.%(msecs)03d|\
@@ -20,7 +20,7 @@ file_logs:
     %(threadName)s| - \
     %(message)s"
   maxBytes: 1_000_000
-  backupCount: 9
+  backupCount: 100
   level: info
   rotate_on_startup: true
 
@@ -32,9 +32,9 @@ ipython_logs:
 
 modules:
   apstools: warning
-  bluesky-queueserver: warning
+  bluesky-queueserver: info
   bluesky: warning
-  bluesky.RE: warning
+  bluesky.RE: info
   caproto: warning
   databroker: warning
   mic_instrument: bsdev
