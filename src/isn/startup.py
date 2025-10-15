@@ -13,6 +13,10 @@ Includes:
 import logging
 from pathlib import Path
 
+#Temporary hklpy2 fix, importing gi before hklpy2 and matplotlib to prevent bugs
+import gi
+import hklpy2
+
 from apsbits.core.best_effort_init import init_bec_peaks
 from apsbits.core.catalog_init import init_catalog
 from apsbits.core.instrument_init import make_devices
@@ -72,8 +76,8 @@ cat = init_catalog(iconfig)
 RE, sd = init_RE(iconfig, bec_instance=bec, cat_instance=cat)
 
 
-# Optional Nexus callback block
-# delete this block if not using Nexus
+# # Optional Nexus callback block
+# # delete this block if not using Nexus
 # if iconfig.get("NEXUS_DATA_FILES", {}).get("ENABLE", False):
 #     # from .callbacks.nexus_data_file_writer import nxwriter_init
 #     from mic_common.callbacks.nexus_data_file_writer import nxwriter_init
@@ -86,7 +90,6 @@ if iconfig.get("SPEC_DATA_FILES", {}).get("ENABLE", False):
     from mic_common.callbacks.spec_data_file_writer import newSpecFile  # noqa: F401
     from mic_common.callbacks.spec_data_file_writer import spec_comment  # noqa: F401
     from mic_common.callbacks.spec_data_file_writer import specwriter  # noqa: F401
-
     init_specwriter_with_RE(RE)
 
 # # These imports must come after the above setup.
@@ -108,17 +111,17 @@ if iconfig.get("SPEC_DATA_FILES", {}).get("ENABLE", False):
 # Experiment specific logic, device and plan loading
 RE(make_devices(clear=False, file="devices.yml"))  # Create the devices.
 
-# # Diffractometer utilities:
+# Diffractometer utilities:
 # import hklpy2 # noqa: F401
-# sim_psic = hklpy2.creator(
-#     name="sim_psic", solver="hkl_soleil", geometry="E6C",
-#     reals="mu eta chi phi yaw pitch".split(),
-# )
-# sim_psic.core.mode="lifting_detector_mu"
+sim_psic = hklpy2.creator(
+    name="sim_psic", solver="hkl_soleil", geometry="E6C",
+    reals="mu eta chi phi yaw pitch".split(),
+)
+sim_psic.core.mode="lifting_detector_mu"
 
-# psic = oregistry['psic']
-# psic.wait_for_connection()
-# psic.core.mode = "lifting_detector_mu"
+psic = oregistry['psic']
+psic.wait_for_connection()
+psic.core.mode = "lifting_detector_mu"
 
 # if host_on_aps_subnet():
 #     RE(make_devices(clear=False, file="devices_aps_only.yml"))

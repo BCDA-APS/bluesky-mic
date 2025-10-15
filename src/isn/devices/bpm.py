@@ -12,24 +12,24 @@ class BasicQuadEM(Device):
     """Temporary QuadEM implementation for the BPMs. The Sydor epics implementation 
     is still patchy, so it does not work properly with the QuadEM class."""
 
-    fast_current1 = Component(EpicsSignalRO, "Current1Ave", kind="hinted")
-    fast_current2 = Component(EpicsSignalRO, "Current2Ave", kind="hinted")
-    fast_current3 = Component(EpicsSignalRO, "Current3Ave", kind="hinted")
-    fast_current4 = Component(EpicsSignalRO, "Current4Ave", kind="hinted")
+    fast_current1 = Component(EpicsSignalRO, "Current1Ave")
+    fast_current2 = Component(EpicsSignalRO, "Current2Ave")
+    fast_current3 = Component(EpicsSignalRO, "Current3Ave")
+    fast_current4 = Component(EpicsSignalRO, "Current4Ave")
 
-    fast_position_x = Component(EpicsSignalRO, "PositionXAve", kind="hinted")
-    fast_position_y = Component(EpicsSignalRO, "PositionYAve", kind="hinted")
+    fast_position_x = Component(EpicsSignalRO, "PositionXAve")
+    fast_position_y = Component(EpicsSignalRO, "PositionYAve")
     
 
 class MyQuadEM(QuadEM):
 
-    fast_current1 = Component(EpicsSignalRO, "Current1Ave", kind="hinted")
-    fast_current2 = Component(EpicsSignalRO, "Current2Ave", kind="hinted")
-    fast_current3 = Component(EpicsSignalRO, "Current3Ave", kind="hinted")
-    fast_current4 = Component(EpicsSignalRO, "Current4Ave", kind="hinted")
+    fast_current1 = Component(EpicsSignalRO, "Current1Ave")
+    fast_current2 = Component(EpicsSignalRO, "Current2Ave")
+    fast_current3 = Component(EpicsSignalRO, "Current3Ave")
+    fast_current4 = Component(EpicsSignalRO, "Current4Ave")
 
-    fast_position_x = Component(EpicsSignalRO, "PositionXAve", kind="hinted")
-    fast_position_y = Component(EpicsSignalRO, "PositionYAve", kind="hinted")
+    fast_position_x = Component(EpicsSignalRO, "PositionXAve")
+    fast_position_y = Component(EpicsSignalRO, "PositionYAve")
 
     
     def __init__(self, *args, **kwargs):

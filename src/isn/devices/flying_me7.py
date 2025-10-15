@@ -1,5 +1,8 @@
 """ME7 setup"""
 
+import logging
+logger = logging.getLogger(__name__)
+
 from ophyd import (
     ADComponent,
     Staged,
@@ -11,26 +14,32 @@ from ophyd import (
     DynamicDeviceComponent,
 )
 from ophyd.areadetector import DetectorBase, EpicsSignalWithRBV
-from ophyd.areadetector.trigger_mixins import TriggerBase, ADTriggerStatus
+from ophyd.areadetector.trigger_mixins import TriggerBase
+from ophyd.areadetector.trigger_mixins import ADTriggerStatus
+from ophyd.areadetector.plugins import ROIPlugin
+from ophyd.areadetector.plugins import AttributePlugin
+from ophyd.areadetector.plugins import ROIStatPlugin
+
 from bluesky.plan_stubs import wait_for
 import asyncio
 from pathlib import Path
 from collections import OrderedDict
 from time import time as ttime
 from time import sleep
-from .ad_mixins import (
-    ROIPlugin,
-    AttributePlugin,
-    ROIStatPlugin,
-    PolarHDF5Plugin,
+from .mic_ad_mixins import (
     VortexDetectorCam,
+    MicHDF5,
 )
+# from .ad_mixins import (
+#     # ROIStatPlugin,
+#     # PolarHDF5Plugin,
+#     # VortexDetectorCam,
+# )
 
 MAX_IMAGES = 12216
 MAX_ROIS = 8
 
-import logging
-logger = logging.getLogger(__name__)
+
 
 
 class Trigger(TriggerBase):
@@ -76,12 +85,12 @@ class Trigger(TriggerBase):
         self.cam.stage_sigs["trigger_mode"] = "Software"
         self.cam.stage_sigs["num_images"] = MAX_IMAGES
         self.cam.stage_sigs["wait_for_plugins"] = "Yes"
-        self.cam.stage_sigs["erase_on_start"] = "Yes"
+        self.cam.stage_sigs["erase_on_start"] = "No"
         self._softsetup = True
 
     def stage(self):
 
-        # self.cam.erase.put(1)
+        self.cam.erase.put(1)
         # self.cam.erase.set(1).wait()
 
         if self._flysetup:
@@ -235,7 +244,7 @@ class VortexSCA(AttributePlugin):
     dt_percent = Component(EpicsSignalRO, "10:Value_RBV")
 
 
-class VortexHDF1Plugin(PolarHDF5Plugin):
+class VortexHDF1Plugin(MicHDF5):
     # The array counter readback pv is different...
     array_counter = Component(EpicsSignal, "ArrayCounter", kind="config")
     array_counter_readback = Component(
@@ -331,7 +340,8 @@ class VortexXspress37(Trigger, DetectorBase):
 
     total = DynamicDeviceComponent(_totals("roi", range(1, MAX_ROIS + 1)))
 
-    hdf1 = ADComponent(PolarHDF5Plugin, "HDF1:")
+    hdf1 = ADComponent(MicHDF5, "HDF1:")
+
 
     # TODO: REMOVE AFTER THE DETECTOR HAS SERVER ACCESS
     _local_folder = "/home/beams/STAFF19ID/pml/xpress3/data"
@@ -350,7 +360,7 @@ class VortexXspress37(Trigger, DetectorBase):
         super().__init__(*args, **kwargs)
 
         self.default_settings()
-        self.setup_soft_trigger()
+        # self.setup_soft_trigger()
 
 
     # Make this compatible with other detectors
@@ -381,10 +391,10 @@ class VortexXspress37(Trigger, DetectorBase):
         self.hdf1.enable.set("Disable").wait(timeout=10)
 
     def auto_save_on(self):
-        self.hdf1.autosave.put("on")
+        self.hdf1.auto_save.put(1)
 
     def auto_save_off(self):
-        self.hdf1.autosave.put("off")
+        self.hdf1.auto_save.put(0)
 
     def wait_for_detector(self):
 

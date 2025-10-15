@@ -33,7 +33,7 @@ RUN_ENGINE:
 # Command-line tools, such as %wa, %ct, ...
 USE_BLUESKY_MAGICS: true
 
-#Enabling usage of baseline label -> still not working
+#Enabling usage of baseline label
 BASELINE_LABEL:
     ENABLE: true
 
@@ -57,7 +57,7 @@ NEXUS_DATA_FILES:
     FILE_EXTENSION: hdf
 
 SPEC_DATA_FILES:
-    ENABLE: true
+    ENABLE: false
     FILE_EXTENSION: dat
 
 STORAGE:

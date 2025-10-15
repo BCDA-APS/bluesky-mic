@@ -168,6 +168,8 @@ class ISN_Undulator(Revolver_Undulator):
     # energy = Component(UndulatorEnergy, "")
     # tracking = Component(TrackingSignal, value=False, kind='config')
 
+    version_hdmu = None
+
     # start_button = None
     # stop_button = None
     # device_status = None

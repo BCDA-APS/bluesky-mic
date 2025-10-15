@@ -15,7 +15,7 @@ class EpicsMotorExtension(EpicsMotor):
 
 class Sample(Device):
 
-    x = Component(EpicsMotorExtension, ":m2", kind='config', labels=('motor', ))
+    x = Component(EpicsMotor, ":m2", kind='config', labels=('motor', ))
     y = Component(EpicsMotor, ":m3", kind='config', labels=('motor', ))
     z = Component(EpicsMotor, ":m1", kind='config', labels=('motor', ))
 

@@ -1,6 +1,31 @@
+from ophyd import (
+    Component,
+    EpicsSignal,
+    EpicsSignalWithRBV,
+    ADComponent
+)
+from ophyd.areadetector.plugins import HDF5Plugin
+from ophyd.areadetector import Xspress3DetectorCam
+
+from apstools.devices import CamMixin_V34
+
 from apsbits.utils.controls_setup import oregistry
 
-from ophyd.areadetector.plugins import HDF5Plugin
+
+class VortexDetectorCam(CamMixin_V34, Xspress3DetectorCam):
+    trigger_mode = Component(EpicsSignalWithRBV, "TriggerMode", kind="config")
+    erase_on_start = Component(
+        EpicsSignal, "EraseOnStart", string=True, kind="config"
+    )
+    soft_trigger = ADComponent(EpicsSignal, "SoftTrigger")
+
+    # Removed
+    offset = None
+    num_exposures = None
+    acquire_period = None
+
+
+
 
 
 class MicHDF5(HDF5Plugin):

@@ -33,10 +33,9 @@ isn.devices.xrayeye.XRayEye:
 isn.devices.softgluezynq.SoftGlueZynq:
 - name: softglue
   prefix: acq_isn
-  labels: ["softglue"]
 
 isn.devices.bda.BDA:
-- name: bda_vert
+- name: bdavert
   prefix: 19idBDA
   axis: V
   labels: ["baseline"]
@@ -45,6 +44,12 @@ isn.devices.bda.BDA:
   prefix: 19idBDA
   axis: H
   labels: ["baseline"]
+
+isn.devices.diamond_window.Diamond_Window:
+- name: diamond
+  prefix: "19idACS"
+  labels: ["baseline"]
+  
 
 
 # # # isn.devices.rayspec.Rayspec:
@@ -81,13 +86,13 @@ isn.devices.bpm.BasicQuadEM:
 - name: bpm_d
   prefix: "19idBPM:D:T4U:"
 
-# # apstools.devices.aps_machine.ApsMachineParametersDevice:
-# # - name: ring
-# #   labels: ["baseline"]
-
-mic_common.devices.ring.PatchedApsMachineParametersDevice:
+apstools.devices.aps_machine.ApsMachineParametersDevice:
 - name: ring
   labels: ["baseline"]
+
+# mic_common.devices.ring.PatchedApsMachineParametersDevice:
+# - name: ring
+#   labels: ["baseline"]
 
 apstools.devices.hhl_slits.HHLSlits:
 - name: wbs
@@ -111,64 +116,64 @@ isn.devices.undulators.UndulatorPair:
   prefix: S19ID
   labels: ["baseline"]
 
-# # isn.devices.diffractometer.RobotArmDiffractometer:
-# # - name: psic
-# #   prefix: ""
+isn.devices.diffractometer.RobotArmDiffractometer:
+- name: psic
+  prefix: ""
 
 isn.devices.kb.KB:
 - name: kb
   prefix: "19idKB:"
   labels: ["baseline"]
 
-isn.devices.flag.Flag:
-- name: flag_a
-  flag_prefix: "19idFlag1:"
-  motor_prefix: "19idMR:m6"
-  in_position: 0
-  out_position: 20.9
+# isn.devices.flag.Flag:
+# - name: flag_a
+#   flag_prefix: "19idFlag1:"
+#   motor_prefix: "19idMR:m6"
+#   in_position: 0
+#   out_position: 20.9
 
-- name: flag_dcm
-  flag_prefix: "19idFlagDCM:"
-  motor_prefix: "19idDCM:m3"
-  in_position: 3
-  out_position: 16.5
+# - name: flag_dcm
+#   flag_prefix: "19idFlagDCM:"
+#   motor_prefix: "19idDCM:m3"
+#   in_position: 3
+#   out_position: 16.5
 
-- name: flag_c
-  flag_prefix: "19idFlagC:"
-  motor_prefix: "19idBDA:m7"
-  in_position: -8
-  out_position: 0
-  labels: ["baseline"]
+# - name: flag_c
+#   flag_prefix: "19idFlagC:"
+#   motor_prefix: "19idBDA:m7"
+#   in_position: -8
+#   out_position: 0
+#   labels: ["baseline"]
   
 
-- name: flag_e1
-  flag_prefix: "19ide1:"
-  motor_prefix: "19idMMC:m6"
-  in_position: 0
-  out_position: 20
+# - name: flag_e1
+#   flag_prefix: "19ide1:"
+#   motor_prefix: "19idMMC:m6"
+#   in_position: 0
+#   out_position: 20
 
-- name: flag_e2
-  flag_prefix: "19ide2:"
-  motor_prefix: "19idMMC:m5"
-  in_position: -20
-  out_position: 0
+# - name: flag_e2
+#   flag_prefix: "19ide2:"
+#   motor_prefix: "19idMMC:m5"
+#   in_position: -20
+#   out_position: 0
 
-# mic_common.devices.eiger.Eiger:
-# - name: ptycho
-#   prefix: "19idPTYCHO:"
-#   labels: ["detector"]
+mic_common.devices.eiger.Eiger:
+- name: ptycho
+  prefix: "19idPTYCHO:"
+  labels: ["detector"]
 
-# - name: xrd
-#   prefix: "19idXRD:"
-#   labels: ["detector"]
+- name: xrd
+  prefix: "19idXRD:"
+  labels: ["detector"]
 
-# # isn.devices.me7.ME7:
-# # - name: me7
-# #   prefix: "XSP3_7Chan:"
-
-isn.devices.vortex_xpress3_me7.VortexXspress37:
+isn.devices.flying_me7.VortexXspress37:
 - name: me7
   prefix: "XSP3_7Chan:"
+
+# isn.devices.vortex_xpress3_me7.VortexXspress37:
+# - name: me7
+#   prefix: "XSP3_7Chan:"
 
 isn.devices.socketserver.SocketServer:
 - name: socketserver
@@ -177,10 +182,10 @@ isn.devices.socketserver.SocketServer:
 
 
 
-# mic_common.devices.save_data.SaveDataMic:
-# - name: savedata
-#   prefix: 19idBLUE:saveData_
-#   labels: ["scandata"]
+mic_common.devices.save_data.SaveDataMic:
+- name: savedata
+  prefix: 19idBLUE:saveData_
+  labels: ["scandata"]
 
 
 # mic_common.devices.scan_record.ScanRecord:

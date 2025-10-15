@@ -270,6 +270,7 @@ class EigerDetectorCam(CamMixin_V34, EigerDetectorCam):
     offset = None
 
 
+
 class VortexDetectorCam(CamMixin_V34, Xspress3DetectorCam):
     trigger_mode = Component(EpicsSignalWithRBV, "TriggerMode", kind="config")
     erase_on_start = Component(
