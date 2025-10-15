@@ -40,8 +40,6 @@ MAX_IMAGES = 12216
 MAX_ROIS = 8
 
 
-
-
 class Trigger(TriggerBase):
     """
     This trigger mixin class takes one acquisition per trigger.
@@ -88,13 +86,20 @@ class Trigger(TriggerBase):
         self.cam.stage_sigs["erase_on_start"] = "No"
         self._softsetup = True
 
+    def setup_flyscan_mode(self, num_images=1, acq_time=0.01):
+        self.cam.stage_sigs["num_images"] = num_images
+        self.cam.stage_sigs["trigger_mode"] = "TTL Veto Only"
+        self.cam.stage_sigs["acquire_time"] = acq_time
+        self.cam.stage_sigs["erase_on_start"] = "No"
+        self._flysetup = True
+
     def stage(self):
 
         self.cam.erase.put(1)
         # self.cam.erase.set(1).wait()
 
-        if self._flysetup:
-            self.setup_external_trigger()
+        # if self._flysetup:
+        #     self.setup_external_trigger()
 
         if self._softsetup:
             self.setup_soft_trigger()

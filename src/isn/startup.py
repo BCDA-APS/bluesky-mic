@@ -111,17 +111,27 @@ if iconfig.get("SPEC_DATA_FILES", {}).get("ENABLE", False):
 # Experiment specific logic, device and plan loading
 RE(make_devices(clear=False, file="devices.yml"))  # Create the devices.
 
-# Diffractometer utilities:
-# import hklpy2 # noqa: F401
-sim_psic = hklpy2.creator(
-    name="sim_psic", solver="hkl_soleil", geometry="E6C",
-    reals="mu eta chi phi yaw pitch".split(),
-)
-sim_psic.core.mode="lifting_detector_mu"
 
-psic = oregistry['psic']
-psic.wait_for_connection()
-psic.core.mode = "lifting_detector_mu"
+# Assign softglue detector key map
+det_keymap = iconfig.get("SOFTGLUE_OUTPUTS")
+try:
+    softglue = oregistry.find('softglue')
+    softglue.det_keymap = det_keymap
+except:
+    logger.info("Softglue not found, detector key map not generated.")
+
+
+# # Diffractometer utilities:
+# # import hklpy2 # noqa: F401
+# sim_psic = hklpy2.creator(
+#     name="sim_psic", solver="hkl_soleil", geometry="E6C",
+#     reals="mu eta chi phi yaw pitch".split(),
+# )
+# sim_psic.core.mode="lifting_detector_mu"
+
+# psic = oregistry['psic']
+# psic.wait_for_connection()
+# psic.core.mode = "lifting_detector_mu"
 
 # if host_on_aps_subnet():
 #     RE(make_devices(clear=False, file="devices_aps_only.yml"))

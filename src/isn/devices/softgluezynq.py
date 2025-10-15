@@ -5,12 +5,15 @@ from ophyd.status import DeviceStatus
 from collections import OrderedDict
 from bluesky.plan_stubs import mv, sleep
 import numpy as np
+import logging
+
+logger = logging.getLogger(__name__)
 
 def _io_fields(num=16):
     defn = OrderedDict()
     for i in range(1, num+1):
-        defn[f"fi{i}"] = (EpicsSignal, f"SG:FI{i}_Signal", {"kind": "config"})
-        defn[f"fo{i}"] = (EpicsSignal, f"SG:FO{i}_Signal", {"kind": "config"})
+        defn[f"fi{i}"] = (EpicsSignal, f":SG:FI{i}_Signal", {"kind": "config"})
+        defn[f"fo{i}"] = (EpicsSignal, f":SG:FO{i}_Signal", {"kind": "config"})
     return defn
 
 def _dma_fields(num=8, first_letter="I"):
@@ -144,6 +147,9 @@ class SoftGlueZynq(Device):
     # dma_clear = Component(EpicsSignal, ":1acquireDma.F")
     # dma_screen_clear = Component(EpicsSignal, ":1acquireDma.D")
     # dma_enable = Component(EpicsSignal, ":1acquireDmaEnable")
+
+    #Detector output mapping
+    det_keymap = None
 
     ### Functions
 
@@ -313,3 +319,21 @@ class SoftGlueZynq(Device):
         yield from mv(self.dac1_init, "1!")
         yield from mv(self.dac1_val, y_bits)
         yield from mv(self.dac1_write, "1!")
+
+    def enable_detector_trigger(self, detector_name, det_keymap = None):
+        if det_keymap is None:
+            det_keymap = self.det_keymap
+            logger.info(f"Using default softglue detector key mapping: {det_keymap}")
+
+        try:
+            trigger_output = det_keymap[detector_name.upper()]
+        except:
+            logger.info(f"{detector_name} is not configured for TTL triggering.")
+            return
+        output_field = getattr(self.io, f"fo{trigger_output}")
+        output_field.put("trigger")
+
+    def clear_output_fields(self):
+        for i in np.arange(1,9,1):
+            output_field = getattr(self.io, f"fo{str(int(i))}")
+            output_field.put("0")

@@ -26,9 +26,9 @@ isn.devices.sample.Sample:
   prefix: 19idAERO
   labels: ["baseline"]
 
-isn.devices.xrayeye.XRayEye:
-- name: xrayeye
-  prefix: 19idXEYE
+# isn.devices.xrayeye.XRayEye:
+# - name: xrayeye
+#   prefix: 19idXEYE
 
 isn.devices.softgluezynq.SoftGlueZynq:
 - name: softglue
@@ -116,9 +116,9 @@ isn.devices.undulators.UndulatorPair:
   prefix: S19ID
   labels: ["baseline"]
 
-isn.devices.diffractometer.RobotArmDiffractometer:
-- name: psic
-  prefix: ""
+# isn.devices.diffractometer.RobotArmDiffractometer:
+# - name: psic
+#   prefix: ""
 
 isn.devices.kb.KB:
 - name: kb
@@ -170,6 +170,7 @@ mic_common.devices.eiger.Eiger:
 isn.devices.flying_me7.VortexXspress37:
 - name: me7
   prefix: "XSP3_7Chan:"
+  labels: ["detector"]
 
 # isn.devices.vortex_xpress3_me7.VortexXspress37:
 # - name: me7

@@ -1,4 +1,5 @@
 from apsbits.utils.controls_setup import oregistry
+from apsbits.utils.config_loaders import get_config
 from bluesky.plan_stubs import mv, sleep
 import logging
 
@@ -11,6 +12,10 @@ socketserver = oregistry['socketserver']
 savedata = oregistry['savedata']
 ptycho = oregistry['ptycho'] #temporary while we fix external gating
 xrd = oregistry['xrd'] #temporary while we fix external gating
+
+
+iconfig = get_config()
+softglue_outputs = iconfig.get("SOFTGLUE_OUTPUTS")
 
 def flyscan(
         detectors,
@@ -35,6 +40,7 @@ def flyscan(
 
     yield from softglue.stop()
     yield from softglue.reset()
+    softglue.clear_output_fields()
 
 
     # --- Defining user clock --- #
@@ -161,14 +167,21 @@ def flyscan(
 
     logging.info("Arming detectors")
 
-    for detector in detectors:
-        if detector in [ptycho, xrd]: #temporary patch while we fix external gating mode
-            total_images = int((x_npts*y_npts)/F-1)
-            detector.setup_flyscan_mode(num_images=total_images)
-            logging.info(f"Expecting {total_images} images.")
-        else:
-            detector.setup_flyscan_mode()
+    total_images = int((x_npts*y_npts)/F-1)
+    logging.info(f"Expecting {total_images} images.")
 
+    for detector in detectors:
+
+        softglue.enable_detector_trigger(detector.name)
+        
+        # if detector in [ptycho, xrd]: #temporary patch while we fix external gating mode
+        #     total_images = int((x_npts*y_npts)/F-1)
+        #     detector.setup_flyscan_mode(num_images=total_images)
+        #     logging.info(f"Expecting {total_images} images.")
+        # else:
+        #     detector.setup_flyscan_mode()
+
+        detector.setup_flyscan_mode(num_images=total_images)
         detector.stage()
 
         

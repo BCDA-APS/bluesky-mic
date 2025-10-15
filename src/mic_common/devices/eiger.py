@@ -51,16 +51,17 @@ class Trigger(SingleTrigger):
         self.cam.stage_sigs["acquire_period"]= acq_time
         self.cam.stage_sigs["manual_trigger"] = "Disable"
         self.cam.stage_sigs["num_exposures"] = 1
-        # self.cam.stage_sigs["acquire"] = "Start"
+        # # self.cam.stage_sigs["acquire"] = "Start"
+        # self._flysetup = True
 
 
     def stage(self):
         '''Staging detector. Must ensure that stage signals are well defined previously.'''
 
         #Guarantee we are not collecting
-        self.cam.acquire.set(0).wait(timeout=10)
+        self.cam.acquire.put(0)
         super().stage()
-        self.cam.acquire.set(1).wait(timeout=10)
+        self.cam.acquire.put(1)
 
     def trigger(self):
         if self._staged != Staged.yes:
@@ -155,10 +156,10 @@ class Eiger(Trigger, DetectorBase):
         self.hdf1.enable.set("Disable").wait(timeout=10)
 
     def auto_save_on(self):
-        self.hdf1.autosave.put("on")
+        self.hdf1.auto_save.put("0")
 
     def auto_save_off(self):
-        self.hdf1.autosave.put("off")
+        self.hdf1.auto_save.put("1")
 
     def plot_all(self):
         self.plot_select([1, 2, 3, 4, 5])
