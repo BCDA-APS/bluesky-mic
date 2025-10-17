@@ -15,6 +15,7 @@ from apstools.utils import run_in_thread
 
 
 class MyTetrAMM(TetrAMM):
+
     """Caen picoammeter - TetraAMM."""
 
     conf = Component(QuadEMPort, add_prefix="19idSFT:TetrAMM1:", port_name="QUAD_PORT")
@@ -27,6 +28,7 @@ class MyTetrAMM(TetrAMM):
     sum_all = Component(StatsPlugin_V34, "SumAll:")
 
     position_y_fast = Component(EpicsSignalRO, "PositionYAve")
+
 
     def __init__(self, *args, port_name="TetrAMM", **kwargs):
         """custom port name"""
@@ -66,11 +68,13 @@ class MyTetrAMM(TetrAMM):
                 "Call the stage() method before triggering."
             )
 
-        self._status = None
-        self._acquisition_signal.put(1, wait=True)
-        self._status = self._status_type(self)
-        self._status.set_finished()
-        return self._status
+        # self._status = None
+        # self._acquisition_signal.put(1, wait=True)
+        # self._status = self._status_type(self)
+        # self._status.set_finished()
+        # return self._status
+
+        return super().trigger()
     
     def unstage(self):
         self._status = None

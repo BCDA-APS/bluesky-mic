@@ -2,6 +2,10 @@ from ophyd import QuadEM
 from ophyd import EpicsSignalRO
 from ophyd import Component
 from ophyd import Device
+from ophyd import EpicsMotor
+from ophyd import FormattedComponent
+
+from ophyd.areadetector import DetectorBase
 
 from ophyd.device import Staged
 from ophyd.status import Status
@@ -20,6 +24,35 @@ class BasicQuadEM(Device):
     fast_position_x = Component(EpicsSignalRO, "PositionXAve")
     fast_position_y = Component(EpicsSignalRO, "PositionYAve")
     
+
+class MyBPM(Device):
+
+    _default_configuration_attrs = ()
+    _default_read_attrs = (
+        'fast_current1',
+        'fast_current2',
+        'fast_current3',
+        'fast_current4',
+    )
+
+    vert = FormattedComponent(EpicsMotor, "{vertical_motor_prefix}")
+    hor = FormattedComponent(EpicsMotor, "{horizontal_motor_prefix}")
+
+    fast_current1 = FormattedComponent(EpicsSignalRO, "{quadem_prefix}Current1Ave")
+    fast_current2 = FormattedComponent(EpicsSignalRO, "{quadem_prefix}Current2Ave")
+    fast_current3 = FormattedComponent(EpicsSignalRO, "{quadem_prefix}Current3Ave")
+    fast_current4 = FormattedComponent(EpicsSignalRO, "{quadem_prefix}Current4Ave")
+
+    fast_position_x = FormattedComponent(EpicsSignalRO, "{quadem_prefix}PositionXAve")
+    fast_position_y = FormattedComponent(EpicsSignalRO, "{quadem_prefix}PositionYAve")
+
+    def __init__(self, quadem_prefix, vertical_motor_prefix, horizontal_motor_prefix, *args, **kwargs):
+        self.quadem_prefix = quadem_prefix
+        self.vertical_motor_prefix = vertical_motor_prefix
+        self.horizontal_motor_prefix = horizontal_motor_prefix
+
+        super().__init__(*args, **kwargs)
+
 
 class MyQuadEM(QuadEM):
 
