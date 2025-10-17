@@ -112,7 +112,7 @@ def fly2d(
         yield from bps.mv(samy, y_center)
 
     """Set up inner scan record based on the scan types and parameters"""
-    yield from generalized_scan_1d(fscanh, fscanh_samx, savedata, scan_overhead=scan_overhead,
+    yield from generalized_scan_1d(scanrecord=fscanh, positioner=fscanh_samx, savedata=savedata, scan_overhead=scan_overhead,
                                 scanmode="FLY", x_center=x_center, width=width, 
                                 stepsize_x=stepsize_x, dwell=dwell)
     yield from fscanh.set_positioner_readback("")
