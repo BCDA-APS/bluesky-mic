@@ -27,24 +27,32 @@ class BasicQuadEM(Device):
 
 class MyBPM(Device):
 
-    _default_configuration_attrs = ()
+    # _default_configuration_attrs = (
+    #     'vert',
+    #     'hor',
+    #     )
+
     _default_read_attrs = (
-        'fast_current1',
-        'fast_current2',
-        'fast_current3',
-        'fast_current4',
+        'vert',
+        'hor',
+        'current1',
+        'current2',
+        'current3',
+        'current4',
+        'x',
+        'y',
     )
 
     vert = FormattedComponent(EpicsMotor, "{vertical_motor_prefix}")
     hor = FormattedComponent(EpicsMotor, "{horizontal_motor_prefix}")
 
-    fast_current1 = FormattedComponent(EpicsSignalRO, "{quadem_prefix}Current1Ave")
-    fast_current2 = FormattedComponent(EpicsSignalRO, "{quadem_prefix}Current2Ave")
-    fast_current3 = FormattedComponent(EpicsSignalRO, "{quadem_prefix}Current3Ave")
-    fast_current4 = FormattedComponent(EpicsSignalRO, "{quadem_prefix}Current4Ave")
+    current1 = FormattedComponent(EpicsSignalRO, "{quadem_prefix}Current1Ave")
+    current2 = FormattedComponent(EpicsSignalRO, "{quadem_prefix}Current2Ave")
+    current3 = FormattedComponent(EpicsSignalRO, "{quadem_prefix}Current3Ave")
+    current4 = FormattedComponent(EpicsSignalRO, "{quadem_prefix}Current4Ave")
 
-    fast_position_x = FormattedComponent(EpicsSignalRO, "{quadem_prefix}PositionXAve")
-    fast_position_y = FormattedComponent(EpicsSignalRO, "{quadem_prefix}PositionYAve")
+    x = FormattedComponent(EpicsSignalRO, "{quadem_prefix}PositionXAve")
+    y = FormattedComponent(EpicsSignalRO, "{quadem_prefix}PositionYAve")
 
     def __init__(self, quadem_prefix, vertical_motor_prefix, horizontal_motor_prefix, *args, **kwargs):
         self.quadem_prefix = quadem_prefix
@@ -56,13 +64,20 @@ class MyBPM(Device):
 
 class MyQuadEM(QuadEM):
 
-    fast_current1 = Component(EpicsSignalRO, "Current1Ave")
-    fast_current2 = Component(EpicsSignalRO, "Current2Ave")
-    fast_current3 = Component(EpicsSignalRO, "Current3Ave")
-    fast_current4 = Component(EpicsSignalRO, "Current4Ave")
+    current1 = Component(EpicsSignalRO, "Current1Ave")
+    current2 = Component(EpicsSignalRO, "Current2Ave")
+    current3 = Component(EpicsSignalRO, "Current3Ave")
+    current4 = Component(EpicsSignalRO, "Current4Ave")
 
-    fast_position_x = Component(EpicsSignalRO, "PositionXAve")
-    fast_position_y = Component(EpicsSignalRO, "PositionYAve")
+    x = Component(EpicsSignalRO, "PositionXAve")
+    y = Component(EpicsSignalRO, "PositionYAve")
+
+    _default_read_attrs = ('current1',
+                           'current2',
+                           'current3',
+                           'current4',
+                           'x',
+                           'y')
 
     
     def __init__(self, *args, **kwargs):

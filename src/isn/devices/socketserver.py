@@ -14,6 +14,7 @@ from ophyd.areadetector import (
 from apstools.utils import run_in_thread
 from mic_common.devices.ad_fileplugin import DetHDF5
 from mic_common.devices.ad_fileplugin import MicHDF5
+# from isn.devices.mic_ad_mixins import MicHDF5
 from time import sleep
 
 from collections import OrderedDict
@@ -37,6 +38,11 @@ class Trigger(SingleTrigger):
     #     self.acquire.put(1, wait=False)
     #     # self._status.set_finished()
     #     return self._status
+
+    def unstage(self):
+        self.acquire.put(0)
+        self.hdf1.unstage()
+        super().unstage()
     
 
     # def finish_capture(self):
@@ -54,11 +60,12 @@ class SocketServer(Trigger, DetectorBase):
         super().__init__(*args, **kwargs)
 
         #Now we address the staging signals
-        self.stage_sigs.pop('cam.image_mode', None)
-        self.stage_sigs['array_counter'] = 0
+        # self.stage_sigs.pop('cam.image_mode', None)
+        # self.stage_sigs['array_counter'] = 0
 
-        #TODO: Fix this so that we can use them as real staging signals
-        self.hdf1.stage_sigs["num_capture"] = 50000
+        # #TODO: Fix this so that we can use them as real staging signals
+        # self.hdf1.stage_sigs["num_capture"] = 50000
+        self.stage_sigs = {}
         
 
     _default_configuration_attrs = None

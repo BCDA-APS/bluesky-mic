@@ -40,9 +40,9 @@ def _dma_fields(num=8, first_letter="I"):
 
 class UpCounter(Device):
     enable = Component(EpicsSignal, "ENABLE_Signal", kind='config')
-    clock = Component(EpicsSignal, "CLK_Signal", kind='config')
+    clock = Component(EpicsSignal, "CLOCK_Signal", kind='config')
     clear = Component(EpicsSignal, "CLEAR_Signal", kind='config')
-    counts = Component(EpicsSignalRO, "Counts", kind='config')
+    counts = Component(EpicsSignalRO, "COUNTS", kind='config')
 
 class DownCounter(Device):
     enable = Component(EpicsSignal, "ENABLE_Signal", kind='config')
@@ -88,11 +88,23 @@ class ScalToStream(Device):
     im_trig = Component(EpicsSignal, "_IMTRIG_Signal")
     flush = Component(EpicsSignal, "_FLUSH_Signal")
 
+def _interferometer_tracker(if_tracker, num=6):
+    defn = OrderedDict()
+    for i in range(1, 1+num):
+        defn[f"if{i}"] = (EpicsSignal, f":SG:IF_tracker-{if_tracker}_IN{i}", {"kind":"normal"})
+    return defn
+
 
 
 class SoftGlueZynq(Device):
 
     _status_type = DeviceStatus
+
+    _default_read_attrs = (
+                            "if_tracker_1",
+                            "if_tracker_2",
+                            "if_tracker_3",
+                            )
 
     ### Components
 
@@ -147,6 +159,10 @@ class SoftGlueZynq(Device):
     # dma_clear = Component(EpicsSignal, ":1acquireDma.F")
     # dma_screen_clear = Component(EpicsSignal, ":1acquireDma.D")
     # dma_enable = Component(EpicsSignal, ":1acquireDmaEnable")
+
+    if_tracker_1 = DynamicDeviceComponent(_interferometer_tracker(1))
+    if_tracker_2 = DynamicDeviceComponent(_interferometer_tracker(2))
+    if_tracker_3 = DynamicDeviceComponent(_interferometer_tracker(3, num=3))
 
     #Detector output mapping
     det_keymap = None

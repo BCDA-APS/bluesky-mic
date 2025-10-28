@@ -10,8 +10,9 @@ softglue = oregistry['softglue']
 sample = oregistry['sample']
 socketserver = oregistry['socketserver']
 savedata = oregistry['savedata']
-ptycho = oregistry['ptycho'] #temporary while we fix external gating
-xrd = oregistry['xrd'] #temporary while we fix external gating
+
+# ptycho = oregistry['ptycho'] #temporary while we fix external gating
+# xrd = oregistry['xrd'] #temporary while we fix external gating
 
 
 iconfig = get_config()
@@ -19,16 +20,16 @@ softglue_outputs = iconfig.get("SOFTGLUE_OUTPUTS")
 
 def flyscan(
         detectors,
-        x_min=-50, # in um
-        x_max=50, #in um
-        x_npts=11,
-        y_min=0, #in um
-        y_max=90, #in um
-        y_npts=11,
-        acquire_time=80, # in ms
-        det_dead=20, # in ms (detector dead time)
-        F=0.9, # Fraction of wave in straight line 0-1
-        interferometer_frequency = 1000 #in Hz
+        x_min:float =-50, # in um
+        x_max:float =50, #in um
+        x_npts:int =11,
+        y_min:float =0, #in um
+        y_max:float =90, #in um
+        y_npts:int =11,
+        acquire_time:float =80, # in ms
+        det_dead:float =20, # in ms (detector dead time)
+        F:float =0.9, # Fraction of wave in straight line 0-1
+        interferometer_frequency: int = 1000 #in Hz
 ):
     
     #Temporarily fixed parameter:
@@ -43,7 +44,7 @@ def flyscan(
     softglue.clear_output_fields()
 
 
-    # --- Defining user clock --- #
+    # --- Defining user clock (ckUser))--- #
 
     user_clock_N = 1e7/interferometer_frequency
     yield from mv(softglue.div_by_n_3.n, user_clock_N)
@@ -51,7 +52,7 @@ def flyscan(
     logger.info(f"Interferometry reading set at {interferometer_frequency :0.3e} Hz")
 
 
-    # --- Defining Image clock --- #
+    # --- Defining Image clock (ckIM)--- #
 
     trigger_period = acquire_time+det_dead
     trigger_N = trigger_period*1e4
@@ -99,11 +100,14 @@ def flyscan(
     # --- Moving y stage to center range position --- #
 
     # We always position at the center of the range :
+    sample.enable_analog_control()
+    yield from sleep(10)
     y_cen = (y_max+y_min)/2
     yield from softglue.move_y_analog(45)
     yield from sleep(1)
 
-    logger.info(f"Samply Y stage moved to {y_cen:0.3e} um.")
+    # logger.info(f"Samply Y stage moved to {y_cen:0.3e} um.")
+    logger.info(f"Samply Y stage moved to {45} um.")
 
 
     # yield from softglue.disable_waveform()
@@ -181,7 +185,10 @@ def flyscan(
         # else:
         #     detector.setup_flyscan_mode()
 
-        detector.setup_flyscan_mode(num_images=total_images)
+        detector.setup_flyscan_mode(num_images=total_images, 
+                                    acq_time=acquire_time*1e-3,
+                                    hdf_images=int(y_npts/0.9))
+        # detector.hdf1.stage()
         detector.stage()
 
         
@@ -203,7 +210,7 @@ def flyscan(
 
     for detector in detectors:
         detector.unstage()
-
+        detector.hdf1.unstage()
     
     # --- Filling up DMA for socket server acquisition --- #
 
@@ -229,5 +236,4 @@ def flyscan(
     savedata.advance_scan_number()
 
     # --- Return sample to initial positions ---
-
 

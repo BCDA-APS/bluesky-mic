@@ -10,7 +10,6 @@ from ophyd.areadetector import (
     EigerDetectorCam, 
     DetectorBase,
     ImagePlugin,
-    HDF5Plugin,
     StatsPlugin,
     ROIPlugin,
     ADTriggerStatus,
@@ -18,41 +17,68 @@ from ophyd.areadetector import (
 )
 
 from apstools.utils import run_in_thread
-from mic_common.devices.ad_fileplugin import DetHDF5, MicHDF5
+from isn.devices.mic_ad_mixins import MicHDF5
 from time import sleep
 
+MAX_IMAGES = 1e4
+DELAY = 0.3
 
 class Trigger(SingleTrigger):
 
     _status_type = ADTriggerStatus
     
-    def __init__(self, *args, min_period=0.2, **kwargs):
+    def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self._acquisition_signal_pv = "cam1:Acquire"
-        self._min_period = min_period
+        self._internal_trigger = False
+        self._delay = DELAY
+        self._trigger_counter = 0
+        self.setup_soft_trigger()
 
     def setup_internal_trigger(self, num_images=None):
-        self.cam.stage_sigs["trigger_mode"] = "Internal Enable"
+        self._acquisition_signal_pv = "cam1:Acquire"
+        self.cam.stage_sigs["trigger_mode"] = "Internal Series"
         self.cam.stage_sigs["manual_trigger"] = "Enable"
         if not num_images:
             self.cam.stage_sigs["num_images"] = 1
-            self.cam.stage_sigs["num_triggers"] = int(1e5)
+            self.cam.stage_sigs["num_triggers"] = MAX_IMAGES
         else:
             self.cam.stage_sigs["num_images"] = num_images
             self.cam.stage_sigs["num_triggers"] = num_images
         self.cam.stage_sigs["num_exposures"] = 1
+        self._flysetup = False
+        self._internal_trigger = False
+        self._soft_trigger = True
 
-    def setup_flyscan_mode(self, num_images=1, acq_time=0.01):
+    def setup_soft_trigger(self):
+        self._acquisition_signal_pv = "cam1:Trigger"
+        self.cam.stage_sigs["trigger_mode"] = "Internal Series"
+        self.cam.stage_sigs["manual_trigger"] = "Enable"
+        self.cam.stage_sigs["num_images"] = 1
+        self.cam.stage_sigs["num_triggers"] = MAX_IMAGES
+        self.cam.stage_sigs.move_to_end("num_triggers", last=False)
+        self.cam.stage_sigs["num_exposures"] = 1
+        self.cam.stage_sigs["acquire"] = 1
+        self.hdf1.stage_sigs["num_capture"] = MAX_IMAGES
+        self._flysetup = False
+        self._internal_trigger = False
+        self._soft_trigger = True
+
+    def setup_flyscan_mode(self, num_images=1, acq_time=0.01, hdf_images=MAX_IMAGES):
+        self.cam.stage_sigs["trigger_mode"] = "External Enable"
         self.cam.stage_sigs["num_triggers"] = num_images
         self.cam.stage_sigs.move_to_end("num_triggers", last=False)
         # self.cam.stage_sigs["num_images"] = num_images
-        self.cam.stage_sigs["trigger_mode"] = "External Enable"
         self.cam.stage_sigs["acquire_time"] = acq_time
         self.cam.stage_sigs["acquire_period"]= acq_time
         self.cam.stage_sigs["manual_trigger"] = "Disable"
         self.cam.stage_sigs["num_exposures"] = 1
-        # # self.cam.stage_sigs["acquire"] = "Start"
-        # self._flysetup = True
+        self.cam.stage_sigs["acquire"] = 1
+        self.hdf1.stage_sigs["enable"] = 1
+        self.hdf1.stage_sigs["auto_save"] = 1
+        self.hdf1.stage_sigs["num_capture"] = hdf_images
+
+
+        self._flysetup = True
 
 
     def stage(self):
@@ -60,28 +86,44 @@ class Trigger(SingleTrigger):
 
         #Guarantee we are not collecting
         self.cam.acquire.put(0)
+        self.delay = self.cam.acquire_time.get()
+        self.delay = max(self.delay, self._delay)
+        self._trigger_counter = 0
+        
         super().stage()
-        self.cam.acquire.put(1)
+
 
     def trigger(self):
         if self._staged != Staged.yes:
             raise RuntimeError("This detector is not ready to trigger."
                                "Call the stage() method before triggering.")
         
+        if self._internal_trigger:
+            super().trigger()
+
+        #The following only applies to soft triggering as flyscanning never triggers.
+
+        if self._trigger_counter >= MAX_IMAGES:
+            self.cam.acquire.set(1).wait(timeout=1)
+            sleep(self._delay)
+            self._trigger_counter = 0
+
         @run_in_thread
         def exposure_delay(status_obj):
-            delay = self.cam.acquire_time.get()
-            sleep(delay)
+            sleep(self.delay)
             status_obj.set_finished()
 
         self._status = self._status_type(self)
         self.cam.special_trigger_button.put(1, wait=False)
         exposure_delay(self._status)
+        self._trigger_counter += 1
         return self._status
 
+
     def unstage(self):
-        super().unstage()
+        self._status = None
         self.cam.acquire.set(0).wait(timeout=10)
+        super().unstage()
     
 
 
@@ -156,10 +198,10 @@ class Eiger(Trigger, DetectorBase):
         self.hdf1.enable.set("Disable").wait(timeout=10)
 
     def auto_save_on(self):
-        self.hdf1.auto_save.put("0")
+        self.hdf1.auto_save.put("1")
 
     def auto_save_off(self):
-        self.hdf1.auto_save.put("1")
+        self.hdf1.auto_save.put("0")
 
     def plot_all(self):
         self.plot_select([1, 2, 3, 4, 5])

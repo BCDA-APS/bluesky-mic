@@ -40,14 +40,14 @@ class CapSensorMotor(EpicsMotor):
 
 class KB(Device):
 
-    _default_configuration_attrs = ("x", 
-                                    "y_ds", 
-                                    "y_us", 
-                                    "z", 
-                                    "theta_y", 
-                                    "theta_z",
-                                    "vertical_angle",
-                                    "vertical_average")
+    _default_read_attrs = ("x", 
+                           "y_ds", 
+                           "y_us", 
+                           "z", 
+                           "theta_y", 
+                           "theta_z",
+                           "vertical_angle",
+                           "vertical_average")
 
     x = Component(CapSensorMotor,
                   positioner_pv="19idKB:m18",
@@ -90,8 +90,8 @@ class KB(Device):
                   coarse_pv='19idKB:m10',
                   name='theta_z')
     
-    vertical_angle = Component(EpicsSignalRO, "vert:t2.C", name="vertical", labels=("baseline",))
-    vertical_average = Component(EpicsSignalRO, "vert:t2.D", name="vertical", labels=("baseline",))
+    vertical_angle = Component(EpicsSignalRO, "vert:t2.C", name="vertical")
+    vertical_average = Component(EpicsSignalRO, "vert:t2.D", name="vertical")
     
 
     

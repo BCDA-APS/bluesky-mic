@@ -3,6 +3,8 @@
 import logging
 logger = logging.getLogger(__name__)
 
+from epics import caput
+
 from ophyd import (
     ADComponent,
     Staged,
@@ -30,14 +32,10 @@ from .mic_ad_mixins import (
     VortexDetectorCam,
     MicHDF5,
 )
-# from .ad_mixins import (
-#     # ROIStatPlugin,
-#     # PolarHDF5Plugin,
-#     # VortexDetectorCam,
-# )
 
 MAX_IMAGES = 12216
 MAX_ROIS = 8
+DELAY = 0.2
 
 
 class Trigger(TriggerBase):
@@ -55,9 +53,10 @@ class Trigger(TriggerBase):
         self._acquisition_signal = self.cam.acquire
         self._acquire_busy_signal = self.cam.acquire_busy
         self._flysetup = False
-        self._softsetup = False
         self._status = None
-        self._delay = 0.1
+        self._delay = DELAY
+        self._trigger_counter = 0
+        self.setup_soft_trigger()
 
     def setup_manual_trigger(self):
         # Stage signals
@@ -73,40 +72,47 @@ class Trigger(TriggerBase):
         self.cam.stage_sigs["num_images"] = MAX_IMAGES
         self.cam.stage_sigs["wait_for_plugins"] = "No"
 
-    # def setup_soft_trigger(self):
-    #     # Stage signals
-    #     self.cam.stage_sigs["trigger_mode"] = "Software + Internal"
-    #     self.cam.stage_sigs["num_images"] = MAX_IMAGES
-    #     self.cam.stage_sigs["wait_for_plugins"] = "Yes"
-    #     self._softsetup = True
-
     def setup_soft_trigger(self):
         # Stage signals
         self.cam.stage_sigs["trigger_mode"] = "Software"
         self.cam.stage_sigs["num_images"] = MAX_IMAGES
         self.cam.stage_sigs["wait_for_plugins"] = "Yes"
         self.cam.stage_sigs["erase_on_start"] = "No"
+        self.hdf1.stage_sigs["num_capture"] = MAX_IMAGES
         self._softsetup = True
 
-    def setup_flyscan_mode(self, num_images=1, acq_time=0.01):
+    def setup_flyscan_mode(self, 
+                           num_images=MAX_IMAGES, 
+                           acq_time=0.01, 
+                           hdf_images=MAX_IMAGES):
+        
+        #For flyscanning we want to disable all the callbacks that we don't need
+        self.set_plugins(0)
+
         self.cam.stage_sigs["num_images"] = num_images
         self.cam.stage_sigs["trigger_mode"] = "TTL Veto Only"
         self.cam.stage_sigs["acquire_time"] = acq_time
         self.cam.stage_sigs["erase_on_start"] = "No"
+        self.hdf1.stage_sigs["enable"] = 1
+        self.hdf1.stage_sigs["auto_save"] = 1
+        self.hdf1.stage_sigs["num_capture"] = hdf_images
+
+        for i in range(1,8):
+            comp = getattr(self, f"chan{i}")
+            comp.stage_sigs["enable"] = 0
+
         self._flysetup = True
 
     def stage(self):
 
-        self.cam.erase.put(1)
-        # self.cam.erase.set(1).wait()
+        if self._flysetup:
+            self.setup_external_trigger()
 
-        # if self._flysetup:
-        #     self.setup_external_trigger()
-
-        if self._softsetup:
+        elif self._softsetup:
+            self._trigger_counter = 0
             self.setup_soft_trigger()
             self._acquire_time = self.cam.acquire_time.get()
-            self.cam.soft_trigger.put(0)
+            # self.cam.soft_trigger.put(0)
 
         # Make sure that detector is not armed.
         self._acquisition_signal.set(0).wait(timeout=10)
@@ -115,20 +121,23 @@ class Trigger(TriggerBase):
 
         super().stage()
 
-
         if self._flysetup or self._softsetup:
             self._acquisition_signal.set(1).wait(timeout=10)
             sleep(0.1)
-
+            self.cam.soft_trigger.set(0).wait(timeout=10)
+            sleep(self._delay)
 
     def unstage(self):
         super().unstage()
         self.cam.acquire.set(0).wait(timeout=10)
-        self._flysetup = False
+        if self._flysetup:
+            self.setup_soft_trigger()
+            self.set_plugins("Enable")
         if not self._softsetup:
             self._acquire_busy_signal.clear_sub(self._acquire_changed)
         self._collect_image = False
-        self.setup_manual_trigger()
+        self._trigger_counter = 0
+        # self.setup_manual_trigger()
 
     def trigger(self):
         if self._staged != Staged.yes:
@@ -136,16 +145,25 @@ class Trigger(TriggerBase):
                 "This detector is not ready to trigger."
                 "Call the stage() method before triggering."
             )
+        
 
 
         # Click the Acquire_button
         self._status = self._status_type(self)
         if self._softsetup:
-            self.cam.soft_trigger.put(1)
+            if self._trigger_counter >= MAX_IMAGES:
+                self.cam.erase.set(1).wait(timeout=1)
+                self.cam.acquire.set(1).wait(timeout=1)
+                sleep(self._delay)
+                self.cam.soft_trigger.set(0).wait(timeout=1)
+                self._trigger_counter = 0
+                sleep(self._delay)
+            self.cam.soft_trigger.set(1).wait(timeout=1)
             sleep(self._acquire_time)
-            self.cam.soft_trigger.put(0)
+            self.cam.soft_trigger.set(0).wait(timeout=1)
             sleep(self._delay)
             self._status.set_finished()
+            self._trigger_counter += 1
         else:
             self._acquisition_signal.put(1, wait=False)
         if self.hdf1.enable.get() in (True, 1, "on", "Enable"):
@@ -195,7 +213,7 @@ class ROIStatN(Device):
     roi_sizex = Component(EpicsSignalWithRBV, "SizeY", kind="config")
 
     max_sizey = Component(EpicsSignalRO, "MaxSizeY_RBV", kind="config")
-    roi_startxy = Component(EpicsSignalWithRBV, "MinY", kind="config")
+    roi_starty = Component(EpicsSignalWithRBV, "MinY", kind="config")
     roi_sizey = Component(EpicsSignalWithRBV, "SizeY", kind="config")
 
     bdg_width = Component(EpicsSignalWithRBV, "BgdWidth", kind="config")
@@ -225,15 +243,15 @@ class VortexROIStatPlugin(ROIStatPlugin):
 class VortexSCA(AttributePlugin):
 
     _default_read_attrs = (
-        # 'clock_ticks',
-        # 'reset_ticks',
-        # 'reset_counts',
-        # 'all_events',
-        # 'all_good',
-        # 'window1',
-        # 'window2',
-        # 'pileup',
-        # 'event_width',
+        'clock_ticks',
+        'reset_ticks',
+        'reset_counts',
+        'all_events',
+        'all_good',
+        'window1',
+        'window2',
+        'pileup',
+        'event_width',
         "dt_factor",
         "dt_percent",
     )
@@ -552,3 +570,63 @@ class VortexXspress37(Trigger, DetectorBase):
         _hdf1_auto = True if self.hdf1.autosave.get() == "on" else False
         _hdf1_on = True if self.hdf1.enable.get() == "Enable" else False
         return _hdf1_on or _hdf1_auto
+    
+    def set_plugins(self, state='Enable'):
+        #TODO: cleaner way to do this?
+
+        _plugins = (
+                    "XSP3_7Chan:Proc1:EnableCallbacks",
+                    "XSP3_7Chan:ROIStat1:EnableCallbacks",
+                    "XSP3_7Chan:ROI1:EnableCallbacks",
+                    "XSP3_7Chan:ROISUM1:EnableCallbacks",
+                    "XSP3_7Chan:C1SCA:EnableCallbacks",
+                    "XSP3_7Chan:C1SCA:TS:EnableCallbacks",
+                    "XSP3_7Chan:MCA1:EnableCallbacks",
+                    "XSP3_7Chan:MCASUM1:EnableCallbacks",
+                    "XSP3_7Chan:MCA1ROI:EnableCallbacks",
+                    "XSP3_7Chan:ROI2:EnableCallbacks",
+                    "XSP3_7Chan:ROISUM2:EnableCallbacks",
+                    "XSP3_7Chan:C2SCA:EnableCallbacks",
+                    "XSP3_7Chan:C2SCA:TS:EnableCallbacks",
+                    "XSP3_7Chan:MCA2:EnableCallbacks",
+                    "XSP3_7Chan:MCASUM2:EnableCallbacks",
+                    "XSP3_7Chan:MCA2ROI:EnableCallbacks",
+                    "XSP3_7Chan:ROI3:EnableCallbacks",
+                    "XSP3_7Chan:ROISUM3:EnableCallbacks",
+                    "XSP3_7Chan:C3SCA:EnableCallbacks",
+                    "XSP3_7Chan:C3SCA:TS:EnableCallbacks",
+                    "XSP3_7Chan:MCA3:EnableCallbacks",
+                    "XSP3_7Chan:MCASUM3:EnableCallbacks",
+                    "XSP3_7Chan:MCA3ROI:EnableCallbacks",
+                    "XSP3_7Chan:ROI4:EnableCallbacks",
+                    "XSP3_7Chan:ROISUM4:EnableCallbacks",
+                    "XSP3_7Chan:C4SCA:EnableCallbacks",
+                    "XSP3_7Chan:C4SCA:TS:EnableCallbacks",
+                    "XSP3_7Chan:MCA4:EnableCallbacks",
+                    "XSP3_7Chan:MCASUM4:EnableCallbacks",
+                    "XSP3_7Chan:MCA4ROI:EnableCallbacks",
+                    "XSP3_7Chan:ROI5:EnableCallbacks",
+                    "XSP3_7Chan:ROISUM5:EnableCallbacks",
+                    "XSP3_7Chan:C5SCA:EnableCallbacks",
+                    "XSP3_7Chan:C5SCA:TS:EnableCallbacks",
+                    "XSP3_7Chan:MCA5:EnableCallbacks",
+                    "XSP3_7Chan:MCASUM5:EnableCallbacks",
+                    "XSP3_7Chan:MCA5ROI:EnableCallbacks",
+                    "XSP3_7Chan:ROI6:EnableCallbacks",
+                    "XSP3_7Chan:ROISUM6:EnableCallbacks",
+                    "XSP3_7Chan:C6SCA:EnableCallbacks",
+                    "XSP3_7Chan:C6SCA:TS:EnableCallbacks",
+                    "XSP3_7Chan:MCA6:EnableCallbacks",
+                    "XSP3_7Chan:MCASUM6:EnableCallbacks",
+                    "XSP3_7Chan:MCA6ROI:EnableCallbacks",
+                    "XSP3_7Chan:ROI7:EnableCallbacks",
+                    "XSP3_7Chan:ROISUM7:EnableCallbacks",
+                    "XSP3_7Chan:C7SCA:EnableCallbacks",
+                    "XSP3_7Chan:C7SCA:TS:EnableCallbacks",
+                    "XSP3_7Chan:MCA7:EnableCallbacks",
+                    "XSP3_7Chan:MCASUM7:EnableCallbacks",
+                    "XSP3_7Chan:MCA7ROI:EnableCallbacks",
+                    )
+        
+        for plugin in _plugins:
+            caput(plugin, state)

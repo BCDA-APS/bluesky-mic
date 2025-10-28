@@ -33,6 +33,7 @@ isn.devices.sample.Sample:
 isn.devices.softgluezynq.SoftGlueZynq:
 - name: softglue
   prefix: acq_isn
+  labels: ["baseline"]
 
 isn.devices.bda.BDA:
 - name: bda_vert
@@ -58,11 +59,11 @@ isn.devices.diamond_window.Diamond_Window:
 # # #   labels: ["motor"]
 
 
-isn.devices.tetramm.MyTetrAMM:
-- name: tetramm1
-  prefix: "19idSFT:TetrAMM1:"
-  port_name: "TetrAMM1"
-  labels: ["detector"]
+# isn.devices.tetramm.MyTetrAMM:
+# - name: tetramm1
+#   prefix: "19idSFT:TetrAMM1:"
+#   port_name: "TetrAMM1"
+#   labels: ["detector"]
 
 # - name: tetramm2
 #   prefix: "19idSFT2:TetrAMM2:"
@@ -74,10 +75,10 @@ isn.devices.tetramm.MyTetrAMM:
 #   port_name: "TetrAMM3"
 #   labels: ["detector"]
 
-- name: tetramm4
-  prefix: "19idSFT4:T4:"
-  port_name: "TetrAMM4"
-  labels: ["detector"]
+# - name: tetramm4
+#   prefix: "19idSFT4:T4:"
+#   port_name: "TetrAMM4"
+#   labels: ["detector"]
 
 # isn.devices.bpm.BasicQuadEM:
 # - name: bpm_c
@@ -87,15 +88,17 @@ isn.devices.tetramm.MyTetrAMM:
 #   prefix: "19idBPM:D:T4U:"
 
 isn.devices.bpm.MyBPM:
-- name: bpmc
+- name: bpm_c
   quadem_prefix: "19idBPMC:T4U:"
   vertical_motor_prefix: "19idBDA:m5"
   horizontal_motor_prefix: "19idBDA:m6"
+  labels: ["baseline"]
 
-- name: bpmd
+- name: bpm_d
   quadem_prefix: "19idBPMD:T4U:"
   vertical_motor_prefix: "19idBDA:m13"
   horizontal_motor_prefix: "19idBDA:m14"
+  labels: ["baseline"]
 
 
 
@@ -171,19 +174,19 @@ isn.devices.kb.KB:
 #   in_position: -20
 #   out_position: 0
 
-mic_common.devices.eiger.Eiger:
-- name: ptycho
-  prefix: "19idPTYCHO:"
-  labels: ["detector"]
+# mic_common.devices.eiger.Eiger:
+# - name: ptycho
+#   prefix: "19idPTYCHO:"
+#   labels: ["detector"]
 
-- name: xrd
-  prefix: "19idXRD:"
-  labels: ["detector"]
+# - name: xrd
+#   prefix: "19idXRD:"
+#   labels: ["detector"]
 
-isn.devices.me7.VortexXspress37:
-- name: me7
-  prefix: "XSP3_7Chan:"
-  labels: ["detector"]
+# isn.devices.me7.VortexXspress37:
+# - name: me7
+#   prefix: "XSP3_7Chan:"
+#   labels: ["detector"]
 
 # isn.devices.vortex_xpress3_me7.VortexXspress37:
 # - name: me7
@@ -198,7 +201,7 @@ isn.devices.socketserver.SocketServer:
 
 mic_common.devices.save_data.SaveDataMic:
 - name: savedata
-  prefix: 19idBLUE:saveData_
+  prefix: 19idSFT:saveData_
   labels: ["scandata"]
 
 

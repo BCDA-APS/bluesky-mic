@@ -214,7 +214,7 @@ class MicHDF5(HDF5Plugin):
         self.file_number.put(1)
         self.auto_save.put(1)
         self.file_write_mode.put(2)
-        self.num_capture.put(200000) #TODO: this should be a field in the iconfig
+        self.num_capture.put(400000) #TODO: this should be a field in the iconfig
         self.capture.put(1)
 
 
