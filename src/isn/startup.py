@@ -13,21 +13,12 @@ Includes:
 import logging
 from pathlib import Path
 
-#Temporary hklpy2 fix, importing gi before hklpy2 and matplotlib to prevent bugs
-import gi
-import hklpy2
-
-# Core Functions
-from tiled.client import from_profile
-
+# Temporary hklpy2 fix, importing gi before hklpy2 and matplotlib to prevent bugs
 from apsbits.core.best_effort_init import init_bec_peaks
 from apsbits.core.catalog_init import init_catalog
 from apsbits.core.instrument_init import init_instrument
 from apsbits.core.instrument_init import make_devices
 from apsbits.core.run_engine_init import init_RE
-
-# Utility functions
-from apstools.utils.aps_data_management import dm_setup
 from apsbits.utils.baseline_setup import setup_baseline_stream
 
 # Configuration functions
@@ -36,6 +27,11 @@ from apsbits.utils.helper_functions import register_bluesky_magics
 from apsbits.utils.helper_functions import running_in_queueserver
 from apsbits.utils.logging_setup import configure_logging
 
+# Utility functions
+from apstools.utils.aps_data_management import dm_setup
+
+# Core Functions
+from tiled.client import from_profile
 
 # Configuration block
 # Get the path to the instrument package
@@ -69,8 +65,6 @@ dm_setup(iconfig.get("DM_SETUP_FILE"))
 register_bluesky_magics()
 
 # Bluesky initialization block
-# Bluesky initialization block
-
 if iconfig.get("TILED_PROFILE_NAME", {}):
     profile_name = iconfig.get("TILED_PROFILE_NAME")
     tiled_client = from_profile(profile_name)
@@ -79,6 +73,14 @@ bec, peaks = init_bec_peaks(iconfig)
 cat = init_catalog(iconfig)
 RE, sd = init_RE(iconfig, subscribers=[bec, cat])
 
+# # Optional Nexus callback block
+# # delete this block if not using Nexus
+if iconfig.get("NEXUS_DATA_FILES", {}).get("ENABLE", False):
+    # from .callbacks.nexus_data_file_writer import nxwriter_init
+    from mic_common.callbacks.nexus_data_file_writer import nxwriter_init
+
+    nxwriter = nxwriter_init(RE)
+
 # Optional SPEC callback block
 # delete this block if not using SPEC
 if iconfig.get("SPEC_DATA_FILES", {}).get("ENABLE", False):
@@ -86,22 +88,22 @@ if iconfig.get("SPEC_DATA_FILES", {}).get("ENABLE", False):
     from mic_common.callbacks.spec_data_file_writer import newSpecFile  # noqa: F401
     from mic_common.callbacks.spec_data_file_writer import spec_comment  # noqa: F401
     from mic_common.callbacks.spec_data_file_writer import specwriter  # noqa: F401
+
     init_specwriter_with_RE(RE)
 
 # # These imports must come after the above setup.
 # # Queue server block
-# if running_in_queueserver():
-#     ### To make all the standard plans available in QS, import by '*', otherwise import
-#     ### plan by plan.
-#     from apstools.plans import lineup2  # noqa: F401
-#     from bluesky.plans import *  # noqa: F403
-# else:
-#     # Import bluesky plans and stubs with prefixes set by common conventions.
-#     # The apstools plans and utils are imported by '*'.
-#     from apstools.plans import *  # noqa: F403
-#     from apstools.utils import *  # noqa: F403
-#     from bluesky import plan_stubs as bps  # noqa: F401
-#     from bluesky import plans as bp  # noqa: F401
+if running_in_queueserver():
+    ### To make all the standard plans available in QS, import by '*', otherwise import
+    ### plan by plan.
+    from apstools.plans import lineup2  # noqa: F401
+    from bluesky.plans import *  # noqa: F403
+else:
+    # Import bluesky plans and stubs with prefixes set by common conventions.
+    # The apstools plans and utils are imported by '*'.
+    from apstools.utils import *  # noqa: F403
+    from bluesky import plan_stubs as bps  # noqa: F401
+    from bluesky import plans as bp  # noqa: F401
 
 
 # Experiment specific logic, device and plan loading. # Create the devices.
@@ -111,7 +113,7 @@ make_devices(clear=False, file="devices.yml", device_manager=instrument)
 # Assign softglue detector key map
 det_keymap = iconfig.get("SOFTGLUE_OUTPUTS")
 try:
-    softglue = oregistry.find('softglue')
+    softglue = oregistry.find("softglue")
     softglue.det_keymap = det_keymap
 except:
     logger.info("Softglue not found, detector key map not generated.")
@@ -138,14 +140,8 @@ except:
 setup_baseline_stream(sd, oregistry, connect=False)
 
 # from isn.plans.old_plans.sim_plans import *
-from bluesky import plan_stubs as bps  # noqa: F401
-from bluesky import plans as bp  # noqa: F401
 
 # from .plans import *
 
 
 # from mic_common.utils.dm_utils import *
-
-logger = logging.getLogger()
-logger.setLevel(logging.DEBUG)
-

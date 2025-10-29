@@ -1,19 +1,22 @@
-from ophyd import PVPositioner, PVPositionerPC, EpicsSignal, EpicsSignalRO
+from ophyd import EpicsSignal
+from ophyd import EpicsSignalRO
 from ophyd import FormattedComponent as FCpt
+from ophyd import PVPositioner
 
 # Define a new kind of device.
+
 
 class RobotArmPositioner(PVPositioner):
     """A single axis of the ISN Robot Arm."""
 
-    setpoint = FCpt(EpicsSignal, '{prefix}{pv_setpoint}')
-    readback = FCpt(EpicsSignalRO, '{prefix}{pv_readback}')
-    actuate= FCpt(EpicsSignal, '{prefix}{pv_execute}')
-    done = FCpt(EpicsSignalRO, '{prefix}{pv_done}')
-    command = FCpt(EpicsSignal, '{prefix}{pv_command}')
+    setpoint = FCpt(EpicsSignal, "{prefix}{pv_setpoint}")
+    readback = FCpt(EpicsSignalRO, "{prefix}{pv_readback}")
+    actuate = FCpt(EpicsSignal, "{prefix}{pv_execute}")
+    done = FCpt(EpicsSignalRO, "{prefix}{pv_done}")
+    command = FCpt(EpicsSignal, "{prefix}{pv_command}")
 
     def stop(self, *, success=False):
-        self.command.put("Cancel") #Should we do Pause instead? 
+        self.command.put("Cancel")  # Should we do Pause instead?
         self.actuate.put(self.actuate_value, wait=False)
         super().stop(success=success)
 
@@ -21,7 +24,9 @@ class RobotArmPositioner(PVPositioner):
         self.command.put("Move")
         super()._setup_move(position)
 
-    def __init__(self, prefix, setpoint, readback, done, execute, command, *args, **kwargs):
+    def __init__(
+        self, prefix, setpoint, readback, done, execute, command, *args, **kwargs
+    ):
         self.pv_setpoint = setpoint
         self.pv_readback = readback
         self.pv_done = done

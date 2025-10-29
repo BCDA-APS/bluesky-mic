@@ -1,20 +1,28 @@
 """SoftGlueZynq implementation for ISN."""
 
-from ophyd import Device, Component, EpicsSignal, EpicsSignalRO, DynamicDeviceComponent
-from ophyd.status import DeviceStatus
-from collections import OrderedDict
-from bluesky.plan_stubs import mv, sleep
-import numpy as np
 import logging
+from collections import OrderedDict
+
+import numpy as np
+from bluesky.plan_stubs import mv
+from bluesky.plan_stubs import sleep
+from ophyd import Component
+from ophyd import Device
+from ophyd import DynamicDeviceComponent
+from ophyd import EpicsSignal
+from ophyd import EpicsSignalRO
+from ophyd.status import DeviceStatus
 
 logger = logging.getLogger(__name__)
 
+
 def _io_fields(num=16):
     defn = OrderedDict()
-    for i in range(1, num+1):
+    for i in range(1, num + 1):
         defn[f"fi{i}"] = (EpicsSignal, f":SG:FI{i}_Signal", {"kind": "config"})
         defn[f"fo{i}"] = (EpicsSignal, f":SG:FO{i}_Signal", {"kind": "config"})
     return defn
+
 
 def _dma_fields(num=8, first_letter="I"):
     defn = OrderedDict()
@@ -23,64 +31,68 @@ def _dma_fields(num=8, first_letter="I"):
     defn["read_button"] = (EpicsSignal, ":1acquireDma.PROC", {"kind": "omitted"})
     defn["clear_button"] = (EpicsSignal, ":1acquireDma.D", {"kind": "omitted"})
     defn["clear_buffer"] = (EpicsSignal, ":1acquireDma.F", {"kind": "omitted"})
-    defn["words_in_buffer"] = (
-        EpicsSignalRO, ":1acquireDma.VALJ", {"kind": "config"}
-    )
+    defn["words_in_buffer"] = (EpicsSignalRO, ":1acquireDma.VALJ", {"kind": "config"})
     defn["events"] = (EpicsSignalRO, ":1acquireDma.VALI", {"kind": "config"})
-    for i in range(1, num+1):
-        defn[f"channel_{i}_name"] = (
-            EpicsSignal, f"1s{i}name", {"kind": "config"}
-        )
+    for i in range(1, num + 1):
+        defn[f"channel_{i}_name"] = (EpicsSignal, f"1s{i}name", {"kind": "config"})
         defn[f"channel_{i}_scale"] = (
             EpicsSignal,
             f":1acquireDma.{chr(ord(first_letter)+i-1)}",
-            {"kind": "config"}
+            {"kind": "config"},
         )
     return defn
 
+
 class UpCounter(Device):
-    enable = Component(EpicsSignal, "ENABLE_Signal", kind='config')
-    clock = Component(EpicsSignal, "CLOCK_Signal", kind='config')
-    clear = Component(EpicsSignal, "CLEAR_Signal", kind='config')
-    counts = Component(EpicsSignalRO, "COUNTS", kind='config')
+    enable = Component(EpicsSignal, "ENABLE_Signal", kind="config")
+    clock = Component(EpicsSignal, "CLOCK_Signal", kind="config")
+    clear = Component(EpicsSignal, "CLEAR_Signal", kind="config")
+    counts = Component(EpicsSignalRO, "COUNTS", kind="config")
+
 
 class DownCounter(Device):
-    enable = Component(EpicsSignal, "ENABLE_Signal", kind='config')
-    clock = Component(EpicsSignal, "CLK_Signal", kind='config')
-    load = Component(EpicsSignal, "LOAD_Signal", kind='config')
-    preset = Component(EpicsSignal, "PRESET", kind='config')
-    out_signal = Component(EpicsSignal, "OUT_Signal", kind='config')
+    enable = Component(EpicsSignal, "ENABLE_Signal", kind="config")
+    clock = Component(EpicsSignal, "CLK_Signal", kind="config")
+    load = Component(EpicsSignal, "LOAD_Signal", kind="config")
+    preset = Component(EpicsSignal, "PRESET", kind="config")
+    out_signal = Component(EpicsSignal, "OUT_Signal", kind="config")
+
 
 class Buffer(Device):
-    in_signal = Component(EpicsSignal, "IN_Signal", kind='config')
-    out_signal = Component(EpicsSignal, "OUT_Signal", kind='config')
+    in_signal = Component(EpicsSignal, "IN_Signal", kind="config")
+    out_signal = Component(EpicsSignal, "OUT_Signal", kind="config")
+
 
 class DivByN(Device):
-    enable = Component(EpicsSignal, "ENABLE_Signal", kind='config')
-    clock = Component(EpicsSignal, "CLOCK_Signal", kind='config')
-    reset = Component(EpicsSignal, "RESET_Signal", kind='config')
-    n = Component(EpicsSignal, "N", kind='config')
-    out_signal = Component(EpicsSignal, "OUT_Signal", kind='config')
+    enable = Component(EpicsSignal, "ENABLE_Signal", kind="config")
+    clock = Component(EpicsSignal, "CLOCK_Signal", kind="config")
+    reset = Component(EpicsSignal, "RESET_Signal", kind="config")
+    n = Component(EpicsSignal, "N", kind="config")
+    out_signal = Component(EpicsSignal, "OUT_Signal", kind="config")
+
 
 class GateDelay(Device):
-    in_signal = Component(EpicsSignal, "_IN_Signal", kind='config')
-    clock = Component(EpicsSignal, "_CLK_Signal", kind='config')
-    delay = Component(EpicsSignal, "_DLY", kind='config')
-    width = Component(EpicsSignal, "_WIDTH", kind='config')
-    out_signal = Component(EpicsSignal, "_OUT_Signal", kind='config')
+    in_signal = Component(EpicsSignal, "_IN_Signal", kind="config")
+    clock = Component(EpicsSignal, "_CLK_Signal", kind="config")
+    delay = Component(EpicsSignal, "_DLY", kind="config")
+    width = Component(EpicsSignal, "_WIDTH", kind="config")
+    out_signal = Component(EpicsSignal, "_OUT_Signal", kind="config")
+
 
 class PulseTrain(Device):
-    clock = Component(EpicsSignal, "_CLK_Signal", kind='config')
-    n = Component(EpicsSignal, "_NPULSES", kind='config')
-    period = Component(EpicsSignal, "_PERIOD", kind='config')
-    width = Component(EpicsSignal, "_WIDTH", kind='config')
+    clock = Component(EpicsSignal, "_CLK_Signal", kind="config")
+    n = Component(EpicsSignal, "_NPULSES", kind="config")
+    period = Component(EpicsSignal, "_PERIOD", kind="config")
+    width = Component(EpicsSignal, "_WIDTH", kind="config")
+
 
 class FlipFlop(Device):
-    set_signal = Component(EpicsSignal, "_SET_Signal", kind='config')
-    d = Component(EpicsSignal, "_D_Signal", kind='config')
-    clock = Component(EpicsSignal, "_CLOCK_Signal", kind='config')
-    clear = Component(EpicsSignal, "_CLEAR_Signal", kind='config')
-    out_bi = Component(EpicsSignal, "_OUT_BI", kind='config')
+    set_signal = Component(EpicsSignal, "_SET_Signal", kind="config")
+    d = Component(EpicsSignal, "_D_Signal", kind="config")
+    clock = Component(EpicsSignal, "_CLOCK_Signal", kind="config")
+    clear = Component(EpicsSignal, "_CLEAR_Signal", kind="config")
+    out_bi = Component(EpicsSignal, "_OUT_BI", kind="config")
+
 
 class ScalToStream(Device):
     reset = Component(EpicsSignal, "_RESET_Signal")
@@ -88,40 +100,43 @@ class ScalToStream(Device):
     im_trig = Component(EpicsSignal, "_IMTRIG_Signal")
     flush = Component(EpicsSignal, "_FLUSH_Signal")
 
+
 def _interferometer_tracker(if_tracker, num=6):
     defn = OrderedDict()
-    for i in range(1, 1+num):
-        defn[f"if{i}"] = (EpicsSignal, f":SG:IF_tracker-{if_tracker}_IN{i}", {"kind":"normal"})
+    for i in range(1, 1 + num):
+        defn[f"if{i}"] = (
+            EpicsSignal,
+            f":SG:IF_tracker-{if_tracker}_IN{i}",
+            {"kind": "normal"},
+        )
     return defn
 
 
-
 class SoftGlueZynq(Device):
-
     _status_type = DeviceStatus
 
     _default_read_attrs = (
-                            "if_tracker_1",
-                            "if_tracker_2",
-                            "if_tracker_3",
-                            )
+        "if_tracker_1",
+        "if_tracker_2",
+        "if_tracker_3",
+    )
 
     ### Components
 
     io = DynamicDeviceComponent(_io_fields())
 
-    buffer_1 = Component(Buffer, ":SG:BUFFER-1_", kind='config')
-    buffer_2 = Component(Buffer, ":SG:BUFFER-2_", kind='config')
-    buffer_3 = Component(Buffer, ":SG:BUFFER-3_", kind='config')
-    buffer_4 = Component(Buffer, ":SG:BUFFER-4_", kind='config')
+    buffer_1 = Component(Buffer, ":SG:BUFFER-1_", kind="config")
+    buffer_2 = Component(Buffer, ":SG:BUFFER-2_", kind="config")
+    buffer_3 = Component(Buffer, ":SG:BUFFER-3_", kind="config")
+    buffer_4 = Component(Buffer, ":SG:BUFFER-4_", kind="config")
 
-    div_by_n_1 = Component(DivByN, ":SG:DivByN-1_", kind='config') #1 MHz clock
-    div_by_n_2 = Component(DivByN, ":SG:DivByN-2_", kind='config') 
-    div_by_n_3 = Component(DivByN, ":SG:DivByN-3_", kind='config') #Usr clock
-    div_by_n_4 = Component(DivByN, ":SG:DivByN-4_", kind='config')
+    div_by_n_1 = Component(DivByN, ":SG:DivByN-1_", kind="config")  # 1 MHz clock
+    div_by_n_2 = Component(DivByN, ":SG:DivByN-2_", kind="config")
+    div_by_n_3 = Component(DivByN, ":SG:DivByN-3_", kind="config")  # Usr clock
+    div_by_n_4 = Component(DivByN, ":SG:DivByN-4_", kind="config")
 
-    up_counter_1 = Component(UpCounter, ":SG:UpCntr-1_") #1 MHz clock
-    up_counter_2 = Component(UpCounter, ":SG:UpCntr-1_") #Usr clock
+    up_counter_1 = Component(UpCounter, ":SG:UpCntr-1_")  # 1 MHz clock
+    up_counter_2 = Component(UpCounter, ":SG:UpCntr-1_")  # Usr clock
     up_counter_3 = Component(UpCounter, ":SG:UpCntr-1_")
     up_counter_4 = Component(UpCounter, ":SG:UpCntr-1_")
 
@@ -135,7 +150,7 @@ class SoftGlueZynq(Device):
 
     scal_to_stream_1 = Component(ScalToStream, ":SG:scalToStream-1")
 
-    #Ram memory components for fly scanning
+    # Ram memory components for fly scanning
     mem_address = Component(EpicsSignal, ":SG:mem_ADDRA")
     mem_data = Component(EpicsSignal, ":SG:mem_DINA")
     mem_clk = Component(EpicsSignal, ":SG:mem_CLK_Signal")
@@ -153,8 +168,7 @@ class SoftGlueZynq(Device):
     threshold_pos = Component(EpicsSignal, ":SG:threshTrig-1_POSTHR")
     threshold_neg = Component(EpicsSignal, ":SG:threshTrig-1_NEGTHR")
 
-
-    #DMA components
+    # DMA components
     dma = DynamicDeviceComponent(_dma_fields())
     # dma_clear = Component(EpicsSignal, ":1acquireDma.F")
     # dma_screen_clear = Component(EpicsSignal, ":1acquireDma.D")
@@ -164,7 +178,7 @@ class SoftGlueZynq(Device):
     if_tracker_2 = DynamicDeviceComponent(_interferometer_tracker(2))
     if_tracker_3 = DynamicDeviceComponent(_interferometer_tracker(3, num=3))
 
-    #Detector output mapping
+    # Detector output mapping
     det_keymap = None
 
     ### Functions
@@ -193,7 +207,6 @@ class SoftGlueZynq(Device):
         self._status.set_finished()
         return self._status
 
-
     def stop(self):
         # self.buffer_4.in_signal.set("0")
         yield from mv(self.buffer_4.in_signal, "0")
@@ -209,29 +222,30 @@ class SoftGlueZynq(Device):
 
     def setup_gated_trigger(self, period_time, pulse_width, pulse_delay=0):
         yield from mv(
-            self.div_by_n_3.n, 1e7*period_time,
-            self.gate_delay_1.delay, 1e7*pulse_delay,
-            self.gate_delay_1.width, 1e7*pulse_width
+            self.div_by_n_3.n,
+            1e7 * period_time,
+            self.gate_delay_1.delay,
+            1e7 * pulse_delay,
+            self.gate_delay_1.width,
+            1e7 * pulse_width,
         )
 
     def enable_waveform(self):
-        yield from mv(self.mem_enable, "1",
-                      self.dac1_man, "0",
-                      self.dac1_write, "funcGenPulse")
-        
+        yield from mv(
+            self.mem_enable, "1", self.dac1_man, "0", self.dac1_write, "funcGenPulse"
+        )
+
     def disable_waveform(self):
-        yield from mv(self.mem_enable, "0",
-                      self.dac1_man, "1")
-
-
+        yield from mv(self.mem_enable, "0", self.dac1_man, "1")
 
     def write_RAM(self, array):
-
-        #Tim's function for writing the array in the softglue memory for flyscans
+        # Tim's function for writing the array in the softglue memory for flyscans
         yield from mv(
-            self.mem_write, "1",
-            self.ram_enable, "0",
-            )
+            self.mem_write,
+            "1",
+            self.ram_enable,
+            "0",
+        )
         yield from sleep(0.001)
 
         for i, j in enumerate(array):
@@ -247,88 +261,88 @@ class SoftGlueZynq(Device):
             yield from sleep(0.001)
 
         yield from mv(
-            self.mem_write, "0",
-            self.ram_enable, "1",
+            self.mem_write,
+            "0",
+            self.ram_enable,
+            "1",
             # self.ram_n, str(len(array)),
             # self.mem_clk, "ckIM"
-            )
-        
+        )
+
         self.ram_n.put(str(len(array)))
         self.mem_clk.put("funcGenPulse")
         self.ram_n.put(str(len(array)))
-        
-    def create_snake_bits(self, A=32767, F=0.9, npts=1000, offset=0):
 
+    def create_snake_bits(self, A=32767, F=0.9, npts=1000, offset=0):
         # Take one half cycle of a sine wave, from -pi/2 to pi/2 and cut it at
         # the zero crossing. If the sine has amplitude 1, then the slope at the
         # zero crossing is 1. Move both parts of the sine away from the origin
         # along the line x = y. If we want the line to be the fraction, F, of
         # the total y extent, A, and the Y extent of the line is L, then
         # L = F*(L+1), which yields L = F/(1-F).
-        L = F/(1.-F)
+        L = F / (1.0 - F)
 
-    
         # We want A to be a user-specified amplitude of the entire function, so
         # a scale factor, Sy, is given by Sy*(L+1) = A.
-        Sy = A/(L+1.)
-    
+        Sy = A / (L + 1.0)
+
         # Then, the function is the line S*L, joined to 1/4 of a sine function
         # with amplitude S,  from 0 to pi/2 . Along the x axis, the line extends
         # over distance L, and the quarter-sine function from 0 to pi/2 extends
         # over pi/2. The total length, in equally spaced points along x, is
         # Sx * (L + pi/2) = npts/4
-        Sx = (npts/4.) / (L + np.pi/2)
+        Sx = (npts / 4.0) / (L + np.pi / 2)
         # Each quarter-sine function occupies Sx*pi/2 places in the array we're
         # assembling.
-        arr1 = np.linspace(-np.pi/2, 0, int(Sx*np.pi/2))
-        sinArr1 = Sy*np.sin(arr1)
-    
+        arr1 = np.linspace(-np.pi / 2, 0, int(Sx * np.pi / 2))
+        sinArr1 = Sy * np.sin(arr1)
+
         # The full line function:
-        arr2 = np.linspace(-L, L, int(Sx*2*L))
+        arr2 = np.linspace(-L, L, int(Sx * 2 * L))
         # The second quarter-sine function:
-        arr3 = np.linspace(0, np.pi/2, int(Sx*np.pi/2))
-        sinArr3 = Sy*np.sin(arr3)
-    
+        arr3 = np.linspace(0, np.pi / 2, int(Sx * np.pi / 2))
+        sinArr3 = Sy * np.sin(arr3)
+
         # The total points in this half of the function:
-        Nt = 2*int(Sx*np.pi/2) + int(Sx*2*L) - 2
+        Nt = 2 * int(Sx * np.pi / 2) + int(Sx * 2 * L) - 2
         # Now we assemble, skipping the first and last points of the line,
         # because their values are already in the quarter-sine functions:
-        half = np.concatenate([sinArr1-Sy*L, Sy*arr2[1:-1], sinArr3+Sy*L])
-        all = np.concatenate([half, np.flip(half,0)])
-    
+        half = np.concatenate([sinArr1 - Sy * L, Sy * arr2[1:-1], sinArr3 + Sy * L])
+        all = np.concatenate([half, np.flip(half, 0)])
+
         # Return the array that needs to be written to the RAM
-        return all+offset
-    
+        return all + offset
+
     def y_to_bits(self, y):
         # Returns the necessay bit value to match the desired y position for
         # the piezo
 
-        if y>90 or y<0:
-            raise RuntimeError("Piezo scan requested exceeds 0 um - 90 um range -- Aborting.")
-        
-        m = (2**15 - 1)/90
-        b = -(2**15-1)/2
+        if y > 90 or y < 0:
+            raise RuntimeError(
+                "Piezo scan requested exceeds 0 um - 90 um range -- Aborting."
+            )
 
-        return int(m*y+b)
+        m = (2**15 - 1) / 90
+        b = -(2**15 - 1) / 2
+
+        return int(m * y + b)
 
     def snake_y(self, y_min=0, y_max=90, F=0.9, npts=1000):
-        #Takes a minimum and maximum y values and writes snake array to RAM
+        # Takes a minimum and maximum y values and writes snake array to RAM
 
-        #TODO: maybe later we can make it scan in opposite direction if max < min.
+        # TODO: maybe later we can make it scan in opposite direction if max < min.
         y_max_bits = self.y_to_bits(y_max)
         y_min_bits = self.y_to_bits(y_min)
         # amplitude = self.y_to_bits(np.abs(y_max - y_min))
-        amplitude = (y_max_bits - y_min_bits)/2
-        offset = self.y_to_bits((y_max + y_min)/2)
+        amplitude = (y_max_bits - y_min_bits) / 2
+        offset = self.y_to_bits((y_max + y_min) / 2)
 
         snake_array = self.create_snake_bits(A=amplitude, F=F, npts=npts, offset=offset)
         yield from self.write_RAM(snake_array)
 
-    
     def move_y_analog(self, y):
-        
-        #Should we put this in the sample instead?
-        #TODO: We need to check that the sample y is in analog control mode
+        # Should we put this in the sample instead?
+        # TODO: We need to check that the sample y is in analog control mode
 
         y_bits = self.y_to_bits(y=y)
         yield from self.disable_waveform()
@@ -336,7 +350,7 @@ class SoftGlueZynq(Device):
         yield from mv(self.dac1_val, y_bits)
         yield from mv(self.dac1_write, "1!")
 
-    def enable_detector_trigger(self, detector_name, det_keymap = None):
+    def enable_detector_trigger(self, detector_name, det_keymap=None):
         if det_keymap is None:
             det_keymap = self.det_keymap
             logger.info(f"Using default softglue detector key mapping: {det_keymap}")
@@ -350,6 +364,6 @@ class SoftGlueZynq(Device):
         output_field.put("trigger")
 
     def clear_output_fields(self):
-        for i in np.arange(1,9,1):
+        for i in np.arange(1, 9, 1):
             output_field = getattr(self.io, f"fo{str(int(i))}")
             output_field.put("0")

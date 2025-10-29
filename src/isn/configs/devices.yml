@@ -50,7 +50,7 @@ isn.devices.diamond_window.Diamond_Window:
 - name: diamond
   prefix: "19idACS"
   labels: ["baseline"]
-  
+
 
 
 # # # isn.devices.rayspec.Rayspec:
@@ -160,7 +160,7 @@ isn.devices.kb.KB:
 #   in_position: -8
 #   out_position: 0
 #   labels: ["baseline"]
-  
+
 
 # - name: flag_e1
 #   flag_prefix: "19ide1:"

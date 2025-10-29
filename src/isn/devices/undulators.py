@@ -1,21 +1,20 @@
-from ophyd import Device
-from ophyd import Component
-from ophyd import EpicsSignalRO
-from ophyd import Signal
-from ophyd import EpicsSignal
-from ophyd import PVPositioner, PVPositionerIsClose
-from ophyd import DerivedSignal
-
-from ophyd.status import Status
-from ophyd.status import wait as status_wait
-
-from ophyd.utils import InvalidState
-
 from threading import Thread
 
 from apstools.devices.aps_undulator import Revolver_Undulator
+from ophyd import Component
+from ophyd import DerivedSignal
+from ophyd import Device
+from ophyd import EpicsSignal
+from ophyd import EpicsSignalRO
+from ophyd import PVPositioner
+from ophyd import PVPositionerIsClose
+from ophyd import Signal
+from ophyd.status import Status
+from ophyd.status import wait as status_wait
+from ophyd.utils import InvalidState
 
 # logger = logging.getLogger(__name__)
+
 
 class UndulatorEnergy(PVPositioner):
     """
@@ -26,22 +25,21 @@ class UndulatorEnergy(PVPositioner):
     """
 
     # Position
-    readback = Component(EpicsSignalRO, 'Energy', kind='hinted',
-                         auto_monitor=True)
-    setpoint = Component(EpicsSignal, 'EnergySet', put_complete=True,
-                         auto_monitor=True, kind='normal')
+    readback = Component(EpicsSignalRO, "Energy", kind="hinted", auto_monitor=True)
+    setpoint = Component(
+        EpicsSignal, "EnergySet", put_complete=True, auto_monitor=True, kind="normal"
+    )
 
     # Configuration
-    deadband = Component(Signal, value=0.002, kind='config')
-    backlash = Component(Signal, value=0.25, kind='config')
-    offset = Component(Signal, value=0, kind='config')
+    deadband = Component(Signal, value=0.002, kind="config")
+    backlash = Component(Signal, value=0.25, kind="config")
+    offset = Component(Signal, value=0, kind="config")
 
     # Buttons
-    actuate = Component(EpicsSignal, "Start.VAL", kind='omitted',
-                        put_complete=True)
+    actuate = Component(EpicsSignal, "Start.VAL", kind="omitted", put_complete=True)
     actuate_value = 3
 
-    stop_signal = Component(EpicsSignal, "Stop.VAL", kind='omitted')
+    stop_signal = Component(EpicsSignal, "Stop.VAL", kind="omitted")
     stop_value = 1
 
     done = Component(EpicsSignal, "Busy.VAL", kind="omitted")
@@ -91,8 +89,7 @@ class UndulatorEnergy(PVPositioner):
 
         # Otherwise -> let's move!
         else:
-            thread = Thread(target=self._move, args=(position,),
-                            kwargs=kwargs)
+            thread = Thread(target=self._move, args=(position,), kwargs=kwargs)
             thread.start()
 
         if wait:
@@ -134,8 +131,8 @@ class UndulatorEnergy(PVPositioner):
 
 POSITIONER_DONE = 1
 
-class ISNUndulatorPositioner(PVPositionerIsClose):
 
+class ISNUndulatorPositioner(PVPositionerIsClose):
     def _update_done(self) -> None:
         """Update our status to done if we pass the comparator."""
         """ISN modification since the done signal for the undulators is RO."""
@@ -150,19 +147,21 @@ class ISNUndulatorPositioner(PVPositionerIsClose):
     setpoint = Component(EpicsSignal, "SetC.VAL")
     readback = Component(EpicsSignalRO, "M.VAL")
 
-    actuate = Component(DerivedSignal, derived_from="parent.start_button", kind="omitted")
-    stop_signal = Component(DerivedSignal, derived_from="parent.stop_button", kind="omitted")
+    actuate = Component(
+        DerivedSignal, derived_from="parent.start_button", kind="omitted"
+    )
+    stop_signal = Component(
+        DerivedSignal, derived_from="parent.stop_button", kind="omitted"
+    )
     done = Component(DerivedSignal, derived_from="parent.done", kind="omitted")
     done_value = POSITIONER_DONE
 
 
 class ISN_Undulator(Revolver_Undulator):
-
     ##TODO: we still need to find a way to implement a better positioner for the undulator so that we can get a deadband
     # energy = Component(ISNUndulatorPositioner, "Energy", atol=0.005)
 
-
-    ##TODO: look into more detail on how to adapt polar's solution to the energy 
+    ##TODO: look into more detail on how to adapt polar's solution to the energy
     # deadband issue
 
     # energy = Component(UndulatorEnergy, "")
@@ -175,16 +174,16 @@ class ISN_Undulator(Revolver_Undulator):
     # device_status = None
 
     def select_25mm(self):
-        #TODO: Implement a wait for finish and return success message when done.
+        # TODO: Implement a wait for finish and return success message when done.
         if self.revolver_select.get() == 1:
             return self.message1.get()
-        
+
         self.revolver_select.set(1)
 
     def select_21mm(self):
         if self.revolver_select.get() == 0:
             return self.message1.get()
-        
+
         self.revolver_select.set(0)
 
 

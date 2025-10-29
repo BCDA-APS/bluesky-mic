@@ -1,6 +1,9 @@
 import hklpy2
+from ophyd import Component as Cpt
+from ophyd import EpicsMotor
+from ophyd import SoftPositioner
+
 from .robot import RobotArmPositioner
-from ophyd import Component as Cpt, SoftPositioner, EpicsMotor
 
 
 class RobotArmDiffractometer(hklpy2.DiffractometerBase):

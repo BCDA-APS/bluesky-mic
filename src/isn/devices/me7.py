@@ -1,37 +1,35 @@
 """ME7 setup"""
 
 import logging
+
 logger = logging.getLogger(__name__)
 
-from epics import caput
-
-from ophyd import (
-    ADComponent,
-    Staged,
-    Component,
-    EpicsSignalRO,
-    Device,
-    EpicsSignal,
-    SignalRO,
-    DynamicDeviceComponent,
-)
-from ophyd.areadetector import DetectorBase, EpicsSignalWithRBV
-from ophyd.areadetector.trigger_mixins import TriggerBase
-from ophyd.areadetector.trigger_mixins import ADTriggerStatus
-from ophyd.areadetector.plugins import ROIPlugin
-from ophyd.areadetector.plugins import AttributePlugin
-from ophyd.areadetector.plugins import ROIStatPlugin
+import asyncio
+from collections import OrderedDict
+from pathlib import Path
+from time import sleep
+from time import time as ttime
 
 from bluesky.plan_stubs import wait_for
-import asyncio
-from pathlib import Path
-from collections import OrderedDict
-from time import time as ttime
-from time import sleep
-from .mic_ad_mixins import (
-    VortexDetectorCam,
-    MicHDF5,
-)
+from epics import caput
+from ophyd import ADComponent
+from ophyd import Component
+from ophyd import Device
+from ophyd import DynamicDeviceComponent
+from ophyd import EpicsSignal
+from ophyd import EpicsSignalRO
+from ophyd import SignalRO
+from ophyd import Staged
+from ophyd.areadetector import DetectorBase
+from ophyd.areadetector import EpicsSignalWithRBV
+from ophyd.areadetector.plugins import AttributePlugin
+from ophyd.areadetector.plugins import ROIPlugin
+from ophyd.areadetector.plugins import ROIStatPlugin
+from ophyd.areadetector.trigger_mixins import ADTriggerStatus
+from ophyd.areadetector.trigger_mixins import TriggerBase
+
+from .mic_ad_mixins import MicHDF5
+from .mic_ad_mixins import VortexDetectorCam
 
 MAX_IMAGES = 12216
 MAX_ROIS = 8
@@ -81,12 +79,10 @@ class Trigger(TriggerBase):
         self.hdf1.stage_sigs["num_capture"] = MAX_IMAGES
         self._softsetup = True
 
-    def setup_flyscan_mode(self, 
-                           num_images=MAX_IMAGES, 
-                           acq_time=0.01, 
-                           hdf_images=MAX_IMAGES):
-        
-        #For flyscanning we want to disable all the callbacks that we don't need
+    def setup_flyscan_mode(
+        self, num_images=MAX_IMAGES, acq_time=0.01, hdf_images=MAX_IMAGES
+    ):
+        # For flyscanning we want to disable all the callbacks that we don't need
         self.set_plugins(0)
 
         self.cam.stage_sigs["num_images"] = num_images
@@ -97,14 +93,13 @@ class Trigger(TriggerBase):
         self.hdf1.stage_sigs["auto_save"] = 1
         self.hdf1.stage_sigs["num_capture"] = hdf_images
 
-        for i in range(1,8):
+        for i in range(1, 8):
             comp = getattr(self, f"chan{i}")
             comp.stage_sigs["enable"] = 0
 
         self._flysetup = True
 
     def stage(self):
-
         if self._flysetup:
             self.setup_external_trigger()
 
@@ -116,7 +111,7 @@ class Trigger(TriggerBase):
 
         # Make sure that detector is not armed.
         self._acquisition_signal.set(0).wait(timeout=10)
-        if not self._softsetup: #TODO: find a better way to address this.
+        if not self._softsetup:  # TODO: find a better way to address this.
             self._acquire_busy_signal.subscribe(self._acquire_changed)
 
         super().stage()
@@ -145,8 +140,6 @@ class Trigger(TriggerBase):
                 "This detector is not ready to trigger."
                 "Call the stage() method before triggering."
             )
-        
-
 
         # Click the Acquire_button
         self._status = self._status_type(self)
@@ -241,17 +234,16 @@ class VortexROIStatPlugin(ROIStatPlugin):
 
 
 class VortexSCA(AttributePlugin):
-
     _default_read_attrs = (
-        'clock_ticks',
-        'reset_ticks',
-        'reset_counts',
-        'all_events',
-        'all_good',
-        'window1',
-        'window2',
-        'pileup',
-        'event_width',
+        "clock_ticks",
+        "reset_ticks",
+        "reset_counts",
+        "all_events",
+        "all_good",
+        "window1",
+        "window2",
+        "pileup",
+        "event_width",
         "dt_factor",
         "dt_percent",
     )
@@ -272,9 +264,7 @@ class VortexSCA(AttributePlugin):
 class VortexHDF1Plugin(MicHDF5):
     # The array counter readback pv is different...
     array_counter = Component(EpicsSignal, "ArrayCounter", kind="config")
-    array_counter_readback = Component(
-        EpicsSignalRO, "ArrayCounter_RBV", kind="config"
-    )
+    array_counter_readback = Component(EpicsSignalRO, "ArrayCounter_RBV", kind="config")
 
 
 class TotalCorrectedSignal(SignalRO):
@@ -283,8 +273,7 @@ class TotalCorrectedSignal(SignalRO):
     def __init__(self, prefix, roi_index, **kwargs):
         if not roi_index:
             raise ValueError(
-                "chnum must be the channel number, but "
-                "f{roi_index} was passed."
+                "chnum must be the channel number, but " "f{roi_index} was passed."
             )
         self.roi_index = roi_index
         super().__init__(**kwargs)
@@ -293,12 +282,8 @@ class TotalCorrectedSignal(SignalRO):
         value = 0
         for ch_num in range(1, self.root.num_channels + 1):
             channel = getattr(self.root, f"sca{ch_num}")
-            roi = getattr(
-                self.root, "stats{:d}.roi{:d}".format(ch_num, self.roi_index)
-            )
-            value += channel.dt_factor.get(**kwargs) * roi.total_value.get(
-                **kwargs
-            )
+            roi = getattr(self.root, "stats{:d}.roi{:d}".format(ch_num, self.roi_index))
+            value += channel.dt_factor.get(**kwargs) * roi.total_value.get(**kwargs)
         return value
 
 
@@ -314,7 +299,6 @@ def _totals(attr_fix, id_range):
 
 
 class VortexXspress37(Trigger, DetectorBase):
-
     _default_configuration_attrs = ("cam",)
     _default_read_attrs = (
         "hdf1",
@@ -367,16 +351,13 @@ class VortexXspress37(Trigger, DetectorBase):
 
     hdf1 = ADComponent(MicHDF5, "HDF1:")
 
-
     # TODO: REMOVE AFTER THE DETECTOR HAS SERVER ACCESS
     _local_folder = "/home/beams/STAFF19ID/pml/xpress3/data"
 
     def __init__(
         self,
         *args,
-        default_folder=Path(
-            "/home/beams/STAFF19ID/pml/xpress3/data"
-        ),
+        default_folder=Path("/home/beams/STAFF19ID/pml/xpress3/data"),
         hdf1_file_format="%s/%s_%6.6d.h5",
         **kwargs,
     ):
@@ -386,7 +367,6 @@ class VortexXspress37(Trigger, DetectorBase):
 
         self.default_settings()
         # self.setup_soft_trigger()
-
 
     # Make this compatible with other detectors
     @property
@@ -422,7 +402,6 @@ class VortexXspress37(Trigger, DetectorBase):
         self.hdf1.auto_save.put(0)
 
     def wait_for_detector(self):
-
         async def _wait_for_read():
             future = asyncio.Future()
 
@@ -441,9 +420,9 @@ class VortexXspress37(Trigger, DetectorBase):
                 while old != new:
                     await asyncio.sleep(sleep_time)
                     old = new
-                    new = self.cam.array_counter.read()[
-                        "vortex_cam_array_counter"
-                    ]["timestamp"]
+                    new = self.cam.array_counter.read()["vortex_cam_array_counter"][
+                        "timestamp"
+                    ]
 
                 future.set_result("Detector done!")
 
@@ -456,7 +435,6 @@ class VortexXspress37(Trigger, DetectorBase):
         yield from wait_for([_wait_for_read], timeout=15)
 
     def default_settings(self):
-
         self.hdf1.file_template.put(self.hdf1_file_format)
         self.hdf1.file_path.put(str(self.default_folder))
         self.hdf1.num_capture.put(0)
@@ -511,7 +489,9 @@ class VortexXspress37(Trigger, DetectorBase):
             k = (
                 "hinted"
                 if i in rois
-                else "normal" if i in self.read_rois else "omitted"
+                else "normal"
+                if i in self.read_rois
+                else "omitted"
             )
 
             getattr(self.total, f"roi{i}").kind = k
@@ -544,10 +524,7 @@ class VortexXspress37(Trigger, DetectorBase):
         chans = [self.label_option_map[i] for i in channels]
         self.select_roi(chans)
 
-    def setup_images(
-        self, base_folder, file_name_base, file_number, flyscan=False
-    ):
-
+    def setup_images(self, base_folder, file_name_base, file_number, flyscan=False):
         self.hdf1.file_name.set(file_name_base).wait(timeout=10)
         self.hdf1.file_number.set(file_number).wait(timeout=10)
         self.auto_save_on()
@@ -559,9 +536,7 @@ class VortexXspress37(Trigger, DetectorBase):
         # TODO: need to temporarily change the saving folder.
         self.hdf1.file_path.set(self._local_folder).wait(timeout=10)
 
-        _, full_path, relative_path = self.hdf1.make_write_read_paths(
-            base_folder
-        )
+        _, full_path, relative_path = self.hdf1.make_write_read_paths(base_folder)
 
         return Path(full_path), Path(relative_path)
 
@@ -570,63 +545,63 @@ class VortexXspress37(Trigger, DetectorBase):
         _hdf1_auto = True if self.hdf1.autosave.get() == "on" else False
         _hdf1_on = True if self.hdf1.enable.get() == "Enable" else False
         return _hdf1_on or _hdf1_auto
-    
-    def set_plugins(self, state='Enable'):
-        #TODO: cleaner way to do this?
+
+    def set_plugins(self, state="Enable"):
+        # TODO: cleaner way to do this?
 
         _plugins = (
-                    "XSP3_7Chan:Proc1:EnableCallbacks",
-                    "XSP3_7Chan:ROIStat1:EnableCallbacks",
-                    "XSP3_7Chan:ROI1:EnableCallbacks",
-                    "XSP3_7Chan:ROISUM1:EnableCallbacks",
-                    "XSP3_7Chan:C1SCA:EnableCallbacks",
-                    "XSP3_7Chan:C1SCA:TS:EnableCallbacks",
-                    "XSP3_7Chan:MCA1:EnableCallbacks",
-                    "XSP3_7Chan:MCASUM1:EnableCallbacks",
-                    "XSP3_7Chan:MCA1ROI:EnableCallbacks",
-                    "XSP3_7Chan:ROI2:EnableCallbacks",
-                    "XSP3_7Chan:ROISUM2:EnableCallbacks",
-                    "XSP3_7Chan:C2SCA:EnableCallbacks",
-                    "XSP3_7Chan:C2SCA:TS:EnableCallbacks",
-                    "XSP3_7Chan:MCA2:EnableCallbacks",
-                    "XSP3_7Chan:MCASUM2:EnableCallbacks",
-                    "XSP3_7Chan:MCA2ROI:EnableCallbacks",
-                    "XSP3_7Chan:ROI3:EnableCallbacks",
-                    "XSP3_7Chan:ROISUM3:EnableCallbacks",
-                    "XSP3_7Chan:C3SCA:EnableCallbacks",
-                    "XSP3_7Chan:C3SCA:TS:EnableCallbacks",
-                    "XSP3_7Chan:MCA3:EnableCallbacks",
-                    "XSP3_7Chan:MCASUM3:EnableCallbacks",
-                    "XSP3_7Chan:MCA3ROI:EnableCallbacks",
-                    "XSP3_7Chan:ROI4:EnableCallbacks",
-                    "XSP3_7Chan:ROISUM4:EnableCallbacks",
-                    "XSP3_7Chan:C4SCA:EnableCallbacks",
-                    "XSP3_7Chan:C4SCA:TS:EnableCallbacks",
-                    "XSP3_7Chan:MCA4:EnableCallbacks",
-                    "XSP3_7Chan:MCASUM4:EnableCallbacks",
-                    "XSP3_7Chan:MCA4ROI:EnableCallbacks",
-                    "XSP3_7Chan:ROI5:EnableCallbacks",
-                    "XSP3_7Chan:ROISUM5:EnableCallbacks",
-                    "XSP3_7Chan:C5SCA:EnableCallbacks",
-                    "XSP3_7Chan:C5SCA:TS:EnableCallbacks",
-                    "XSP3_7Chan:MCA5:EnableCallbacks",
-                    "XSP3_7Chan:MCASUM5:EnableCallbacks",
-                    "XSP3_7Chan:MCA5ROI:EnableCallbacks",
-                    "XSP3_7Chan:ROI6:EnableCallbacks",
-                    "XSP3_7Chan:ROISUM6:EnableCallbacks",
-                    "XSP3_7Chan:C6SCA:EnableCallbacks",
-                    "XSP3_7Chan:C6SCA:TS:EnableCallbacks",
-                    "XSP3_7Chan:MCA6:EnableCallbacks",
-                    "XSP3_7Chan:MCASUM6:EnableCallbacks",
-                    "XSP3_7Chan:MCA6ROI:EnableCallbacks",
-                    "XSP3_7Chan:ROI7:EnableCallbacks",
-                    "XSP3_7Chan:ROISUM7:EnableCallbacks",
-                    "XSP3_7Chan:C7SCA:EnableCallbacks",
-                    "XSP3_7Chan:C7SCA:TS:EnableCallbacks",
-                    "XSP3_7Chan:MCA7:EnableCallbacks",
-                    "XSP3_7Chan:MCASUM7:EnableCallbacks",
-                    "XSP3_7Chan:MCA7ROI:EnableCallbacks",
-                    )
-        
+            "XSP3_7Chan:Proc1:EnableCallbacks",
+            "XSP3_7Chan:ROIStat1:EnableCallbacks",
+            "XSP3_7Chan:ROI1:EnableCallbacks",
+            "XSP3_7Chan:ROISUM1:EnableCallbacks",
+            "XSP3_7Chan:C1SCA:EnableCallbacks",
+            "XSP3_7Chan:C1SCA:TS:EnableCallbacks",
+            "XSP3_7Chan:MCA1:EnableCallbacks",
+            "XSP3_7Chan:MCASUM1:EnableCallbacks",
+            "XSP3_7Chan:MCA1ROI:EnableCallbacks",
+            "XSP3_7Chan:ROI2:EnableCallbacks",
+            "XSP3_7Chan:ROISUM2:EnableCallbacks",
+            "XSP3_7Chan:C2SCA:EnableCallbacks",
+            "XSP3_7Chan:C2SCA:TS:EnableCallbacks",
+            "XSP3_7Chan:MCA2:EnableCallbacks",
+            "XSP3_7Chan:MCASUM2:EnableCallbacks",
+            "XSP3_7Chan:MCA2ROI:EnableCallbacks",
+            "XSP3_7Chan:ROI3:EnableCallbacks",
+            "XSP3_7Chan:ROISUM3:EnableCallbacks",
+            "XSP3_7Chan:C3SCA:EnableCallbacks",
+            "XSP3_7Chan:C3SCA:TS:EnableCallbacks",
+            "XSP3_7Chan:MCA3:EnableCallbacks",
+            "XSP3_7Chan:MCASUM3:EnableCallbacks",
+            "XSP3_7Chan:MCA3ROI:EnableCallbacks",
+            "XSP3_7Chan:ROI4:EnableCallbacks",
+            "XSP3_7Chan:ROISUM4:EnableCallbacks",
+            "XSP3_7Chan:C4SCA:EnableCallbacks",
+            "XSP3_7Chan:C4SCA:TS:EnableCallbacks",
+            "XSP3_7Chan:MCA4:EnableCallbacks",
+            "XSP3_7Chan:MCASUM4:EnableCallbacks",
+            "XSP3_7Chan:MCA4ROI:EnableCallbacks",
+            "XSP3_7Chan:ROI5:EnableCallbacks",
+            "XSP3_7Chan:ROISUM5:EnableCallbacks",
+            "XSP3_7Chan:C5SCA:EnableCallbacks",
+            "XSP3_7Chan:C5SCA:TS:EnableCallbacks",
+            "XSP3_7Chan:MCA5:EnableCallbacks",
+            "XSP3_7Chan:MCASUM5:EnableCallbacks",
+            "XSP3_7Chan:MCA5ROI:EnableCallbacks",
+            "XSP3_7Chan:ROI6:EnableCallbacks",
+            "XSP3_7Chan:ROISUM6:EnableCallbacks",
+            "XSP3_7Chan:C6SCA:EnableCallbacks",
+            "XSP3_7Chan:C6SCA:TS:EnableCallbacks",
+            "XSP3_7Chan:MCA6:EnableCallbacks",
+            "XSP3_7Chan:MCASUM6:EnableCallbacks",
+            "XSP3_7Chan:MCA6ROI:EnableCallbacks",
+            "XSP3_7Chan:ROI7:EnableCallbacks",
+            "XSP3_7Chan:ROISUM7:EnableCallbacks",
+            "XSP3_7Chan:C7SCA:EnableCallbacks",
+            "XSP3_7Chan:C7SCA:TS:EnableCallbacks",
+            "XSP3_7Chan:MCA7:EnableCallbacks",
+            "XSP3_7Chan:MCASUM7:EnableCallbacks",
+            "XSP3_7Chan:MCA7ROI:EnableCallbacks",
+        )
+
         for plugin in _plugins:
             caput(plugin, state)

@@ -1,5 +1,4 @@
 import numpy as np
-
 from ophyd import Component
 from ophyd import EpicsSignalRO
 from ophyd import TetrAMM
@@ -8,14 +7,8 @@ from ophyd.areadetector.plugins import StatsPlugin_V34
 from ophyd.device import Staged
 from ophyd.quadem import QuadEMPort
 
-from ophyd.status import DeviceStatus
-
-from apstools.utils import run_in_thread
-
-
 
 class MyTetrAMM(TetrAMM):
-
     """Caen picoammeter - TetraAMM."""
 
     conf = Component(QuadEMPort, add_prefix="19idSFT:TetrAMM1:", port_name="QUAD_PORT")
@@ -28,7 +21,6 @@ class MyTetrAMM(TetrAMM):
     sum_all = Component(StatsPlugin_V34, "SumAll:")
 
     position_y_fast = Component(EpicsSignalRO, "PositionYAve")
-
 
     def __init__(self, *args, port_name="TetrAMM", **kwargs):
         """custom port name"""
@@ -66,7 +58,6 @@ class MyTetrAMM(TetrAMM):
         self.stage_sigs["acquire_mode"] = "Single"
         self._fast_trigger = False
 
-
     def stage(self):
         self._status = None
         super().stage()
@@ -88,55 +79,24 @@ class MyTetrAMM(TetrAMM):
             return self._status
 
         return super().trigger()
-    
+
     def unstage(self):
         self._status = None
         super().unstage()
-    
 
     def plot_currents(self, currents: list):
-        current_dic = {1: self.current1.mean_value,
-                       2: self.current2.mean_value,
-                       3: self.current3.mean_value,
-                       4: self.current4.mean_value}
-        
+        current_dic = {
+            1: self.current1.mean_value,
+            2: self.current2.mean_value,
+            3: self.current3.mean_value,
+            4: self.current4.mean_value,
+        }
+
         for i in np.arange(1, 5):
             if i in currents:
-                current_dic[i].kind = 'hinted'
+                current_dic[i].kind = "hinted"
             else:
-                current_dic[i].kind = 'normal'
-
-
-    
-    
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+                current_dic[i].kind = "normal"
 
 
 """
@@ -180,15 +140,13 @@ TetrAMM, Caen picoammeter.
 # TETRAMMCLOCK = 100000  # unit in Hz
 
 
-
-
 # class Trigger(TriggerBase):
 
 #     def stage(self):
 #         '''Staging detector. Must ensure that stage signals are well defined previously.'''
 #         self.acquire.put(0, timeout=10)
 #         self.acquire_mode.put('Single', wait=True, timeout=10)
-#         # self.acquisitions.put(100, wait=True, timeout=10) 
+#         # self.acquisitions.put(100, wait=True, timeout=10)
 #         print("Succesfully staged.")
 #         self._staged = True
 
@@ -253,76 +211,75 @@ TetrAMM, Caen picoammeter.
 #         self.current4.mean_value.kind = "hinted"
 
 
-
 # class MyTetrAMM(Trigger, XPCS_TetrAMM):
 
 #     pass
 
 
-    # #Trigger configs
-    # acquisitions = Cpt(EpicsSignalWithRBV, "NumAcquire", name='acquisitions', kind='config')
-    # trigger_polarity = Cpt(EpicsSignalWithRBV, "TriggerPolarity", name='trigger_polarity', kind='config')
-    # fast_avg_time = Cpt(EpicsSignalWithRBV, "FastAveragingTime")
+# #Trigger configs
+# acquisitions = Cpt(EpicsSignalWithRBV, "NumAcquire", name='acquisitions', kind='config')
+# trigger_polarity = Cpt(EpicsSignalWithRBV, "TriggerPolarity", name='trigger_polarity', kind='config')
+# fast_avg_time = Cpt(EpicsSignalWithRBV, "FastAveragingTime")
 
-    # acquire = Cpt(EpicsSignalWithRBV, "Acquire", name='acquisitions', kind='config')
-    # acquire_mode = Cpt(EpicsSignalWithRBV, "AcquireMode", name='acquire_mode', kind='config')
-    # averaging_time = Cpt(EpicsSignalWithRBV, "AveragingTime", name='averaging_time', kind='config')
-    # sample_time = Cpt(EpicsSignalRO, "SampleTime_RBV", name="sample_time")
-
-    
-    # #File configs
-    # netcdf_enable = Cpt(EpicsSignalWithRBV, ":netCDF1:EnableCallbacks")
-    # file_path = Cpt(EpicsSignalWithRBV, ":netCDF1:FilePath", string=True)
-    # file_name = Cpt(EpicsSignalWithRBV, ":netCDF1:FileName", string=True)
-    # file_num = Cpt(EpicsSignalWithRBV, ":netCDF1:FileNumber")
-    # auto_increment = Cpt(EpicsSignalWithRBV, ":netCDF1:AutoIncrement")
-    # file_format = Cpt(EpicsSignalWithRBV, ":netCDF1:FileTemplate", string=True)
-    # file_num_capture = Cpt(EpicsSignalWithRBV, ":netCDF1:NumCapture")
-    # file_capture = Cpt(EpicsSignalWithRBV, ":netCDF1:Capture")
-    # file_write_mode = Cpt(EpicsSignalWithRBV, ":netCDF1:FileWriteMode")
-
-    # current_1 = Cpt(EpicsSignalRO, ":Current1:MeanValue_RBV", name='current_1', kind='hinted')
-    # current_2 = Cpt(EpicsSignalRO, ":Current2:MeanValue_RBV", name='current_2', kind='hinted')
-    # current_3 = Cpt(EpicsSignalRO, ":Current3:MeanValue_RBV", name='current_3', kind='hinted')
+# acquire = Cpt(EpicsSignalWithRBV, "Acquire", name='acquisitions', kind='config')
+# acquire_mode = Cpt(EpicsSignalWithRBV, "AcquireMode", name='acquire_mode', kind='config')
+# averaging_time = Cpt(EpicsSignalWithRBV, "AveragingTime", name='averaging_time', kind='config')
+# sample_time = Cpt(EpicsSignalRO, "SampleTime_RBV", name="sample_time")
 
 
-    # def initialization(self):
-    #     yield from bps.mv(
-    #         self.acquire_mode,
-    #         1,  # acquire_mode set to Multiple
-    #         self.range,
-    #         0,  # Range set to +/- 120 uA
-    #         self.num_channels,
-    #         2,  # Num of channel set to 4
-    #         self.trigger_mode,
-    #         1,  # Trigger mode set to Ext. trig
-    #         self.trigger_polarity,
-    #         0,  # Trigger polarity set to Positive
-    #         self.bias_state,
-    #         0,  # Bias state set to Off
-    #         self.bias_voltage,
-    #         0,  # Bias voltage set to 0V
-    #         self.bias_interlock,
-    #         0,  # Bias interlock set to off
-    #     )
+# #File configs
+# netcdf_enable = Cpt(EpicsSignalWithRBV, ":netCDF1:EnableCallbacks")
+# file_path = Cpt(EpicsSignalWithRBV, ":netCDF1:FilePath", string=True)
+# file_name = Cpt(EpicsSignalWithRBV, ":netCDF1:FileName", string=True)
+# file_num = Cpt(EpicsSignalWithRBV, ":netCDF1:FileNumber")
+# auto_increment = Cpt(EpicsSignalWithRBV, ":netCDF1:AutoIncrement")
+# file_format = Cpt(EpicsSignalWithRBV, ":netCDF1:FileTemplate", string=True)
+# file_num_capture = Cpt(EpicsSignalWithRBV, ":netCDF1:NumCapture")
+# file_capture = Cpt(EpicsSignalWithRBV, ":netCDF1:Capture")
+# file_write_mode = Cpt(EpicsSignalWithRBV, ":netCDF1:FileWriteMode")
 
-    #     yield from bps.mv(
-    #         self.file_write_mode,
-    #         2,  # NetCDF file write mode to Strea
-    #         self.file_format,
-    #         f"%s%s_%05d.nc",  # Set default NetCDF file formatter
-    #         self.file_name,
-    #         f"19ide_",  # Set it up for ISN (19ide)
-    #     )
+# current_1 = Cpt(EpicsSignalRO, ":Current1:MeanValue_RBV", name='current_1', kind='hinted')
+# current_2 = Cpt(EpicsSignalRO, ":Current2:MeanValue_RBV", name='current_2', kind='hinted')
+# current_3 = Cpt(EpicsSignalRO, ":Current3:MeanValue_RBV", name='current_3', kind='hinted')
 
-    # def setup_scan(self, pts, dwell):
-    #     values_per_reading = int(TETRAMMCLOCK * dwell - 1)
-    #     yield from bps.mv(
-    #         self.avg_time,
-    #         dwell,
-    #         self.values_per_read,
-    #         values_per_reading,
-    #         self.num_acquire,
-    #         pts,
-    #     )
-    #     yield from bps.mv(self.file_num_capture, pts)
+
+# def initialization(self):
+#     yield from bps.mv(
+#         self.acquire_mode,
+#         1,  # acquire_mode set to Multiple
+#         self.range,
+#         0,  # Range set to +/- 120 uA
+#         self.num_channels,
+#         2,  # Num of channel set to 4
+#         self.trigger_mode,
+#         1,  # Trigger mode set to Ext. trig
+#         self.trigger_polarity,
+#         0,  # Trigger polarity set to Positive
+#         self.bias_state,
+#         0,  # Bias state set to Off
+#         self.bias_voltage,
+#         0,  # Bias voltage set to 0V
+#         self.bias_interlock,
+#         0,  # Bias interlock set to off
+#     )
+
+#     yield from bps.mv(
+#         self.file_write_mode,
+#         2,  # NetCDF file write mode to Strea
+#         self.file_format,
+#         f"%s%s_%05d.nc",  # Set default NetCDF file formatter
+#         self.file_name,
+#         f"19ide_",  # Set it up for ISN (19ide)
+#     )
+
+# def setup_scan(self, pts, dwell):
+#     values_per_reading = int(TETRAMMCLOCK * dwell - 1)
+#     yield from bps.mv(
+#         self.avg_time,
+#         dwell,
+#         self.values_per_read,
+#         values_per_reading,
+#         self.num_acquire,
+#         pts,
+#     )
+#     yield from bps.mv(self.file_num_capture, pts)
