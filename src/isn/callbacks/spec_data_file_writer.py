@@ -13,9 +13,12 @@ custom callbacks
 import datetime
 import logging
 import pathlib
+from typing import Any
+from typing import Optional
 
 import apstools.callbacks
 import apstools.utils
+
 from apsbits.utils.config_loaders import get_config
 
 logger = logging.getLogger(__name__)
@@ -25,12 +28,14 @@ iconfig = get_config()
 file_extension = iconfig.get("SPEC_DATA_FILES", {}).get("FILE_EXTENSION", "dat")
 
 
-def spec_comment(comment, doc=None):
+def spec_comment(comment: str, doc: Optional[Any] = None) -> None:
     """Make it easy for user to add comments to the data file."""
     apstools.callbacks.spec_comment(comment, doc, specwriter)
 
 
-def newSpecFile(title, scan_id=None, RE=None):
+def newSpecFile(
+    title: str, scan_id: Optional[int] = None, RE: Optional[Any] = None
+) -> None:
     """
     User choice of the SPEC file name.
 
@@ -61,7 +66,7 @@ def newSpecFile(title, scan_id=None, RE=None):
 
 
 # Add this function to specwriter.py
-def init_specwriter_with_RE(RE):
+def init_specwriter_with_RE(RE: Any) -> None:
     """Initialize specwriter with the run engine."""
 
     # make the SPEC file in current working directory (assumes is writable)
@@ -81,7 +86,7 @@ def init_specwriter_with_RE(RE):
 
         RE.preprocessors.append(motor_start_preprocessor)
     except Exception:
-        logger.warning("Could load support to log motors positions.")
+        logger.warning("Could not load support to log motors positions.")
 
 
 # write scans to SPEC data file
@@ -91,7 +96,6 @@ try:
 except AttributeError:
     # apstools <1.6.21
     _specwriter = apstools.callbacks.SpecWriterCallback()
-
 
 specwriter = _specwriter
 """The SPEC file writer object."""

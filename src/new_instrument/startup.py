@@ -13,10 +13,6 @@ Includes:
 import logging
 from pathlib import Path
 
-#Temporary hklpy2 fix, importing gi before hklpy2 and matplotlib to prevent bugs
-import gi
-import hklpy2
-
 # Core Functions
 from tiled.client import from_profile
 
@@ -27,7 +23,7 @@ from apsbits.core.instrument_init import make_devices
 from apsbits.core.run_engine_init import init_RE
 
 # Utility functions
-from apstools.utils.aps_data_management import dm_setup
+from apsbits.utils.aps_functions import host_on_aps_subnet
 from apsbits.utils.baseline_setup import setup_baseline_stream
 
 # Configuration functions
@@ -35,7 +31,6 @@ from apsbits.utils.config_loaders import load_config
 from apsbits.utils.helper_functions import register_bluesky_magics
 from apsbits.utils.helper_functions import running_in_queueserver
 from apsbits.utils.logging_setup import configure_logging
-
 
 # Configuration block
 # Get the path to the instrument package
@@ -50,11 +45,9 @@ iconfig = load_config(iconfig_path)
 extra_logging_configs_path = instrument_path / "configs" / "extra_logging.yml"
 configure_logging(extra_logging_configs_path=extra_logging_configs_path)
 
+
 logger = logging.getLogger(__name__)
 logger.info("Starting Instrument with iconfig: %s", iconfig_path)
-
-# Load the master file config
-master_file_config_path = instrument_path / "configs" / "masterFileConfig.yml"
 
 # initialize instrument
 instrument, oregistry = init_instrument("guarneri")
@@ -63,12 +56,11 @@ instrument, oregistry = init_instrument("guarneri")
 oregistry.clear()
 
 # Configure the session with callbacks, devices, and plans.
-dm_setup(iconfig.get("DM_SETUP_FILE"))
+# aps_dm_setup(iconfig.get("DM_SETUP_FILE"))
 
 # Command-line tools, such as %wa, %ct, ...
 register_bluesky_magics()
 
-# Bluesky initialization block
 # Bluesky initialization block
 
 if iconfig.get("TILED_PROFILE_NAME", {}):
@@ -79,73 +71,48 @@ bec, peaks = init_bec_peaks(iconfig)
 cat = init_catalog(iconfig)
 RE, sd = init_RE(iconfig, subscribers=[bec, cat])
 
+# Optional Nexus callback block
+# delete this block if not using Nexus
+if iconfig.get("NEXUS_DATA_FILES", {}).get("ENABLE", False):
+    from .callbacks.demo_nexus_callback import nxwriter_init
+
+    nxwriter = nxwriter_init(RE)
+
 # Optional SPEC callback block
 # delete this block if not using SPEC
 if iconfig.get("SPEC_DATA_FILES", {}).get("ENABLE", False):
-    from mic_common.callbacks.spec_data_file_writer import init_specwriter_with_RE
-    from mic_common.callbacks.spec_data_file_writer import newSpecFile  # noqa: F401
-    from mic_common.callbacks.spec_data_file_writer import spec_comment  # noqa: F401
-    from mic_common.callbacks.spec_data_file_writer import specwriter  # noqa: F401
+    from .callbacks.demo_spec_callback import init_specwriter_with_RE
+    from .callbacks.demo_spec_callback import newSpecFile  # noqa: F401
+    from .callbacks.demo_spec_callback import spec_comment  # noqa: F401
+    from .callbacks.demo_spec_callback import specwriter  # noqa: F401
+
     init_specwriter_with_RE(RE)
 
-# # These imports must come after the above setup.
-# # Queue server block
-# if running_in_queueserver():
-#     ### To make all the standard plans available in QS, import by '*', otherwise import
-#     ### plan by plan.
-#     from apstools.plans import lineup2  # noqa: F401
-#     from bluesky.plans import *  # noqa: F403
-# else:
-#     # Import bluesky plans and stubs with prefixes set by common conventions.
-#     # The apstools plans and utils are imported by '*'.
-#     from apstools.plans import *  # noqa: F403
-#     from apstools.utils import *  # noqa: F403
-#     from bluesky import plan_stubs as bps  # noqa: F401
-#     from bluesky import plans as bp  # noqa: F401
-
+# These imports must come after the above setup.
+# Queue server block
+if running_in_queueserver():
+    ### To make all the standard plans available in QS, import by '*', otherwise import
+    ### plan by plan.
+    from apstools.plans import lineup2  # noqa: F401
+    from bluesky.plans import *  # noqa: F403
+else:
+    # Import bluesky plans and stubs with prefixes set by common conventions.
+    # The apstools plans and utils are imported by '*'.
+    from apstools.plans import *  # noqa: F403
+    from apstools.utils import *  # noqa: F403
+    from bluesky import plan_stubs as bps  # noqa: F401
+    from bluesky import plans as bp  # noqa: F401
 
 # Experiment specific logic, device and plan loading. # Create the devices.
 make_devices(clear=False, file="devices.yml", device_manager=instrument)
 
-
-# Assign softglue detector key map
-det_keymap = iconfig.get("SOFTGLUE_OUTPUTS")
-try:
-    softglue = oregistry.find('softglue')
-    softglue.det_keymap = det_keymap
-except:
-    logger.info("Softglue not found, detector key map not generated.")
-
-
-# # Diffractometer utilities:
-# # import hklpy2 # noqa: F401
-# sim_psic = hklpy2.creator(
-#     name="sim_psic", solver="hkl_soleil", geometry="E6C",
-#     reals="mu eta chi phi yaw pitch".split(),
-# )
-# sim_psic.core.mode="lifting_detector_mu"
-
-# psic = oregistry['psic']
-# psic.wait_for_connection()
-# psic.core.mode = "lifting_detector_mu"
-
-# if host_on_aps_subnet():
-#     RE(make_devices(clear=False, file="devices_aps_only.yml"))
-#     RE(make_devices(clear=False, file="devices_aps_only.yml"))
+if host_on_aps_subnet():
+    make_devices(clear=False, file="devices_aps_only.yml", device_manager=instrument)
 
 # Setup baseline stream with connect=False is default
 # Devices with the label 'baseline' will be added to the baseline stream.
 setup_baseline_stream(sd, oregistry, connect=False)
 
-# from isn.plans.old_plans.sim_plans import *
-from bluesky import plan_stubs as bps  # noqa: F401
-from bluesky import plans as bp  # noqa: F401
-
-# from .plans import *
-
-
-# from mic_common.utils.dm_utils import *
-
-logger = logging.getLogger()
-logger.setLevel(logging.DEBUG)
-
+from .plans.sim_plans import sim_count_plan  # noqa: E402, F401
+from .plans.sim_plans import sim_print_plan  # noqa: E402, F401
+from .plans.sim_plans import sim_rel_scan_plan  # noqa: E402, F401
