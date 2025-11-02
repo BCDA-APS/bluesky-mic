@@ -59,11 +59,11 @@ isn.devices.diamond_window.Diamond_Window:
 # # #   labels: ["motor"]
 
 
-# isn.devices.tetramm.MyTetrAMM:
-# - name: tetramm1
-#   prefix: "19idSFT:TetrAMM1:"
-#   port_name: "TetrAMM1"
-#   labels: ["detector"]
+isn.devices.tetramm.MyTetrAMM:
+- name: tetramm1
+  prefix: "19idSFT:TetrAMM1:"
+  port_name: "TetrAMM1"
+  labels: ["detector"]
 
 # - name: tetramm2
 #   prefix: "19idSFT2:TetrAMM2:"
@@ -75,10 +75,10 @@ isn.devices.diamond_window.Diamond_Window:
 #   port_name: "TetrAMM3"
 #   labels: ["detector"]
 
-# - name: tetramm4
-#   prefix: "19idSFT4:T4:"
-#   port_name: "TetrAMM4"
-#   labels: ["detector"]
+- name: tetramm4
+  prefix: "19idSFT4:T4:"
+  port_name: "TetrAMM4"
+  labels: ["detector"]
 
 # isn.devices.bpm.BasicQuadEM:
 # - name: bpm_c
@@ -174,19 +174,21 @@ isn.devices.kb.KB:
 #   in_position: -20
 #   out_position: 0
 
-# mic_common.devices.eiger.Eiger:
-# - name: ptycho
-#   prefix: "19idPTYCHO:"
-#   labels: ["detector"]
+mic_common.devices.eiger.Eiger:
+- name: ptycho
+  device_class: mic_common.devices.eiger.Eiger
+  prefix: "19idPTYCHO:"
+  labels: ["detector"]
 
-# - name: xrd
-#   prefix: "19idXRD:"
-#   labels: ["detector"]
+- name: xrd
+  device_class: mic_common.devices.eiger.Eiger
+  prefix: "19idXRD:"
+  labels: ["detector"]
 
-# isn.devices.me7.VortexXspress37:
-# - name: me7
-#   prefix: "XSP3_7Chan:"
-#   labels: ["detector"]
+isn.devices.me7.VortexXspress37:
+- name: me7
+  prefix: "XSP3_7Chan:"
+  labels: ["detector"]
 
 # isn.devices.vortex_xpress3_me7.VortexXspress37:
 # - name: me7
