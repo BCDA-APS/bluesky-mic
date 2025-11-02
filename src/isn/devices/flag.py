@@ -1,19 +1,34 @@
 from ophyd import FormattedComponent
 from ophyd import EpicsMotor
+from ophyd import EpicsSignal
 
 from ophyd.areadetector import DetectorBase
 from ophyd.areadetector import CamBase
 from ophyd.areadetector import ROIPlugin
 from ophyd.areadetector import StatsPlugin
+from ophyd.areadetector import SingleTrigger
+from ophyd.areadetector import ADComponent
 
 from mic_common.devices.ad_fileplugin import MicHDF5
 
 from bluesky.plan_stubs import mv
 
-class Flag(DetectorBase):
+
+# class FlagCam(CamBase):
+
+#     acquire_mode = ADComponent(EpicsSignal, "ImageMode")
+
+class FlagStatsPlugin(StatsPlugin):
+
+    _default_read_attrs = ("total",)
+
+class Flag(SingleTrigger, DetectorBase):
 
     _default_configuration_attrs = ()
 
+    _default_read_attrs =(
+        "stats1",
+    )
 
     motor = FormattedComponent(EpicsMotor, "{motor_prefix}")
     cam = FormattedComponent(CamBase, "{flag_prefix}"+"cam1:")
@@ -24,10 +39,12 @@ class Flag(DetectorBase):
     roi3 = FormattedComponent(ROIPlugin, "{flag_prefix}"+"ROI3:")
     roi4 = FormattedComponent(ROIPlugin, "{flag_prefix}"+"ROI4:")
 
-    stats1 = FormattedComponent(StatsPlugin, "{flag_prefix}"+"Stats1:")
-    stats2 = FormattedComponent(StatsPlugin, "{flag_prefix}"+"Stats2:")
-    stats3 = FormattedComponent(StatsPlugin, "{flag_prefix}"+"Stats3:")
-    stats4 = FormattedComponent(StatsPlugin, "{flag_prefix}"+"Stats4:")    
+    stats1 = FormattedComponent(FlagStatsPlugin, "{flag_prefix}"+"Stats1:")
+    stats2 = FormattedComponent(FlagStatsPlugin, "{flag_prefix}"+"Stats2:")
+    stats3 = FormattedComponent(FlagStatsPlugin, "{flag_prefix}"+"Stats3:")
+    stats4 = FormattedComponent(FlagStatsPlugin, "{flag_prefix}"+"Stats4:")
+
+    stats1.read_attrs = ("total",)
 
 
     def __init__(self, flag_prefix, motor_prefix, in_position, out_position, *args, **kwargs):
@@ -35,8 +52,11 @@ class Flag(DetectorBase):
         self.motor_prefix = motor_prefix
         self._in_position = in_position
         self._out_position = out_position
-
         super().__init__(*args, **kwargs)
+        self.cam.stage_sigs["image_mode"] = 0
+        self.cam.stage_sigs["num_images"] = 1
+
+        
 
 
     def on(self):

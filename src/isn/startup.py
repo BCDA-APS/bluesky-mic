@@ -13,9 +13,9 @@ Includes:
 import logging
 from pathlib import Path
 
-#Temporary hklpy2 fix, importing gi before hklpy2 and matplotlib to prevent bugs
-import gi
-import hklpy2
+# #Temporary hklpy2 fix, importing gi before hklpy2 and matplotlib to prevent bugs
+# import gi
+# import hklpy2
 
 from apsbits.core.best_effort_init import init_bec_peaks
 from apsbits.core.catalog_init import init_catalog
@@ -26,7 +26,7 @@ from apsbits.core.instrument_init import oregistry
 from apsbits.core.run_engine_init import init_RE
 
 # Utility functions
-from apsbits.utils.aps_functions import aps_dm_setup
+# from apsbits.utils.aps_functions import aps_dm_setup
 from apsbits.utils.aps_functions import host_on_aps_subnet
 from apsbits.utils.baseline_setup import setup_baseline_stream
 
@@ -61,8 +61,8 @@ master_file_config_path = instrument_path / "configs" / "masterFileConfig.yml"
 # Discard oregistry items loaded above.
 oregistry.clear()
 
-# Configure the session with callbacks, devices, and plans.
-aps_dm_setup(iconfig.get("DM_SETUP_FILE"))
+# # Configure the session with callbacks, devices, and plans.
+# aps_dm_setup(iconfig.get("DM_SETUP_FILE"))
 
 # Command-line tools, such as %wa, %ct, ...
 register_bluesky_magics()
@@ -80,7 +80,7 @@ RE, sd = init_RE(iconfig, bec_instance=bec, cat_instance=cat)
 # # delete this block if not using Nexus
 # if iconfig.get("NEXUS_DATA_FILES", {}).get("ENABLE", False):
 #     # from .callbacks.nexus_data_file_writer import nxwriter_init
-#     from mic_common.callbacks.nexus_data_file_writer import nxwriter_init
+#     from isn.callbacks.nexus_data_file_writer import nxwriter_init
 #     nxwriter = nxwriter_init(RE)
 
 # Optional SPEC callback block
@@ -121,8 +121,8 @@ except:
     logger.info("Softglue not found, detector key map not generated.")
 
 
-# # Diffractometer utilities:
-# # import hklpy2 # noqa: F401
+# Diffractometer utilities:
+# import hklpy2 # noqa: F401
 # sim_psic = hklpy2.creator(
 #     name="sim_psic", solver="hkl_soleil", geometry="E6C",
 #     reals="mu eta chi phi yaw pitch".split(),
@@ -141,9 +141,17 @@ except:
 # Devices with the label 'baseline' will be added to the baseline stream.
 setup_baseline_stream(sd, oregistry, connect=False)
 
+# Set the nxwriter to savedata ophyd object
+# savedata = oregistry["savedata"]
+# savedata.nxwriter = nxwriter
+# nxwriter.set_savedata(savedata)
+
+
 # from isn.plans.old_plans.sim_plans import *
 from bluesky import plan_stubs as bps
 from bluesky import plans as bp
+from isn.plans.flyscan import flyscan, flyscan_qserver
+# from isn.plans.flyscan_savefile import flyscan_metadata
 # from .plans import *
 
 
