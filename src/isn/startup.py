@@ -141,7 +141,7 @@ setup_baseline_stream(sd, oregistry, connect=False)
 
 # from isn.plans.old_plans.sim_plans import *
 
-# from .plans import *
+from .plans import *
 
 
 # from mic_common.utils.dm_utils import *
