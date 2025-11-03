@@ -5,8 +5,9 @@
 # from .test import test_plan  # noqa: F401
 # from .step2d import step2d 
 # from .step2d_random_pos import step2d_random_pos 
-# from .flyscan import flyscan
-from .flyscan_eigerOnly import flyscan
+from .flyscan import flyscan
+# from .test_logger import test_logger
+# from .flyscan_eigerOnly import flyscan
 
 
 

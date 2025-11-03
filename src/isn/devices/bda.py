@@ -27,16 +27,14 @@ class BDA(Device):
         super().__init__(prefix=prefix, **kwargs)
 
     low_slit = FormattedComponent(
-        EpicsMotor, "{prefix}:Slit1{axis}xn", labels=("motors",), kind="config"
+        EpicsMotor, "{prefix}:Slit1{axis}xn", labels=("motors",),
     )
     high_slit = FormattedComponent(
-        EpicsMotor, "{prefix}:Slit1{axis}xp", labels=("motors",), kind="config"
+        EpicsMotor, "{prefix}:Slit1{axis}xp", labels=("motors",),
     )
     size = FormattedComponent(
-        EpicsMotor, "{prefix}:Slit1{axis}size", labels=("motors","baseline"),
-          kind="config"
+        EpicsMotor, "{prefix}:Slit1{axis}size", labels=("motors",),
     )
     center = FormattedComponent(
-        EpicsMotor, "{prefix}:Slit1{axis}center", labels=("motors","baseline"),
-          kind="config"
+        EpicsMotor, "{prefix}:Slit1{axis}center", labels=("motors",),
     )

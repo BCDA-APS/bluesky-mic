@@ -1,7 +1,10 @@
 from apsbits.utils.controls_setup import oregistry
 from apsbits.utils.config_loaders import get_config
 from bluesky.plan_stubs import mv, sleep
+from isn.utils.param_capture import capture_params
 import logging
+import bluesky.preprocessors as bpp
+from bluesky import plan_stubs as bps
 
 logger = logging.getLogger(__name__)
 logger.info(__file__)
@@ -10,7 +13,6 @@ softglue = oregistry['softglue']
 sample = oregistry['sample']
 socketserver = oregistry['socketserver']
 savedata = oregistry['savedata']
-
 # ptycho = oregistry['ptycho'] #temporary while we fix external gating
 # xrd = oregistry['xrd'] #temporary while we fix external gating
 
@@ -19,52 +21,51 @@ iconfig = get_config()
 softglue_outputs = iconfig.get("SOFTGLUE_OUTPUTS")
 
 
-def flyscan_qserver(
-    me7_on:bool =True,
-    ptycho_on:bool =False,
-    xrd_on:bool =False,
-    x_min:float =-50, # in um
-    x_max:float =50, #in um
-    x_npts:int =11,
-    y_min:float =0, #in um
-    y_max:float =90, #in um
-    y_npts:int =11,
-    acquire_time:float =80, # in ms
-    det_dead:float =20, # in ms (detector dead time)
-    F:float =0.9, # Fraction of wave in straight line 0-1
-    interferometer_frequency: int = 1000 #in Hz
+def flyscan_metadata(
+    detectors=None,
+    x_min=-50, # in um
+    x_max=50, #in um
+    x_npts=11,
+    y_min=0, #in um
+    y_max=90, #in um
+    y_npts=11,
+    acquire_time=80, # in ms
+    det_dead=20, # in ms (detector dead time)
+    F=0.9, # Fraction of wave in straight line 0-1
+    interferometer_frequency = 1000 #in Hz
 ):
 
-    detectors = []
-    if me7_on:
-        detectors.append(oregistry['me7'])
-    if ptycho_on:
-        detectors.append(oregistry['ptycho'])
-    if xrd_on:
-        detectors.append(oregistry['xrd'])
-    yield from flyscan(detectors, x_min, x_max, x_npts, y_min, y_max, y_npts, acquire_time, det_dead, F, interferometer_frequency)
+    """Capture the input plan parameters"""
+    plan_args = capture_params(flyscan_metadata, **locals())
+    plan_args["detectors"] = [d.name for d in detectors]
+    md = {"plan_args": plan_args}
+
+    @bpp.run_decorator(md=md)
+    def _flyscan():
+        # yield from flyscan(**plan_args)
+        yield from bps.sleep(3)
+
+    yield from _flyscan()
+
+
+
 
 def flyscan(
-    detectors,
-    x_min:float =-50, # in um
-    x_max:float =50, #in um
-    x_npts:int =11,
-    y_min:float =0, #in um
-    y_max:float =90, #in um
-    y_npts:int =11,
-    acquire_time:float =80, # in ms
-    det_dead:float =20, # in ms (detector dead time)
-    F:float =0.9, # Fraction of wave in straight line 0-1
-    interferometer_frequency: int = 1000 #in Hz
+        detectors,
+        x_min=-50, # in um
+        x_max=50, #in um
+        x_npts=11,
+        y_min=0, #in um
+        y_max=90, #in um
+        y_npts=11,
+        acquire_time=80, # in ms
+        det_dead=20, # in ms (detector dead time)
+        F=0.9, # Fraction of wave in straight line 0-1
+        interferometer_frequency = 1000 #in Hz
 ):
     
     #Temporarily fixed parameter:
     snake_npts=1000
-
-    # --- Getting initial positions --- #
-
-    x0 = sample.x.user_readback.get()
-    y0 = sample.fine_y.user_readback.get()
     
     # --- Stopping softglue and cleaning --- #
 
@@ -216,10 +217,8 @@ def flyscan(
         # else:
         #     detector.setup_flyscan_mode()
 
-        detector.setup_flyscan_mode(num_images=total_images, 
-                                    acq_time=acquire_time*1e-3,
-                                    hdf_images=int(y_npts/0.9))
-
+        detector.setup_flyscan_mode(num_images=total_images)
+        detector.hdf1.stage()
         detector.stage()
 
         
@@ -241,7 +240,7 @@ def flyscan(
 
     for detector in detectors:
         detector.unstage()
-        # detector.hdf1.unstage()
+        detector.hdf1.unstage()
     
     # --- Filling up DMA for socket server acquisition --- #
 
@@ -267,8 +266,5 @@ def flyscan(
     savedata.advance_scan_number()
 
     # --- Return sample to initial positions ---
-
-    yield from mv(sample.x, x0)
-    yield from softglue.move_y_analog(y0*1e3)
 
 

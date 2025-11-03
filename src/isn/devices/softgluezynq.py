@@ -5,12 +5,15 @@ from ophyd.status import DeviceStatus
 from collections import OrderedDict
 from bluesky.plan_stubs import mv, sleep
 import numpy as np
+import logging
+
+logger = logging.getLogger(__name__)
 
 def _io_fields(num=16):
     defn = OrderedDict()
     for i in range(1, num+1):
-        defn[f"fi{i}"] = (EpicsSignal, f"SG:FI{i}_Signal", {"kind": "config"})
-        defn[f"fo{i}"] = (EpicsSignal, f"SG:FO{i}_Signal", {"kind": "config"})
+        defn[f"fi{i}"] = (EpicsSignal, f":SG:FI{i}_Signal", {"kind": "config"})
+        defn[f"fo{i}"] = (EpicsSignal, f":SG:FO{i}_Signal", {"kind": "config"})
     return defn
 
 def _dma_fields(num=8, first_letter="I"):
@@ -26,7 +29,7 @@ def _dma_fields(num=8, first_letter="I"):
     defn["events"] = (EpicsSignalRO, ":1acquireDma.VALI", {"kind": "config"})
     for i in range(1, num+1):
         defn[f"channel_{i}_name"] = (
-            EpicsSignal, f"1s{i}name", {"kind": "config"}
+            EpicsSignal, f":1s{i}name", {"kind": "config"}
         )
         defn[f"channel_{i}_scale"] = (
             EpicsSignal,
@@ -37,13 +40,13 @@ def _dma_fields(num=8, first_letter="I"):
 
 class UpCounter(Device):
     enable = Component(EpicsSignal, "ENABLE_Signal", kind='config')
-    clock = Component(EpicsSignal, "CLK_Signal", kind='config')
+    clock = Component(EpicsSignal, "CLOCK_Signal", kind='config')
     clear = Component(EpicsSignal, "CLEAR_Signal", kind='config')
-    counts = Component(EpicsSignalRO, "Counts", kind='config')
+    counts = Component(EpicsSignalRO, "COUNTS", kind='config')
 
 class DownCounter(Device):
     enable = Component(EpicsSignal, "ENABLE_Signal", kind='config')
-    clock = Component(EpicsSignal, "CLK_Signal", kind='config')
+    clock = Component(EpicsSignal, "CLOCK_Signal", kind='config')
     load = Component(EpicsSignal, "LOAD_Signal", kind='config')
     preset = Component(EpicsSignal, "PRESET", kind='config')
     out_signal = Component(EpicsSignal, "OUT_Signal", kind='config')
@@ -67,7 +70,7 @@ class GateDelay(Device):
     out_signal = Component(EpicsSignal, "_OUT_Signal", kind='config')
 
 class PulseTrain(Device):
-    clock = Component(EpicsSignal, "_CLK_Signal", kind='config')
+    clock = Component(EpicsSignal, "_Clk_Signal", kind='config')
     n = Component(EpicsSignal, "_NPULSES", kind='config')
     period = Component(EpicsSignal, "_PERIOD", kind='config')
     width = Component(EpicsSignal, "_WIDTH", kind='config')
@@ -79,11 +82,29 @@ class FlipFlop(Device):
     clear = Component(EpicsSignal, "_CLEAR_Signal", kind='config')
     out_bi = Component(EpicsSignal, "_OUT_BI", kind='config')
 
+class ScalToStream(Device):
+    reset = Component(EpicsSignal, "_RESET_Signal")
+    channel_advance = Component(EpicsSignal, "_CHADV_Signal")
+    im_trig = Component(EpicsSignal, "_IMTRIG_Signal")
+    flush = Component(EpicsSignal, "_FLUSH_Signal")
+
+def _interferometer_tracker(if_tracker, num=6):
+    defn = OrderedDict()
+    for i in range(1, 1+num):
+        defn[f"if{i}"] = (EpicsSignal, f":SG:IF_tracker-{if_tracker}_IN{i}", {"kind":"normal"})
+    return defn
+
 
 
 class SoftGlueZynq(Device):
 
     _status_type = DeviceStatus
+
+    _default_read_attrs = (
+                            "if_tracker_1",
+                            "if_tracker_2",
+                            "if_tracker_3",
+                            )
 
     ### Components
 
@@ -112,6 +133,8 @@ class SoftGlueZynq(Device):
 
     flip_flop_1 = Component(FlipFlop, ":SG:DFF-1")
 
+    scal_to_stream_1 = Component(ScalToStream, ":SG:scalToStream-1")
+
     #Ram memory components for fly scanning
     mem_address = Component(EpicsSignal, ":SG:mem_ADDRA")
     mem_data = Component(EpicsSignal, ":SG:mem_DINA")
@@ -125,6 +148,7 @@ class SoftGlueZynq(Device):
     dac1_man = Component(EpicsSignal, ":SG:mux32_SEL_Signal")
     dac1_val = Component(EpicsSignal, ":SG:DAC1_VAL")
     dac1_write = Component(EpicsSignal, ":SG:DAC_WRITE_Signal")
+    dac1_init = Component(EpicsSignal, ":SG:DAC_INIT_Signal")
 
     threshold_pos = Component(EpicsSignal, ":SG:threshTrig-1_POSTHR")
     threshold_neg = Component(EpicsSignal, ":SG:threshTrig-1_NEGTHR")
@@ -132,6 +156,16 @@ class SoftGlueZynq(Device):
 
     #DMA components
     dma = DynamicDeviceComponent(_dma_fields())
+    # dma_clear = Component(EpicsSignal, ":1acquireDma.F")
+    # dma_screen_clear = Component(EpicsSignal, ":1acquireDma.D")
+    # dma_enable = Component(EpicsSignal, ":1acquireDmaEnable")
+
+    if_tracker_1 = DynamicDeviceComponent(_interferometer_tracker(1))
+    if_tracker_2 = DynamicDeviceComponent(_interferometer_tracker(2))
+    if_tracker_3 = DynamicDeviceComponent(_interferometer_tracker(3, num=3))
+
+    #Detector output mapping
+    det_keymap = None
 
     ### Functions
 
@@ -141,6 +175,11 @@ class SoftGlueZynq(Device):
         # yield from mv(self.buffer_4.in_signal, "1")
 
     def start_flyscan(self):
+        yield from mv(self.dma.enable, 1)
+        yield from mv(self.dma.clear_button, 1)
+        yield from mv(self.dma.clear_buffer, 1)
+        yield from sleep(1)
+
         yield from mv(self.buffer_4.in_signal, "1")
         yield from sleep(1)
 
@@ -160,7 +199,8 @@ class SoftGlueZynq(Device):
         yield from mv(self.buffer_4.in_signal, "0")
 
     def reset(self):
-        # self.buffer_1.in_signal.set("1!")
+        # Repeated it on purpose to clear ScalToStream 1 FIFO CT
+        yield from mv(self.buffer_1.in_signal, "1!")
         yield from mv(self.buffer_1.in_signal, "1!")
 
     def reset_interferometers(self):
@@ -176,7 +216,8 @@ class SoftGlueZynq(Device):
 
     def enable_waveform(self):
         yield from mv(self.mem_enable, "1",
-                      self.dac1_man, "0")
+                      self.dac1_man, "0",
+                      self.dac1_write, "funcGenPulse")
         
     def disable_waveform(self):
         yield from mv(self.mem_enable, "0",
@@ -281,7 +322,6 @@ class SoftGlueZynq(Device):
         offset = self.y_to_bits((y_max + y_min)/2)
 
         snake_array = self.create_snake_bits(A=amplitude, F=F, npts=npts, offset=offset)
-        # return snake_array
         yield from self.write_RAM(snake_array)
 
     
@@ -292,5 +332,24 @@ class SoftGlueZynq(Device):
 
         y_bits = self.y_to_bits(y=y)
         yield from self.disable_waveform()
+        yield from mv(self.dac1_init, "1!")
         yield from mv(self.dac1_val, y_bits)
         yield from mv(self.dac1_write, "1!")
+
+    def enable_detector_trigger(self, detector_name, det_keymap = None):
+        if det_keymap is None:
+            det_keymap = self.det_keymap
+            logger.info(f"Using default softglue detector key mapping: {det_keymap}")
+
+        try:
+            trigger_output = det_keymap[detector_name.upper()]
+        except:
+            logger.info(f"{detector_name} is not configured for TTL triggering.")
+            return
+        output_field = getattr(self.io, f"fo{trigger_output}")
+        output_field.put("trigger")
+
+    def clear_output_fields(self):
+        for i in np.arange(1,9,1):
+            output_field = getattr(self.io, f"fo{str(int(i))}")
+            output_field.put("0")

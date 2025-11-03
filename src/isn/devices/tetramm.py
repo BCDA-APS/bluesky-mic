@@ -1,5 +1,3 @@
-import logging
-import time as ttime
 import numpy as np
 
 from ophyd import Component
@@ -14,11 +12,10 @@ from ophyd.status import DeviceStatus
 
 from apstools.utils import run_in_thread
 
-logger = logging.getLogger(__name__)
-logger.info(__file__)
 
 
 class MyTetrAMM(TetrAMM):
+
     """Caen picoammeter - TetraAMM."""
 
     conf = Component(QuadEMPort, add_prefix="19idSFT:TetrAMM1:", port_name="QUAD_PORT")
@@ -32,6 +29,7 @@ class MyTetrAMM(TetrAMM):
 
     position_y_fast = Component(EpicsSignalRO, "PositionYAve")
 
+
     def __init__(self, *args, port_name="TetrAMM", **kwargs):
         """custom port name"""
         super().__init__(*args, **kwargs)
@@ -39,6 +37,8 @@ class MyTetrAMM(TetrAMM):
         self._acquisition_signal = self.acquire
         self.stage_sigs["acquire"] = 0
         self.stage_sigs["acquire_mode"] = "Single"
+        self._fast_trigger = False
+        # self.setup_internal_trigger()
 
         # Mark some components as "config" so they do not appear on data rows.
         for attr_name in self.component_names:
@@ -55,6 +55,17 @@ class MyTetrAMM(TetrAMM):
         self.current3.mean_value.kind = "hinted"
         self.current4.mean_value.kind = "hinted"
 
+    def setup_fast_trigger(self):
+        ## This function just grabs whatever reading is available in the screen. Very fast, but not precise.""
+        self.stage_sigs["acquire"] = 1
+        self.stage_sigs["acquire_mode"] = "Continuous"
+        self._fast_trigger = True
+
+    def setup_internal_trigger(self):
+        self.stage_sigs["acquire"] = 0
+        self.stage_sigs["acquire_mode"] = "Single"
+        self._fast_trigger = False
+
 
     def stage(self):
         self._status = None
@@ -70,18 +81,20 @@ class MyTetrAMM(TetrAMM):
                 "Call the stage() method before triggering."
             )
 
-        self._status = None
-        self._acquisition_signal.put(1, wait=True)
-        self._status = self._status_type(self)
-        self._status.set_finished()
-        return self._status
+        if self._fast_trigger:
+            self._status = None
+            self._status = self._status_type(self)
+            self._status.set_finished()
+            return self._status
+
+        return super().trigger()
     
     def unstage(self):
         self._status = None
         super().unstage()
     
 
-    def measure_currents(self, currents: list):
+    def plot_currents(self, currents: list):
         current_dic = {1: self.current1.mean_value,
                        2: self.current2.mean_value,
                        3: self.current3.mean_value,

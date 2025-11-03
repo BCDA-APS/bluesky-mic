@@ -2,5 +2,5 @@
 
 # Objects only available at APS
 
-apstools.devices.ApsMachineParametersDevice:
-  - name: aps
+# apstools.devices.ApsMachineParametersDevice:
+#   - name: aps

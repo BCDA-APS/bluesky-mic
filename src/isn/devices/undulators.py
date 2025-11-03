@@ -3,7 +3,8 @@ from ophyd import Component
 from ophyd import EpicsSignalRO
 from ophyd import Signal
 from ophyd import EpicsSignal
-from ophyd import PVPositioner
+from ophyd import PVPositioner, PVPositionerIsClose
+from ophyd import DerivedSignal
 
 from ophyd.status import Status
 from ophyd.status import wait as status_wait
@@ -12,10 +13,9 @@ from ophyd.utils import InvalidState
 
 from threading import Thread
 
-from apstools.devices import TrackingSignal
 from apstools.devices.aps_undulator import Revolver_Undulator
 
-
+# logger = logging.getLogger(__name__)
 
 class UndulatorEnergy(PVPositioner):
     """
@@ -132,12 +132,34 @@ class UndulatorEnergy(PVPositioner):
         self._finish_status()
 
 
+POSITIONER_DONE = 1
+
+class ISNUndulatorPositioner(PVPositionerIsClose):
+
+    def _update_done(self) -> None:
+        """Update our status to done if we pass the comparator."""
+        """ISN modification since the done signal for the undulators is RO."""
+        if None not in (self._last_readback, self._last_setpoint):
+            is_done = self.done_comparator(self._last_readback, self._last_setpoint)
+            done_value = int(is_done)
+            if done_value != self.done.get():
+                pass
+                # logger.debug("Undulator energy within deadband. Done not accomplished.")
+                # self.done.put(done_value, internal=True)
+
+    setpoint = Component(EpicsSignal, "SetC.VAL")
+    readback = Component(EpicsSignalRO, "M.VAL")
+
+    actuate = Component(DerivedSignal, derived_from="parent.start_button", kind="omitted")
+    stop_signal = Component(DerivedSignal, derived_from="parent.stop_button", kind="omitted")
+    done = Component(DerivedSignal, derived_from="parent.done", kind="omitted")
+    done_value = POSITIONER_DONE
 
 
 class ISN_Undulator(Revolver_Undulator):
-    #TODO: Implement tracking signal for global energy change
-    '''Most of the required functionality comes from the parent class. This 
-    function just simplifies changing between devices.'''
+
+    ##TODO: we still need to find a way to implement a better positioner for the undulator so that we can get a deadband
+    # energy = Component(ISNUndulatorPositioner, "Energy", atol=0.005)
 
 
     ##TODO: look into more detail on how to adapt polar's solution to the energy 
@@ -145,6 +167,8 @@ class ISN_Undulator(Revolver_Undulator):
 
     # energy = Component(UndulatorEnergy, "")
     # tracking = Component(TrackingSignal, value=False, kind='config')
+
+    version_hdmu = None
 
     # start_button = None
     # stop_button = None

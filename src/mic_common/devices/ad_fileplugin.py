@@ -8,6 +8,8 @@ Created on Dec 03 2024
 import logging
 import os
 
+from apsbits.utils.controls_setup import oregistry
+
 from ophyd.areadetector.plugins import HDF5Plugin
 from ophyd.areadetector.plugins import NetCDFPlugin
 
@@ -17,6 +19,7 @@ from mic_common.utils.device_utils import value_setter
 logger = logging.getLogger(__name__)
 logger.info(__file__)
 
+# savedata = oregistry["savedata"]
 
 class DetBase:
     """Base class for detector file plugins."""
@@ -25,7 +28,7 @@ class DetBase:
 
     def __init__(self, *args, **kwargs):
         """Initialize DetBase."""
-        super().__init__(*args, **kwargs)
+        pass
 
     def sync_file_path(self, det_path, delimiter):
         """
@@ -231,3 +234,35 @@ class DetNetCDF(DetBase, NetCDFPlugin):
         """Initialize DetNetCDF."""
         # kwargs["prefix"] = kwargs["prefix"] + ":"
         super().__init__(*args, **kwargs)
+
+
+
+class MicHDF5(HDF5Plugin):
+
+    def __init__(self, *args, **kwargs):
+        """Initialize MicHDF5."""
+        super().__init__(*args, **kwargs)
+
+    def stage(self):
+
+        savedata = oregistry["savedata"]
+
+        file_path = savedata.generate_det_path(self.parent.name.upper())
+        base_name = savedata.base_name.get()
+        scan_number = savedata.next_scan_number.get()
+        file_name = base_name+f"{scan_number:04d}"
+
+        #TODO: We need to change this to a stage_sigs dict so that we can have control over these
+        self.capture.put(0)
+        self.file_path.put(file_path)
+        self.file_name.put(file_name)
+        self.auto_increment.put(1)
+        self.file_number.put(1)
+        self.auto_save.put(1)
+        self.file_write_mode.put(2)
+        self.num_capture.put(400000) #TODO: this should be a field in the iconfig
+        self.capture.put(1)
+
+
+    def unstage(self):
+        self.capture.put(0)

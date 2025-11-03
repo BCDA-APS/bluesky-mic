@@ -1,35 +1,31 @@
-# Guarneri-style device YAML configuration
+# # # Guarneri-style device YAML configuration
 
-apsbits.utils.sim_creator.predefined_device:
-- {creator: ophyd.sim.motor, name: sim_motor}
-- {creator: ophyd.sim.noisy_det, name: sim_det}
+# apsbits.utils.sim_creator.predefined_device:
+# - {creator: ophyd.sim.motor, name: sim_motor}
+# - {creator: ophyd.sim.noisy_det, name: sim_det}
 
-apstools.devices.SimulatedApsPssShutterWithStatus:
-- name: shutter
-  labels: ["shutters"]
+# apstools.devices.SimulatedApsPssShutterWithStatus:
+# - name: shutter
 
-# isn.devices.hhl_mirrors.HHL_Mirrors:
-# - name: hhl_mirrors
-#   prefix: 19idMR
-#   labels: ["mirror"]
+isn.devices.hhl_mirrors.HHL_Mirrors:
+- name: hhl_mirrors
+  prefix: 19idMR
+  labels: ["baseline"]
 
-# isn.devices.mono.Mono:
-# - name: mono
-#   prefix: 19idDCM
+isn.devices.mono.Mono:
+- name: mono
+  prefix: 19idDCM
+  labels: ["baseline"]
 
-# isn.devices.lateral_mirror.Lateral_Mirror:
-# - name: lateral_mirror
-#   prefix: 19idMR
-#   labels: ["mirror"]
-
-# isn.devices.kb.KB:
-# - name: kb
-#   prefix: 19idKB
-#   labels: ["mirror"]
+isn.devices.lateral_mirror.Lateral_Mirror:
+- name: lateral_mirror
+  prefix: 19idMR
+  labels: ["baseline"]
 
 isn.devices.sample.Sample:
 - name: sample
   prefix: 19idAERO
+  labels: ["baseline"]
 
 # isn.devices.xrayeye.XRayEye:
 # - name: xrayeye
@@ -38,31 +34,37 @@ isn.devices.sample.Sample:
 isn.devices.softgluezynq.SoftGlueZynq:
 - name: softglue
   prefix: acq_isn
-  labels: ["softglue"]
+  labels: ["baseline"]
 
-# isn.devices.bda.BDA:
-# - name: bda_vert
-#   prefix: 19idBDA
-#   axis: V
-#   labels: ["bda", "baseline"]
+isn.devices.bda.BDA:
+- name: bda_vert
+  prefix: 19idBDA
+  axis: V
+  labels: ["baseline"]
 
-# - name: bda_hor
-#   prefix: 19idBDA
-#   axis: H
-#   labels: ["bda", "baseline"]
+- name: bda_hor
+  prefix: 19idBDA
+  axis: H
+  labels: ["baseline"]
+
+isn.devices.diamond_window.Diamond_Window:
+- name: diamond
+  prefix: "19idACS"
+  labels: ["baseline"]
+  
 
 
-# isn.devices.rayspec.Rayspec:
-# - name: eric
-#   prefix: 19idACS
-#   labels: ["motor"]
+# # # isn.devices.rayspec.Rayspec:
+# # # - name: eric
+# # #   prefix: 19idACS
+# # #   labels: ["motor"]
 
 
-# isn.devices.tetramm.MyTetrAMM:
-# - name: tetramm1
-#   prefix: "19idSFT:TetrAMM1:"
-#   port_name: "TetrAMM1"
-#   labels: ["detector"]
+isn.devices.tetramm.MyTetrAMM:
+- name: tetramm1
+  prefix: "19idSFT:TetrAMM1:"
+  port_name: "TetrAMM1"
+  labels: ["detector"]
 
 # - name: tetramm2
 #   prefix: "19idSFT2:TetrAMM2:"
@@ -74,117 +76,98 @@ isn.devices.softgluezynq.SoftGlueZynq:
 #   port_name: "TetrAMM3"
 #   labels: ["detector"]
 
-# - name: tetramm4
-#   prefix: "19idSFT4:T4:"
-#   port_name: "TetrAMM4"
-#   labels: ["detector"]
+- name: tetramm4
+  prefix: "19idSFT4:T4:"
+  port_name: "TetrAMM4"
+  labels: ["detector"]
 
 
-# isn.devices.bpm.BasicQuadEM:
-# - name: bpm_c
-#   prefix: "19idBPM:C:T4U:"
+isn.devices.bpm.MyBPM:
+- name: bpm_c
+  quadem_prefix: "19idBPMC:T4U:"
+  vertical_motor_prefix: "19idBDA:m5"
+  horizontal_motor_prefix: "19idBDA:m6"
+  labels: ["baseline"]
 
-# - name: bpm_d
-#   prefix: "19idBPM:D:T4U:"
+- name: bpm_d
+  quadem_prefix: "19idBPMD:T4U:"
+  vertical_motor_prefix: "19idBDA:m13"
+  horizontal_motor_prefix: "19idBDA:m14"
+  labels: ["baseline"]
+
+
 
 apstools.devices.aps_machine.ApsMachineParametersDevice:
 - name: ring
   labels: ["baseline"]
 
-# apstools.devices.hhl_slits.HHLSlits:
-# - name: wbs
-#   prefix: "19idWBS:US:"
-#   pitch_motor: m3
-#   yaw_motor: m4
-#   horizontal_motor: m1
-#   diagonal_motor: m2
+# mic_common.devices.ring.PatchedApsMachineParametersDevice:
+# - name: ring
 #   labels: ["baseline"]
 
-# - name: pbs
-#   prefix: "19idWBS:DS:"
-#   pitch_motor: m7
-#   yaw_motor: m8
-#   horizontal_motor: m5
-#   diagonal_motor: m6
-#   labels: ["baseline"]
+apstools.devices.hhl_slits.HHLSlits:
+- name: wbs
+  prefix: "19idWBS:US:"
+  pitch_motor: m3
+  yaw_motor: m4
+  horizontal_motor: m1
+  diagonal_motor: m2
+  labels: ["baseline"]
 
+- name: pbs
+  prefix: "19idWBS:DS:"
+  pitch_motor: m7
+  yaw_motor: m8
+  horizontal_motor: m5
+  diagonal_motor: m6
+  labels: ["baseline"]
 
 isn.devices.undulators.UndulatorPair:
 - name: undulators
   prefix: S19ID
+  labels: ["baseline"]
 
+# isn.devices.diffractometer.RobotArmDiffractometer:
+# - name: psic
+#   prefix: ""
 
-# isn.devices.flag.Flag:
-# - name: flag_e1
-#   cam_prefix: "19ide1:cam1:"
-#   motor_prefix: "19idMMC:m6"
-#   in_position: -20
-#   out_position: 0
+isn.devices.kb.KB:
+- name: kb
+  prefix: "19idKB:"
+  labels: ["baseline"]
 
-# - name: flag_e2
-#   cam_prefix: "19ide2:cam1:"
-#   motor_prefix: "19idMMC:m5"
-#   in_position: -20
-#   out_position: 0
+isn.devices.flag.Flag:
+- name: flag_a
+  flag_prefix: "19idFlag1:"
+  motor_prefix: "19idMR:m6"
+  in_position: 0
+  out_position: 20.9
 
+- name: flag_dcm
+  flag_prefix: "19idFlagDCM:"
+  motor_prefix: "19idDCM:m3"
+  in_position: 3
+  out_position: 16.5
 
+- name: flag_c
+  flag_prefix: "19idFlagC:"
+  motor_prefix: "19idBDA:m7"
+  in_position: -8
+  out_position: 0
+  labels: ["baseline"]
+  
 
-mic_common.devices.scan_record.ScanRecord:
-- name: scan1
-  prefix: 19idBLUE:scan1
-  labels: ["scanrecord"]
-- name: scan2
-  prefix: 19idBLUE:scan2
-  labels: ["scanrecord"]
+- name: flag_e1
+  flag_prefix: "19ide1:"
+  motor_prefix: "19idMMC:m6"
+  in_position: 0
+  out_position: 20
 
-mic_common.devices.save_data.SaveDataMic:
-- name: savedata
-  prefix: 19idBLUE:saveData_
-  labels: ["scandata"]
-
-ophyd.EpicsMotor:
-- name: samx
-  # prefix: 19idBLUE:m1
-  prefix: 19idAERO:m2
-  labels: ["motor"]
-- name: samy
-  # prefix: 19idBLUE:m2
-  prefix: 19idAERO:SM1
-  labels: ["motor"]
-- name: samz
-  prefix: 19idBLUE:m3
-  labels: ["motor"]
-- name: samr
-  prefix: 19idBLUE:m4
-  labels: ["motor"]
-- name: energy
-  prefix: 19idBLUE:m5
-  labels: ["motor"]
-- name: temperature
-  prefix: 19idBLUE:m6
-  labels: ["motor"]
-
-ophyd.EpicsSignal:
-- name: shutter_close
-  write_pv: S19ID-PSS:SES:CloseEPICSC
-  read_pv: S19ID-PSS:SES:CloseEPICSC
-  labels: ["pss-shutter"]
-- name: shutter_open
-  write_pv: S19ID-PSS:SES:OpenEPICSC
-  read_pv: S19ID-PSS:SES:OpenEPICSC
-  labels: ["pss-shutter"]
-- name: shutter_open_status
-  read_pv: 19ID:BLEPS:SES_CLOSED
-  labels: ["pss-shutter"]
-
-# isn.devices.my_motor_bundle.MyMotorBundle:
-# - name: xz_motor
-#   prefix: 19idBLUE
-
-# mic_common.devices.xspress3.Xspress3:
-# - name: xrf_me7
-#   prefix: XSP3_7Chan:det1
-#   labels: ["detector"]
+- name: flag_e2
+  flag_prefix: "19ide2:"
+  motor_prefix: "19idMMC:m5"
+  in_position: -20
+  out_position: 0
 
 mic_common.devices.eiger.Eiger:
 - name: ptycho
@@ -195,42 +178,113 @@ mic_common.devices.eiger.Eiger:
   prefix: "19idXRD:"
   labels: ["detector"]
 
-# mic_common.devices.eiger1m.Eiger1M:
-# - name: ptycho
-#   prefix: 19idPTYCHO:cam1
-#   labels: ["detector"]
+isn.devices.me7.VortexXspress37:
+- name: me7
+  prefix: "XSP3_7Chan:"
+  labels: ["detector"]
 
-# isn.devices.tetramm.TetraMM:
-# - name: tetramm1
-#   prefix: 19idSFT:TetrAMM1
-
-mic_common.devices.ad_fileplugin.DetHDF5:
-# - name: xrf_me7_hdf
-#   prefix: XSP3_7Chan:HDF1
-#   labels: ["fileplugin"]
-- name: ptycho_hdf
-  prefix: "19idPTYCHO:HDF1:"
-  labels: ["fileplugin"]
-# - name: tetramm1_hdf
-
-# isn.devices.flipflop.FlipFlop:
-# - name: flip_flop_1
-#   prefix: abc
+isn.devices.socketserver.SocketServer:
+- name: socketserver
+  prefix: "19idSGSocket:"
 
 
-#     AD_XSP3_12Chan:
-#       NAME: xrf_bse
-#       PV_PREFIX: "XSP3_12Chan:det1:"
-#       HDF5_PV_PREFIX: "XSP3_12Chan:HDF1:"
 
 
-#     AD_EIGER_DIFFRACTION:
-#       NAME: eigher_xrd
-#       PV_PREFIX: "temp"
+mic_common.devices.save_data.SaveDataMic:
+- name: savedata
+  prefix: 19idSFT:saveData_
+  labels: ["scandata"]
 
 
-# TETRAMM1: "19idBPM:C:T4U"
-# XSPRESS3_1: "XSP3_8Chan:det1"
-# XSPRESS3_1_HDF5: "XSP3_8Chan:HDF1"
-# SIMDET_CAM: "2idsimdet:cam1"
-# SIMDET_HDF5: "2idsimdet:HDF1"
+# mic_common.devices.scan_record.ScanRecord:
+# - name: scan1
+#   prefix: 19idBLUE:scan1
+#   labels: ["scanrecord"]
+# - name: scan2
+#   prefix: 19idBLUE:scan2
+#   labels: ["scanrecord"]
+
+
+
+# ophyd.EpicsMotor:
+# - name: samx
+#   # prefix: 19idBLUE:m1
+#   prefix: 19idAERO:m2
+#   labels: ["motor"]
+# - name: samy
+#   # prefix: 19idBLUE:m2
+#   prefix: 19idAERO:SM1
+#   labels: ["motor"]
+# - name: samz
+#   prefix: 19idBLUE:m3
+#   labels: ["motor"]
+# - name: samr
+#   prefix: 19idBLUE:m4
+#   labels: ["motor"]
+# - name: energy
+#   prefix: 19idBLUE:m5
+#   labels: ["motor"]
+# - name: temperature
+#   prefix: 19idBLUE:m6
+#   labels: ["motor"]
+
+# ophyd.EpicsSignal:
+# - name: shutter_close
+#   write_pv: S19ID-PSS:SES:CloseEPICSC
+#   read_pv: S19ID-PSS:SES:CloseEPICSC
+#   labels: ["pss-shutter"]
+# - name: shutter_open
+#   write_pv: S19ID-PSS:SES:OpenEPICSC
+#   read_pv: S19ID-PSS:SES:OpenEPICSC
+#   labels: ["pss-shutter"]
+# - name: shutter_open_status
+#   read_pv: 19ID:BLEPS:SES_CLOSED
+#   labels: ["pss-shutter"]
+
+# # # isn.devices.my_motor_bundle.MyMotorBundle:
+# # # - name: xz_motor
+# # #   prefix: 19idBLUE
+
+# # # mic_common.devices.xspress3.Xspress3:
+# # # - name: xrf_me7
+# # #   prefix: XSP3_7Chan:det1
+# # #   labels: ["detector"]
+
+
+
+# # # mic_common.devices.eiger1m.Eiger1M:
+# # # - name: ptycho
+# # #   prefix: 19idPTYCHO:cam1
+# # #   labels: ["detector"]
+
+# # # isn.devices.tetramm.TetraMM:
+# # # - name: tetramm1
+# # #   prefix: 19idSFT:TetrAMM1
+
+# # # mic_common.devices.ad_fileplugin.DetHDF5:
+# # # - name: xrf_me7_hdf
+# # #   prefix: XSP3_7Chan:HDF1
+# # #   labels: ["fileplugin"]
+# # # - name: ptycho_hdf
+# # #   prefix: "19idPTYCHO:HDF1:"
+# # #   labels: ["fileplugin"]
+# # # - name: tetramm1_hdf
+
+
+
+# # #     AD_XSP3_12Chan:
+# # #       NAME: xrf_bse
+# # #       PV_PREFIX: "XSP3_12Chan:det1:"
+# # #       HDF5_PV_PREFIX: "XSP3_12Chan:HDF1:"
+
+
+# # #     AD_EIGER_DIFFRACTION:
+# # #       NAME: eigher_xrd
+# # #       PV_PREFIX: "temp"
+
+
+# # # TETRAMM1: "19idBPM:C:T4U"
+# # # XSPRESS3_1: "XSP3_8Chan:det1"
+# # # XSPRESS3_1_HDF5: "XSP3_8Chan:HDF1"
+# # # SIMDET_CAM: "2idsimdet:cam1"
+# # # SIMDET_HDF5: "2idsimdet:HDF1"
