@@ -81,6 +81,9 @@ class MicTetrAMM(TetrAMM):
     def set_multiple_acquire(self):
         yield from self._set_acquire_mode("Multiple")
 
+    def set_single_acquire(self):
+        yield from self._set_acquire_mode("Single")
+
     def set_ext_trigger(self):
         yield from self._set_trigger_mode("EXT. TRIG.")
 

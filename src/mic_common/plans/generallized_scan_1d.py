@@ -12,6 +12,7 @@ __all__ = """
 
 import logging
 from mic_common.utils.scan_monitor import execute_scan_1d
+import bluesky.plan_stubs as bps
 
 
 logger = logging.getLogger(__name__)
@@ -50,6 +51,7 @@ def generalized_scan_1d(
             """Assign the desired positioner in scanrecord """
             try:
                 yield from scanrecord.set_positioner_drive(f"{positioner.prefix}.VAL")
+                yield from bps.sleep(0.1)
                 yield from scanrecord.set_positioner_readback(f"{positioner.prefix}.RBV")
             except Exception as e:
                 msg = f"Fail to set positioner in {scanrecord.prefix} due to {e}"

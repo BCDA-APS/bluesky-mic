@@ -32,36 +32,24 @@ s2idd_uprobe.devices.motor.Motor:
 
 ophyd.EpicsSignal:
 - name: fscanh_samx
-  write_pv: 2idd:userCalc9.A
-  read_pv: 2idd:userCalc9.A
+  write_pv: 2iddfS1:ExtrauserCalc13.A
+  read_pv: 2iddfS1:ExtrauserCalc13.A
   labels: ["usercalc"]
 - name: fscanh_dwell
   write_pv: 2idd:Flyscans:Setup:DwellTime
   read_pv: 2idd:Flyscans:Setup:DwellTime
   labels: ["usercalc"]
-- name: usercalc_tmm1_filename
-  write_pv: 2iddfS1:userStringCalc1Enable
-  read_pv: 2iddfS1:userStringCalc1Enable
-  labels: ["usercalc"]
-- name: usercalc_tmm1_filetemplate
-  write_pv: 2iddfS1:userStringCalc2Enable
-  read_pv: 2iddfS1:userStringCalc2Enable
-  labels: ["usercalc"]
-- name: usercalc_tmm2_filename
-  write_pv: 2iddfS1:userStringCalc4Enable
-  read_pv: 2iddfS1:userStringCalc4Enable
-  labels: ["usercalc"]
-- name: usercalc_tmm2_filetemplate
-  write_pv: 2iddfS1:userStringCalc5Enable
-  read_pv: 2iddfS1:userStringCalc5Enable
-  labels: ["usercalc"]
-- name: usercalc_xmap_filename
-  write_pv: 2iddfS1:userStringCalc7Enable
-  read_pv: 2iddfS1:userStringCalc7Enable
+- name: fly_calc
+  write_pv: 2iddfS1:userCalcEnable.VAL
+  read_pv: 2iddfS1:userCalcEnable.VAL
   labels: ["usercalc"]
 - name: usercalc_samx_speed
   write_pv: 2iddfS1:userCalc8Enable
   read_pv: 2iddfS1:userCalc8Enable
+  labels: ["usercalc"]
+- name: retrace_samx_passive
+  write_pv: 2iddfS1:userCalc8.SCAN
+  read_pv: 2iddfS1:userCalc8.SCAN
   labels: ["usercalc"]
 
 mic_common.devices.sis3820.SIS3820:

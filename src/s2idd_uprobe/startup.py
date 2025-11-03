@@ -97,10 +97,10 @@ if iconfig.get("NEXUS_DATA_FILES", {}).get("ENABLE", False):
 
 # Experiment specific logic, device and plan loading
 RE(make_devices(clear=False, file="devices.yml"))  # Create the devices.
-RE(make_devices(clear=False, file="sim_devices.yml"))  # Create the devices.
+# RE(make_devices(clear=False, file="sim_devices.yml"))  # Create the devices.
 
-if host_on_aps_subnet():
-    RE(make_devices(clear=False, file="device_aps_only.yml"))
+# if host_on_aps_subnet():
+#     RE(make_devices(clear=False, file="device_aps_only.yml"))
 
 local_mountpath = iconfig.get("STORAGE")["MICDATA_MOUNTPATH"]
 xmap_mountpath = iconfig.get("STORAGE")["XMAP_MOUNTPATH"]
@@ -125,8 +125,10 @@ nxwriter.set_savedata(savedata)
 # from .plans import *
 from .plans.test_nexus import test_nexus
 from .plans.fly2d import fly2d
-from .plans.step2d import step2d
-from .plans.step1d import step1d
+from .plans.fly2d_scanrecord import fly2d_scanrecord
+from .plans.step1d_scanrecord import step1d_scanrecord
+# from .plans.step2d import step2d
+# from .plans.step1d import step1d
 
 
 

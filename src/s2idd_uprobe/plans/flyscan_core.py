@@ -50,6 +50,7 @@ logger = logging.getLogger(__name__)
 
 savedata = oregistry["savedata"]
 samx = oregistry["samx"]
+retrace_samx_passive = oregistry["retrace_samx_passive"]
 
 
 def _common_flyscan_setup(
@@ -94,6 +95,7 @@ def _common_flyscan_setup(
     """
     """Disable usercalc"""
     yield from disable_usercalc()
+    yield from bps.mv(retrace_samx_passive, 0)
 
     """Check input parameters and detector status"""
     logger.info("Validating scan parameters and detector status")
@@ -129,6 +131,7 @@ def _common_flyscan_cleanup():
     """
     """Enable usercalc"""
     yield from enable_usercalc()
+    yield from bps.mv(retrace_samx_passive, 2)
 
 
 def _fly1d(devices, fileplugins, samx, x_end):

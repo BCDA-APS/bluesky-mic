@@ -50,6 +50,7 @@ from s2idd_uprobe.plans.flyscan_core import (
     _fly1d
 )
 from mic_common.utils.timer_decorator import loop_timer_context
+# from mic_common.utils.param_capture import capture_params
 from s2idd_uprobe.utils.nexus_bps_func import save_ophyd_value
 
 logger = logging.getLogger(__name__)
@@ -79,49 +80,51 @@ def fly2d(
 ):
     
     """
-    Execute a 2D flyscan over a rectangular area.
+    Execute a 2D flyscan over a rectangular area without using Scan Record.
     
     Parameters
     ----------
-    samplename : str, optional
-        The name of the sample for file naming. Default is "smp1".
-    user_comments : str, optional
-        User comments to be recorded with the scan data. Default is "".
-    width : float
-        The total width of the scan area in motor units.
-    x_center : float, optional
-        The center position of the scan in the x-direction. If not provided, 
-        the current x-motor position will be used as the center.
-    stepsize_x : float
-        The step size (spatial resolution) in the x-direction in motor units.
-    height : float
-        The total height of the scan area in motor units.
-    y_center : float, optional
-        The center position of the scan in the y-direction. If not provided, 
-        the current y-motor position will be used as the center.
-    stepsize_y : float
-        The step size (spatial resolution) in the y-direction in motor units.
-    dwell_ms : float
-        The dwell time per step in milliseconds.
-    sample_z : float, optional
-        The sample z position. If not provided, the current sample z position 
-        will be maintained.
-    inc_eng : float, optional
-        The increment in energy (currently not implemented).
-    adjust_zp : bool, optional
-        Whether to adjust the zero point (currently not implemented).
-    xrf_on : bool, optional
-        Whether to enable the x-ray fluorescence detector. Default is True.
-    preamp1_on : bool, optional
-        Whether to enable preamp1. Default is True. Preamp1 is used to record metadata.
-    preamp2_on : bool, optional
-        Whether to enable preamp2. Default is False.
-    snake_scan : bool, optional
-        Whether to use snake scan pattern (alternating scan directions). 
-        Default is False (standard left-to-right raster).
+    samplename:
+        The name of the sample for file naming. Default: "smp1". Type: str
+    user_comments:
+        User comments to be recorded with the scan data. Default is "". Type: str
+    width:
+        The total width of the scan area in microns. Default: 0. Type: float
+    x_center:
+        The center position of the scan in the x-direction in microns. If not provided, the current x-motor position will be used as the center. Default: None. Type: float
+    stepsize_x:
+        The step size (spatial resolution) in the x-direction in microns. Default: 0. Type: float
+    height:
+        The total height of the scan area in microns. Default: 0. Type: float
+    y_center:
+        The center position of the scan in the y-direction in microns. If not provided, the current y-motor position will be used as the center. Default: None. Type: float
+    stepsize_y:
+        The step size (spatial resolution) in the y-direction in microns. Default: 0. Type: float
+    dwell_ms:
+        The dwell time per step in milliseconds. Default: 0. Type: float
+    sample_z:
+        The sample z position in millimeters. If not provided, the current sample z position will be maintained. Default: None. Type: float
+    inc_eng:
+        The increment in energy (currently not implemented). Default: None. Type: float
+    adjust_zp:
+        Whether to adjust the zero point (currently not implemented). Default: False. Type: bool
+    xrf_on:
+        Whether to enable the x-ray fluorescence detector. Default is True. Type: bool
+    preamp1_on:
+        Whether to enable preamp1. Preamp1 is used to record metadata. Default is True. Type: bool
+    preamp2_on:
+        Whether to enable preamp2. Default is False. Type: bool
+    snake_scan:
+        Whether to use snake scan pattern (alternating scan directions). When False, standard raster scan. Default is False. Type: bool
     """
 
     """Capture the input plan parameters"""
+    if x_center is None:
+        x_center = samx.position
+    if y_center is None:
+        y_center = samy.position
+    if sample_z is None:
+        sample_z = samz.position
     plan_args = capture_params(fly2d, **locals())
 
     """Common setup for flyscan plans"""

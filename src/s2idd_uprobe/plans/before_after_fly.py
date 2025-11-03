@@ -36,7 +36,8 @@ MAX_X_MOTOR_SPEED = 500
 X_MOTOR_RESOLUTION = 0.0008
 
 
-def setup_flyscan_XRF_triggers(scanrecord, xrf, xrf_netcdf, sis3820, num_pulses):
+def setup_flyscan_XRF_triggers(scanrecord, xrf, xrf_netcdf, sis3820, num_pulses,
+                               update_prescale=False, stepsize_x=None, motor_resolution=None):
     """
     Set up the triggers for the fly scan.
 
@@ -49,14 +50,36 @@ def setup_flyscan_XRF_triggers(scanrecord, xrf, xrf_netcdf, sis3820, num_pulses)
     Trigger 3: Toggle SIS3820 (struck card) erase and start state
     """
 
-    yield from sis3820.before_flyscan(num_pulses)
+    yield from sis3820.before_flyscan(num_pulses, update_prescale=update_prescale,
+                                      stepsize=stepsize_x,
+                                      motor_resolution=motor_resolution)
 
     trigger_pvs = [
         xrf_netcdf.capture.pvname.replace("_RBV", ""),
         xrf.erase_start.pvname,
         sis3820.erase_start.pvname,
     ]
+    scanrecord.save_current_detTriggers()
     yield from scanrecord.set_detTriggers(trigger_pvs)
+
+
+def setup_flyscan_tmm_triggers(outter_scanrecord, inner_scanrecord, tmm, tmm_hdf):
+    """
+    Set up outter scanrecord triggers for the fly scan.
+
+    Three triggers are needed for the inner fly scanrecord:
+    Trigger 1: Toggle tmm capture state
+    Trigger 2: Toggle tmm file writer capture state
+    Trigger 3: Toggle inner scanrecord execute state
+    """
+
+    trigger_pvs = [
+        tmm_hdf.capture.pvname.replace("_RBV", ""),
+        tmm.acquire.pvname,
+        inner_scanrecord.execute_scan.pvname,
+    ]
+    outter_scanrecord.save_current_detTriggers()
+    yield from outter_scanrecord.set_detTriggers(trigger_pvs)
 
 
 def setup_flyscan_ptycho_triggers(
