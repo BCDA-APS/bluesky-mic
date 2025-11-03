@@ -29,7 +29,7 @@ def _dma_fields(num=8, first_letter="I"):
     defn["events"] = (EpicsSignalRO, ":1acquireDma.VALI", {"kind": "config"})
     for i in range(1, num+1):
         defn[f"channel_{i}_name"] = (
-            EpicsSignal, f"1s{i}name", {"kind": "config"}
+            EpicsSignal, f":1s{i}name", {"kind": "config"}
         )
         defn[f"channel_{i}_scale"] = (
             EpicsSignal,
@@ -46,7 +46,7 @@ class UpCounter(Device):
 
 class DownCounter(Device):
     enable = Component(EpicsSignal, "ENABLE_Signal", kind='config')
-    clock = Component(EpicsSignal, "CLK_Signal", kind='config')
+    clock = Component(EpicsSignal, "CLOCK_Signal", kind='config')
     load = Component(EpicsSignal, "LOAD_Signal", kind='config')
     preset = Component(EpicsSignal, "PRESET", kind='config')
     out_signal = Component(EpicsSignal, "OUT_Signal", kind='config')
@@ -70,7 +70,7 @@ class GateDelay(Device):
     out_signal = Component(EpicsSignal, "_OUT_Signal", kind='config')
 
 class PulseTrain(Device):
-    clock = Component(EpicsSignal, "_CLK_Signal", kind='config')
+    clock = Component(EpicsSignal, "_Clk_Signal", kind='config')
     n = Component(EpicsSignal, "_NPULSES", kind='config')
     period = Component(EpicsSignal, "_PERIOD", kind='config')
     width = Component(EpicsSignal, "_WIDTH", kind='config')

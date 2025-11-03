@@ -60,6 +60,11 @@ def flyscan(
     
     #Temporarily fixed parameter:
     snake_npts=1000
+
+    # --- Getting initial positions --- #
+
+    x0 = sample.x.user_readback.get()
+    y0 = sample.fine_y.user_readback.get()
     
     # --- Stopping softglue and cleaning --- #
 
@@ -262,4 +267,8 @@ def flyscan(
     savedata.advance_scan_number()
 
     # --- Return sample to initial positions ---
+
+    yield from mv(sample.x, x0)
+    yield from softglue.move_y_analog(y0*1e3)
+
 
