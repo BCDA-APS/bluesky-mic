@@ -170,9 +170,6 @@ class SoftGlueZynq(Device):
 
     # DMA components
     dma = DynamicDeviceComponent(_dma_fields())
-    # dma_clear = Component(EpicsSignal, ":1acquireDma.F")
-    # dma_screen_clear = Component(EpicsSignal, ":1acquireDma.D")
-    # dma_enable = Component(EpicsSignal, ":1acquireDmaEnable")
 
     if_tracker_1 = DynamicDeviceComponent(_interferometer_tracker(1))
     if_tracker_2 = DynamicDeviceComponent(_interferometer_tracker(2))
@@ -185,8 +182,6 @@ class SoftGlueZynq(Device):
 
     def start(self):
         yield from mv(self.buffer_4.in_signal, "1")
-        # self.buffer_4.in_signal.set("1")
-        # yield from mv(self.buffer_4.in_signal, "1")
 
     def start_flyscan(self):
         yield from mv(self.dma.enable, 1)
@@ -208,7 +203,6 @@ class SoftGlueZynq(Device):
         return self._status
 
     def stop(self):
-        # self.buffer_4.in_signal.set("0")
         yield from mv(self.buffer_4.in_signal, "0")
 
     def reset(self):
@@ -217,7 +211,6 @@ class SoftGlueZynq(Device):
         yield from mv(self.buffer_1.in_signal, "1!")
 
     def reset_interferometers(self):
-        # self.buffer_2.in_signal.set("1!")
         yield from mv(self.buffer_2.in_signal, "1!")
 
     def setup_gated_trigger(self, period_time, pulse_width, pulse_delay=0):
@@ -249,10 +242,6 @@ class SoftGlueZynq(Device):
         yield from sleep(0.001)
 
         for i, j in enumerate(array):
-            # yield from mv(
-            #     self.mem_address, str(i),
-            #     self.mem_data, str(j)
-            # )
             self.mem_address.put(i)
             self.mem_data.put(j)
 
@@ -265,8 +254,6 @@ class SoftGlueZynq(Device):
             "0",
             self.ram_enable,
             "1",
-            # self.ram_n, str(len(array)),
-            # self.mem_clk, "ckIM"
         )
 
         self.ram_n.put(str(len(array)))
@@ -333,7 +320,6 @@ class SoftGlueZynq(Device):
         # TODO: maybe later we can make it scan in opposite direction if max < min.
         y_max_bits = self.y_to_bits(y_max)
         y_min_bits = self.y_to_bits(y_min)
-        # amplitude = self.y_to_bits(np.abs(y_max - y_min))
         amplitude = (y_max_bits - y_min_bits) / 2
         offset = self.y_to_bits((y_max + y_min) / 2)
 

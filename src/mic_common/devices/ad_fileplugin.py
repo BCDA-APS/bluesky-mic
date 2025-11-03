@@ -8,7 +8,7 @@ Created on Dec 03 2024
 import logging
 import os
 
-from apsbits.utils.controls_setup import oregistry
+from apsbits.core.instrument_init import oregistry
 
 from ophyd.areadetector.plugins import HDF5Plugin
 from ophyd.areadetector.plugins import NetCDFPlugin

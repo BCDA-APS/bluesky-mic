@@ -1,4 +1,4 @@
-from apsbits.utils.controls_setup import oregistry
+from apsbits.core.instrument_init import oregistry
 from apstools.devices import CamMixin_V34
 from ophyd import ADComponent
 from ophyd import Component

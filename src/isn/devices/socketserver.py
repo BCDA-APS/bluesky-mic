@@ -58,3 +58,5 @@ class SocketServer(Trigger, DetectorBase):
 
     acquire = ADComponent(EpicsSignal, "SG1:Acquire")
     array_counter = ADComponent(EpicsSignalWithRBV, "SG1:ArrayCounter")
+
+ 

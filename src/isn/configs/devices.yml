@@ -7,19 +7,19 @@
 # apstools.devices.SimulatedApsPssShutterWithStatus:
 # - name: shutter
 
-isn.devices.hhl_mirrors.HHL_Mirrors:
-- name: hhl_mirrors
-  prefix: 19idMR
-  labels: ["baseline"]
+# isn.devices.hhl_mirrors.HHL_Mirrors:
+# - name: hhl_mirrors
+#   prefix: 19idMR
+#   labels: ["baseline"]
 
 isn.devices.mono.Mono:
 - name: mono
   prefix: 19idDCM
 
-isn.devices.lateral_mirror.Lateral_Mirror:
-- name: lateral_mirror
-  prefix: 19idMR
-  labels: ["baseline"]
+# isn.devices.lateral_mirror.Lateral_Mirror:
+# - name: lateral_mirror
+#   prefix: 19idMR
+#   labels: ["baseline"]
 
 isn.devices.sample.Sample:
 - name: sample
@@ -79,13 +79,6 @@ isn.devices.tetramm.MyTetrAMM:
   prefix: "19idSFT4:T4:"
   port_name: "TetrAMM4"
   labels: ["detector"]
-
-# isn.devices.bpm.BasicQuadEM:
-# - name: bpm_c
-#   prefix: "19idBPM:C:T4U:"
-
-# - name: bpm_d
-#   prefix: "19idBPM:D:T4U:"
 
 isn.devices.bpm.MyBPM:
 - name: bpm_c
@@ -176,12 +169,10 @@ isn.devices.kb.KB:
 
 mic_common.devices.eiger.Eiger:
 - name: ptycho
-  device_class: mic_common.devices.eiger.Eiger
   prefix: "19idPTYCHO:"
   labels: ["detector"]
 
 - name: xrd
-  device_class: mic_common.devices.eiger.Eiger
   prefix: "19idXRD:"
   labels: ["detector"]
 
@@ -201,10 +192,7 @@ isn.devices.socketserver.SocketServer:
 
 
 
-mic_common.devices.save_data.SaveDataMic:
-- name: savedata
-  prefix: 19idSFT:saveData_
-  labels: ["scandata"]
+
 
 
 # mic_common.devices.scan_record.ScanRecord:
