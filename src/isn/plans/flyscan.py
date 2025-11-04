@@ -1,7 +1,7 @@
 import logging
 
 from apsbits.utils.config_loaders import get_config
-from apsbits.utils.controls_setup import oregistry
+from apsbits.core.instrument_init import oregistry
 from bluesky.plan_stubs import mv
 from bluesky.plan_stubs import sleep
 
