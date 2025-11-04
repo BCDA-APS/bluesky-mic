@@ -38,6 +38,7 @@ class MyTetrAMM(TetrAMM):
         self.stage_sigs["acquire"] = 0
         self.stage_sigs["acquire_mode"] = "Single"
         self._fast_trigger = False
+        self._flysetup = False
         self._dwell_time_fraction = 0.9
         # self.setup_internal_trigger()
 
