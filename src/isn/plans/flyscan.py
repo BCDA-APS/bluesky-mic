@@ -1,4 +1,5 @@
 import logging
+import numpy as np
 
 from apsbits.utils.config_loaders import get_config
 from apsbits.core.instrument_init import oregistry
@@ -12,7 +13,6 @@ softglue = oregistry["softglue"]
 sample = oregistry["sample"]
 socketserver = oregistry["socketserver"]
 savedata = oregistry["savedata"]
-
 
 iconfig = get_config()
 softglue_outputs = iconfig.get("SOFTGLUE_OUTPUTS")
@@ -31,13 +31,17 @@ def flyscan(
     F: float = 0.9,  # Fraction of wave in straight line 0-1
     interferometer_frequency: int = 1000,  # in Hz
 ):
+    
     # Temporarily fixed parameter:
     snake_npts = 1000
 
     # --- Getting initial positions --- #
 
+    if not sample.y.enabled:
+        sample.y.enable()
+
     x0 = sample.x.user_readback.get()
-    y0 = sample.fine_y.user_readback.get()
+    y0 = sample.y.user_readback.get()
 
     # --- Stopping softglue and cleaning --- #
 
@@ -101,50 +105,36 @@ def flyscan(
         _negative_threshold,
     )
 
-    # --- Moving y stage to center range position --- #
+    # --- Centering the piezos and disabling servo stage --- #
 
-    # We always position at the center of the range :
-    sample.enable_analog_control()
-    yield from sleep(10)
-    y_cen = (y_max + y_min) / 2
-    yield from softglue.move_y_analog(45)
-    yield from sleep(1)
+    if not sample.in_analog_mode:
+        sample.enable_analog_control()
 
-    # logger.info(f"Samply Y stage moved to {y_cen:0.3e} um.")
-    logger.info(f"Samply Y stage moved to {45} um.")
+    piezos_position = sample.fine_y.user_readback.get()
+    # We want the piezos to be within 50 nm of the middle of the range
+    if not np.isclose(piezos_position, 0.045, atol=5e5):
+        yield from softglue.move_y_analog(45)
+        sleep(0.5) #arbitrary since analog move has no status signal
+        yield from mv(sample.y, y0)
+        sleep(0.5) #since on servo, we should give it some time to get there
+        
+    sample.y.disable()
 
-    # yield from softglue.disable_waveform()
-    # y_cen_bits = softglue.y_to_bits(y_cen)
-    # softglue.dac1_val.put(y_cen_bits)
-    # softglue.dac1_write.put("1!")
-    # softglue.dac1_write.put("funcGenPulse")
-
-    # logger.info("Softglue DAC output set to match y-position.")
-
-    yield from softglue.reset_interferometers()
-
-    logger.info("Interferometry readings reset at middle point of flyscan.")
+    ## Temporarily we won't reset interferometers
+    # yield from softglue.reset_interferometers()
+    # logger.info("Interferometry readings reset at middle point of flyscan.")
 
     # --- Moving sample to scan initial position --- #
 
     # First we move y:
-
     yield from softglue.move_y_analog(y_min)
 
     # Then we move x:
-
     _x = sample.x.user_readback.get()
     _starting_x = _x + x_min * 1e-3 - _x_tweak_value
     yield from mv(sample.x, _starting_x)
 
     logger.info(f"Samply X stage moved to {_starting_x*1e3:0.3e} um.")
-
-    # --- Enabling y stage analog control --- #
-
-    # sample.enable_analog_control()
-    # yield from sleep(5)
-
-    logger.info("Softglue has taken over y-stage control.")
 
     # --- Load waveform --- #
 
@@ -164,29 +154,17 @@ def flyscan(
     logging.info("Arming detectors")
 
     total_images = int((x_npts * y_npts) / F - 1)
-    logging.info(f"Expecting {total_images} images.")
 
     for detector in detectors:
         softglue.enable_detector_trigger(detector.name)
-
-        # if detector in [ptycho, xrd]: #temporary patch while we fix external gating mode
-        #     total_images = int((x_npts*y_npts)/F-1)
-        #     detector.setup_flyscan_mode(num_images=total_images)
-        #     logging.info(f"Expecting {total_images} images.")
-        # else:
-        #     detector.setup_flyscan_mode()
-
         detector.setup_flyscan_mode(
             num_images=total_images,
             acq_time=acquire_time * 1e-3,
             hdf_images=int(y_npts / 0.9),
         )
-        # detector.hdf1.stage()
         detector.stage()
 
     # --- Start softglue --- #
-
-    sample.enable_analog_control()
 
     logging.info("Takeoff!")
 
@@ -205,16 +183,9 @@ def flyscan(
 
     print("Flushing the DMA")
 
-    yield from sleep(3)
-
     for i in range(11):
         softglue.scal_to_stream_1.flush.put("1!")
-        yield from sleep(1)
-    # arrays_after_scan = socketserver.array_counter.get()
-
-    # while arrays_after_scan == socketserver.array_counter.get():
-    #     softglue.scal_to_stream_1.flush.put("1!")
-    #     yield from sleep(0.05)
+        yield from sleep(0.1)
 
     socketserver.unstage()
 
@@ -224,5 +195,6 @@ def flyscan(
 
     # --- Return sample to initial positions ---
 
+    yield from softglue.move_y_analog(45)
+    sample.y.enable()
     yield from mv(sample.x, x0)
-    yield from softglue.move_y_analog(y0*1e3)
