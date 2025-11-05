@@ -73,13 +73,13 @@ bec, peaks = init_bec_peaks(iconfig)
 cat = init_catalog(iconfig)
 RE, sd = init_RE(iconfig, subscribers=[bec, cat])
 
-# # Optional Nexus callback block
-# # delete this block if not using Nexus
-if iconfig.get("NEXUS_DATA_FILES", {}).get("ENABLE", False):
-    # from .callbacks.nexus_data_file_writer import nxwriter_init
-    from mic_common.callbacks.nexus_data_file_writer import nxwriter_init
+# # # Optional Nexus callback block
+# # # delete this block if not using Nexus
+# if iconfig.get("NEXUS_DATA_FILES", {}).get("ENABLE", False):
+#     # from .callbacks.nexus_data_file_writer import nxwriter_init
+#     from mic_common.callbacks.nexus_data_file_writer import nxwriter_init
 
-    nxwriter = nxwriter_init(RE)
+#     nxwriter = nxwriter_init(RE)
 
 # Optional SPEC callback block
 # delete this block if not using SPEC
@@ -138,6 +138,19 @@ except:
 # Setup baseline stream with connect=False is default
 # Devices with the label 'baseline' will be added to the baseline stream.
 setup_baseline_stream(sd, oregistry, connect=False)
+
+
+# # Optional Nexus callback block
+# # delete this block if not using Nexus
+if iconfig.get("NEXUS_DATA_FILES", {}).get("ENABLE", False):
+    # from .callbacks.nexus_data_file_writer import nxwriter_init
+    from mic_common.callbacks.nexus_data_file_writer import nxwriter_init
+
+    nxwriter = nxwriter_init(RE)
+    nxwriter.savedata = oregistry['savedata']
+    nxwriter.micdata_mountpath = ""
+
+
 
 # from isn.plans.old_plans.sim_plans import *
 

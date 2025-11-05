@@ -113,37 +113,53 @@ isn.devices.kb.KB:
   prefix: "19idKB:"
   labels: ["baseline"]
 
-isn.devices.flag.Flag:
-- name: flag_a
-  flag_prefix: "19idFlag1:"
-  motor_prefix: "19idMR:m6"
-  in_position: 0
-  out_position: 20.9
+# isn.devices.flag.Flag:
+# - name: flag_a
+#   flag_prefix: "19idFlag1:"
+#   motor_prefix: "19idMR:m6"
+#   in_position: 0
+#   out_position: 20.9
+# isn.devices.flag.Flag:
+# - name: flag_a
+#   flag_prefix: "19idFlag1:"
+#   motor_prefix: "19idMR:m6"
+#   in_position: 0
+#   out_position: 20.9
 
-- name: flag_dcm
-  flag_prefix: "19idFlagDCM:"
-  motor_prefix: "19idDCM:m3"
-  in_position: 3
-  out_position: 16.5
+# - name: flag_dcm
+#   flag_prefix: "19idFlagDCM:"
+#   motor_prefix: "19idDCM:m3"
+#   in_position: 3
+#   out_position: 16.5
+# - name: flag_dcm
+#   flag_prefix: "19idFlagDCM:"
+#   motor_prefix: "19idDCM:m3"
+#   in_position: 3
+#   out_position: 16.5
 
-- name: flag_c
-  flag_prefix: "19idFlagC:"
-  motor_prefix: "19idBDA:m7"
-  in_position: -8
-  out_position: 0
-  labels: ["baseline"]
+# - name: flag_c
+#   flag_prefix: "19idFlagC:"
+#   motor_prefix: "19idBDA:m7"
+#   in_position: -8
+#   out_position: 0
+#   labels: ["baseline"]
 
-- name: flag_e1
-  flag_prefix: "19ide1:"
-  motor_prefix: "19idMMC:m6"
-  in_position: 0
-  out_position: 20
+# - name: flag_e1
+#   flag_prefix: "19ide1:"
+#   motor_prefix: "19idMMC:m6"
+#   in_position: 0
+#   out_position: 20
 
-- name: flag_e2
-  flag_prefix: "19ide2:"
-  motor_prefix: "19idMMC:m5"
-  in_position: -20
-  out_position: 0
+# - name: flag_e2
+#   flag_prefix: "19ide2:"
+#   motor_prefix: "19idMMC:m5"
+#   in_position: -20
+#   out_position: 0
+# - name: flag_e2
+#   flag_prefix: "19ide2:"
+#   motor_prefix: "19idMMC:m5"
+#   in_position: -20
+#   out_position: 0
 
 mic_common.devices.eiger.Eiger:
 - name: ptycho
