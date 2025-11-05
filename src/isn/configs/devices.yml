@@ -133,7 +133,6 @@ isn.devices.flag.Flag:
   out_position: 0
   labels: ["baseline"]
 
-
 - name: flag_e1
   flag_prefix: "19ide1:"
   motor_prefix: "19idMMC:m6"
@@ -164,9 +163,9 @@ isn.devices.socketserver.SocketServer:
 - name: socketserver
   prefix: "19idSGSocket:"
 
-# isn.devices.hutch.HutchTemp:
-# - name: hutch_temp
-#   prefix: "BL19ID-Metasys:"
+isn.devices.hutch.HutchTemp:
+- name: hutch_temp
+  prefix: "BL19ID-Metasys:"
 
 
 

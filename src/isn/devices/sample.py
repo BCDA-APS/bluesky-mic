@@ -8,7 +8,7 @@ from time import sleep
 
 from apstools.devices.motor_mixins import EpicsMotorServoMixin
 
-class ServoMotor(EpicsMotorServoMixin):
+class ServoMotor(EpicsMotorServoMixin, EpicsMotor):
 
     @property
     def enabled(self):

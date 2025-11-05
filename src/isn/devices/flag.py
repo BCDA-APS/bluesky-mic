@@ -11,7 +11,7 @@ from ophyd.areadetector import TIFFPlugin
 
 
 
-class Flag(SingleTrigger, DetectorBase):
+class Flag(DetectorBase):
     _default_configuration_attrs = ()
 
     motor = FormattedComponent(EpicsMotor, "{motor_prefix}")
