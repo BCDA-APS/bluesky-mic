@@ -164,6 +164,10 @@ isn.devices.socketserver.SocketServer:
 - name: socketserver
   prefix: "19idSGSocket:"
 
+# isn.devices.hutch.HutchTemp:
+# - name: hutch_temp
+#   prefix: "BL19ID-Metasys:"
+
 
 
 
