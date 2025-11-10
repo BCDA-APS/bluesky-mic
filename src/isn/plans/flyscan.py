@@ -53,7 +53,7 @@ def flyscan(
 
     # --- Defining user clock (ckUser))--- #
 
-    user_clock_N = 1e7 / interferometer_frequency
+    user_clock_N = int(1e7 / interferometer_frequency)
     yield from mv(softglue.div_by_n_3.n, user_clock_N)
 
     logger.info(f"Interferometry reading set at {interferometer_frequency :0.3e} Hz")
@@ -144,6 +144,10 @@ def flyscan(
     logging.info("Flyscan waveform loaded.")
     softglue.dac1_write.put("funcGenPulse")
 
+    # --- Update savedata's scan number --- #
+
+    savedata.advance_scan_number()
+
     # --- Preparing socket server --- #
 
     socketserver.stage()
@@ -189,12 +193,14 @@ def flyscan(
 
     socketserver.unstage()
 
-    # --- Update savedata's scan number --- #
-
-    savedata.advance_scan_number()
-
     # --- Return sample to initial positions ---
 
     yield from softglue.move_y_analog(45)
     sample.y.enable()
     yield from mv(sample.x, x0)
+
+
+    # --- Clearing up softglue for future runs ---
+
+    yield from softglue.stop()
+    yield from softglue.reset()
