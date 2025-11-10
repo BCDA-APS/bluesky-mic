@@ -19,6 +19,11 @@ isn.devices.sample.Sample:
   prefix: 19idAERO
   labels: ["baseline"]
 
+isn.devices.micronix.Micronix:
+- name: micronix
+  prefix: "19idMMC:"
+  labels: ["baseline"]
+
 # isn.devices.xrayeye.XRayEye:
 # - name: xrayeye
 #   prefix: 19idXEYE
@@ -107,6 +112,15 @@ isn.devices.undulators.UndulatorPair:
 # isn.devices.diffractometer.RobotArmDiffractometer:
 # - name: psic
 #   prefix: ""
+
+isn.devices.robot.RobotArmPositioner:
+- name: yaw
+  prefix: "19IDRobot:"
+  setpoint: "Yaw"
+  readback: "Last_Position_Yaw"
+  done: "MC"
+  execute: "EXE"
+  command: "CMD"
 
 isn.devices.kb.KB:
 - name: kb

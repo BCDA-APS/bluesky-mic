@@ -5,14 +5,14 @@
 # from .step2d import step2d
 # from .step2d_random_pos import step2d_random_pos
 from .flyscan import flyscan
-from .nexus_gen import nexus_gen
+# from .nexus_gen import nexus_gen
 # from .test_logger import test_logger
 # from .flyscan_eigerOnly import flyscan
 
 
 # # from .scan_record_scan import scan_record_isn
 # # from .fly2d_2idsft import fly2d  # noqa: F401
-# # from .fly2d import fly2d
+from .fly2d import fly2d
 # # from .fly2d_old import fly2d
 # # from .step1d import step1d
 

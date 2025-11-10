@@ -12,22 +12,24 @@ logger.info(__file__)
 sample = oregistry["sample"]
 me7 = oregistry["me7"]
 ptycho = oregistry["ptycho"]
+tmm = oregistry["tetramm1"]
 
-XSP3_MAX_PTS = 12000
+XSP3_MAX_PTS = 1000000
 
 def fly2d(
     samplename: str = "smp1",
+    user_comments: str = "",
     x_center: float = None,
     y_center: float = None,
     width: float = 0,
     height: float = 0,
-    stepsize_x: float = 0,
-    stepsize_y: float = 0,
+    stepsize_x: float = 0.1,
+    stepsize_y: float = 0.1,
     dwell_ms: float = 0,
     num_interferometer_per_pixel: int = 5,
-    det_dead_ms: float = 20,
-    sample_z: float = None,
+    det_dead_ms: float = 0.01,
     xrf_on: bool = True,
+    tmm_on: bool = True,
     ptycho_on: bool = False,
 ):
 
@@ -39,29 +41,29 @@ def fly2d(
     Parameters
     ----------
     samplename: 
-        Str: The name of the sample
+        The name of the sample. Type: str. Default: "smp1".
     x_center:
-        Float: The center of the scan in the x direction. Default is None which uses the current position of samx
+        The center of the scan in the x direction. Type: float. Default: None which uses the current position of samx
     y_center:
-        Float: The center of the scan in the y direction. Default is None which uses the current position of samy
+        The center of the scan in the y direction. Type: float. Default: None which uses the current position of samy
     width:
-        Float: The width of the scan in um
+        The width of the scan in mm. Type: float. Default: 0.
     height:
-        Float: The height of the scan in um
+        The height of the scan in mm. Type: float. Default: 0.
     stepsize_x:
-        Float: The step size in the x direction in um
+        The step size in the x direction in um. Type: float. Default: 0.1.
     stepsize_y:
-        Float: The step size in the y direction in um
+        The step size in the y direction in um. Type: float. Default: 0.1.
     dwell_ms:
-        Float: The dwell time in the scan in ms
+        The dwell time in the scan in ms. Type: float. Default: 0.
     det_dead_ms:
-        Float: The detector dead time in the scan in ms
-    sample_z:
-        Float: The z position of the sample
+        The detector dead time in the scan in ms. Type: float. Default: 0.01.
     xrf_on:
-        Bool: Whether to collect XRF data
+        Whether to collect XRF data. Type: bool. Default: True.
     ptycho_on:
-        Bool: Whether to collect Ptycho data
+        Whether to collect Ptycho data. Type: bool. Default: False.
+    tmm_on:
+        Whether to collect TMM data. Type: bool. Default: True.
     """
 
 
@@ -79,14 +81,14 @@ def fly2d(
     initial_args = capture_params(fly2d, **locals())
 
     y_piezo_center = 45
-    x_min = -width/2
-    x_max = width/2
-    y_min = -height/2 + y_piezo_center
-    y_max = height/2 + y_piezo_center
-    x_npts = int(width/stepsize_x)
-    y_npts = int(height/stepsize_y)
+    x_min = -width*1e3/2
+    x_max = width*1e3/2
+    y_min = -height*1e3/2 + y_piezo_center
+    y_max = height*1e3/2 + y_piezo_center
+    x_npts = int(width*1e3/stepsize_x)
+    y_npts = int(height*1e3/stepsize_y)
     acquire_time = dwell_ms
-    det_dead = 20
+    det_dead = det_dead_ms
     F = 0.9
     interferometer_frequency = 1000 * num_interferometer_per_pixel / (dwell_ms + det_dead_ms)
 
@@ -100,6 +102,8 @@ def fly2d(
         det.append(me7)
     if ptycho_on:
         det.append(ptycho)
+    if tmm_on:
+        det.append(tmm)
 
     """Perform the scan"""
     plan_args = {
@@ -120,3 +124,6 @@ def fly2d(
     def _fly2d():
         yield from flyscan(det, **plan_args)
     yield from _fly2d()
+
+    """Move sample y to the starting position"""
+    yield from bps.mv(sample.y, y_center)
