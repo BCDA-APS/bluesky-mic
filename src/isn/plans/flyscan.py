@@ -144,6 +144,10 @@ def flyscan(
     logging.info("Flyscan waveform loaded.")
     softglue.dac1_write.put("funcGenPulse")
 
+    # --- Update savedata's scan number --- #
+
+    savedata.advance_scan_number()
+
     # --- Preparing socket server --- #
 
     socketserver.stage()
@@ -189,12 +193,14 @@ def flyscan(
 
     socketserver.unstage()
 
-    # --- Update savedata's scan number --- #
-
-    savedata.advance_scan_number()
-
     # --- Return sample to initial positions ---
 
     yield from softglue.move_y_analog(45)
     sample.y.enable()
     yield from mv(sample.x, x0)
+
+    # --- Softglue cleanup ---
+
+    yield from softglue.stop()
+    yield from softglue.reset()
+    softglue.clear_output_fields()

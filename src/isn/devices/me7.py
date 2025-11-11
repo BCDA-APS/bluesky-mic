@@ -31,7 +31,8 @@ from ophyd.areadetector.trigger_mixins import TriggerBase
 from .mic_ad_mixins import MicHDF5
 from .mic_ad_mixins import VortexDetectorCam
 
-MAX_IMAGES = 12216
+# MAX_IMAGES = 12216
+MAX_IMAGES = 500000
 MAX_ROIS = 8
 DELAY = 0.2
 
