@@ -75,7 +75,7 @@ def flyscan(
 
     # --- Defining waveform clock --- #
 
-    waveform_period = 2 * trigger_period * 1e-3 * y_npts / (F * snake_npts * 1e-7)
+    waveform_period = int(2 * trigger_period * 1e-3 * y_npts / (F * snake_npts * 1e-7))
     total_scan_points = x_npts * snake_npts
     softglue.pulse_train.n.put(total_scan_points)
     softglue.pulse_train.period.put(waveform_period)
