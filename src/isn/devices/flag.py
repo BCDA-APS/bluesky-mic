@@ -3,9 +3,12 @@ from mic_common.devices.ad_fileplugin import MicHDF5
 from ophyd import EpicsMotor
 from ophyd import FormattedComponent
 from ophyd.areadetector import CamBase
+from ophyd.areadetector import SingleTrigger
 from ophyd.areadetector import DetectorBase
 from ophyd.areadetector import ROIPlugin
 from ophyd.areadetector import StatsPlugin
+from ophyd.areadetector import TIFFPlugin
+
 
 
 class Flag(DetectorBase):
@@ -14,6 +17,7 @@ class Flag(DetectorBase):
     motor = FormattedComponent(EpicsMotor, "{motor_prefix}")
     cam = FormattedComponent(CamBase, "{flag_prefix}" + "cam1:")
     hdf1 = FormattedComponent(MicHDF5, "{flag_prefix}" + "HDF1:")
+    tiff1 = FormattedComponent(TIFFPlugin, "{flag_prefix}" + "TIFF1:")
 
     roi1 = FormattedComponent(ROIPlugin, "{flag_prefix}" + "ROI1:")
     roi2 = FormattedComponent(ROIPlugin, "{flag_prefix}" + "ROI2:")
@@ -32,8 +36,9 @@ class Flag(DetectorBase):
         self.motor_prefix = motor_prefix
         self._in_position = in_position
         self._out_position = out_position
-
         super().__init__(*args, **kwargs)
+        self.cam.stage_sigs["image_mode"] = 0
+        self.cam.stage_sigs["num_images"] = 1
 
     def on(self):
         self.cam.acquire.put(1)
@@ -58,3 +63,11 @@ class Flag(DetectorBase):
             new_out_position = self.motor.user_readback.get()
 
         self._out_position = new_out_position
+
+    def save_tiff_images_on(self):
+        self.tiff1.stage_sigs["enable"] = 1
+        self.tiff1.stage_sigs["auto_save"] = 1
+
+    def save_tiff_images_off(self):
+        self.tiff1.stage_sigs["enable"] = 0
+        self.tiff1.stage_sigs["auto_save"] = 0

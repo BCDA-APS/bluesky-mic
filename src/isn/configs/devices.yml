@@ -19,6 +19,14 @@ isn.devices.sample.Sample:
   prefix: 19idAERO
   labels: ["baseline"]
 
+isn.devices.micronix.Micronix:
+- name: micronix
+  prefix: "19idMMC:"
+  labels: ["baseline"]
+
+# isn.devices.xrayeye.XRayEye:
+# - name: xrayeye
+#   prefix: 19idXEYE
 
 isn.devices.softgluezynq.SoftGlueZynq:
 - name: softglue
@@ -76,8 +84,6 @@ isn.devices.bpm.MyBPM:
   horizontal_motor_prefix: "19idBDA:m14"
   labels: ["baseline"]
 
-
-
 apstools.devices.aps_machine.ApsMachineParametersDevice:
 - name: ring
   labels: ["baseline"]
@@ -108,6 +114,15 @@ isn.devices.undulators.UndulatorPair:
 # isn.devices.diffractometer.RobotArmDiffractometer:
 # - name: psic
 #   prefix: ""
+
+isn.devices.robot.RobotArmPositioner:
+- name: yaw
+  prefix: "19IDRobot:"
+  setpoint: "Yaw"
+  readback: "Last_Position_Yaw"
+  done: "MC"
+  execute: "EXE"
+  command: "CMD"
 
 isn.devices.kb.KB:
 - name: kb
@@ -164,6 +179,10 @@ isn.devices.me7.VortexXspress37:
 isn.devices.socketserver.SocketServer:
 - name: socketserver
   prefix: "19idSGSocket:"
+
+isn.devices.hutch.HutchTemp:
+- name: hutch_temp
+  prefix: "BL19ID-Metasys:"
 
 
 

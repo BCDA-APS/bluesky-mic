@@ -31,6 +31,7 @@ class MicNXWriter(NXWriter):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.savedata = None
+        self.micdata_mountpath = "/mnt/micdata1"
 
     def set_savedata(self, savedata):
         self.savedata = savedata
@@ -48,7 +49,7 @@ class MicNXWriter(NXWriter):
             title = f"S{self.scan_id:05d}-{self.plan_name}-{self.uid[:7]}"
         return title
 
-    def make_file_name(self, micdata_mountpath = "/mnt/micdata1"):
+    def make_file_name(self):
         """
         Override the default file name to use the savedata.next_file_name
 
@@ -69,7 +70,7 @@ class MicNXWriter(NXWriter):
         else:
             self.savedata.update_next_file_name()
             fname = self.savedata.next_file_name.replace(".mda", "_run.h5")
-            path = pathlib.Path(self.savedata.get().file_system.replace("//micdata/data1", micdata_mountpath))
+            path = pathlib.Path(self.savedata.get().file_system.replace("//micdata/data1", self.micdata_mountpath), 'bluesky')
             self.file_path = path
             return path / fname
 

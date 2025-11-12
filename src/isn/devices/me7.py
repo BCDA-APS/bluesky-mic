@@ -43,6 +43,14 @@ class Trigger(TriggerBase):
 
     _status_type = ADTriggerStatus
 
+    trigger_mode = "Software"
+    save_images = False
+
+    # @property
+    # def acquire_time(self):
+    #     return self.cam.acquire_time
+
+
     def __init__(self, *args, image_name=None, **kwargs):
         super().__init__(*args, **kwargs)
         if image_name is None:
@@ -50,89 +58,133 @@ class Trigger(TriggerBase):
         self._image_name = image_name
         self._acquisition_signal = self.cam.acquire
         self._acquire_busy_signal = self.cam.acquire_busy
-        self._flysetup = False
+        # self._flysetup = False
         self._status = None
         self._delay = DELAY
         self._trigger_counter = 0
-        self.setup_soft_trigger()
+        self.cam.stage_sigs["erase_on_start"] = "No"
+        # self.setup_soft_trigger()
 
-    def setup_manual_trigger(self):
+    def setup_internal_trigger(self):
+        self.trigger_mode = "Internal"
+
         # Stage signals
         self.cam.stage_sigs["trigger_mode"] = "Internal"
         self.cam.stage_sigs["num_images"] = 1
         self.cam.stage_sigs["wait_for_plugins"] = "Yes"
-        self._flysetup = False
-        self._softsetup = False
+        self.cam.stage_sigs["acquire_time"] = self._acquire_time
+        if self.save_images:
+            self.hdf1.stage_sigs["enable"] = 1
+            self.hdf1.stage_sigs["auto_save"] = 1
+            self.hdf1.stage_sigs["num_capture"] = MAX_IMAGES
+        else:
+            self.hdf1.stage_sigs["enable"] = 0
+            self.hdf1.stage_sigs["auto_save"] = 0
+        # self._flysetup = False
+        # self._softsetup = False
+
 
     def setup_external_trigger(self):
+        self.trigger_mode = "External"
+
         # Stage signals
         self.cam.stage_sigs["trigger_mode"] = "TTL Veto Only"
         self.cam.stage_sigs["num_images"] = MAX_IMAGES
         self.cam.stage_sigs["wait_for_plugins"] = "No"
 
     def setup_soft_trigger(self):
+        logger.info("Configuring detector for software triggering")
+        self.trigger_mode = "Software"
+
         # Stage signals
         self.cam.stage_sigs["trigger_mode"] = "Software"
         self.cam.stage_sigs["num_images"] = MAX_IMAGES
         self.cam.stage_sigs["wait_for_plugins"] = "Yes"
-        self.cam.stage_sigs["erase_on_start"] = "No"
-        self.hdf1.stage_sigs["num_capture"] = MAX_IMAGES
-        self._softsetup = True
+        self.cam.stage_sigs["acquire_time"] = self._acquire_time
+        if self.save_images:
+            logger.info("Images being saved.")
+            self.hdf1.stage_sigs["enable"] = 1
+            self.hdf1.stage_sigs["auto_save"] = 1
+            self.hdf1.stage_sigs["num_capture"] = MAX_IMAGES
+        else:
+            self.hdf1.stage_sigs["enable"] = 0
+            self.hdf1.stage_sigs["auto_save"] = 0
+        # self._softsetup = True
 
     def setup_flyscan_mode(
         self, num_images=MAX_IMAGES, acq_time=0.01, hdf_images=MAX_IMAGES
     ):
-        # For flyscanning we want to disable all the callbacks that we don't need
-        self.set_plugins(0)
+        self.trigger_mode = "Flyscan"
 
+        # For flyscanning we want to disable all the plugins, which we don't need
+        self.set_plugins("Disable")
+
+        # Stage signals
         self.cam.stage_sigs["num_images"] = num_images
         self.cam.stage_sigs["trigger_mode"] = "TTL Veto Only"
         self.cam.stage_sigs["acquire_time"] = acq_time
+        self.cam.stage_sigs["wait_for_plugins"] = "No"
         self.cam.stage_sigs["erase_on_start"] = "No"
+
+        # For flyscanning we always want to save images
         self.hdf1.stage_sigs["enable"] = 1
         self.hdf1.stage_sigs["auto_save"] = 1
         self.hdf1.stage_sigs["num_capture"] = hdf_images
 
-        for i in range(1, 8):
-            comp = getattr(self, f"chan{i}")
-            comp.stage_sigs["enable"] = 0
+        # # Reduntant with set_plugins, this would be the correct way of doing it though,
+        # # so we are leaving the code here for the future.
+        # for i in range(1, 8):
+        #     comp = getattr(self, f"chan{i}")
+        #     comp.stage_sigs["enable"] = 0
 
-        self._flysetup = True
+        # self._flysetup = True
+
 
     def stage(self):
-        if self._flysetup:
-            self.setup_external_trigger()
 
-        elif self._softsetup:
+        if self.trigger_mode == "Software":
+            logger.info("Accessed software triggering staging sequence")
             self._trigger_counter = 0
-            self.setup_soft_trigger()
             self._acquire_time = self.cam.acquire_time.get()
-            # self.cam.soft_trigger.put(0)
+            self.setup_soft_trigger()
+        elif self.trigger_mode == "Internal":
+            self._acquire_time = self.cam.acquire_time.get()
+            self.setup_internal_trigger()
 
         # Make sure that detector is not armed.
         self._acquisition_signal.set(0).wait(timeout=10)
-        if not self._softsetup:  # TODO: find a better way to address this.
-            self._acquire_busy_signal.subscribe(self._acquire_changed)
+
+        # if self.trigger_mode == "Internal":
+        #     self._acquire_busy_signal.subscribe(self._acquire_changed)
 
         super().stage()
 
-        if self._flysetup or self._softsetup:
+        # if self._flysetup or self._softsetup:
+        if self.trigger_mode in ("Flyscan", "Software"):
+            logger.info("Enabling acquisition")
             self._acquisition_signal.set(1).wait(timeout=10)
             sleep(0.1)
             self.cam.soft_trigger.set(0).wait(timeout=10)
             sleep(self._delay)
 
     def unstage(self):
+
         super().unstage()
         self.cam.acquire.set(0).wait(timeout=10)
-        if self._flysetup:
+
+        # if self._flysetup:
+        if self.trigger_mode == "Flyscan":
             self.setup_soft_trigger()
             self.set_plugins("Enable")
-        if not self._softsetup:
-            self._acquire_busy_signal.clear_sub(self._acquire_changed)
-        self._collect_image = False
-        self._trigger_counter = 0
-        # self.setup_manual_trigger()
+        elif self.trigger_mode == "Software":
+            self._trigger_counter = 0
+
+        # # if not self._softsetup:
+        # if self.trigger_mode == "Internal":
+        #     self._acquire_busy_signal.clear_sub(self._acquire_changed)
+        # self._collect_image = False
+
+
 
     def trigger(self):
         if self._staged != Staged.yes:
@@ -143,7 +195,8 @@ class Trigger(TriggerBase):
 
         # Click the Acquire_button
         self._status = self._status_type(self)
-        if self._softsetup:
+        # if self._softsetup:
+        if self.trigger_mode == "Software":
             if self._trigger_counter >= MAX_IMAGES:
                 self.cam.erase.set(1).wait(timeout=1)
                 self.cam.acquire.set(1).wait(timeout=1)
@@ -158,7 +211,9 @@ class Trigger(TriggerBase):
             self._status.set_finished()
             self._trigger_counter += 1
         else:
-            self._acquisition_signal.put(1, wait=False)
+            self._acquisition_signal.put(1, wait=True) # TODO: we need to do this properly
+            sleep(self._acquire_time)
+            self._status.set_finished()
         if self.hdf1.enable.get() in (True, 1, "on", "Enable"):
             self.generate_datum(self._image_name, ttime(), {})
 
@@ -389,17 +444,17 @@ class VortexXspress37(Trigger, DetectorBase):
         """Stop detector"""
         self.cam.acquire.set(0).wait(timeout=10)
 
-    def save_images_on(self):
-        self.hdf1.enable.set("Enable").wait(timeout=10)
+    # def save_images_on(self):
+    #     self.hdf1.enable.set("Enable").wait(timeout=10)
 
-    def save_images_off(self):
-        self.hdf1.enable.set("Disable").wait(timeout=10)
+    # def save_images_off(self):
+    #     self.hdf1.enable.set("Disable").wait(timeout=10)
 
-    def auto_save_on(self):
-        self.hdf1.auto_save.put(1)
+    # def auto_save_on(self):
+    #     self.hdf1.auto_save.put(1)
 
-    def auto_save_off(self):
-        self.hdf1.auto_save.put(0)
+    # def auto_save_off(self):
+    #     self.hdf1.auto_save.put(0)
 
     def wait_for_detector(self):
         async def _wait_for_read():
@@ -446,9 +501,9 @@ class VortexXspress37(Trigger, DetectorBase):
         self.hdf1.stage_sigs["num_capture"] = 0
         self.hdf1.stage_sigs["capture"] = 1
 
-        self.setup_manual_trigger()
-        self.save_images_off()
-        self.auto_save_off()
+        # self.setup_manual_trigger()
+        # self.save_images_off()
+        # self.auto_save_off()
         self.read_rois = [1]
         self.plot_roi1()
 
