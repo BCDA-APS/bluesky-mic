@@ -1,18 +1,19 @@
 from apsbits.utils.config_loaders import get_config
 from apsbits.core.instrument_init import oregistry
 from isn.utils.param_capture import capture_params
+from isn.plans.utils.scan_master_gen import generate_scan_master_h5
 import bluesky.preprocessors as bpp
 from bluesky import plan_stubs as bps
 from isn.plans.flyscan import flyscan
-
 import logging
-logger = logging.getLogger(__name__)
-logger.info(__file__)
 
+logger = logging.getLogger(__name__)
 sample = oregistry["sample"]
 me7 = oregistry["me7"]
 ptycho = oregistry["ptycho"]
 tmm = oregistry["tetramm1"]
+socketserver = oregistry["socketserver"]
+savedata = oregistry["savedata"]
 
 XSP3_MAX_PTS = 1000000
 
@@ -98,13 +99,13 @@ def fly2d(
         raise ValueError(f"Total points {total_pts} is greater than the maximum allowed {XSP3_MAX_PTS}")
     
     """Define the detectors"""
-    det = []
+    dets = []
     if xrf_on:
-        det.append(me7)
+        dets.append(me7)
     if ptycho_on:
-        det.append(ptycho)
+        dets.append(ptycho)
     if tmm_on:
-        det.append(tmm)
+        dets.append(tmm)
 
     """Perform the scan"""
     plan_args = {
@@ -120,11 +121,22 @@ def fly2d(
         "interferometer_frequency": interferometer_frequency
     }
 
-    # md = {"plan_args": plan_args, "initial_args": initial_args}
-    # @bpp.run_decorator(md=md)
+    md = {"plan_args": plan_args, "initial_args": initial_args}
+    @bpp.run_decorator(md=md)
     def _fly2d():
-        yield from flyscan(det, **plan_args)
+        yield from flyscan(dets, **plan_args)
     yield from _fly2d()
 
     """Move sample y to the starting position"""
     yield from bps.mv(sample.y, y_center)
+
+    """Write the master HDF5 file for the scan"""
+    dets.append(socketserver)
+    for d in dets:
+        print(d.name)
+    generate_scan_master_h5(bluesky_params=plan_args.update(initial_args), dets=dets)
+    yield from bps.sleep(2)
+    
+
+
+    
