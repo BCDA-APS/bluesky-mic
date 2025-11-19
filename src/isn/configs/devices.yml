@@ -105,9 +105,9 @@ isn.devices.undulators.UndulatorPair:
   prefix: S19ID
   labels: ["baseline"]
 
-# isn.devices.diffractometer.RobotArmDiffractometer:
-# - name: psic
-#   prefix: ""
+isn.devices.diffractometer.RobotArmDiffractometer:
+- name: psic
+  prefix: ""
 
 isn.devices.kb.KB:
 - name: kb
