@@ -156,5 +156,12 @@ if iconfig.get("NEXUS_DATA_FILES", {}).get("ENABLE", False):
 
 from .plans import *
 
-
 # from mic_common.utils.dm_utils import *
+
+
+## QServer functions
+def get_save_data_path():
+    savedata = oregistry.find("savedata", allow_none=True)
+    if savedata is None:
+        return None
+    return savedata.file_system.get()
