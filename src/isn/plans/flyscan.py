@@ -199,8 +199,8 @@ def flyscan(
     sample.y.enable()
     yield from mv(sample.x, x0)
 
-
-    # --- Clearing up softglue for future runs ---
+    # --- Softglue cleanup ---
 
     yield from softglue.stop()
     yield from softglue.reset()
+    softglue.clear_output_fields()
