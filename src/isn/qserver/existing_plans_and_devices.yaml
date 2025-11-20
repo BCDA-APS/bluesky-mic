@@ -9990,6 +9990,15 @@ existing_plans:
       name: y_center
     - annotation:
         type: float
+      default: None
+      description: 'The center of the scan in the z direction. Type: float. Default:
+        None which uses the current position of samz'
+      kind:
+        name: POSITIONAL_OR_KEYWORD
+        value: 1
+      name: z_center
+    - annotation:
+        type: float
       default: '0'
       description: 'The width of the scan in mm. Type: float. Default: 0.'
       kind:

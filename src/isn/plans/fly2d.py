@@ -22,6 +22,7 @@ def fly2d(
     user_comments: str = "",
     x_center: float = None,
     y_center: float = None,
+    z_center: float = None,
     width: float = 0,
     height: float = 0,
     stepsize_x: float = 0.1,
@@ -47,6 +48,8 @@ def fly2d(
         The center of the scan in the x direction. Type: float. Default: None which uses the current position of samx
     y_center:
         The center of the scan in the y direction. Type: float. Default: None which uses the current position of samy
+    z_center:
+        The center of the scan in the z direction. Type: float. Default: None which uses the current position of samz
     width:
         The width of the scan in mm. Type: float. Default: 0.
     height:
@@ -71,6 +74,8 @@ def fly2d(
     """Move to the requested x- and y- centers"""
     if x_center is not None:
         yield from bps.mv(sample.x, x_center)
+    if z_center is not None:
+        yield from bps.mv(sample.z, z_center)
     if y_center is not None:
         if not sample.y.enabled:
             sample.y.enable()
@@ -79,6 +84,7 @@ def fly2d(
     """Capture the input plan parameters"""
     x_center = sample.x.user_readback.get()
     y_center = sample.y.user_readback.get()
+    z_center = sample.z.user_readback.get()
     initial_args = capture_params(fly2d, **locals())
 
     y_piezo_center = 45
@@ -121,7 +127,8 @@ def fly2d(
         "interferometer_frequency": interferometer_frequency
     }
 
-    md = {"plan_args": plan_args, "initial_args": initial_args}
+    scan_id = savedata.next_scan_number.get()+1
+    md = {"plan_args": plan_args, "initial_args": initial_args, "scan_id": scan_id}
     @bpp.run_decorator(md=md)
     def _fly2d():
         yield from flyscan(dets, **plan_args)
