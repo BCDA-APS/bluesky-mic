@@ -66,7 +66,6 @@ def flyscan(
     # yield from mv(softglue.div_by_n_2.n, trigger_N)
     softglue.div_by_n_2.n.put(trigger_N)
 
-
     # --- Setting up gated trigger --- #
 
     yield from mv(
@@ -78,7 +77,7 @@ def flyscan(
 
     # --- Defining waveform clock --- #
 
-    waveform_period = 2 * trigger_period * 1e-3 * y_npts / (F * snake_npts * 1e-7)
+    waveform_period = int(2 * trigger_period * 1e-3 * y_npts / (F * snake_npts * 1e-7))
     total_scan_points = x_npts * snake_npts
     softglue.pulse_train.n.put(total_scan_points)
     softglue.pulse_train.period.put(waveform_period)
@@ -94,6 +93,15 @@ def flyscan(
     )
 
     yield from mv(softglue.down_counter_1.preset, x_npts + 1)
+
+    ## New usage of up_down counter instead of regular downcounter
+    # It doesn't interfere with the old one, so I will leave it in until we are done testing
+
+    softglue.up_down_counter_1.preset.put(x_npts + 1)
+    softglue.up_down_counter_1.load.put("1!")
+    softglue.up_down_counter_1.updown.put("0")
+
+
 
     # Now we calculate the threshold values for the tweaking
 
@@ -115,7 +123,7 @@ def flyscan(
 
     piezos_position = sample.fine_y.user_readback.get()
     # We want the piezos to be within 50 nm of the middle of the range
-    if not np.isclose(piezos_position, 0.045, atol=5e-5):
+    if not np.isclose(piezos_position, 0.045, atol=5e-4):
         yield from softglue.move_y_analog(45)
         sleep(0.5) #arbitrary since analog move has no status signal
         yield from mv(sample.y, y0)
@@ -200,10 +208,13 @@ def flyscan(
 
     yield from softglue.move_y_analog(45)
     sample.y.enable()
-    yield from mv(sample.x, x0)
+    yield from mv(sample.x, x0,
+                  sample.y, y0)
+    
 
+    # --- Softglue cleanup ---
 
-    # --- Clearing up softglue for future runs ---
-
+    softglue.up_down_counter_1.load.put("1!")
     yield from softglue.stop()
     yield from softglue.reset()
+    softglue.clear_output_fields()

@@ -33,7 +33,8 @@ from .mic_ad_mixins import MicHDF5
 from .mic_ad_mixins import VortexDetectorCam
 from mic_common.utils.writeDetH5 import write_det_h5
 
-MAX_IMAGES = 12216
+# MAX_IMAGES = 12216
+MAX_IMAGES = 500000
 MAX_ROIS = 8
 DELAY = 0.2
 
