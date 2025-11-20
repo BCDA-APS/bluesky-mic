@@ -8,6 +8,11 @@ from ophyd import EpicsSignalWithRBV
 from ophyd.areadetector import DetectorBase
 from ophyd.areadetector import SingleTrigger
 
+from mic_common.utils.writeDetH5 import write_det_h5
+import logging
+import datetime
+logger = logging.getLogger(__name__)
+
 
 class Trigger(SingleTrigger):
     # We can't use the ADTriggerStatus since we have no cam
@@ -58,5 +63,51 @@ class SocketServer(Trigger, DetectorBase):
 
     acquire = ADComponent(EpicsSignal, "SG1:Acquire")
     array_counter = ADComponent(EpicsSignalWithRBV, "SG1:ArrayCounter")
+
+    def write_master_h5(
+        self,
+        masterfile_path: str = "",
+        detector_path: str = "",
+        scan_name: str = "",
+        det_name: str = "",
+        det_file_ext: str = ".h5",
+        det_key: str = "/entry",
+    ):
+        """
+        Write master file for detector.
+
+        Parameters:
+            masterfile_path (str): Path to master HDF5 file.
+            detector_path (str): Path to detector directory.
+            scan_name (str): Name of the scan.
+            det_name (str): Name of the detector.
+            det_file_ext (str): File extension for detector files.
+            det_key (str): Key for detector data in HDF5 file.
+        """
+        
+        logger.info(
+            f"{self.__class__.__name__}: Writing HDF5 file to {masterfile_path}"
+        )
+        logger.info(f"{self.__class__.__name__}: Detector path: {detector_path}")
+        logger.info(f"{self.__class__.__name__}: Scan name: {scan_name}")
+
+        attrs_values = {}
+        attrs_values.update({"datetime": str(datetime.datetime.now())})
+        # attrs_values.update({"acquire_time": self.cam.acquire_time.get()})
+        # attrs_values.update({"num_images": self.cam.num_images.get()})
+        # attrs_values.update({"num_frames_saved": self.cam.frame_count.get()})
+
+        # trigger_mode = self.cam.trigger_mode.enum_strs[self.cam.trigger_mode.get()]
+        # attrs_values.update({"trigger_mode": trigger_mode})
+
+        write_det_h5(
+            masterfile_path=masterfile_path,
+            det_dir=detector_path,
+            scan_name=scan_name,
+            det_name=det_name,
+            det_file_ext=det_file_ext,
+            det_key=det_key,
+            det_attrs_values=attrs_values,
+        )
 
  

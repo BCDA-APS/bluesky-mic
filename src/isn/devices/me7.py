@@ -1,6 +1,7 @@
 """ME7 setup"""
 
 import logging
+import datetime
 
 logger = logging.getLogger(__name__)
 
@@ -30,6 +31,7 @@ from ophyd.areadetector.trigger_mixins import TriggerBase
 
 from .mic_ad_mixins import MicHDF5
 from .mic_ad_mixins import VortexDetectorCam
+from mic_common.utils.writeDetH5 import write_det_h5
 
 # MAX_IMAGES = 12216
 MAX_IMAGES = 500000
@@ -43,6 +45,7 @@ class Trigger(TriggerBase):
     """
 
     _status_type = ADTriggerStatus
+    _acquire_time = 0.01
 
     trigger_mode = "Software"
     save_images = False
@@ -318,7 +321,7 @@ class VortexSCA(AttributePlugin):
 
 
 class VortexHDF1Plugin(MicHDF5):
-    # The array counter readback pv is different...
+    # The arVortexHDF1Pluginray counter readback pv is different...
     array_counter = Component(EpicsSignal, "ArrayCounter", kind="config")
     array_counter_readback = Component(EpicsSignalRO, "ArrayCounter_RBV", kind="config")
 
@@ -448,8 +451,8 @@ class VortexXspress37(Trigger, DetectorBase):
     # def save_images_on(self):
     #     self.hdf1.enable.set("Enable").wait(timeout=10)
 
-    # def save_images_off(self):
-    #     self.hdf1.enable.set("Disable").wait(timeout=10)
+    def save_images_off(self):
+        self.hdf1.enable.set("Disable").wait(timeout=10)
 
     # def auto_save_on(self):
     #     self.hdf1.auto_save.put(1)
@@ -661,3 +664,49 @@ class VortexXspress37(Trigger, DetectorBase):
 
         for plugin in _plugins:
             caput(plugin, state)
+
+    def write_master_h5(
+        self,
+        masterfile_path: str = "",
+        detector_path: str = "",
+        scan_name: str = "",
+        det_name: str = "",
+        det_file_ext: str = ".h5",
+        det_key: str = "/entry",
+    ):
+        """
+        Write master file for detector.
+
+        Parameters:
+            masterfile_path (str): Path to master HDF5 file.
+            detector_path (str): Path to detector directory.
+            scan_name (str): Name of the scan.
+            det_name (str): Name of the detector.
+            det_file_ext (str): File extension for detector files.
+            det_key (str): Key for detector data in HDF5 file.
+        """
+        
+        logger.info(
+            f"{self.__class__.__name__}: Writing HDF5 file to {masterfile_path}"
+        )
+        logger.info(f"{self.__class__.__name__}: Detector path: {detector_path}")
+        logger.info(f"{self.__class__.__name__}: Scan name: {scan_name}")
+
+        attrs_values = {}
+        attrs_values.update({"datetime": str(datetime.datetime.now())})
+        attrs_values.update({"acquire_time": self.cam.acquire_time.get()})
+        attrs_values.update({"num_images": self.cam.num_images.get()})
+        attrs_values.update({"num_frames_saved": self.cam.frame_count.get()})
+
+        trigger_mode = self.cam.trigger_mode.enum_strs[self.cam.trigger_mode.get()]
+        attrs_values.update({"trigger_mode": trigger_mode})
+
+        write_det_h5(
+            masterfile_path=masterfile_path,
+            det_dir=detector_path,
+            scan_name=scan_name,
+            det_name=det_name,
+            det_file_ext=det_file_ext,
+            det_key=det_key,
+            det_attrs_values=attrs_values,
+        )

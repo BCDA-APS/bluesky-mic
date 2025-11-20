@@ -112,7 +112,7 @@ def flyscan(
 
     piezos_position = sample.fine_y.user_readback.get()
     # We want the piezos to be within 50 nm of the middle of the range
-    if not np.isclose(piezos_position, 0.045, atol=5e5):
+    if not np.isclose(piezos_position, 0.045, atol=5e-5):
         yield from softglue.move_y_analog(45)
         sleep(0.5) #arbitrary since analog move has no status signal
         yield from mv(sample.y, y0)
