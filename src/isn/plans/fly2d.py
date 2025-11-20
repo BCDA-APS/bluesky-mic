@@ -90,7 +90,8 @@ def fly2d(
     acquire_time = dwell_ms
     det_dead = det_dead_ms
     F = 0.9
-    interferometer_frequency = 1000 * num_interferometer_per_pixel / (dwell_ms + det_dead_ms)
+    interferometer_frequency = int(1000 * num_interferometer_per_pixel / (dwell_ms + det_dead_ms))
+    logger.info(f"Interferometer frequency set to {interferometer_frequency}")
 
     total_pts = x_npts * (y_npts / F)
     if total_pts >= XSP3_MAX_PTS:
@@ -119,8 +120,8 @@ def fly2d(
         "interferometer_frequency": interferometer_frequency
     }
 
-    md = {"plan_args": plan_args, "initial_args": initial_args}
-    @bpp.run_decorator(md=md)
+    # md = {"plan_args": plan_args, "initial_args": initial_args}
+    # @bpp.run_decorator(md=md)
     def _fly2d():
         yield from flyscan(det, **plan_args)
     yield from _fly2d()

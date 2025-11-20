@@ -53,7 +53,7 @@ def flyscan(
 
     # --- Defining user clock (ckUser))--- #
 
-    user_clock_N = 1e7 / interferometer_frequency
+    user_clock_N = int(1e7 / interferometer_frequency)
     yield from mv(softglue.div_by_n_3.n, user_clock_N)
 
     logger.info(f"Interferometry reading set at {interferometer_frequency :0.3e} Hz")
@@ -75,7 +75,7 @@ def flyscan(
 
     # --- Defining waveform clock --- #
 
-    waveform_period = 2 * trigger_period * 1e-3 * y_npts / (F * snake_npts * 1e-7)
+    waveform_period = int(2 * trigger_period * 1e-3 * y_npts / (F * snake_npts * 1e-7))
     total_scan_points = x_npts * snake_npts
     softglue.pulse_train.n.put(total_scan_points)
     softglue.pulse_train.period.put(waveform_period)
