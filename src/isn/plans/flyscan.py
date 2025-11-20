@@ -54,7 +54,8 @@ def flyscan(
     # --- Defining user clock (ckUser))--- #
 
     user_clock_N = int(1e7 / interferometer_frequency)
-    yield from mv(softglue.div_by_n_3.n, user_clock_N)
+    # yield from mv(softglue.div_by_n_3.n, user_clock_N)
+    softglue.div_by_n_3.n.put(user_clock_N)
 
     logger.info(f"Interferometry reading set at {interferometer_frequency :0.3e} Hz")
 
@@ -62,7 +63,9 @@ def flyscan(
 
     trigger_period = acquire_time + det_dead
     trigger_N = trigger_period * 1e4
-    yield from mv(softglue.div_by_n_2.n, trigger_N)
+    # yield from mv(softglue.div_by_n_2.n, trigger_N)
+    softglue.div_by_n_2.n.put(trigger_N)
+
 
     # --- Setting up gated trigger --- #
 
