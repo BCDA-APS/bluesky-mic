@@ -54,7 +54,8 @@ def flyscan(
     # --- Defining user clock (ckUser))--- #
 
     user_clock_N = int(1e7 / interferometer_frequency)
-    yield from mv(softglue.div_by_n_3.n, user_clock_N)
+    # yield from mv(softglue.div_by_n_3.n, user_clock_N)
+    softglue.div_by_n_3.n.put(user_clock_N)
 
     logger.info(f"Interferometry reading set at {interferometer_frequency :0.3e} Hz")
 
@@ -62,7 +63,8 @@ def flyscan(
 
     trigger_period = acquire_time + det_dead
     trigger_N = trigger_period * 1e4
-    yield from mv(softglue.div_by_n_2.n, trigger_N)
+    # yield from mv(softglue.div_by_n_2.n, trigger_N)
+    softglue.div_by_n_2.n.put(trigger_N)
 
     # --- Setting up gated trigger --- #
 
@@ -92,6 +94,15 @@ def flyscan(
 
     yield from mv(softglue.down_counter_1.preset, x_npts + 1)
 
+    ## New usage of up_down counter instead of regular downcounter
+    # It doesn't interfere with the old one, so I will leave it in until we are done testing
+
+    softglue.up_down_counter_1.preset.put(x_npts + 1)
+    softglue.up_down_counter_1.load.put("1!")
+    softglue.up_down_counter_1.updown.put("0")
+
+
+
     # Now we calculate the threshold values for the tweaking
 
     _threshold_range = (y_max - y_min) * (1 - F)
@@ -112,7 +123,7 @@ def flyscan(
 
     piezos_position = sample.fine_y.user_readback.get()
     # We want the piezos to be within 50 nm of the middle of the range
-    if not np.isclose(piezos_position, 0.045, atol=5e-5):
+    if not np.isclose(piezos_position, 0.045, atol=5e-4):
         yield from softglue.move_y_analog(45)
         sleep(0.5) #arbitrary since analog move has no status signal
         yield from mv(sample.y, y0)
@@ -197,10 +208,13 @@ def flyscan(
 
     yield from softglue.move_y_analog(45)
     sample.y.enable()
-    yield from mv(sample.x, x0)
+    yield from mv(sample.x, x0,
+                  sample.y, y0)
+    
 
     # --- Softglue cleanup ---
 
+    softglue.up_down_counter_1.load.put("1!")
     yield from softglue.stop()
     yield from softglue.reset()
     softglue.clear_output_fields()

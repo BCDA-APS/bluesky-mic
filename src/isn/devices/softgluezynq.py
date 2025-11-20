@@ -57,6 +57,14 @@ class DownCounter(Device):
     preset = Component(EpicsSignal, "PRESET", kind="config")
     out_signal = Component(EpicsSignal, "OUT_Signal", kind="config")
 
+class UpDownCounter(Device):
+    enable = Component(EpicsSignal, "ENABLE_Signal", kind="config")
+    clock = Component(EpicsSignal, "CLOCK_Signal", kind="config")
+    clear = Component(EpicsSignal, "CLEAR_Signal", kind="config")
+    updown = Component(EpicsSignal, "UPDOWN_Signal", kind="config")
+    load = Component(EpicsSignal, "LOAD_Signal", kind="config")
+    preset = Component(EpicsSignal, "PRESET", kind="config")
+    counts = counts = Component(EpicsSignalRO, "COUNTS", kind="config")
 
 class Buffer(Device):
     in_signal = Component(EpicsSignal, "IN_Signal", kind="config")
@@ -141,6 +149,8 @@ class SoftGlueZynq(Device):
     up_counter_4 = Component(UpCounter, ":SG:UpCntr-1_")
 
     down_counter_1 = Component(DownCounter, ":SG:DnCntr-1_")
+
+    up_down_counter_1 = Component(UpDownCounter, ":SG:UpDnCntr-1_")
 
     gate_delay_1 = Component(GateDelay, ":SG:GateDly-1")
 
