@@ -1,8 +1,11 @@
 from ophyd import Component
+from ophyd import FormattedComponent
 from ophyd import Device
 from ophyd import EpicsMotor
 from ophyd import EpicsSignal
 from ophyd import EpicsSignalRO
+
+import numpy as np
 
 from time import sleep
 
@@ -30,18 +33,24 @@ class EpicsMotorWithTweak(EpicsMotor):
 
 class Sample(Device):
 
-    x = Component(EpicsMotorWithTweak, ":m2")
-    y = Component(ServoMotor, ":m3")
-    z = Component(EpicsMotor, ":m1")
+    x = FormattedComponent(EpicsMotorWithTweak, "{aero_prefix}"+"m2")
+    y = FormattedComponent(ServoMotor, "{aero_prefix}"+"m3")
+    z = FormattedComponent(EpicsMotorWithTweak, "{aero_prefix}"+"m1")
 
-    fine_y = Component(EpicsMotor, ":SM1")
+    fine_y = FormattedComponent(EpicsMotor, "{aero_prefix}"+"SM1")
 
-    analog_on = Component(EpicsSignal, ":userStringSeq2.PROC")
-    analog_off = Component(EpicsSignal, ":userStringSeq1.PROC")
-    query = Component(EpicsSignal, ":userStringSeq3.PROC")
-    query_output = Component(EpicsSignalRO, ":pi:c0:asyn.TINP")
+    analog_on = FormattedComponent(EpicsSignal, "{aero_prefix}"+"userStringSeq2.PROC")
+    analog_off = FormattedComponent(EpicsSignal, "{aero_prefix}"+"userStringSeq1.PROC")
+    query = FormattedComponent(EpicsSignal, "{aero_prefix}"+"userStringSeq3.PROC")
+    query_output = FormattedComponent(EpicsSignalRO, "{aero_prefix}"+"pi:c0:asyn.TINP")
 
-    def __init__(self, *args, **kwargs):
+    theta = FormattedComponent(EpicsMotor, "{micronix_prefix}"+"m4") #TODO: We need to create an offsetable component that we can use to calibrate sample to sample the real theta position.
+    mic_x = FormattedComponent(EpicsMotor, "{micronix_prefix}"+"m2")
+    mic_z = FormattedComponent(EpicsMotor, "{micronix_prefix}"+"m3")
+
+    def __init__(self, aero_prefix, micronix_prefix, *args, **kwargs):
+        self.aero_prefix = aero_prefix
+        self.micronix_prefix = micronix_prefix
         super().__init__(*args, **kwargs)
     
     @property
@@ -66,4 +75,9 @@ class Sample(Device):
     def disable_analog_control(self):
         self.analog_off.put("1", wait=True)
         sleep(4.1)
+
+    def compensating_z(self, x_step):
+        '''Returns the amount the z stage would need to compensate for an x_step to keep the sample in focus.'''
+        th = self.theta.user_readback.get()
+        return x_step*np.tan(-np.radians(th))
 

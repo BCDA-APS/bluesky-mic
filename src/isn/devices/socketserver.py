@@ -1,12 +1,14 @@
 # from isn.devices.mic_ad_mixins import MicHDF5
 
-from mic_common.devices.ad_fileplugin import MicHDF5
+# from mic_common.devices.ad_fileplugin import MicHDF5
 from ophyd import ADComponent
 from ophyd import DeviceStatus
 from ophyd import EpicsSignal
 from ophyd import EpicsSignalWithRBV
 from ophyd.areadetector import DetectorBase
 from ophyd.areadetector import SingleTrigger
+
+from .mic_ad_mixins import MicHDF5
 
 from mic_common.utils.writeDetH5 import write_det_h5
 import logging
@@ -56,13 +58,18 @@ class SocketServer(Trigger, DetectorBase):
         # #TODO: Fix this so that we can use them as real staging signals
         # self.hdf1.stage_sigs["num_capture"] = 50000
         self.stage_sigs = {}
+        self.hdf1.stage_sigs.pop('parent.cam.array_callbacks')
 
     _default_configuration_attrs = None
 
     hdf1 = ADComponent(MicHDF5, "HDF1:")
-
     acquire = ADComponent(EpicsSignal, "SG1:Acquire")
     array_counter = ADComponent(EpicsSignalWithRBV, "SG1:ArrayCounter")
+
+    def setup_flyscan_mode(self, num_lines = 50000):
+        self.array_counter.put(0)
+        self.hdf1.stage_sigs['num_capture'] = num_lines
+        self.hdf1.stage_sigs['capture'] = 1
 
     def write_master_h5(
         self,
