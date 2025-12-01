@@ -51,7 +51,7 @@ def step1d_scanrecord(
     samplename: str = "smp1",
     user_comments: str = "",
     width: float = 0,
-    x_cente: float = None,
+    x_center: float = None,
     stepsize_x: float = 0,
     dwell_ms: float = 0,
     sample_z: float = None,
@@ -144,6 +144,7 @@ def _step1d_scanrecord(
     """Setup the detectors and file I/O"""
     total_pts = scan1.number_points.get()
     filename = get_next_file_name(savedata)
+    preamp2_on = False
     devices_dict, fileplugins_dict = yield from _common_stepscan_setup(
         xrf_on, preamp1_on, preamp2_on, total_pts, dwell_ms, filename
     )

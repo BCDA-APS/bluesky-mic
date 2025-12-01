@@ -21,9 +21,10 @@ from mic_common.plans.generallized_scan_1d import generalized_scan_1d
 from mic_common.utils.param_capture import capture_params
 from mic_common.utils.scan_monitor import execute_scan_2d
 from s2idd_uprobe.plans.before_after_fly import setup_flyscan_XRF_triggers, setup_flyscan_tmm_triggers
-from s2idd_uprobe.plans.helper_funcs import selected_dets
+# from s2idd_uprobe.plans.helper_funcs import selected_dets
 from s2idd_uprobe.plans.toggle_usercalc import disable_usercalc
 from s2idd_uprobe.plans.toggle_usercalc import enable_usercalc
+import numpy as np
 
 logger = logging.getLogger(__name__)
 
@@ -45,7 +46,7 @@ preamp1 = oregistry["tmm1"]
 iconfig = get_config()
 scan_overhead = iconfig.get("SCAN_OVERHEAD")
 netcdf_delimiter = iconfig.get("FILE_DELIMITER")
-xmap_buffer = iconfig.get("XMAP", "BUFFER")
+xmap_buffer = iconfig.get("XMAP")["BUFFER"]
 
 
 def fly2d_scanrecord(
@@ -189,7 +190,10 @@ def _fly2d_scanrecord(
         filename = next_file_name.replace(".mda", "")
 
         if all([xrf_on, xrf.connected, xrf_netcdf.connected]):
-            num_capture = 0  # When it's zero, the num_capture won't be overwritten
+            # num_capture = 0  # When it's zero, the num_capture won't be overwritten
+            logger.info(f"xmap_buffer: {xmap_buffer}")
+            logger.info(f"num_pulses: {num_pulses}")
+            num_capture = int(np.ceil(num_pulses / xmap_buffer))
             yield from setup_flyscan_XRF_triggers(fscanh, xrf, xrf_netcdf, sis3820, num_pulses, 
                                                   motor_resolution=samx.resolution.get(), stepsize_x=stepsize_x,
                                                   update_prescale=True)

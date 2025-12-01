@@ -10505,6 +10505,139 @@ existing_devices:
     is_movable: false
     is_readable: true
     module: mic_common.devices.ad_fileplugin
+  zp_z:
+    classname: Motor
+    components:
+      acceleration:
+        classname: EpicsSignal
+        is_flyable: false
+        is_movable: true
+        is_readable: true
+        module: ophyd.signal
+      direction_of_travel:
+        classname: EpicsSignal
+        is_flyable: false
+        is_movable: true
+        is_readable: true
+        module: ophyd.signal
+      high_limit_switch:
+        classname: EpicsSignalRO
+        is_flyable: false
+        is_movable: true
+        is_readable: true
+        module: ophyd.signal
+      high_limit_travel:
+        classname: EpicsSignal
+        is_flyable: false
+        is_movable: true
+        is_readable: true
+        module: ophyd.signal
+      home_forward:
+        classname: EpicsSignal
+        is_flyable: false
+        is_movable: true
+        is_readable: true
+        module: ophyd.signal
+      home_reverse:
+        classname: EpicsSignal
+        is_flyable: false
+        is_movable: true
+        is_readable: true
+        module: ophyd.signal
+      low_limit_switch:
+        classname: EpicsSignalRO
+        is_flyable: false
+        is_movable: true
+        is_readable: true
+        module: ophyd.signal
+      low_limit_travel:
+        classname: EpicsSignal
+        is_flyable: false
+        is_movable: true
+        is_readable: true
+        module: ophyd.signal
+      max_velocity:
+        classname: EpicsSignal
+        is_flyable: false
+        is_movable: true
+        is_readable: true
+        module: ophyd.signal
+      motor_done_move:
+        classname: EpicsSignalRO
+        is_flyable: false
+        is_movable: true
+        is_readable: true
+        module: ophyd.signal
+      motor_egu:
+        classname: EpicsSignal
+        is_flyable: false
+        is_movable: true
+        is_readable: true
+        module: ophyd.signal
+      motor_is_moving:
+        classname: EpicsSignalRO
+        is_flyable: false
+        is_movable: true
+        is_readable: true
+        module: ophyd.signal
+      motor_stop:
+        classname: EpicsSignal
+        is_flyable: false
+        is_movable: true
+        is_readable: true
+        module: ophyd.signal
+      offset_freeze_switch:
+        classname: EpicsSignal
+        is_flyable: false
+        is_movable: true
+        is_readable: true
+        module: ophyd.signal
+      resolution:
+        classname: EpicsSignal
+        is_flyable: false
+        is_movable: true
+        is_readable: true
+        module: ophyd.signal
+      set_use_switch:
+        classname: EpicsSignal
+        is_flyable: false
+        is_movable: true
+        is_readable: true
+        module: ophyd.signal
+      user_offset:
+        classname: EpicsSignal
+        is_flyable: false
+        is_movable: true
+        is_readable: true
+        module: ophyd.signal
+      user_offset_dir:
+        classname: EpicsSignal
+        is_flyable: false
+        is_movable: true
+        is_readable: true
+        module: ophyd.signal
+      user_readback:
+        classname: EpicsSignalRO
+        is_flyable: false
+        is_movable: true
+        is_readable: true
+        module: ophyd.signal
+      user_setpoint:
+        classname: EpicsSignal
+        is_flyable: false
+        is_movable: true
+        is_readable: true
+        module: ophyd.signal
+      velocity:
+        classname: EpicsSignal
+        is_flyable: false
+        is_movable: true
+        is_readable: true
+        module: ophyd.signal
+    is_flyable: false
+    is_movable: true
+    is_readable: true
+    module: s2idd_uprobe.devices.motor
 existing_plans:
   fly2d:
     description: Execute a 2D flyscan over a rectangular area without using Scan Record.
@@ -10631,28 +10764,36 @@ existing_plans:
     module: s2idd_uprobe.plans.fly2d_scanrecord
     name: fly2d_scanrecord
     parameters:
-    - default: '''smp1'''
+    - annotation:
+        type: str
+      default: '''smp1'''
       description: 'The name of the sample for file naming. Default: "smp1". Type:
         str'
       kind:
         name: POSITIONAL_OR_KEYWORD
         value: 1
       name: samplename
-    - default: ''''''
+    - annotation:
+        type: str
+      default: ''''''
       description: 'User comments to be recorded with the scan data. Default is "".
         Type: str'
       kind:
         name: POSITIONAL_OR_KEYWORD
         value: 1
       name: user_comments
-    - default: '0'
+    - annotation:
+        type: float
+      default: '0'
       description: 'The total width of the scan area in microns. Default: 0. Type:
         float'
       kind:
         name: POSITIONAL_OR_KEYWORD
         value: 1
       name: width
-    - default: None
+    - annotation:
+        type: float
+      default: None
       description: 'The center position of the scan in the x-direction in microns.
         If not provided, the current x-motor position will be used as the center.
         Default: None. Type: float'
@@ -10660,21 +10801,27 @@ existing_plans:
         name: POSITIONAL_OR_KEYWORD
         value: 1
       name: x_center
-    - default: '0'
+    - annotation:
+        type: float
+      default: '0'
       description: 'The step size (spatial resolution) in the x-direction in microns.
         Default: 0. Type: float'
       kind:
         name: POSITIONAL_OR_KEYWORD
         value: 1
       name: stepsize_x
-    - default: '0'
+    - annotation:
+        type: float
+      default: '0'
       description: 'The total height of the scan area in microns. Default: 0. Type:
         float'
       kind:
         name: POSITIONAL_OR_KEYWORD
         value: 1
       name: height
-    - default: None
+    - annotation:
+        type: float
+      default: None
       description: 'The center position of the scan in the y-direction in microns.
         If not provided, the current y-motor position will be used as the center.
         Default: None. Type: float'
@@ -10682,41 +10829,53 @@ existing_plans:
         name: POSITIONAL_OR_KEYWORD
         value: 1
       name: y_center
-    - default: '0'
+    - annotation:
+        type: float
+      default: '0'
       description: 'The step size (spatial resolution) in the y-direction in microns.
         Default: 0. Type: float'
       kind:
         name: POSITIONAL_OR_KEYWORD
         value: 1
       name: stepsize_y
-    - default: '0'
+    - annotation:
+        type: float
+      default: '0'
       description: 'The dwell time per step in milliseconds. Default: 0. Type: float'
       kind:
         name: POSITIONAL_OR_KEYWORD
         value: 1
       name: dwell_ms
-    - default: None
+    - annotation:
+        type: float
+      default: None
       description: 'The sample z position in millimeters. If not provided, the current
         sample z position will be maintained. Default: None. Type: float'
       kind:
         name: POSITIONAL_OR_KEYWORD
         value: 1
       name: sample_z
-    - default: 'True'
+    - annotation:
+        type: bool
+      default: 'True'
       description: 'Whether to enable the x-ray fluorescence detector. Default is
         True. Type: bool'
       kind:
         name: POSITIONAL_OR_KEYWORD
         value: 1
       name: xrf_on
-    - default: 'False'
+    - annotation:
+        type: bool
+      default: 'False'
       description: 'Whether to enable preamp1. Preamp1 is used to record metadata.
         Default is True. Type: bool'
       kind:
         name: POSITIONAL_OR_KEYWORD
         value: 1
       name: preamp1_on
-    - default: 'False'
+    - annotation:
+        type: bool
+      default: 'False'
       description: 'Whether to enable preamp2. Default is False. Type: bool'
       kind:
         name: POSITIONAL_OR_KEYWORD
@@ -10756,148 +10915,93 @@ existing_plans:
       name: path
     properties:
       is_generator: true
-  step1d:
-    description: Capture the input plan parameters
-    module: s2idd_uprobe.plans.step1d
-    name: step1d
+  step1d_scanrecord:
+    description: 1D Bluesky plan that drives the x- sample motors in step mode using
+      ScanRecord
+    module: s2idd_uprobe.plans.step1d_scanrecord
+    name: step1d_scanrecord
     parameters:
-    - default: '''smp1'''
+    - annotation:
+        type: str
+      default: '''smp1'''
+      description: 'The name of the sample for file naming. Default: "smp1". Type:
+        str'
       kind:
         name: POSITIONAL_OR_KEYWORD
         value: 1
       name: samplename
-    - default: ''''''
+    - annotation:
+        type: str
+      default: ''''''
+      description: 'User comments to be recorded with the scan data. Default is "".
+        Type: str'
       kind:
         name: POSITIONAL_OR_KEYWORD
         value: 1
       name: user_comments
-    - default: '''samx'''
-      kind:
-        name: POSITIONAL_OR_KEYWORD
-        value: 1
-      name: positioner
-    - default: '0'
-      kind:
-        name: POSITIONAL_OR_KEYWORD
-        value: 1
-      name: length
-    - default: None
-      kind:
-        name: POSITIONAL_OR_KEYWORD
-        value: 1
-      name: center
-    - default: '0'
-      kind:
-        name: POSITIONAL_OR_KEYWORD
-        value: 1
-      name: stepsize
-    - default: '0'
-      kind:
-        name: POSITIONAL_OR_KEYWORD
-        value: 1
-      name: dwell_ms
-    - default: 'True'
-      kind:
-        name: POSITIONAL_OR_KEYWORD
-        value: 1
-      name: preamp1_on
-    - default: 'True'
-      kind:
-        name: POSITIONAL_OR_KEYWORD
-        value: 1
-      name: xrf_on
-    - default: 'False'
-      kind:
-        name: POSITIONAL_OR_KEYWORD
-        value: 1
-      name: preamp2_on
-    properties:
-      is_generator: true
-  step2d:
-    description: Capture the input plan parameters
-    module: s2idd_uprobe.plans.step2d
-    name: step2d
-    parameters:
-    - default: '''smp1'''
-      kind:
-        name: POSITIONAL_OR_KEYWORD
-        value: 1
-      name: samplename
-    - default: ''''''
-      kind:
-        name: POSITIONAL_OR_KEYWORD
-        value: 1
-      name: user_comments
-    - default: '0'
+    - annotation:
+        type: float
+      default: '0'
+      description: 'The total width of the scan area in microns. Default: 0. Type:
+        float'
       kind:
         name: POSITIONAL_OR_KEYWORD
         value: 1
       name: width
-    - default: None
+    - annotation:
+        type: float
+      default: None
+      description: 'The center position of the scan in the x-direction in microns.
+        If not provided, the current x-motor position will be used as the center.
+        Default: None. Type: float'
       kind:
         name: POSITIONAL_OR_KEYWORD
         value: 1
       name: x_center
-    - default: '0'
+    - annotation:
+        type: float
+      default: '0'
+      description: 'The step size (spatial resolution) in the x-direction in microns.
+        Default: 0. Type: float'
       kind:
         name: POSITIONAL_OR_KEYWORD
         value: 1
       name: stepsize_x
-    - default: '0'
-      kind:
-        name: POSITIONAL_OR_KEYWORD
-        value: 1
-      name: height
-    - default: None
-      kind:
-        name: POSITIONAL_OR_KEYWORD
-        value: 1
-      name: y_center
-    - default: '0'
-      kind:
-        name: POSITIONAL_OR_KEYWORD
-        value: 1
-      name: stepsize_y
-    - default: '0'
+    - annotation:
+        type: float
+      default: '0'
+      description: 'The dwell time per step in milliseconds. Default: 0. Type: float'
       kind:
         name: POSITIONAL_OR_KEYWORD
         value: 1
       name: dwell_ms
-    - default: None
+    - annotation:
+        type: float
+      default: None
+      description: 'The sample z position in millimeters. If not provided, the current
+        sample z position will be maintained. Default: None. Type: float'
       kind:
         name: POSITIONAL_OR_KEYWORD
         value: 1
       name: sample_z
-    - default: None
-      kind:
-        name: POSITIONAL_OR_KEYWORD
-        value: 1
-      name: inc_eng
-    - default: 'False'
-      kind:
-        name: POSITIONAL_OR_KEYWORD
-        value: 1
-      name: adjust_zp
-    - default: 'False'
-      kind:
-        name: POSITIONAL_OR_KEYWORD
-        value: 1
-      name: preamp2_on
-    - default: 'True'
-      kind:
-        name: POSITIONAL_OR_KEYWORD
-        value: 1
-      name: preamp1_on
-    - default: 'True'
+    - annotation:
+        type: bool
+      default: 'True'
+      description: 'Whether to enable the x-ray fluorescence detector. Default is
+        True. Type: bool'
       kind:
         name: POSITIONAL_OR_KEYWORD
         value: 1
       name: xrf_on
-    - default: 'False'
+    - annotation:
+        type: bool
+      default: 'False'
+      description: 'Whether to enable preamp1. Preamp1 is used to record metadata.
+        Default is True. Type: bool'
       kind:
         name: POSITIONAL_OR_KEYWORD
         value: 1
-      name: snake_scan
+      name: preamp1_on
     properties:
       is_generator: true
   test_nexus:

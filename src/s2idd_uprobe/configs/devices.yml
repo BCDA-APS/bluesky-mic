@@ -29,6 +29,9 @@ s2idd_uprobe.devices.motor.Motor:
 - name: samz
   prefix: 2idd:m36
   labels: ["motor"]
+- name: zp_z
+  prefix: 2idd:m44
+  labels: ["motor"]
 
 ophyd.EpicsSignal:
 - name: fscanh_samx
