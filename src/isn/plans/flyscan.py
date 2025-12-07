@@ -104,12 +104,29 @@ def flyscan(
 
     # We set up the tweak value and the number of points
     # for the down counter
-    _x_tweak_value = (x_max - x_min) * 1e-3 / (x_npts - 1)
+
+    theta = sample.theta.user_readback.get()
+    logger.info(f"Sample at {theta} degrees")
+
+    d_value = (x_max - x_min) * 1e-3 / (x_npts - 1)
+    _x_tweak_value = d_value * np.cos(-1*np.radians(theta))
+
     yield from mv(
-        sample.x.tweak_value, _x_tweak_value, softglue.down_counter_1.preset, x_npts + 1
+        sample.x.tweak_value, _x_tweak_value
     )
 
     yield from mv(softglue.down_counter_1.preset, x_npts + 1)
+
+    # --- Setting up z tweaks --- #
+
+    # We determine how much z needs to tweak per x tweak in order to keep the sample into focus
+    # For safety, we limit the step to 10x that of x.
+
+    _z_tweak_value = d_value * np.sin(-1*np.radians(theta))
+    
+    yield from mv(
+        sample.z.tweak_value, _z_tweak_value
+    )
 
     ## New usage of up_down counter instead of regular downcounter
     # It doesn't interfere with the old one, so I will leave it in until we are done testing
@@ -117,14 +134,6 @@ def flyscan(
     softglue.up_down_counter_1.preset.put(x_npts + 1)
     softglue.up_down_counter_1.load.put("1!")
     softglue.up_down_counter_1.updown.put("0")
-
-    # --- Setting up z tweaks --- #
-
-    # We determine how much z needs to tweak per x tweak in order to keep the sample into focus
-    # For safety, we limit the step to 10x that of x.
-
-    _z_tweak_value = np.max([sample.compensating_z(_x_tweak_value), 10*_x_tweak_value]) 
-    yield from mv(sample.z.tweak_value, _z_tweak_value)
 
 
     # --- Defining absolute scale for y --- #
