@@ -14,6 +14,9 @@ import logging
 from pathlib import Path
 
 # Temporary hklpy2 fix, importing gi before hklpy2 and matplotlib to prevent bugs
+import gi
+import hklpy2
+
 from apsbits.core.best_effort_init import init_bec_peaks
 from apsbits.core.catalog_init import init_catalog
 from apsbits.core.instrument_init import init_instrument
@@ -119,17 +122,17 @@ except:
     logger.info("Softglue not found, detector key map not generated.")
 
 
-# # Diffractometer utilities:
-# # import hklpy2 # noqa: F401
-# sim_psic = hklpy2.creator(
-#     name="sim_psic", solver="hkl_soleil", geometry="E6C",
-#     reals="mu eta chi phi yaw pitch".split(),
-# )
-# sim_psic.core.mode="lifting_detector_mu"
+# Diffractometer utilities:
+# import hklpy2 # noqa: F401
+sim_psic = hklpy2.creator(
+    name="sim_psic", solver="hkl_soleil", geometry="E6C",
+    reals="mu eta chi phi yaw pitch".split(),
+)
+sim_psic.core.mode="lifting_detector_mu"
 
-# psic = oregistry['psic']
-# psic.wait_for_connection()
-# psic.core.mode = "lifting_detector_mu"
+psic = oregistry['psic']
+psic.wait_for_connection()
+psic.core.mode = "lifting_detector_mu"
 
 # if host_on_aps_subnet():
 #     RE(make_devices(clear=False, file="devices_aps_only.yml"))

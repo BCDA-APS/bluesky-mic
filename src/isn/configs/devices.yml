@@ -14,15 +14,21 @@ isn.devices.lateral_mirror.Lateral_Mirror:
   prefix: 19idMR
   labels: ["baseline"]
 
+# isn.devices.sample.Sample:
+# - name: sample
+#   prefix: 19idAERO
+#   labels: ["baseline"]
+
 isn.devices.sample.Sample:
 - name: sample
-  prefix: 19idAERO
+  aero_prefix: "19idAERO:"
+  micronix_prefix: "19idMMC:"
   labels: ["baseline"]
 
-isn.devices.micronix.Micronix:
-- name: micronix
-  prefix: "19idMMC:"
-  labels: ["baseline"]
+# isn.devices.micronix.Micronix:
+# - name: micronix
+#   prefix: "19idMMC:"
+#   labels: ["baseline"]
 
 # isn.devices.xrayeye.XRayEye:
 # - name: xrayeye
@@ -61,10 +67,10 @@ isn.devices.tetramm.MyTetrAMM:
 #   port_name: "TetrAMM2"
 #   labels: ["detector"]
 
-# - name: tetramm3
-#   prefix: "19idSFT3:TetrAMM3:"
-#   port_name: "TetrAMM3"
-#   labels: ["detector"]
+- name: tetramm3
+  prefix: "19idSFT3:TetrAMM3:"
+  port_name: "TetrAMM3"
+  labels: ["detector"]
 
 - name: tetramm4
   prefix: "19idSFT4:T4:"
@@ -111,18 +117,19 @@ isn.devices.undulators.UndulatorPair:
   prefix: S19ID
   labels: ["baseline"]
 
-# isn.devices.diffractometer.RobotArmDiffractometer:
-# - name: psic
-#   prefix: ""
+isn.devices.diffractometer.RobotArmDiffractometer:
+- name: psic
+  prefix: ""
+  labels: ["baseline"]
 
-isn.devices.robot.RobotArmPositioner:
-- name: yaw
-  prefix: "19IDRobot:"
-  setpoint: "Yaw"
-  readback: "Last_Position_Yaw"
-  done: "MC"
-  execute: "EXE"
-  command: "CMD"
+# isn.devices.robot.RobotArmPositioner:
+# - name: yaw
+#   prefix: "19IDRobot:"
+#   setpoint: "Yaw"
+#   readback: "Last_Position_Yaw"
+#   done: "MC"
+#   execute: "EXE"
+#   command: "CMD"
 
 isn.devices.kb.KB:
 - name: kb

@@ -12,6 +12,7 @@ sample = oregistry["sample"]
 me7 = oregistry["me7"]
 ptycho = oregistry["ptycho"]
 tmm = oregistry["tetramm1"]
+tmm3 = oregistry['tetramm3']
 socketserver = oregistry["socketserver"]
 savedata = oregistry["savedata"]
 
@@ -27,11 +28,12 @@ def fly2d(
     stepsize_x: float = 0.1,
     stepsize_y: float = 0.1,
     dwell_ms: float = 0,
-    num_interferometer_per_pixel: int = 5,
+    interferometer_per_pixel: int = 5,
     det_dead_ms: float = 0.01,
     xrf_on: bool = True,
     tmm_on: bool = True,
     ptycho_on: bool = False,
+    xbic_on: bool = False,
 ):
 
     """
@@ -59,12 +61,16 @@ def fly2d(
         The dwell time in the scan in ms. Type: float. Default: 0.
     det_dead_ms:
         The detector dead time in the scan in ms. Type: float. Default: 0.01.
+    interferometer_per_pixel:
+        The number of position read values per pixel. Type: int. Default: 5
     xrf_on:
         Whether to collect XRF data. Type: bool. Default: True.
     ptycho_on:
         Whether to collect Ptycho data. Type: bool. Default: False.
     tmm_on:
         Whether to collect TMM data. Type: bool. Default: True.
+    xbic_on: 
+        Whether to collect XBIC data. Type: bool. Default: False
     """
 
 
@@ -81,18 +87,15 @@ def fly2d(
     y_center = sample.y.user_readback.get()
     initial_args = capture_params(fly2d, **locals())
 
-    y_piezo_center = 45
     x_min = -width*1e3/2
     x_max = width*1e3/2
-    y_min = -height*1e3/2 + y_piezo_center
-    y_max = height*1e3/2 + y_piezo_center
+    y_min = -height*1e3/2
+    y_max = height*1e3/2
     x_npts = int(width*1e3/stepsize_x)
     y_npts = int(height*1e3/stepsize_y)
     acquire_time = dwell_ms
     det_dead = det_dead_ms
     F = 0.9
-    interferometer_frequency = int(1000 * num_interferometer_per_pixel / (dwell_ms + det_dead_ms))
-    logger.info(f"Interferometer frequency set to {interferometer_frequency}")
 
     total_pts = x_npts * (y_npts / F)
     if total_pts >= XSP3_MAX_PTS:
@@ -106,6 +109,9 @@ def fly2d(
         dets.append(ptycho)
     if tmm_on:
         dets.append(tmm)
+    if xbic_on:
+        dets.append(tmm3)
+    
 
     """Perform the scan"""
     plan_args = {
@@ -118,7 +124,7 @@ def fly2d(
         "acquire_time": acquire_time,
         "det_dead": det_dead,
         "F": F,
-        "interferometer_frequency": interferometer_frequency
+        "interferometer_per_pixel": interferometer_per_pixel
     }
 
     md = {"plan_args": plan_args, "initial_args": initial_args}

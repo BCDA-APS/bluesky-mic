@@ -416,11 +416,11 @@ class VortexXspress37(Trigger, DetectorBase):
     def __init__(
         self,
         *args,
-        default_folder=Path("/home/beams/STAFF19ID/pml/xpress3/data"),
+        # default_folder=Path("/home/beams/STAFF19ID/pml/xpress3/data"),
         hdf1_file_format="%s/%s_%6.6d.h5",
         **kwargs,
     ):
-        self.default_folder = default_folder
+        # self.default_folder = default_folder
         self.hdf1_file_format = hdf1_file_format
         super().__init__(*args, **kwargs)
 
@@ -495,7 +495,7 @@ class VortexXspress37(Trigger, DetectorBase):
 
     def default_settings(self):
         self.hdf1.file_template.put(self.hdf1_file_format)
-        self.hdf1.file_path.put(str(self.default_folder))
+        # self.hdf1.file_path.put(str(self.default_folder))
         self.hdf1.num_capture.put(0)
 
         self.cam.trigger_mode.put("Internal")

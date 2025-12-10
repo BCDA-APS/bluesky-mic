@@ -45,7 +45,7 @@ def flyscan(
     if not y_npts:
         y_npts = int((y_max-y_min)/dy)
     
-    logger.info(f"Preparing to collect a ({x_npts, y_npts}) image.")
+    logger.info(f"Preparing to collect a {x_npts, y_npts} image.")
 
     # --- Getting initial positions --- #
 
@@ -169,9 +169,9 @@ def flyscan(
     # We want the piezos to be within 50 nm of the middle of the range
     if not np.isclose(piezos_position, 0.045, atol=5e-4):
         yield from softglue.move_y_analog(45)
-        sleep(0.5) #arbitrary since analog move has no status signal
+        yield from sleep(0.5) #arbitrary since analog move has no status signal
         yield from mv(sample.y, y0)
-        sleep(0.5) #since on servo, we should give it some time to get there
+        yield from sleep(0.5) #since on servo, we should give it some time to get there
         
     sample.y.disable()
 
@@ -243,7 +243,6 @@ def flyscan(
     # --- Unstage detectors --- #
 
     logging.info("Scanning done.")
-    print("Scanning done.")
 
     for detector in detectors:
         detector.unstage()
@@ -251,7 +250,7 @@ def flyscan(
 
     # --- Filling up DMA for socket server acquisition --- #
 
-    print("Flushing the DMA")
+    logger.info("Flushing the DMA")
 
     for i in range(11):
         softglue.scal_to_stream_1.flush.put("1!")
@@ -268,9 +267,13 @@ def flyscan(
                   sample.z, z0)
     
 
+    logger.info("Returning to original positions.")
+
     # --- Softglue cleanup ---
 
     softglue.up_down_counter_1.load.put("1!")
     yield from softglue.stop()
     yield from softglue.reset()
     softglue.clear_output_fields()
+
+    logger.info("Performing softglue cleanup.")
