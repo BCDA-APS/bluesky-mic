@@ -13,16 +13,15 @@ Includes:
 import logging
 from pathlib import Path
 
+# Core Functions
 from apsbits.core.best_effort_init import init_bec_peaks
 from apsbits.core.catalog_init import init_catalog
+from apsbits.core.instrument_init import init_instrument
 from apsbits.core.instrument_init import make_devices
-from apsbits.core.instrument_init import oregistry
-
-# Core Functions
 from apsbits.core.run_engine_init import init_RE
 
 # Utility functions
-from apsbits.utils.aps_functions import aps_dm_setup
+from apstools.utils.aps_data_management import dm_setup
 from apsbits.utils.aps_functions import host_on_aps_subnet
 
 # Configuration functions
@@ -52,31 +51,22 @@ configure_logging(extra_logging_configs_path=extra_logging_configs_path)
 logger = logging.getLogger(__name__)
 logger.info("Starting Instrument with iconfig: %s", iconfig_path)
 
+# initialize instrument
+instrument, oregistry = init_instrument("guarneri")
+
 # Discard oregistry items loaded above.
 oregistry.clear()
 
 # Configure the session with callbacks, devices, and plans.
-aps_dm_setup(iconfig.get("DM_SETUP_FILE"))
+dm_setup(iconfig.get("DM_SETUP_FILE"))
 
 # Command-line tools, such as %wa, %ct, ...
 register_bluesky_magics()
 
 # Bluesky initialization block
-# Instrument = ...
-# oregistry = ...
-# oregistry.clear()
 bec, peaks = init_bec_peaks(iconfig)
 cat = init_catalog(iconfig)
-RE, sd = init_RE(iconfig, bec_instance=bec, cat_instance=cat)
-
-
-# Optional Nexus callback block
-# delete this block if not using Nexus
-if iconfig.get("NEXUS_DATA_FILES", {}).get("ENABLE", False):
-    # from .callbacks.demo_nexus_callback import nxwriter_init
-    from mic_common.callbacks.nexus_data_file_writer import nxwriter_init
-
-    nxwriter = nxwriter_init(RE)
+RE, sd = init_RE(iconfig, subscribers=[bec, cat])
 
 
 # # These imports must come after the above setup.
@@ -95,19 +85,20 @@ if iconfig.get("NEXUS_DATA_FILES", {}).get("ENABLE", False):
 #     from bluesky import plans as bp  # noqa: F401
 
 
-# Experiment specific logic, device and plan loading
-RE(make_devices(clear=False, file="devices.yml"))  # Create the devices.
-RE(make_devices(clear=False, file="sim_devices.yml"))  # Create the devices.
+# Experiment specific logic, device and plan loading. # Create the devices.
+make_devices(clear=False, file="devices.yml", device_manager=instrument)
 
-if host_on_aps_subnet():
-    RE(make_devices(clear=False, file="device_aps_only.yml"))
+# if host_on_aps_subnet():
+#     RE(make_devices(clear=False, file="device_aps_only.yml"))
 
 local_mountpath = iconfig.get("STORAGE")["MICDATA_MOUNTPATH"]
 xmap_mountpath = iconfig.get("STORAGE")["XMAP_MOUNTPATH"]
 xrf_netcdf = oregistry["xrf_netcdf"]
-xrf_netcdf.micdata_mountpath = xmap_mountpath
+xrf_netcdf.micdata_mountpath = local_mountpath
+xrf_netcdf.data_path = xmap_mountpath
 tmm1_hdf = oregistry["tmm1_hdf"]
 tmm1_hdf.micdata_mountpath = local_mountpath
+tmm1_hdf.data_path = local_mountpath
 
 try:
     tmm2_hdf = oregistry["tmm2_hdf"]
@@ -115,12 +106,22 @@ try:
 except KeyError:
     logger.info("tmm2_hdf not found, skipping")
 
-# Set the nxwriter to savedata ophyd object
-savedata = oregistry["savedata"]
-# savedata.nxwriter = nxwriter
-nxwriter.set_savedata(savedata)
+# Optional Nexus callback block
+if iconfig.get("NEXUS_DATA_FILES", {}).get("ENABLE", False):
+    from mic_common.callbacks.nexus_data_file_writer import nxwriter_init
+
+    nxwriter = nxwriter_init(RE)
+    nxwriter.savedata = oregistry['savedata']
+    nxwriter.micdata_mountpath = ""
+
 
 # from .plans import *
 from .plans.test_nexus import test_nexus
-from .plans.fly2d import fly2d
+#from .plans.fly2d import fly2d
+from .plans.fly2d_scanrecord import fly2d_scanrecord
+from .plans.step1d_scanrecord import step1d_scanrecord
+# from .plans.step2d import step2d
+# from .plans.step1d import step1d
+
+
 

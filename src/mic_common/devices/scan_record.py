@@ -32,15 +32,11 @@ class ScanRecord(SscanRecord):
     start_position = Component(EpicsSignal, ".P1SP")
     end_position = Component(EpicsSignal, ".P1EP")
 
-    detTrigger_1 = Component(EpicsSignal, ".T1PV")
-    detTrigger_2 = Component(EpicsSignal, ".T2PV")
-    detTrigger_3 = Component(EpicsSignal, ".T3PV")
-    detTrigger_4 = Component(EpicsSignal, ".T4PV")
-
     detTrigger_1_old = ''
     detTrigger_2_old = ''
     detTrigger_3_old = ''
     detTrigger_4_old = ''
+    bspv_old = ''
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -67,32 +63,51 @@ class ScanRecord(SscanRecord):
         Set detector triggers for the scan record.
         """
         trigger_list = [
-            self.detTrigger_1,
-            self.detTrigger_2,
-            self.detTrigger_3,
-            self.detTrigger_4,
+            self.triggers.t1.trigger_pv,
+            self.triggers.t2.trigger_pv,
+            self.triggers.t3.trigger_pv,
+            self.triggers.t4.trigger_pv,
         ]
+        self.clear_detTriggers()
         for detTri, pv_name in zip(trigger_list, trigger_pvs, strict=False):
-            yield from bps.mv(detTri, pv_name)
+            detTri.put(pv_name)
+            yield from bps.sleep(0.1)
             logger.info(f"Set {detTri.pvname} to {pv_name} in {self.prefix}.")
     
     def save_current_detTriggers(self):
-        self.detTrigger_1_old = self.detTrigger_1.get()
-        self.detTrigger_2_old = self.detTrigger_2.get()
-        self.detTrigger_3_old = self.detTrigger_3.get()
-        self.detTrigger_4_old = self.detTrigger_4.get()
+        self.detTrigger_1_old = self.triggers.t1.trigger_pv.get()
+        self.detTrigger_2_old = self.triggers.t2.trigger_pv.get()
+        self.detTrigger_3_old = self.triggers.t3.trigger_pv.get()
+        self.detTrigger_4_old = self.triggers.t4.trigger_pv.get()
+
+    def save_bspv(self):
+        self.bspv_old = self.bspv.get()
+
+    def restore_bspv(self):
+        self.bspv.put(self.bspv_old)
 
     def restore_detTriggers(self):
         """
         Restore the detector triggers to the previous values.
         This function assumes that the old values are saved
         """
-        yield from bps.mv(self.detTrigger_1, self.detTrigger_1_old,
-                          self.detTrigger_2, self.detTrigger_2_old,
-                          self.detTrigger_3, self.detTrigger_3_old,
-                          self.detTrigger_4, self.detTrigger_4_old)
+        self.triggers.t1.trigger_pv.put(self.detTrigger_1_old)
+        yield from bps.sleep(0.1)
+        self.triggers.t2.trigger_pv.put(self.detTrigger_2_old)
+        yield from bps.sleep(0.1)
+        self.triggers.t3.trigger_pv.put(self.detTrigger_3_old)
+        yield from bps.sleep(0.1)
+        self.triggers.t4.trigger_pv.put(self.detTrigger_4_old)
+        yield from bps.sleep(0.1)
 
-    
+    def clear_detTriggers(self):
+        """
+        Clear the detector triggers.
+        """
+        self.triggers.t1.trigger_pv.put("")
+        self.triggers.t2.trigger_pv.put("")
+        self.triggers.t3.trigger_pv.put("")
+        self.triggers.t4.trigger_pv.put("")
     
     
     @mode_setter("scan_mode")

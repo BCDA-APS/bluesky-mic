@@ -22,6 +22,7 @@ class DetBase:
     """Base class for detector file plugins."""
 
     micdata_mountpath = ""
+    data_path = ""
 
     def __init__(self, *args, **kwargs):
         """Initialize DetBase."""
@@ -53,7 +54,7 @@ class DetBase:
         for the EPICS AreaDetector filewriter.
         """
         basepath = savedata.get().file_system
-        basepath = basepath.replace("//micdata/data1", self.micdata_mountpath)
+        basepath = basepath.replace("//micdata/data1/", self.micdata_mountpath)
         det_path = os.path.join(basepath, det_name.upper())
         logger.info(f"Setting up {det_name} to have data saved at {det_path}")
         if not os.path.exists(det_path) and "W:" not in det_path:

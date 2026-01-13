@@ -3,34 +3,17 @@
 Instrument Github Repository to be used with BITS structure at the APS
 
 ## Installation
-Clone the repository
+**Clone the repository**
 ```bash
 git clone git@github.com:grace227/bluesky-mic.git
 cd bluesky_mic
 ```
 
-Install DM via conda
+**Install DM via conda**
 `conda install apsu::aps-dm-api`
 
-## Set up DM so that detectors know where to write
-- First, check if `/dmOpt` is on the computer using `ls` command
-- Second, source the dm_setup file. The setup file is usually in the following path:
 
-```
-source /home/dm_id/etc/dm.setup.sh
-```
-Once the setup is properly sourced, we will see the conda env change to `dm-user`
-- Then, in the command line, we can create a new folder for dm
-```
-dm-add-experiment --experiment bdp_demo_202503 --type 19ID --root-path 2025-1
-```
-- Lastly, we will need to start the daq. Here is the command:
-```
-dm-start-daq --experiment bdp_demo_2_202503 --data-directory @voyager
-```
-
-
-## Installing your own BITS instrument
+**Install the existing BITS instruments**
 
 ```bash
 export ENV_NAME=BITS_env
@@ -40,7 +23,7 @@ pip install apsbits
 ```
 
 
-## Creating a New Instrument
+**Optional: if you need to create a new instrument**
 ```bash
 export YOUR_INSTRUMENT_NAME=new_instrument
 create-bits $YOUR_INSTRUMENT_NAME
@@ -143,4 +126,22 @@ subdirectory.
 ```bash
 cd ./qserver
 start-re-manager --config=./qs-config.yml
+```
+
+
+## Set up DM so that detectors know where to write
+- First, check if `/dmOpt` is on the computer using `ls` command
+- Second, source the dm_setup file. The setup file is usually in the following path:
+
+```
+source /home/dm_id/etc/dm.setup.sh
+```
+Once the setup is properly sourced, we will see the conda env change to `dm-user`
+- Then, in the command line, we can create a new folder for dm
+```
+dm-add-experiment --experiment bdp_demo_202503 --type 19ID --root-path 2025-1
+```
+- Lastly, we will need to start the daq. Here is the command:
+```
+dm-start-daq --experiment bdp_demo_2_202503 --data-directory @voyager
 ```

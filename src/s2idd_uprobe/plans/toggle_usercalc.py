@@ -25,12 +25,7 @@ logger.info(__file__)
 # usercalcs = iconfig.get("USERCALC_DISABLE", {})
 
 usercalcs = {
-    "usercalc_tmm1_filename": oregistry["usercalc_tmm1_filename"],
-    "usercalc_tmm1_filetemplate": oregistry["usercalc_tmm1_filetemplate"],
-    "usercalc_tmm2_filename": oregistry["usercalc_tmm2_filename"],
-    "usercalc_tmm2_filetemplate": oregistry["usercalc_tmm2_filetemplate"],
-    "usercalc_xmap_filename": oregistry["usercalc_xmap_filename"],
-    "usercalc_samx_speed": oregistry["usercalc_samx_speed"],
+    "fly_calc": oregistry["fly_calc"],
 }
 
 

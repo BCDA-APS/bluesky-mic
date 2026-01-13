@@ -18,6 +18,7 @@ class SaveDataMic(SaveData):
     """SaveData device for MIC instrument."""
 
     next_file_name = ""
+    current_file_name = ""
 
     def __init__(self, *args, **kwargs):
         """Initialize SaveDataMic."""
@@ -28,6 +29,12 @@ class SaveDataMic(SaveData):
         next_scan_number = str(self.get().next_scan_number).zfill(4)
         self.next_file_name = f"{self.get().base_name}{next_scan_number}.mda"
         logger.info(f"Next mda file is: {self.next_file_name}")
+
+    def update_current_file_name(self):
+        """Update the current file name based on scan number."""
+        current_scan_number = str(self.get().next_scan_number - 1).zfill(4)
+        self.current_file_name = f"{self.get().base_name}{current_scan_number}.mda"
+        logger.info(f"Current mda file is: {self.current_file_name}")
 
     @value_setter("file_system")
     def set_file_system(self, path):

@@ -69,6 +69,7 @@ class MicTetrAMM(TetrAMM):
         yield from self.set_averaging_time(dwell_sec)
         yield from self.set_num_acquire(num_pulses)
 
+
     def stop_acquire(self):
         """Stop the acquire mode of the TetraMM device."""
         yield from self._set_acquire("Done")
@@ -79,6 +80,9 @@ class MicTetrAMM(TetrAMM):
 
     def set_multiple_acquire(self):
         yield from self._set_acquire_mode("Multiple")
+
+    def set_single_acquire(self):
+        yield from self._set_acquire_mode("Single")
 
     def set_ext_trigger(self):
         yield from self._set_trigger_mode("EXT. TRIG.")
