@@ -23,8 +23,6 @@ def generalized_scan_1d(
     scanrecord,
     savedata=None,
     positioner=None,
-    savedata=None,
-    positioner=None,
     scan_overhead=0,
     scanmode="LINEAR",
     x_center=None,

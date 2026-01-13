@@ -8,6 +8,9 @@ ICONFIG_VERSION: 2.0.1
 ### The short name for the databroker catalog.
 DATABROKER_CATALOG: &databroker_catalog temp
 
+### APS Data Management
+DM_SETUP_FILE: "/home/dm_idd_uprobe/etc/dm.setup.sh"
+
 ### RunEngine configuration
 RUN_ENGINE:
     DEFAULT_METADATA:
