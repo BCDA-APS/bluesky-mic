@@ -124,7 +124,7 @@ nxwriter.set_savedata(savedata)
 
 # from .plans import *
 from .plans.test_nexus import test_nexus
-from .plans.fly2d import fly2d
+#from .plans.fly2d import fly2d
 from .plans.fly2d_scanrecord import fly2d_scanrecord
 from .plans.step1d_scanrecord import step1d_scanrecord
 # from .plans.step2d import step2d

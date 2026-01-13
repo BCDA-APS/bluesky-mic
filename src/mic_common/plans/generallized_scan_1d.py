@@ -23,6 +23,8 @@ def generalized_scan_1d(
     scanrecord,
     savedata=None,
     positioner=None,
+    savedata=None,
+    positioner=None,
     scan_overhead=0,
     scanmode="LINEAR",
     x_center=None,
@@ -37,6 +39,13 @@ def generalized_scan_1d(
     """
 
     logger.info(f"Using {scanrecord.prefix} as the scanRecord")
+    if positioner is not None:
+        logger.info(f"Using {positioner} as the motor")
+    
+    if scanrecord.connected: 
+        if positioner is not None and positioner.connected:
+            logger.info(f"{scanrecord.prefix} is connected")
+            logger.info(f"{positioner} is connected")
     if positioner is not None:
         logger.info(f"Using {positioner} as the motor")
     
