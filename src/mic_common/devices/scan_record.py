@@ -15,9 +15,66 @@ from ophyd import EpicsSignal
 
 from mic_common.utils.device_utils import mode_setter
 from mic_common.utils.device_utils import value_setter
+from mic_common.utils.device_utils import LoggingStageSigs
 
 logger = logging.getLogger(__name__)
 logger.info(__file__)
+
+
+class NewScanRecord(SscanRecord):
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.P1PA = PV(f"{self.prefix}.P1PA")
+        self.P2PA = PV(f"{self.prefix}.P2PA")
+        # Wrap stage_sigs with LoggingDict to log all assignments
+        original_stage_sigs = self.stage_sigs
+        self.stage_sigs = LoggingStageSigs(original_stage_sigs, prefix=self.prefix)
+
+    def stage_detTriggers(self, trigger_pvs):
+        """Stage detector triggers for the scan record."""
+        for i, t_pv in enumerate(trigger_pvs):
+            self.stage_sigs[f"triggers.t{i+1}.trigger_pv"] = t_pv
+
+    def config(self, 
+                positioner_setpoint: str, 
+                positioner_readback: str="", 
+                scanmode: str="LINEAR", 
+                rel_abs_motion: str="ABSOLUTE",
+                center: float=None, 
+                width: float=0, 
+                stepsize: float=0, 
+                bspv: str="", 
+                trigger_pvs: list=None):
+
+        """ Stage the corresponding signals for scanrecord configuration
+        
+        Parameters:
+        positioner_setpoint: positioner PV string (to get setpoint pv: motor.user_setpoint.pvname)
+        positioner_readback: positioner readback PVstring (to get readback pv: motor.user_readback.pvname)
+        scanmode: any of the following: LINEAR, FLY, STEP
+        rel_abs_motion: any of the following: RELATIVE, ABSOLUTE
+        center: float center position
+        width: float width of the scan
+        stepsize: float stepsize of the scan
+        bspv: PV string before scan PV
+        trigger_pvs: list of PV strings of detector trigger PVs
+        
+        """
+        if self.connected:
+            self.stage_sigs.clear()
+            self.stage_sigs['positioners.p1.setpoint_pv'] = positioner_setpoint
+            self.stage_sigs['positioners.p1.readback_pv'] = positioner_readback
+            self.stage_sigs['positioners.p1.mode'] = scanmode
+            self.stage_sigs['positioners.p1.abs_rel'] = rel_abs_motion
+            self.stage_sigs['positioners.p1.center'] = center
+            self.stage_sigs['positioners.p1.width'] = width
+            self.stage_sigs['positioners.p1.step_size'] = stepsize
+            if trigger_pvs is not None:
+                self.stage_detTriggers(trigger_pvs)
+
+        else:
+            logger.error(f"Scan record {self.prefix} is not connected")
 
 
 class ScanRecord(SscanRecord):
@@ -28,7 +85,7 @@ class ScanRecord(SscanRecord):
     center = Component(EpicsSignal, ".P1CP")
     stepsize = Component(EpicsSignal, ".P1SI")
     width = Component(EpicsSignal, ".P1WD")
-    number_points_rbv = Component(EpicsSignal, ".CPT")
+    # number_points_rbv = Component(EpicsSignal, ".CPT")
     start_position = Component(EpicsSignal, ".P1SP")
     end_position = Component(EpicsSignal, ".P1EP")
 

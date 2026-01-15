@@ -62,7 +62,6 @@ def fly2d_scanrecord(
     sample_z: float = None,
     xrf_on: bool = True,
     preamp1_on: bool = False,
-    preamp2_on: bool = False,
 ):
     """2D Bluesky plan that drives the x- and y- sample motors in fly mode using ScanRecord
 
@@ -92,8 +91,6 @@ def fly2d_scanrecord(
         Whether to enable the x-ray fluorescence detector. Default is True. Type: bool
     preamp1_on:
         Whether to enable preamp1. Preamp1 is used to record metadata. Default is True. Type: bool
-    preamp2_on:
-        Whether to enable preamp2. Default is False. Type: bool
     """
 
     """Capture the input plan parameters"""
@@ -134,7 +131,6 @@ def _fly2d_scanrecord(
     sample_z=None,
     xrf_on=True,
     preamp1_on=False,
-    preamp2_on=False,
 ):
     """Disable the usercalc that used in scan record"""
     yield from disable_usercalc()
@@ -147,30 +143,46 @@ def _fly2d_scanrecord(
     if y_center is not None:
         yield from bps.mv(samy, y_center)
 
-    """Set up inner scan record based on the scan types and parameters"""
-    yield from generalized_scan_1d(
-        scanrecord=fscanh,
-        savedata=savedata,
-        scan_overhead=scan_overhead,
+    """Set up inner / outer scan record based on the scan types and parameters"""
+    inner_scanrecord_triggers = []
+    outer_scanrecord_triggers = []
+    if xrf_on and xrf.connected and xrf_netcdf.connected:
+        try:
+            inner_scanrecord_triggers.append(xrf_netcdf.capture.pvname.replace("_RBV", ""))
+            inner_scanrecord_triggers.append(xrf.erase_start.pvname)
+            inner_scanrecord_triggers.append(sis3820.erase_start.pvname)
+        except Exception as e:
+            logger.error(f"Error adding xrf_netcdf capture trigger to inner scanrecord: {e}")
+
+    if preamp1_on and preamp1_hdf.connected:
+        try:
+            inner_scanrecord_triggers.append(preamp1_hdf.capture.pvname.replace("_RBV", ""))
+            inner_scanrecord_triggers.append(preamp1.acquire.pvname)
+            inner_scanrecord_triggers.append(fscanh.execute_scan.pvname)
+        except Exception as e:
+            logger.error(f"Error adding preamp1_hdf capture trigger to inner scanrecord: {e}")
+
+    fscanh.config(
+        positioner_setpoint=f"{fscanh_samx.pvname}",
         scanmode="FLY",
-        x_center=samx.position,
+        center=samx.position,
         width=width,
-        stepsize_x=stepsize_x,
-        dwell=dwell_ms,
+        stepsize=stepsize_x,
+        triggers=inner_scanrecord_triggers,
     )
-    yield from fscanh.set_positioner_drive(f"{fscanh_samx.pvname}")
 
-    """Set up the outter loop scan record"""
-    yield from bps.mv(fscan1.positioners.p1.abs_rel, "relative".upper())
-    yield from fscan1.set_positioner_drive(f"{samy.prefix}.VAL")
-    yield from fscan1.set_positioner_readback(f"{samy.prefix}.RBV")
+    fscan1.config(
+        positioner_setpoint=samy.user_setpoint.pvname,
+        positioner_readback=samy.user_readback.pvname,
+        rel_abs_motion="RELATIVE",
+        center=0,
+        width=height,
+        stepsize=stepsize_y,
+        triggers=outer_scanrecord_triggers,
+    )
 
-    """check if the scan movement is relative or absolute"""
-    scan_movement = fscan1.scan_movement.enum_strs[fscan1.scan_movement.get()]
-    if scan_movement == "RELATIVE":
-        yield from fscan1.set_center_width_stepsize(0, height, stepsize_y)
-    else:
-        yield from fscan1.set_center_width_stepsize(y_center, height, stepsize_y)
+    fscanh.stage()
+    fscan1.stage()
 
     """Assign the per-pixel dwell time"""
     logger.info(f"Setting per-pixel dwell time ({fscanh_dwell.pvname}) to {dwell_ms} ms")
@@ -183,59 +195,46 @@ def _fly2d_scanrecord(
     # """Generate scan_master.h5 file"""
 
     """Initialize detectors with desired pts, exposure time and file writer """
+    numpts_x = fscanh.number_points.value
+    num_pulses = numpts_x - 2
+    num_capture = int(np.ceil(num_pulses / xmap_buffer))
+    filename = next_file_name.replace(".mda", "")
+    dets = []
+
     if sis3820.connected:
-        # Set up triggers for FLY scans, sis3820 will be sending out pulses. The number of pulses is numpts_x - 2
-        numpts_x = fscanh.number_points.value
-        num_pulses = numpts_x - 2
-        filename = next_file_name.replace(".mda", "")
+        sis3820.config_before_flyscan(num_pulses, update_prescale=True, stepsize=stepsize_x, 
+                                      motor_resolution=samx.resolution.get())
+        dets.append(sis3820)
+        
+    if xrf_on and xrf.connected and xrf_netcdf.connected:
+        xrf.config_before_flyscan(num_pulses)
+        xrf_netcdf.config_file_writer(savedata, det_foldername["xrf"], num_capture, filename=filename, 
+                                      beamline_delimiter=netcdf_delimiter)
+        dets.append(xrf)
+        dets.append(xrf_netcdf)
 
-        if all([xrf_on, xrf.connected, xrf_netcdf.connected]):
-            # num_capture = 0  # When it's zero, the num_capture won't be overwritten
-            logger.info(f"xmap_buffer: {xmap_buffer}")
-            logger.info(f"num_pulses: {num_pulses}")
-            num_capture = int(np.ceil(num_pulses / xmap_buffer))
-            yield from setup_flyscan_XRF_triggers(fscanh, xrf, xrf_netcdf, sis3820, num_pulses, 
-                                                  motor_resolution=samx.resolution.get(), stepsize_x=stepsize_x,
-                                                  update_prescale=True)
-            yield from xrf.before_flyscan(num_pulses)
-            yield from xrf_netcdf.setup_file_writer(
-                savedata,
-                det_foldername["xrf"],
-                num_capture,
-                filename=filename,
-                beamline_delimiter=netcdf_delimiter,
-            )
-            fscan1.save_current_detTriggers()
-            fscan1.clear_detTriggers()
-            fscan1.save_bspv()
-            fscan1.bspv.put('')
-            yield from fscan1.set_detTriggers([fscanh.execute_scan.pvname,'','',''])
-            # yield from xrf_netcdf.set_capture("capturing")
+    if preamp1_on and preamp1.connected and preamp1_hdf.connected:
+        preamp1.config_before_flyscan(num_pulses, dwell_ms)
+        preamp1_hdf.config_file_writer(savedata, det_foldername["preamp1"], num_pulses, filename=filename, 
+                                      beamline_delimiter=netcdf_delimiter)
+        dets.append(preamp1)
+        dets.append(preamp1_hdf)
 
-        if all([preamp1_on, preamp1_hdf.connected]):
-            logger.info(f"Setting up file writer for preamp1, {preamp1_hdf.file_path.get()}")
-            yield from preamp1.before_flyscan(num_pulses, dwell_ms, acquire_mode = "Multiple", 
-                       dwell_fraction = 0.9)
-            yield from setup_flyscan_tmm_triggers(fscan1, fscanh, preamp1, preamp1_hdf)
-
-            yield from preamp1_hdf.setup_file_writer(
-                savedata,
-                det_foldername["preamp1"],
-                num_pulses,
-                filename=filename,
-                beamline_delimiter=netcdf_delimiter,
-            )
-            # yield from preamp1_hdf.set_capture("capturing")
+    for det in dets:
+        det.stage()
 
     """Start executing scan"""
-    # yield from bps.sleep(1)
     fname = savedata.next_file_name
     yield from execute_scan_2d(fscanh, fscan1, scan_name=fname, print_outter_msg=True)
 
     """Enable the usercalc that used in scan record"""
     yield from enable_usercalc()
-    yield from fscanh.restore_detTriggers()
-    if preamp1_on:
-        yield from fscan1.restore_detTriggers()
-    fscan1.restore_bspv()
+    fscanh.unstage()
+    fscan1.unstage()
+    for det in dets:
+        det.unstage()
+    # yield from fscanh.restore_detTriggers()
+    # if preamp1_on:
+    #     yield from fscan1.restore_detTriggers()
+    # fscan1.restore_bspv()
     

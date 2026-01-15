@@ -5,6 +5,8 @@ from ophyd import Device
 from ophyd import EpicsSignal
 
 from mic_common.utils.device_utils import value_setter, mode_setter
+from mic_common.utils.device_utils import LoggingStageSigs
+
 
 
 class SIS3820(Device):
@@ -20,10 +22,20 @@ class SIS3820(Device):
     trigger_mode = Component(EpicsSignal, ":ChannelAdvance")
     software_trigger = Component(EpicsSignal, ":SoftwareChannelAdvance")
 
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        original_stage_sigs = self.stage_sigs
+        self.stage_sigs = LoggingStageSigs(original_stage_sigs, prefix=self.prefix)
+
     def setup_prescale(self, stepsize, motor_resolution):
         """Set prescale based on stepsize and motor resolution"""
         prescale = abs(stepsize / motor_resolution) + 0.0001
         yield from self.set_prescale(int(prescale))
+
+    def calculate_prescale(self, stepsize, motor_resolution):
+        """Calculate prescale based on stepsize and motor resolution"""
+        prescale = abs(stepsize / motor_resolution) + 0.0001
+        return int(prescale)
 
     def before_flyscan(self, num_pts, update_prescale=True, stepsize=None, motor_resolution=None):
         """Configure scaler before flyscan."""
@@ -33,6 +45,20 @@ class SIS3820(Device):
         if update_prescale:
             if stepsize is not None and motor_resolution is not None:
                 yield from self.setup_prescale(stepsize, motor_resolution)
+            else:
+                raise ValueError("Stepsize and motor resolution must be provided")
+
+    def config_before_flyscan(self, num_pts, update_prescale=True, stepsize=None, 
+                             motor_resolution=None, trigger_mode="External"):
+        """Configure the before flyscan signals."""
+        self.stage_sigs.clear()
+        self.stage_sigs['stop_all'] = 1
+        self.stage_sigs['num_ch_used'] = num_pts
+        self.stage_sigs['trigger_mode'] = trigger_mode
+        if update_prescale:
+            if stepsize is not None and motor_resolution is not None:
+                prescale = self.calculate_prescale(stepsize, motor_resolution)
+                self.stage_sigs['prescale'] = prescale
             else:
                 raise ValueError("Stepsize and motor resolution must be provided")
 

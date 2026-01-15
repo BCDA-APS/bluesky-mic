@@ -9,6 +9,30 @@ logger = logging.getLogger(__name__)
 logger.info(__file__)
 
 
+
+class LoggingStageSigs(dict):
+    """A dictionary that logs all item assignments."""
+    
+    def __init__(self, *args, prefix="", **kwargs):
+        super().__init__(*args, **kwargs)
+        self.prefix = prefix
+    
+    def __setitem__(self, key, value):
+        super().__setitem__(key, value)
+        logger.info(f"stage_sigs['{key}'] = {value} in {self.prefix}")
+    
+    def update(self, *args, **kwargs):
+        super().update(*args, **kwargs)
+        for key, value in dict(*args, **kwargs).items():
+            logger.info(f"stage_sigs['{key}'] = {value} in {self.prefix}")
+    
+    def clear(self):
+        logger.info(f"stage_sigs.clear() in {self.prefix}")
+        super().clear()
+
+
+
+
 def mode_setter(attribute_name):
     """Decorator to set mode for EpicsSignal component using enum states."""
 

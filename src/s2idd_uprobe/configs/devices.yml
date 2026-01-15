@@ -1,6 +1,6 @@
 # Guarneri-style device YAML configuration
 
-mic_common.devices.scan_record.ScanRecord:
+mic_common.devices.scan_record.NewScanRecord:
 - name: scan1
   prefix: "2idd:scan1"
   labels: ["scanrecord"]

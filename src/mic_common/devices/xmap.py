@@ -14,6 +14,7 @@ from ophyd import EpicsSignalRO
 
 from mic_common.utils.device_utils import mode_setter
 from mic_common.utils.device_utils import value_setter
+from mic_common.utils.device_utils import LoggingStageSigs
 
 
 class XMAP(Device):
@@ -33,6 +34,11 @@ class XMAP(Device):
     status_rate = Component(EpicsSignal, ":StatusAll.SCAN")
     read_rate = Component(EpicsSignal, ":ReadAll.SCAN")
     pixels_per_run = Component(EpicsSignal, ":PixelsPerRun")
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        original_stage_sigs = self.stage_sigs
+        self.stage_sigs = LoggingStageSigs(original_stage_sigs, prefix=self.prefix)
 
     def before_stepscan(self, dwell_ms):
         """Initialize XMAP before step scan."""
@@ -58,6 +64,13 @@ class XMAP(Device):
         yield from self.set_stop_all(1)
         yield from self.set_collection_mode("MCA MAPPING")
         yield from self.set_pixels_per_run(num_pts)
+
+    def config_before_flyscan(self, num_pts):
+        """Configure XMAP before fly scan."""
+        self.stage_sigs.clear()
+        self.stage_sigs['stop_all'] = 1
+        self.stage_sigs['collection_mode'] = "MCA MAPPING"
+        self.stage_sigs['pixels_per_run'] = num_pts
 
     def flyscan_after(self):
         """Configure XMAP after fly scan."""

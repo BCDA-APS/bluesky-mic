@@ -28,6 +28,7 @@ import logging
 
 from mic_common.utils.device_utils import mode_setter
 from mic_common.utils.device_utils import value_setter
+from mic_common.utils.device_utils import LoggingStageSigs
 
 logger = logging.getLogger(__name__)
 TETRAMMCLOCK = 100000  # unit in Hz
@@ -51,6 +52,8 @@ class MicTetrAMM(TetrAMM):
     def __init__(self, *args, **kwargs):
         """Initialize the TetraMM device and set up additional attributes."""
         super().__init__(*args, **kwargs)
+        original_stage_sigs = self.stage_sigs
+        self.stage_sigs = LoggingStageSigs(original_stage_sigs, prefix=self.prefix)
 
     def before_flyscan(self, num_pulses, dwell_time, acquire_mode = "Multiple", 
                        dwell_fraction = 0.9):
@@ -68,6 +71,21 @@ class MicTetrAMM(TetrAMM):
         # yield from self.set_ext_bulb_trigger()
         yield from self.set_averaging_time(dwell_sec)
         yield from self.set_num_acquire(num_pulses)
+
+    def config_before_flyscan(self, num_pulses, dwell_time, acquire_mode = "Multiple", 
+                              dwell_fraction = 0.9):
+        """Configure the TetraMM device for a flyscan with the given points and dwell time."""
+
+        dwell_sec = (dwell_time * dwell_fraction) / 1000
+        values_per_reading = int(TETRAMMCLOCK * dwell_sec)
+
+        self.stage_sigs.clear()
+        self.stage_sigs['stop_acquire'] = 1
+        self.stage_sigs['acquire_mode'] = acquire_mode
+        self.stage_sigs['values_per_read'] = values_per_reading
+        self.stage_sigs['trigger_mode'] = "EXT. TRIG."
+        self.stage_sigs['averaging_time'] = dwell_sec
+        self.stage_sigs['num_acquire'] = num_pulses
 
 
     def stop_acquire(self):

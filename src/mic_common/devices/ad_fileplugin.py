@@ -66,12 +66,12 @@ class DetBase:
                 raise e
         return det_path
 
-    def stage(self):
-        super().stage()
-        if not self.file_path_exists.get():
-            raise ValueError(f"File path {self.file_path.get()} does not exist")
+    # def stage(self):
+    #     super().stage()
+    #     if not self.file_path_exists.get():
+    #         raise ValueError(f"File path {self.file_path.get()} does not exist")
 
-    def stage_file_writer(
+    def config_file_writer(
         self,
         savedata,
         det_name,
@@ -108,7 +108,6 @@ class DetBase:
         self.stage_sigs["file_name"] = filename
         self.stage_sigs["num_capture"] = num_capture
         self.stage_sigs["auto_save"] = 1
-        self.stage_sigs["blocking_callbacks"] = "Yes"
 
     def setup_file_writer(
         self,
