@@ -12,6 +12,9 @@ from ophyd import DynamicDeviceComponent
 from ophyd import EpicsSignal
 from ophyd import EpicsSignalRO
 from ophyd.status import DeviceStatus
+from ophyd.status import SubscriptionStatus
+
+import time as time
 
 logger = logging.getLogger(__name__)
 
@@ -69,6 +72,7 @@ class UpDownCounter(Device):
 class Buffer(Device):
     in_signal = Component(EpicsSignal, "IN_Signal", kind="config")
     out_signal = Component(EpicsSignal, "OUT_Signal", kind="config")
+    out_bi = Component(EpicsSignal, "OUT_BI", kind="config")
 
 
 class DivByN(Device):
@@ -108,6 +112,11 @@ class ScalToStream(Device):
     im_trig = Component(EpicsSignal, "_IMTRIG_Signal")
     flush = Component(EpicsSignal, "_FLUSH_Signal")
 
+class Gate(Device):
+    in_1 = Component(EpicsSignal, "_IN1_Signal")
+    in_2 = Component(EpicsSignal, "_IN2_Signal")
+    out_bi = Component(EpicsSignal, "_OUT_BI", kind="config")
+
 
 def _interferometer_tracker(if_tracker, num=6):
     defn = OrderedDict()
@@ -132,6 +141,10 @@ class SoftGlueZynq(Device):
     ### Components
 
     io = DynamicDeviceComponent(_io_fields())
+
+    and_1 = Component(Gate, ":SG:AND-1", kind="config")
+
+    or_1 = Component(Gate, ":SG:OR-1", kind="config")
 
     buffer_1 = Component(Buffer, ":SG:BUFFER-1_", kind="config")
     buffer_2 = Component(Buffer, ":SG:BUFFER-2_", kind="config")
@@ -211,14 +224,36 @@ class SoftGlueZynq(Device):
 
         self._status.set_finished()
         return self._status
+    
+    def prepare(self):
+        self.dma.enable.put(1)
+        self.dma.clear_button.put(1)
+        self.dma.clear_buffer.put(1)
+    
+    def trigger(self):
+        def check_bi(*, old_value, value, **kwargs):
+            return (old_value == 1 and value == 0)
+        
+        self.and_1.in_2.put("1")
+        self.buffer_4.in_signal.put("1")
+        time.sleep(0.1)
+        status = SubscriptionStatus(self.flip_flop_1.out_bi, check_bi)
+        return status
 
     def stop(self):
-        yield from mv(self.buffer_4.in_signal, "0")
+        self.or_1.in_2.put("1!")
+        self.buffer_4.in_signal.put("0")
+
+    def pause(self):
+        self.and_1.in_2.put("0")
+
+    def resume(self):
+        self.and_1.in_2.put("1")
 
     def reset(self):
         # Repeated it on purpose to clear ScalToStream 1 FIFO CT
-        yield from mv(self.buffer_1.in_signal, "1!")
-        yield from mv(self.buffer_1.in_signal, "1!")
+        self.buffer_1.in_signal.put("1!")
+        self.buffer_1.in_signal.put("1!")
 
     def reset_interferometers(self):
         yield from mv(self.buffer_2.in_signal, "1!")

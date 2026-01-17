@@ -5,10 +5,21 @@ from ophyd import FormattedComponent
 from ophyd.areadetector import CamBase
 from ophyd.areadetector import SingleTrigger
 from ophyd.areadetector import DetectorBase
+from ophyd.areadetector import ADBase
 from ophyd.areadetector import ROIPlugin
 from ophyd.areadetector import StatsPlugin
 from ophyd.areadetector import TIFFPlugin
+from ophyd.areadetector import DeviceStatus
 
+from time import sleep
+
+class Trigger(SingleTrigger):
+    def trigger(self):
+        self.cam.acquire.put(1)
+        self._status = DeviceStatus(self)
+        sleep(0.2)
+        self._status.set_finished()
+        return self._status
 
 
 class Flag(DetectorBase):

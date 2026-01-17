@@ -32,7 +32,7 @@ class MicHDF5(HDF5Plugin):
         scan_number = savedata.next_scan_number.get()
         file_name = base_name + f"{scan_number:04d}"
 
-        self.capture.put(0)
+        # self.capture.put(0)
         self.file_path.put(file_path)
         self.file_name.put(file_name)
         self.auto_increment.put(1)

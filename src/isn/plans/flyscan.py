@@ -5,6 +5,7 @@ from apsbits.utils.config_loaders import get_config
 from apsbits.core.instrument_init import oregistry
 from bluesky.plan_stubs import mv
 from bluesky.plan_stubs import sleep
+from bluesky.plan_stubs import abs_set
 
 logger = logging.getLogger(__name__)
 logger.info(__file__)
@@ -13,6 +14,7 @@ softglue = oregistry["softglue"]
 sample = oregistry["sample"]
 socketserver = oregistry["socketserver"]
 savedata = oregistry["savedata"]
+eshutter = oregistry["eshutter"]
 
 iconfig = get_config()
 softglue_outputs = iconfig.get("SOFTGLUE_OUTPUTS")
@@ -40,9 +42,9 @@ def flyscan(
 
     # --- Defining number of points --- #
 
-    if not x_npts:
+    if x_npts is None:
         x_npts = int((x_max-x_min)/dx)
-    if not y_npts:
+    if y_npts is None:
         y_npts = int((y_max-y_min)/dy)
     
     logger.info(f"Preparing to collect a {x_npts, y_npts} image.")
@@ -60,8 +62,10 @@ def flyscan(
 
     logger.info("Performing softglue cleaning.")
 
-    yield from softglue.stop()
-    yield from softglue.reset()
+    # yield from softglue.stop()
+    # yield from softglue.reset()
+    softglue.stop()
+    softglue.reset()
     softglue.clear_output_fields()
 
     # --- Defining user clock (ckUser))--- #
@@ -95,7 +99,7 @@ def flyscan(
     # --- Defining waveform clock --- #
 
     waveform_period = int(2 * trigger_period * 1e-3 * y_npts / (F * snake_npts * 1e-7))
-    total_scan_points = x_npts * snake_npts
+    total_scan_points = max(x_npts, 1) * snake_npts
     softglue.pulse_train.n.put(total_scan_points)
     softglue.pulse_train.period.put(waveform_period)
     softglue.pulse_train.width.put(int(waveform_period / 2))
@@ -108,12 +112,15 @@ def flyscan(
     theta = sample.theta.user_readback.get()
     logger.info(f"Sample at {theta} degrees")
 
-    d_value = (x_max - x_min) * 1e-3 / (x_npts - 1)
-    _x_tweak_value = d_value * np.cos(-1*np.radians(theta))
+    if x_npts>0:
+        d_value = (x_max - x_min) * 1e-3 / (max(x_npts,2) - 1)
+        _x_tweak_value = d_value * np.cos(-1*np.radians(theta))
+    elif x_npts==0:
+        _x_tweak_value = 0
 
     yield from mv(
-        sample.x.tweak_value, _x_tweak_value
-    )
+            sample.x.tweak_value, _x_tweak_value
+        )
 
     yield from mv(softglue.down_counter_1.preset, x_npts + 1)
 
@@ -122,8 +129,11 @@ def flyscan(
     # We determine how much z needs to tweak per x tweak in order to keep the sample into focus
     # For safety, we limit the step to 10x that of x.
 
-    _z_tweak_value = d_value * np.sin(-1*np.radians(theta))
-    
+    if x_npts>0:
+        _z_tweak_value = d_value * np.sin(-1*np.radians(theta))
+    elif x_npts==0:
+        _z_tweak_value=0
+
     yield from mv(
         sample.z.tweak_value, _z_tweak_value
     )
@@ -186,18 +196,19 @@ def flyscan(
 
     # # Then we move x:
     # _x = sample.x.user_readback.get()
-    dx = x_min * 1e-3 - _x_tweak_value
-    _starting_x = x0 + dx
-    yield from mv(sample.x, _starting_x)
+    if x_npts>0:
+        dx = x_min * 1e-3 - _x_tweak_value
+        _starting_x = x0 + dx
+        yield from mv(sample.x, _starting_x)
 
-    logger.info(f"Samply X stage moved to {_starting_x*1e3:0.3e} um.")
+        logger.info(f"Samply X stage moved to {_starting_x*1e3:0.3e} um.")
 
-    # Finally, we move z:
-    dz = sample.compensating_z(dx)
-    _starting_z = z0 + dz
-    yield from mv(sample.z, _starting_z)
+        # Finally, we move z:
+        dz = sample.compensating_z(dx)
+        _starting_z = z0 + dz
+        yield from mv(sample.z, _starting_z)
 
-    logger.info(f"Samply Z stage moved to {_starting_z*1e3:0.3e} um.")
+        logger.info(f"Samply Z stage moved to {_starting_z*1e3:0.3e} um.")
 
 
     # --- Load waveform --- #
@@ -214,7 +225,7 @@ def flyscan(
 
     # --- Preparing socket server --- #
 
-    total_images = int((x_npts * y_npts) / F - 1)
+    total_images = int((max(x_npts, 1) * y_npts) / F - 1)
     total_lines = total_images*(interferometer_per_pixel+1) # We add one to leave room for events in which more frames per line are reached
 
     socketserver.setup_flyscan_mode(num_lines = total_lines)
@@ -234,11 +245,23 @@ def flyscan(
         )
         detector.stage()
 
+    # --- Open shutter --- #
+
+    logger.info("Opening shutter.")
+
+    yield from abs_set(eshutter, "open", wait=True)
+
     # --- Start softglue --- #
 
     logging.info("Takeoff!")
 
     yield from softglue.start_flyscan()
+
+    # --- Close shutter ---#
+
+    logger.info("Closing shutter.")
+
+    yield from abs_set(eshutter, "close", wait=True)
 
     # --- Unstage detectors --- #
 
@@ -272,8 +295,8 @@ def flyscan(
     # --- Softglue cleanup ---
 
     softglue.up_down_counter_1.load.put("1!")
-    yield from softglue.stop()
-    yield from softglue.reset()
+    softglue.stop()
+    softglue.reset()
     softglue.clear_output_fields()
 
     logger.info("Performing softglue cleanup.")

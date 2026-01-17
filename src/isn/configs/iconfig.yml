@@ -49,11 +49,11 @@ BEC:
 ### Uncomment to use.  If undefined, will not write that type of file.
 ### Each callback should apply its configuration from here.
 NEXUS_DATA_FILES:
-    ENABLE: true
+    ENABLE: false
     FILE_EXTENSION: hdf
 
 SPEC_DATA_FILES:
-    ENABLE: false
+    ENABLE: true
     FILE_EXTENSION: dat
 
 STORAGE:
@@ -63,7 +63,8 @@ SOFTGLUE_OUTPUTS:
     PTYCHO: 1
     XRD: 2
     ME7: 3
-    RAYSPEC: 4
+    # RAYSPEC: 4
+    TETRAMM3: 4
     TETRAMM1: 5
 
 FILE_DELIMITER: "19ID"
