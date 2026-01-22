@@ -23,6 +23,10 @@ class Trigger(SingleTrigger):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
 
+    def trigger(self):
+        self.hdf1.capture.put(1)
+        super().trigger()
+
     # def trigger(self):
     #     #This one will always return True as it can't access a real Status signal
     #     if self._staged != Staged.yes:
@@ -66,10 +70,13 @@ class SocketServer(Trigger, DetectorBase):
     acquire = ADComponent(EpicsSignal, "SG1:Acquire")
     array_counter = ADComponent(EpicsSignalWithRBV, "SG1:ArrayCounter")
 
-    def setup_flyscan_mode(self, num_lines = 50000):
+    def setup_flyscan_mode(self, num_lines = 50000, hdf_images = 50000):
         self.array_counter.put(0)
-        self.hdf1.stage_sigs['num_capture'] = num_lines
-        self.hdf1.stage_sigs['capture'] = 1
+        self.hdf1.stage_sigs["enable"] = 1
+        self.hdf1.stage_sigs["auto_save"] = 1
+        self.hdf1.stage_sigs['num_capture'] = hdf_images
+        self.hdf1.stage_sigs['queue_size'] = 2e5
+        # self.hdf1.stage_sigs['capture'] = 1
 
     def write_master_h5(
         self,

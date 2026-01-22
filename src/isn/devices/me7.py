@@ -34,7 +34,7 @@ from .mic_ad_mixins import VortexDetectorCam
 from mic_common.utils.writeDetH5 import write_det_h5
 
 # MAX_IMAGES = 12216
-MAX_IMAGES = 500000
+MAX_IMAGES = 524288
 MAX_ROIS = 8
 DELAY = 0.2
 
@@ -62,12 +62,11 @@ class Trigger(TriggerBase):
         self._image_name = image_name
         self._acquisition_signal = self.cam.acquire
         self._acquire_busy_signal = self.cam.acquire_busy
-        # self._flysetup = False
         self._status = None
         self._delay = DELAY
         self._trigger_counter = 0
         self.cam.stage_sigs["erase_on_start"] = "No"
-        # self.setup_soft_trigger()
+        # self.setup_software_trigger()
 
     def setup_internal_trigger(self):
         self.trigger_mode = "Internal"
@@ -84,8 +83,7 @@ class Trigger(TriggerBase):
         else:
             self.hdf1.stage_sigs["enable"] = 0
             self.hdf1.stage_sigs["auto_save"] = 0
-        # self._flysetup = False
-        # self._softsetup = False
+
 
 
     def setup_external_trigger(self):
@@ -96,7 +94,7 @@ class Trigger(TriggerBase):
         self.cam.stage_sigs["num_images"] = MAX_IMAGES
         self.cam.stage_sigs["wait_for_plugins"] = "No"
 
-    def setup_soft_trigger(self):
+    def setup_software_trigger(self):
         logger.info("Configuring detector for software triggering")
         self.trigger_mode = "Software"
 
@@ -113,7 +111,6 @@ class Trigger(TriggerBase):
         else:
             self.hdf1.stage_sigs["enable"] = 0
             self.hdf1.stage_sigs["auto_save"] = 0
-        # self._softsetup = True
 
     def setup_flyscan_mode(
         self, num_images=MAX_IMAGES, acq_time=0.01, hdf_images=MAX_IMAGES
@@ -147,10 +144,10 @@ class Trigger(TriggerBase):
     def stage(self):
 
         if self.trigger_mode == "Software":
-            logger.info("Accessed software triggering staging sequence")
+            # logger.info("Accessed software triggering staging sequence")
             self._trigger_counter = 0
             self._acquire_time = self.cam.acquire_time.get()
-            self.setup_soft_trigger()
+            self.setup_software_trigger()
         elif self.trigger_mode == "Internal":
             self._acquire_time = self.cam.acquire_time.get()
             self.setup_internal_trigger()
@@ -178,7 +175,7 @@ class Trigger(TriggerBase):
 
         # if self._flysetup:
         if self.trigger_mode == "Flyscan":
-            self.setup_soft_trigger()
+            self.setup_software_trigger()
             self.set_plugins("Enable")
         elif self.trigger_mode == "Software":
             self._trigger_counter = 0
@@ -425,7 +422,7 @@ class VortexXspress37(Trigger, DetectorBase):
         super().__init__(*args, **kwargs)
 
         self.default_settings()
-        # self.setup_soft_trigger()
+        # self.setup_software_trigger()
 
     # Make this compatible with other detectors
     @property
@@ -518,6 +515,8 @@ class VortexXspress37(Trigger, DetectorBase):
             obj = getattr(self, nm)
             if "blocking_callbacks" in dir(obj):  # is it a plugin?
                 obj.stage_sigs["blocking_callbacks"] = "No"
+
+        self.setup_software_trigger()
 
     @property
     def read_rois(self):
