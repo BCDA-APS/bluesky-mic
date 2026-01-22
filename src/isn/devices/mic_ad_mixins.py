@@ -6,6 +6,7 @@ from ophyd import EpicsSignal
 from ophyd import EpicsSignalWithRBV
 from ophyd.areadetector import Xspress3DetectorCam
 from ophyd.areadetector.plugins import HDF5Plugin
+from ophyd.areadetector.plugins import StatsPlugin
 
 
 class VortexDetectorCam(CamMixin_V34, Xspress3DetectorCam):
@@ -44,3 +45,13 @@ class MicHDF5(HDF5Plugin):
     def unstage(self):
         self.capture.put(0)
         super().unstage()
+
+class MicStatsPlugin(StatsPlugin):
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.total.kind = 'hinted'
+
+    _default_read_attrs = ('total',)
+
+    

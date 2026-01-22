@@ -274,9 +274,13 @@ def flyscan(
         yield from bps.checkpoint()
 
         total_images = int((max(x_npts_, 1) * y_npts_) / F - 1)
+        images_per_line = int(y_npts_ / F)
+        interferometry_per_line = images_per_line * interferometer_per_pixel
         total_lines = total_images*(interferometer_per_pixel+1) # We add one to leave room for events in which more frames per line are reached
 
-        socketserver.setup_flyscan_mode(num_lines = total_lines)
+        # socketserver.setup_flyscan_mode(num_lines = total_lines)
+        # We are changing to the new structure in which we have as many position files as detector files
+        socketserver.setup_flyscan_mode(hdf_images=interferometry_per_line)
         socketserver.stage()
         socketserver.trigger()
 
@@ -291,7 +295,7 @@ def flyscan(
             detector.setup_flyscan_mode(
                 num_images=total_images,
                 acq_time=acquire_time * 1e-3,
-                hdf_images=int(y_npts_ / 0.9),
+                hdf_images=images_per_line,
             )
             detector.stage()
 
@@ -328,6 +332,8 @@ def flyscan(
         for detector in detectors:
             detector.unstage()
             detector.hdf1.unstage()
+
+        socketserver.unstage()
 
         # --- Filling up DMA for socket server acquisition --- #
 
