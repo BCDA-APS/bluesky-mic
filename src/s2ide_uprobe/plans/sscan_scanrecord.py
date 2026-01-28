@@ -8,7 +8,8 @@ Creating a bluesky plan that interacts with Scan Record.
 
 __all__ = """
     step2d_scanrecord
-    step1d_focusing
+    step1d_focusing_x
+    step1d_focusing_y
 """.split()
 
 import logging
@@ -38,9 +39,6 @@ zp_z = oregistry["zp_z"]
 samtheta = oregistry["samtheta"]
 savedata = oregistry["savedata"]
 xrf = oregistry["xrf"]
-# ptycho = oregistry["ptycho"]
-# ptycho_hdf = oregistry["ptycho_hdf"]
-# xrf_netcdf = oregistry["xrf_netcdf"]
 
 
 iconfig = get_config()
@@ -103,21 +101,28 @@ def step2d_scanrecord(
     yield from _step2d()
 
 
-def step1d_focusing(
-    samplename="smp1",
-    user_comments="",
-    width_mm=0,
-    x_center_mm=None,
-    stepsize_x_mm=0,
-    samz_mm=None,
-    dwell_ms=0,
-    zp_z_mm=None,
+def step1d_focusing_x(
+    samplename: str = "smp1",
+    user_comments: str = "",
+    width_mm: float = 0,
+    x_center_mm: float = None,
+    stepsize_x_mm: float = 0,
+    samz_mm: float = None,
+    dwell_ms: float = 0,
+    zp_z_mm: float = None,
 ):
     """Step 1D focusing plan that drives the samx motor. 
        If zp_z_mm is not provided, the plan will use the current 
        position of zp_z"""
 
-    plan_args = capture_params(step1d_focusing, **locals())
+    if x_center_mm is None:
+        x_center_mm = samx.position
+    if samz_mm is None:
+        samz_mm = samz.position
+    if zp_z_mm is None:
+        zp_z_mm = zp_z.position
+
+    plan_args = capture_params(step1d_focusing_x, **locals())
     md = {"plan_args": plan_args}
     plan_args["exec_plan"] = True
 
@@ -127,7 +132,61 @@ def step1d_focusing(
 
     @bpp.run_decorator(md=md)
     def _step1d():
-        yield from _step1d_scanrecord(**plan_args)
+        args = {samplename: samplename, 
+                user_comments: user_comments, 
+                width_mm: width_mm, 
+                center_mm: x_center_mm, 
+                stepsize_mm: stepsize_x_mm, 
+                samz_mm: samz_mm, 
+                zp_z_mm: zp_z_mm, 
+                dwell_ms: dwell_ms,
+                positioner: 'x'}
+        yield from _step1d_scanrecord(**args)
+
+    yield from _step1d()
+
+
+def step1d_focusing_y(
+    samplename: str = "smp1",
+    user_comments: str = "",
+    height_mm: float = 0,
+    y_center_mm: float = None,
+    stepsize_y_mm: float = 0,
+    samz_mm: float = None,
+    dwell_ms: float = 0,
+    zp_z_mm: float = None,
+):
+    """Step 1D focusing plan that drives the samy motor. 
+       If zp_z_mm is not provided, the plan will use the current 
+       position of zp_z"""
+
+    if y_center_mm is None:
+        y_center_mm = samy.position
+    if samz_mm is None:
+        samz_mm = samz.position
+    if zp_z_mm is None:
+        zp_z_mm = zp_z.position
+
+    plan_args = capture_params(step1d_focusing_y, **locals())
+    md = {"plan_args": plan_args}
+    plan_args["exec_plan"] = True
+
+    if xrf.connected:
+        yield from xrf.stepscan_before()
+        yield from xrf.set_real_time(dwell_ms / 1e3)
+
+    @bpp.run_decorator(md=md)
+    def _step1d():
+        args = {samplename: samplename, 
+                user_comments: user_comments, 
+                width_mm: height_mm, 
+                center_mm: y_center_mm, 
+                stepsize_mm: stepsize_y_mm, 
+                samz_mm: samz_mm, 
+                zp_z_mm: zp_z_mm, 
+                dwell_ms: dwell_ms,
+                positioner: 'y'}
+        yield from _step1d_scanrecord(**args)
 
     yield from _step1d()
 
@@ -136,19 +195,23 @@ def _step1d_scanrecord(
     samplename="smp1",
     user_comments="",
     width_mm=0,
-    x_center_mm=None,
-    stepsize_x_mm=0,
+    center_mm=None,
+    stepsize_mm=0,
     samz_mm=None,
     zp_z_mm=None,
     dwell_ms=0,
     exec_plan=False,
+    positioner: str = 'x',
 ):
     """1D Bluesky plan that drives the samx motor in stepping mode using ScanRecord"""
 
+    """Before scan start, handle things were done using usercalc"""
+
+
     """Validate the input parameters"""
-    if x_center_mm is None:
-        x_center_mm = samx.position
-    if stepsize_x_mm == 0:
+    if center_mm is None:
+        raise ValueError("Center position cannot be None, please check the input parameters")
+    if stepsize_mm == 0:
         raise ValueError("Step size cannot be 0, please check the input parameters")
     if dwell_ms == 0:
         raise ValueError("Dwell time cannot be 0, please check the input parameters")
@@ -163,13 +226,20 @@ def _step1d_scanrecord(
     yield from generalized_scan_1d(
         scanrecord=scan1,
         scanmode="LINEAR",
-        x_center=x_center_mm,
+        x_center=center_mm,
         width=width_mm,
-        stepsize_x=stepsize_x_mm,
+        stepsize_x=stepsize_mm,
         dwell=dwell_ms,
         savedata=savedata,
     )
-    yield from scan1.set_positioner_drive(f"{samx.prefix}.VAL")
+
+    if positioner == 'x':
+        yield from scan1.set_positioner_drive(f"{samx.prefix}.VAL")
+    elif positioner == 'y':
+        yield from scan1.set_positioner_drive(f"{samy.prefix}.VAL")
+    else:
+        raise ValueError(f"Invalid positioner: {positioner}")
+
     yield from scan1.set_positioner_readback("")
     yield from scan1.set_rel_abs_motion("ABSOLUTE")
     
