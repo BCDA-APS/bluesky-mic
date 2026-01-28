@@ -1,0 +1,47 @@
+# Guarneri-style device YAML configuration
+
+# apsbits.utils.sim_creator.predefined_device:
+# - { creator: ophyd.sim.motor, name: sim_motor }
+# - { creator: ophyd.sim.noisy_det, name: sim_det }
+
+mic_common.devices.scan_record.NewScanRecord:
+- name: fscan_inner
+  prefix: 9idbBNP:scan1
+  labels: ["scanrecord"]
+- name: fscan_outer
+  prefix: 9idbBNP:scan2
+  labels: ["scanrecord"]
+
+bnp.devices.sample.Sample:
+- name: sample
+  prefix: 9idbTAU
+  labels: ["sample"]
+
+mic_common.devices.save_data.SaveDataMic:
+- name: savedata
+  prefix: "9idbBNP:saveData_"
+  labels: ["savedata"]
+
+mic_common.devices.sis3820.SIS3820:
+- name: sis3820
+  prefix: 9idbBNP:3820
+  labels: ["sis3820"]
+
+mic_common.devices.xmap.XMAP:
+- name: xrf
+  prefix: 9idbXMAP
+  labels: ["xmap"]
+
+mic_common.devices.ad_fileplugin.DetNetCDF:
+- name: xrf_netcdf
+  prefix: "9idbXMAP:netCDF1:"
+  labels: ["netcdf"]
+
+
+ophyd.EpicsSignal:
+- name: SM_PS_busy
+  write_pv: 9idbTAU:SM:Ps:Busy
+  read_pv: 9idbTAU:SM:Ps:Busy
+  labels: ["signal"]
+
+
