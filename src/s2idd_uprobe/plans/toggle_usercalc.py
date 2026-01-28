@@ -14,15 +14,10 @@ import logging
 
 import bluesky.plan_stubs as bps
 from apsbits.core.instrument_init import oregistry
-# from apsbits.utils.config_loaders import get_config
-# from ophyd import EpicsSignal
 
 logger = logging.getLogger(__name__)
 logger.info(__file__)
 
-# iconfig = get_config("iconfig.yml")
-
-# usercalcs = iconfig.get("USERCALC_DISABLE", {})
 
 usercalcs = {
     "fly_calc": oregistry["fly_calc"],

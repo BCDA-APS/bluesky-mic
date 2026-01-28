@@ -14,7 +14,7 @@ samx = oregistry["samx"]
 savedata = oregistry["savedata"]
 
 
-def test_nexus(dets, num = 5, md = {}):   
+def test_nexus(dets, num=5, md={}):
     dict_params = capture_params(test_nexus, **locals())
     print(dict_params)
 
@@ -25,7 +25,7 @@ def test_nexus(dets, num = 5, md = {}):
             for d in dets:
                 yield from bps.read(d)
             yield from bps.save()
-    
+
     @bpp.run_decorator(md=md)
     def outer_test_nexus():
         yield from bps.sleep(1)
@@ -34,11 +34,4 @@ def test_nexus(dets, num = 5, md = {}):
         yield from bps.save()
         yield from inner_test_nexus()
 
-
     yield from outer_test_nexus()
-        
-
-
-
-
-

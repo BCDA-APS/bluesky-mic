@@ -45,14 +45,10 @@ def write_det_h5(
                     if fn != os.path.basename(masterfile_path):
                         # Use os.path.relpath to get relative path from masterfile to
                         # detector file
-                        rel_path = os.path.relpath(
-                            Path(det_dir) / fn, Path(masterfile_path).parent
-                        )
+                        rel_path = os.path.relpath(Path(det_dir) / fn, Path(masterfile_path).parent)
                         group[f"{fn}"] = h5py.ExternalLink(rel_path, det_key)
             except Exception as e:
-                logger.error(
-                    f"Error in write_det_h5() creating external link for {fn}: {e}"
-                )
+                logger.error(f"Error in write_det_h5() creating external link for {fn}: {e}")
         else:
             group[f"{fn}"] = Path(det_dir) / fn
 

@@ -19,7 +19,8 @@ iconfig = get_config()
 xmap_buffer = iconfig.get("XMAP", "BUFFER")
 sam_x_precision = iconfig.get("SAM_X", "PRECISION")
 
-def check_xstage_stuck(elapsed_realtime = 1, sis3820_current_channel = 0):
+
+def check_xstage_stuck(elapsed_realtime=1, sis3820_current_channel=0):
     """
     Check if the xstage is stuck
 
@@ -38,13 +39,15 @@ def check_xstage_stuck(elapsed_realtime = 1, sis3820_current_channel = 0):
     sis3820_current_channel = sis3820.current_channel.get()
     sis3820_elapsed_real = sis3820.elapsed_real.get()
 
-    if all([
-        sis3820_acquiring,
-        fscan1_running,
-        samx_done_moving,
-        sis3820_current_channel == sis3820_current_channel,
-        sis3820_elapsed_real > elapsed_realtime,
-    ]):
+    if all(
+        [
+            sis3820_acquiring,
+            fscan1_running,
+            samx_done_moving,
+            sis3820_current_channel == sis3820_current_channel,
+            sis3820_elapsed_real > elapsed_realtime,
+        ]
+    ):
         return True
     else:
         return False
@@ -52,7 +55,7 @@ def check_xstage_stuck(elapsed_realtime = 1, sis3820_current_channel = 0):
 
 def unstuck_xstage():
     """
-    Unstuck the xstage by moving to the start or end position 
+    Unstuck the xstage by moving to the start or end position
     depending on which is closer
     """
     start_position = fscan1.start_position.get()
@@ -69,10 +72,9 @@ def unstuck_xstage():
         logger.info(f"Unstuck xstage: Moving to start position {start_position}")
 
 
-
 def hydra_config(hydra, fscanh):
     """Set up Hydra (motor controller) based on the fscanh parameters
-    
+
     Parameters:
         hydra: Hydra
             The Hydra device
@@ -84,7 +86,7 @@ def hydra_config(hydra, fscanh):
     start_position = fscanh.start_position.get()
     total_trigger = fscanh.number_points.get()
 
-    yield from hydra.set_start_position(start_position+stepsize)
+    yield from hydra.set_start_position(start_position + stepsize)
     yield from hydra.set_end_position(end_position)
     yield from hydra.set_total_trigger(total_trigger)
     yield from hydra.set_mode("Equidistant / Standard")
@@ -93,7 +95,7 @@ def hydra_config(hydra, fscanh):
 
 def sis3820_config(sis3820, fscanh):
     """Set up SIS3820 based on the fscanh parameters
-    
+
     Parameters:
         sis3820: SIS3820
             The SIS3820 device
@@ -103,14 +105,14 @@ def sis3820_config(sis3820, fscanh):
 
     total_points = fscanh.number_points.get()
     total_trigger = total_points - 2
-    sis3820_prescale = abs(fscanh.stepsize.get()/sam_x_precision) + 0.0001
+    sis3820_prescale = abs(fscanh.stepsize.get() / sam_x_precision) + 0.0001
     yield from sis3820.set_stop_all(1)
     yield from sis3820.set_num_ch_used(total_trigger)
 
 
 def xrf_config(xrf, xrf_netcdf, scanrecord, fname, xmap_buffer_size=xmap_buffer):
     """Set up XRF and XRF_NetCDF based on parameters in fscanh
-    
+
     Parameters:
         xrf: XRF
             The XRF device
@@ -131,11 +133,9 @@ def xrf_config(xrf, xrf_netcdf, scanrecord, fname, xmap_buffer_size=xmap_buffer)
         num_buffer = int(np.ceil(total_trigger / xmap_buffer_size))
         yield from xrf_netcdf.set_capture("done")  # Stop capture
         yield from xrf_netcdf.set_filename(fname)  # Set the filename
-        yield from xrf_netcdf.set_filenumber(0)    # Set the next filenumber to 0
+        yield from xrf_netcdf.set_filenumber(0)  # Set the next filenumber to 0
         yield from xrf_netcdf.set_num_capture(num_buffer)
         yield from xrf.flyscan_before(total_trigger)
     else:
         # For step scan, we don't save netcdf files and just need to configure XMAP
         yield from xrf.stepscan_before()
-
-

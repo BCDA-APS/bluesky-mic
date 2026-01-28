@@ -8,7 +8,11 @@ from apsbits.core.instrument_init import oregistry
 from s2idd_uprobe.utils.fly import get_next_file_name
 from s2idd_uprobe.plans.toggle_usercalc import disable_usercalc, enable_usercalc
 from s2idd_uprobe.utils.fly import validate_scan_parameters
-from s2idd_uprobe.plans.stepscan_core import _step1d, _common_stepscan_cleanup, _common_stepscan_setup
+from s2idd_uprobe.plans.stepscan_core import (
+    _step1d,
+    _common_stepscan_cleanup,
+    _common_stepscan_setup,
+)
 import numpy as np
 import logging
 from mic_common.utils.timer_decorator import loop_timer_context
@@ -47,10 +51,9 @@ def step1d(
     xrf_on=True,
     preamp2_on=False,
 ):
-
     """Capture the input plan parameters"""
     plan_args = capture_params(step1d, **locals())
-    
+
     """Disable usercalc"""
     yield from disable_usercalc()
 
@@ -65,7 +68,7 @@ def step1d(
     logger.info("Constructing the scan points and moving to the starting position")
     if center is None:
         center = pos_ophyd.position
-    pos_arr = np.arange(center - length/2, center + length/2, stepsize)
+    pos_arr = np.arange(center - length / 2, center + length / 2, stepsize)
     yield from bps.mv(pos_ophyd, pos_arr[0])
     if positioner == "samx":
         x_motor_retrace = pos_ophyd.get_max_velocity()
@@ -81,12 +84,14 @@ def step1d(
     sis3820 = devices_dict["sis3820"]
 
     """Construct the metadata"""
-    md = {"plan_args": plan_args,
-          "shape": (total_pts,),
-          "extents": ((pos_arr[0], pos_arr[-1]),),
-          }
+    md = {
+        "plan_args": plan_args,
+        "shape": (total_pts,),
+        "extents": ((pos_arr[0], pos_arr[-1]),),
+    }
 
     """Start the scan"""
+
     @bpp.run_decorator(md=md)
     def inner_step1d():
         logger.info("Starting the scan")
@@ -97,12 +102,3 @@ def step1d(
 
     """Stop the scan"""
     yield from _common_stepscan_cleanup(devices_dict)
-
-            
-            
-
-    
-
-
-
-    

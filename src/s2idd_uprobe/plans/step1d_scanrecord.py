@@ -20,6 +20,7 @@ from apsbits.utils.config_loaders import get_config
 from mic_common.plans.generallized_scan_1d import generalized_scan_1d
 from mic_common.utils.param_capture import capture_params
 from mic_common.utils.scan_monitor import execute_scan_1d
+
 # from s2idd_uprobe.plans.before_after_fly import setup_flyscan_XRF_triggers, setup_flyscan_tmm_triggers
 # from s2idd_uprobe.plans.helper_funcs import selected_dets
 from s2idd_uprobe.plans.toggle_usercalc import disable_usercalc
@@ -152,11 +153,9 @@ def _step1d_scanrecord(
     if preamp1.connected and preamp1_on == False:
         yield from preamp1.set_single_acquire()
 
-
     """Start executing scan"""
     fname = savedata.next_file_name
     yield from execute_scan_1d(scan1, scan_name=fname)
 
     """Enable the usercalc that used in scan record"""
     yield from enable_usercalc()
-    

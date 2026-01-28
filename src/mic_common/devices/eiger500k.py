@@ -39,7 +39,6 @@ class Eiger500k(EigerDetectorCam):
     file_name_pattern = Component(EpicsSignal, "FWNamePattern")
     save_files = Component(EpicsSignal, "SaveFiles")
 
-
     def scan_init(self, exposure_time, num_images, ptycho_exp_factor):
         """
         Initialize the detector for a scan.
@@ -62,10 +61,9 @@ class Eiger500k(EigerDetectorCam):
             yield from self.setup_external_enable_trigger(num_images)
         elif trigger_mode == "External Series":
             yield from self.setup_external_series_trigger(num_images)
-        
+
         yield from self.set_acquire_period(exposure_time)
         yield from self.set_acquire_time(exposure_time / ptycho_exp_factor)
-        
 
     def sync_file_path(self, savedatapath: str, delimiter: str) -> str:
         """
@@ -92,9 +90,7 @@ class Eiger500k(EigerDetectorCam):
         print(p1_new)
         return p1_new
 
-    def setup_external_enable_trigger(
-        self, num_triggers: int
-    ) -> Generator[None, None, None]:
+    def setup_external_enable_trigger(self, num_triggers: int) -> Generator[None, None, None]:
         """
         Set up the external enable trigger for the detector.
 
@@ -111,9 +107,7 @@ class Eiger500k(EigerDetectorCam):
         yield from self.set_num_triggers(num_triggers)  # Set the number of triggers
         yield from self.set_num_images(1)  # Set the number of images to 1
 
-    def setup_external_series_trigger(
-        self, num_triggers: int
-    ) -> Generator[None, None, None]:
+    def setup_external_series_trigger(self, num_triggers: int) -> Generator[None, None, None]:
         """
         Set up the external series trigger for the detector.
 

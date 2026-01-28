@@ -1,18 +1,29 @@
 # Guarneri-style device YAML configuration
 
-mic_common.devices.scan_record.NewScanRecord:
-- name: scan1
-  prefix: "2idd:scan1"
+# mic_common.devices.scan_record.NewScanRecord:
+# - name: scan1
+#   prefix: "2idd:scan1"
+#   labels: ["scanrecord"]
+# - name: scan2
+#   prefix: "2idd:scan2"
+#   labels: ["scanrecord"]
+# - name: fscan1
+#   prefix: "2idd:Fscan1"
+#   labels: ["scanrecord"]
+# - name: fscanh
+#   prefix: "2idd:FscanH"
+#   labels: ["scanrecord"]
+
+s2idd_uprobe.devices.scanrecord.CombinedScanRecord:
+- name: scanrecord
+  prefix: 2iddfS1
+  # prefix: 2idd
   labels: ["scanrecord"]
-- name: scan2
-  prefix: "2idd:scan2"
-  labels: ["scanrecord"]
-- name: fscan1
-  prefix: "2idd:Fscan1"
-  labels: ["scanrecord"]
-- name: fscanh
-  prefix: "2idd:FscanH"
-  labels: ["scanrecord"]
+
+s2idd_uprobe.devices.sample.Sample:
+- name: sample
+  prefix: 2idd
+  labels: ["sample"]
 
 mic_common.devices.save_data.SaveDataMic:
 - name: savedata
@@ -20,15 +31,6 @@ mic_common.devices.save_data.SaveDataMic:
   labels: ["savedata"]
 
 s2idd_uprobe.devices.motor.Motor:
-- name: samx
-  prefix: 2idd:m40
-  labels: ["motor"]
-- name: samy
-  prefix: 2idd:m39
-  labels: ["motor"]
-- name: samz
-  prefix: 2idd:m36
-  labels: ["motor"]
 - name: zp_z
   prefix: 2idd:m44
   labels: ["motor"]
@@ -72,21 +74,21 @@ mic_common.devices.xmap.XMAP:
 
 s2idd_uprobe.devices.tetramm.MicTetrAMM:
 - name: tmm1
-  prefix: "2iddtmm1:"
+  prefix: 2iddtmm1
   labels: ["tetramm"]
 # - name: tmm2
 #   prefix: "2iddtmm2:"
 #   labels: ["tetramm"]
 
-mic_common.devices.ad_fileplugin.DetNetCDF:
-- name: xrf_netcdf
-  prefix: "2iddXMAP:netCDF1:"
-  labels: ["netcdf"]
+# mic_common.devices.ad_fileplugin.DetNetCDF:
+# - name: xrf_netcdf
+#   prefix: "2iddXMAP:netCDF1:"
+#   labels: ["netcdf"]
 
-mic_common.devices.ad_fileplugin.DetHDF5:
-- name: tmm1_hdf
-  prefix: "2iddtmm1:HDF1:"
-  labels: ["fileplugin"]
+# mic_common.devices.ad_fileplugin.DetHDF5:
+# - name: tmm1_hdf
+#   prefix: "2iddtmm1:HDF1:"
+#   labels: ["fileplugin"]
 
 # - name: tetramm1_netcdf
 #   prefix: "2iddtmm1:netCDF1:"

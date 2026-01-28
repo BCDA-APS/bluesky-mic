@@ -8,7 +8,7 @@ logger = logging.getLogger(__name__)
 savedata = oregistry["savedata"]
 
 
-def timer(sleep_time = 1):
+def timer(sleep_time=1):
     """
     A timer plan that waits for a specified time.
 

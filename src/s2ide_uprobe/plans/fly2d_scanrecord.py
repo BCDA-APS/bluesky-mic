@@ -20,7 +20,10 @@ from apsbits.utils.config_loaders import get_config
 from s2ide_uprobe.utils.usercalc_lib import hydra_config, sis3820_config, xrf_config
 from ophyd.status import Status
 from apstools.plans import run_blocking_function
-from s2ide_uprobe.plans.before_after_fly import setup_flyscan_ptycho_triggers, setup_flyscan_XRF_triggers
+from s2ide_uprobe.plans.before_after_fly import (
+    setup_flyscan_ptycho_triggers,
+    setup_flyscan_XRF_triggers,
+)
 from apsbits.utils.config_loaders import get_config
 from mic_common.utils.param_capture import capture_params
 import bluesky.preprocessors as bpp
@@ -215,7 +218,9 @@ def _fly2d_scanrecord(
             yield from xrf_netcdf.set_capture("capturing")
 
         if ptycho_on:
-            yield from setup_flyscan_ptycho_triggers(fscan1, fscanh, ptycho, eiger_filewriter=ptycho_hdf)
+            yield from setup_flyscan_ptycho_triggers(
+                fscan1, fscanh, ptycho, eiger_filewriter=ptycho_hdf
+            )
             yield from ptycho.scan_init(dwell_ms / 1e3, num_pulses, ptycho_exp_factor)
 
             if ptycho_hdf is not None:
@@ -236,7 +241,9 @@ def _fly2d_scanrecord(
     """Start executing scan"""
 
     # yield from bps.sleep(1)
-    yield from execute_scan_2d(fscanh, fscan1, scan_name=savedata.next_file_name, print_outter_msg=True)
+    yield from execute_scan_2d(
+        fscanh, fscan1, scan_name=savedata.next_file_name, print_outter_msg=True
+    )
 
     # Restore the previous scan record triggers
     logger.info("Restoring the previous scan record triggers before exiting the plan")

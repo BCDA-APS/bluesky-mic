@@ -56,9 +56,7 @@ class WatchedEpicsSignal(EpicsSignalRO):
         try:
             super().__init__(read_pv=read_pv, **kwargs)
         except Exception as reason:
-            raise RuntimeError(
-                f"{read_pv=} {units_pv=} {kwargs=} {reason=}"
-            ) from reason
+            raise RuntimeError(f"{read_pv=} {units_pv=} {kwargs=} {reason=}") from reason
 
         pv_base = read_pv.split(".")[0]
         tmot = 0.5
@@ -225,9 +223,7 @@ def developer_report(db):
     print(table)
 
 
-def write_scan_master_h5(master_file_yaml: dict,
-                         master_scan_file: str,
-                         bluesky_params: dict):
+def write_scan_master_h5(master_file_yaml: dict, master_scan_file: str, bluesky_params: dict):
     """Demonstrate this code."""
     # specifications = master_file_yaml
     pv_db = {}

@@ -40,9 +40,7 @@ class Xspress3(Xspress3DetectorCam):
         yield from self.set_acquire_time(exposure_time)
         yield from self.set_num_images(num_images)
 
-    def write_h5(
-        self, masterfile_path: str, detector_path: str, scan_name: str, det_name: str
-    ):
+    def write_h5(self, masterfile_path: str, detector_path: str, scan_name: str, det_name: str):
         """Write detector data to HDF5 file.
 
         Parameters:
@@ -51,9 +49,7 @@ class Xspress3(Xspress3DetectorCam):
             scan_name (str): Name of the scan.
             det_name (str): Name of the detector.
         """
-        logger.info(
-            f"{self.__class__.__name__}: Writing HDF5 file to {masterfile_path}"
-        )
+        logger.info(f"{self.__class__.__name__}: Writing HDF5 file to {masterfile_path}")
         logger.info(f"{self.__class__.__name__}: Detector path: {detector_path}")
         logger.info(f"{self.__class__.__name__}: Scan name: {scan_name}")
 

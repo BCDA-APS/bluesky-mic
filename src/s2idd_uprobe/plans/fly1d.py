@@ -28,21 +28,18 @@ Key Features:
 @author: yluo(grace227)
 """
 
-import bluesky.plan_stubs as bps
-from apsbits.core.instrument_init import oregistry
-from s2idd_uprobe.plans.flyscan_core import (
-    _common_flyscan_setup,
-    _common_flyscan_cleanup,
-    _fly1d,
-)
-from s2idd_uprobe.utils.fly import get_next_file_name
 
+import bluesky.preprocessors as bpp
+from apsbits.core.instrument_init import oregistry
+from s2idd_uprobe.plans.flyscan_core import _fly1d
+from mic_common.utils.param_capture import capture_params
+from s2idd_uprobe.utils.fly import validate_scan_parameters
 import logging
 
 logger = logging.getLogger(__name__)
 
 savedata = oregistry["savedata"]
-samx = oregistry["samx"]
+sample = oregistry["sample"]
 
 def fly1d(
     samplename="smp1",
@@ -50,17 +47,16 @@ def fly1d(
     width=0,
     x_center=None,
     stepsize_x=0,
-    dwell=0,
+    dwell_ms=0,
     sample_z=None,
     xrf_on=True,
     preamp1_on=False,
-    preamp2_on=False,
 ):
     """
     Execute a 1D flyscan along the x-axis.
-    
+
     See module header for detailed description of the scan process and features.
-    
+
     Parameters
     ----------
     samplename : str, optional
@@ -70,51 +66,40 @@ def fly1d(
     width : float
         The total width of the scan in motor units.
     x_center : float, optional
-        The center position of the scan in the x-direction. If not provided, 
+        The center position of the scan in the x-direction. If not provided,
         the current x-motor position will be used as the center.
     stepsize_x : float
         The step size (spatial resolution) of the scan in motor units.
     dwell : float
         The dwell time per step in milliseconds.
     sample_z : float, optional
-        The sample z position. If not provided, the current sample z position 
+        The sample z position. If not provided, the current sample z position
         will be maintained.
     xrf_on : bool, optional
         Whether to enable the x-ray fluorescence detector. Default is True.
     preamp1_on : bool, optional
         Whether to enable preamp1. Default is False.
-    preamp2_on : bool, optional
-        Whether to enable preamp2. Default is False.
     """
 
-    #TODO: open shutter
-    print("open shutter")
+    validate_scan_parameters(width=width, stepsize_x=stepsize_x, dwell_ms=dwell_ms)
+    x_center = x_center if x_center is not None else (round(sample.x.position - width / 2, 2))
+    sample_z = sample_z if sample_z is not None else (round(sample.z.position, 2))
 
-    """Common setup for flyscan plans"""
-    devices, fileplugins, xarr, x_start, x_end, x_motor_scan_speed, x_motor_retrace = yield from _common_flyscan_setup(
-        xrf_on=xrf_on, 
-        preamp1_on=preamp1_on, 
-        preamp2_on=preamp2_on,
-        x_center=x_center,
-        width=width,
-        stepsize_x=stepsize_x,
-        dwell=dwell
-    )
-    
-    """Execute the fly1d scan"""
-    filename = get_next_file_name(savedata)
-    logger.info(f"Starting the scan, filename: {filename}")
-    yield from savedata.set_next_scan_number(savedata.next_scan_number.get() + 1)
-    yield from _fly1d(devices, fileplugins, samx, x_end)
-    yield from bps.mv(samx.velocity, x_motor_retrace)
-    yield from bps.mv(samx, x_start)
-    yield from bps.mv(samx.velocity, x_motor_scan_speed)
-    logger.info(f"Scan is finished, filename: {filename}")
+    plan_args = capture_params(fly1d, **locals())
+    logger.info(f"Plan arguments: {plan_args}")
 
-    """Common cleanup for flyscan plans"""
-    yield from _common_flyscan_cleanup()
+    scan_id = None
+    try:
+        scan_id = savedata.next_scan_number.get()
+        logger.info(f"Scan id: {scan_id}")
+    except Exception as e:
+        logger.error(f"Error getting scan id: {e}")
+        scan_id = None
 
+    md = {"plan_args": plan_args, "scan_id": scan_id}
 
+    @bpp.run_decorator(md=md)
+    def _fly1d_wrapper():
+        yield from _fly1d(**plan_args)
 
-
-
+    yield from _fly1d_wrapper()

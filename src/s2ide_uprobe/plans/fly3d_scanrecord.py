@@ -38,7 +38,9 @@ def fly3d_scanrecord(
 ):
     """Create and move sample theta before 2D scan"""
 
-    sample_angles = np.arange(smp_theta_start, smp_theta_end + smp_theta_stepsize, smp_theta_stepsize)
+    sample_angles = np.arange(
+        smp_theta_start, smp_theta_end + smp_theta_stepsize, smp_theta_stepsize
+    )
     logger.info(f"The requested sample angles are {sample_angles}")
 
     for i, smp_theta in enumerate(sample_angles):

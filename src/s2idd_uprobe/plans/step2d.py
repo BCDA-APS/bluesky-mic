@@ -8,7 +8,11 @@ from apsbits.core.instrument_init import oregistry
 from s2idd_uprobe.utils.fly import get_next_file_name
 from s2idd_uprobe.plans.toggle_usercalc import disable_usercalc, enable_usercalc
 from s2idd_uprobe.utils.fly import validate_scan_parameters
-from s2idd_uprobe.plans.stepscan_core import _step1d_xrfnc, _common_stepscan_cleanup, _common_stepscan_setup
+from s2idd_uprobe.plans.stepscan_core import (
+    _step1d_xrfnc,
+    _common_stepscan_cleanup,
+    _common_stepscan_setup,
+)
 import numpy as np
 import logging
 from mic_common.utils.timer_decorator import loop_timer_context
@@ -42,10 +46,9 @@ def step2d(
     xrf_on=True,
     snake_scan=False,
 ):
-
     """Capture the input plan parameters"""
     plan_args = capture_params(step2d, **locals())
-    
+
     """Disable usercalc"""
     yield from disable_usercalc()
 
@@ -53,18 +56,20 @@ def step2d(
     if sample_z is not None:
         yield from bps.mv(samz, sample_z)
     if x_center is None:
-        yield from bps.mv(samx, samx.position - width/2)
+        yield from bps.mv(samx, samx.position - width / 2)
     if y_center is not None:
-        yield from bps.mv(samy, samy.position - height/2)
+        yield from bps.mv(samy, samy.position - height / 2)
 
     """Check input parameters and detector status. Turn off xrf_netcdf file plugin"""
     logger.info("Validating scan parameters and detector status")
-    validate_scan_parameters(stepsize_x=stepsize_x, stepsize_y=stepsize_y, width=width, height=height, dwell_ms=dwell_ms)
+    validate_scan_parameters(
+        stepsize_x=stepsize_x, stepsize_y=stepsize_y, width=width, height=height, dwell_ms=dwell_ms
+    )
 
     """Construct the scan points and set samx motor speed to its max speed"""
     logger.info("Constructing the scan points and setting samx motor speed to its max speed")
-    xarr = np.arange(x_center - width/2, x_center + width/2, stepsize_x)
-    yarr = np.arange(y_center - height/2, y_center + height/2, stepsize_y)
+    xarr = np.arange(x_center - width / 2, x_center + width / 2, stepsize_x)
+    yarr = np.arange(y_center - height / 2, y_center + height / 2, stepsize_y)
     x_motor_retrace = samx.get_max_velocity()
     yield from bps.mv(samx.velocity, x_motor_retrace)
 
@@ -78,15 +83,16 @@ def step2d(
     )
     devices = [det for k, det in devices_dict.items()]
     fileplugins = [fileplugin for k, fileplugin in fileplugins_dict.items()]
-    
+
     # Get detector objects from the dictionary
     xrf = devices_dict["xrf"]
     sis3820 = devices_dict["sis3820"]
-    md = {"plan_args": plan_args,
-          "shape": (len(yarr), len(xarr)),
-          "extents": ((xarr[0], xarr[-1]), (yarr[0], yarr[-1])),
-          }
-    
+    md = {
+        "plan_args": plan_args,
+        "shape": (len(yarr), len(xarr)),
+        "extents": ((xarr[0], xarr[-1]), (yarr[0], yarr[-1])),
+    }
+
     # @bpp.run_decorator(md=md)
     def _step2d():
         """Start the scan"""
@@ -103,8 +109,7 @@ def step2d(
                     elif det.name == "tmm2":
                         yield from det.start_acquire()
 
-
-                # try:    
+                # try:
                 #     yield from save_ophyd_value(samy)
                 # except Exception as e:
                 #     logger.error(f"Error saving ophyd value for samy: {e}")
@@ -115,26 +120,16 @@ def step2d(
 
                 # yield from _step1d(xrf, sis3820, samx, xarr, timer, [samx, samy],
                 #                 y_index=i)
-                yield from _step1d_xrfnc(devices, fileplugins, samx, xarr, timer, [samx, samy],
-                                        y_index=i)
+                yield from _step1d_xrfnc(
+                    devices, fileplugins, samx, xarr, timer, [samx, samy], y_index=i
+                )
 
                 # stop xrf_netcdf file plugin
                 for fileplugin in fileplugins:
                     if fileplugin is not None and fileplugin.name == "xrf_netcdf":
                         yield from fileplugin.set_capture("Done")
-                
 
-    
     yield from _step2d()
-    
+
     """Stop the scan"""
     yield from _common_stepscan_cleanup(devices_dict)
-
-            
-            
-
-    
-
-
-
-    

@@ -12,11 +12,11 @@ from ophyd import EpicsSignal
 
 MAX_RETRIES = 5
 
+
 class Motor(EpicsMotor):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        
+
     def _move_changed(self):
         return self.max_velocity.get()
-        

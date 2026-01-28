@@ -17,6 +17,7 @@ import logging
 # from ..configs.device_config import hydra1_startposition
 
 import os
+
 # from ..utils.scan_monitor import execute_scan_1d
 # from .dm_plans import dm_submit_workflow_job
 
@@ -26,6 +27,7 @@ import os
 # from apstools.devices import DM_WorkflowConnector
 import bluesky.plan_stubs as bps
 from apsbits.utils.controls_setup import oregistry
+
 # from mic_instrument.configs.device_config import xmap_buffer
 
 
@@ -36,6 +38,7 @@ logger.info(__file__)
 # XMAP_BUFFER = 124
 
 hydra_startposition = oregistry["hydra_startposition"]
+
 
 def setup_flyscan_XRF_triggers(scanrecord, xrf, xrf_netcdf, sis3820, num_pulses):
     """
@@ -116,9 +119,7 @@ def setup_eiger_filewriter(
             )
             eiger_filewriter = eiger
         except Exception as e:
-            logger.error(
-                f"Error occurs when setting up eiger filewriter: {eiger_filewriter}: {e}"
-            )
+            logger.error(f"Error occurs when setting up eiger filewriter: {eiger_filewriter}: {e}")
     else:
         try:
             yield from eiger_filewriter.setup_file_writer(

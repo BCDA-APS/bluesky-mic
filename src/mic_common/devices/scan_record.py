@@ -36,19 +36,21 @@ class NewScanRecord(SscanRecord):
         for i, t_pv in enumerate(trigger_pvs):
             self.stage_sigs[f"triggers.t{i+1}.trigger_pv"] = t_pv
 
-    def config(self, 
-                positioner_setpoint: str, 
-                positioner_readback: str="", 
-                scanmode: str="LINEAR", 
-                rel_abs_motion: str="ABSOLUTE",
-                center: float=None, 
-                width: float=0, 
-                stepsize: float=0, 
-                bspv: str="", 
-                trigger_pvs: list=None):
+    def config(
+        self,
+        positioner_setpoint: str,
+        positioner_readback: str = "",
+        scanmode: int = 0,  # 0: "LINEAR", 1: "TABLE", 2: "FLY"
+        rel_abs_motion: int = 0,  # 0: "ABSOLUTE", 1: "RELATIVE"
+        center: float = None,
+        width: float = 0,
+        stepsize: float = 0,
+        bspv: str = "",
+        aspv: str = "",
+        trigger_pvs: list = None,
+    ):
+        """Stage the corresponding signals for scanrecord configuration
 
-        """ Stage the corresponding signals for scanrecord configuration
-        
         Parameters:
         positioner_setpoint: positioner PV string (to get setpoint pv: motor.user_setpoint.pvname)
         positioner_readback: positioner readback PVstring (to get readback pv: motor.user_readback.pvname)
@@ -59,17 +61,19 @@ class NewScanRecord(SscanRecord):
         stepsize: float stepsize of the scan
         bspv: PV string before scan PV
         trigger_pvs: list of PV strings of detector trigger PVs
-        
+
         """
         if self.connected:
             self.stage_sigs.clear()
-            self.stage_sigs['positioners.p1.setpoint_pv'] = positioner_setpoint
-            self.stage_sigs['positioners.p1.readback_pv'] = positioner_readback
-            self.stage_sigs['positioners.p1.mode'] = scanmode
-            self.stage_sigs['positioners.p1.abs_rel'] = rel_abs_motion
-            self.stage_sigs['positioners.p1.center'] = center
-            self.stage_sigs['positioners.p1.width'] = width
-            self.stage_sigs['positioners.p1.step_size'] = stepsize
+            self.stage_sigs["bspv"] = bspv
+            self.stage_sigs["positioners.p1.setpoint_pv"] = positioner_setpoint
+            self.stage_sigs["positioners.p1.readback_pv"] = positioner_readback
+            self.stage_sigs["positioners.p1.mode"] = scanmode
+            self.stage_sigs["positioners.p1.abs_rel"] = rel_abs_motion
+            self.stage_sigs["positioners.p1.center"] = center
+            self.stage_sigs["positioners.p1.width"] = width
+            self.stage_sigs["aspv"] = aspv
+            self.positioners.p1.step_size.put(stepsize)
             if trigger_pvs is not None:
                 self.stage_detTriggers(trigger_pvs)
 
@@ -89,11 +93,11 @@ class ScanRecord(SscanRecord):
     start_position = Component(EpicsSignal, ".P1SP")
     end_position = Component(EpicsSignal, ".P1EP")
 
-    detTrigger_1_old = ''
-    detTrigger_2_old = ''
-    detTrigger_3_old = ''
-    detTrigger_4_old = ''
-    bspv_old = ''
+    detTrigger_1_old = ""
+    detTrigger_2_old = ""
+    detTrigger_3_old = ""
+    detTrigger_4_old = ""
+    bspv_old = ""
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -111,9 +115,7 @@ class ScanRecord(SscanRecord):
                 f"Set center to {center}, width to {width}, and stepsize to {ss} in {self.prefix}."
             )
         except Exception as e:
-            logger.error(
-                f"Error setting center, width, and stepsize in {self.prefix}: {e}"
-            )
+            logger.error(f"Error setting center, width, and stepsize in {self.prefix}: {e}")
 
     def set_detTriggers(self, trigger_pvs):
         """
@@ -130,7 +132,7 @@ class ScanRecord(SscanRecord):
             detTri.put(pv_name)
             yield from bps.sleep(0.1)
             logger.info(f"Set {detTri.pvname} to {pv_name} in {self.prefix}.")
-    
+
     def save_current_detTriggers(self):
         self.detTrigger_1_old = self.triggers.t1.trigger_pv.get()
         self.detTrigger_2_old = self.triggers.t2.trigger_pv.get()
@@ -165,8 +167,7 @@ class ScanRecord(SscanRecord):
         self.triggers.t2.trigger_pv.put("")
         self.triggers.t3.trigger_pv.put("")
         self.triggers.t4.trigger_pv.put("")
-    
-    
+
     @mode_setter("scan_mode")
     def set_scan_mode(self, mode):
         pass

@@ -5,6 +5,7 @@ from ophyd import Device
 from ophyd import EpicsSignal
 from mic_common.utils.device_utils import value_setter, mode_setter
 
+
 class Hydra(Device):
     """Hydra device."""
 
@@ -56,5 +57,3 @@ class Hydra(Device):
     def set_polarity(self, polarity):
         """Set the polarity."""
         self.polarity.put(polarity)
-
-    

@@ -53,7 +53,7 @@ det_foldername = {"xrf": "flyXRF", "tmm1": "tetramm1", "tmm2": "tetramm2"}
 def _common_stepscan_setup(xrf_on, preamp1_on, preamp2_on, num_pts, dwell_ms, filename):
     """
     Common setup function that handles detector configuration and file I/O setup.
-    
+
     Parameters
     ----------
     xrf_on : bool
@@ -68,7 +68,7 @@ def _common_stepscan_setup(xrf_on, preamp1_on, preamp2_on, num_pts, dwell_ms, fi
         Dwell time in milliseconds
     filename : str
         Filename for the scan
-        
+
     Returns
     -------
     tuple
@@ -76,7 +76,9 @@ def _common_stepscan_setup(xrf_on, preamp1_on, preamp2_on, num_pts, dwell_ms, fi
     """
     # Check input parameters and detector status. Turn off xrf_netcdf file plugin
     logger.info("Validating scan parameters and detector status")
-    devices, fileplugins = validate_device_connections(xrf_on, preamp1_on, preamp2_on, return_devices=True)
+    devices, fileplugins = validate_device_connections(
+        xrf_on, preamp1_on, preamp2_on, return_devices=True
+    )
     # fileplugins2 = [None if plugin is not None and plugin.name == "xrf_netcdf" else plugin for plugin in fileplugins]
 
     # Setup detectors and file I/O
@@ -87,7 +89,7 @@ def _common_stepscan_setup(xrf_on, preamp1_on, preamp2_on, num_pts, dwell_ms, fi
     for det, fileplugin in zip(devices, fileplugins):
         devices_dict[det.name] = det
         fileplugins_dict[det.name] = fileplugin
-        
+
         if det.name == "sis3820":
             yield from det.before_stepscan(num_pts)
             # yield from det.set_erase_start(1)
@@ -113,16 +115,15 @@ def _common_stepscan_setup(xrf_on, preamp1_on, preamp2_on, num_pts, dwell_ms, fi
             )
             # yield from fileplugin.set_capture("CAPTURING")
             logger.info(f"Setup fileIO for {det.name}")
-    
+
     return devices_dict, fileplugins_dict
 
 
-def _step1d(xrf, sis3820, pos_ophyd, pos_arr, timer, 
-            timer_motor_list, y_index=None):
+def _step1d(xrf, sis3820, pos_ophyd, pos_arr, timer, timer_motor_list, y_index=None):
     """
     Core detector execution function used by both step1d and step2d plans.
     Handles detector synchronization and data capture during the scan.
-    
+
     Parameters
     ----------
     xrf : ophyd.Device
@@ -139,7 +140,7 @@ def _step1d(xrf, sis3820, pos_ophyd, pos_arr, timer,
         List of ophyd motor devices to track in the timer
     y_index : int, optional
         Y index for 2D scans (used for timer iteration calculation)
-        
+
     Yields
     ------
     Various bluesky plan operations
@@ -153,43 +154,42 @@ def _step1d(xrf, sis3820, pos_ophyd, pos_arr, timer,
         else:
             # 1D scan context
             timer.iteration(j + 1, motorlist=timer_motor_list)
-            
+
         yield from bps.mv(pos_ophyd, pos)
         # yield from save_ophyd_value(pos_ophyd)
-        
+
         # Setup XRF acquisition waiting
         st = Status()
         wait_active = False
-        
+
         def wait_for_xmap(old_value, value, **kwargs):
             if wait_active:
                 if value == "Done":
                     print("XRF acquisition done")
                     st.set_finished()
                     xrf.acquiring.unsubscribe_all()
-        
+
         xrf.acquiring.subscribe(wait_for_xmap)
         wait_active = True
-        
+
         # Trigger detectors
         yield from xrf.set_erase_start(1)
         yield from sis3820.software_trig(1)
-        
+
         # Wait for XRF acquisition to complete
         yield from run_blocking_function(st.wait)
-        
+
         timer.end_iteration()
 
 
-def _step1d_xrfnc(devices, fileplugins, pos_ophyd, pos_arr, timer, 
-            timer_motor_list, y_index=None):
+def _step1d_xrfnc(devices, fileplugins, pos_ophyd, pos_arr, timer, timer_motor_list, y_index=None):
     """
     Core detector execution function used by both step1d and step2d plans.
     Handles detector synchronization and data capture during the scan.
-    
+
     Parameters
     ----------
-    devices : list  
+    devices : list
         List of ophyd devices
     fileplugins : list
         List of file plugins
@@ -203,7 +203,7 @@ def _step1d_xrfnc(devices, fileplugins, pos_ophyd, pos_arr, timer,
         List of ophyd motor devices to track in the timer
     y_index : int, optional
         Y index for 2D scans (used for timer iteration calculation)
-        
+
     Yields
     ------
     Various bluesky plan operations
@@ -216,9 +216,9 @@ def _step1d_xrfnc(devices, fileplugins, pos_ophyd, pos_arr, timer,
             yield from fileplugin.set_capture("CAPTURING")
 
     for det in devices:
-        if det.name == 'xrf':
+        if det.name == "xrf":
             xrf = det
-        elif det.name == 'sis3820':
+        elif det.name == "sis3820":
             sis3820 = det
 
     # for det in devices:
@@ -236,57 +236,53 @@ def _step1d_xrfnc(devices, fileplugins, pos_ophyd, pos_arr, timer,
         else:
             # 1D scan context
             timer.iteration(j + 1, motorlist=timer_motor_list)
-            
+
         # status.scan_active = True
         yield from bps.mv(pos_ophyd, pos)
         # yield from save_ophyd_value(pos_ophyd)
-        
+
         # Setup XRF acquisition waiting
         st = Status()
         wait_active = False
-        
+
         def wait_for_xmap(old_value, value, **kwargs):
             if wait_active:
                 if value == "Done":
                     print("XRF acquisition done")
                     st.set_finished()
                     xrf.acquiring.unsubscribe_all()
-        
+
         xrf.acquiring.subscribe(wait_for_xmap)
         wait_active = True
-        
+
         # Trigger detectors
         yield from xrf.set_erase_start(1)
         yield from sis3820.software_trig(1)
-        
+
         # Wait for XRF acquisition to complete
         yield from run_blocking_function(st.wait)
-        
+
         timer.end_iteration()
+
 
 def _common_stepscan_cleanup(devices_dict):
     """
     Common cleanup function that handles scan completion tasks for both step1d and step2d plans.
-    
+
     Parameters
     ----------
     devices_dict : dict
         Dictionary of ophyd devices with device names as keys
-        
+
     Yields
     ------
     Various bluesky plan operations for cleanup
     """
     logger.info("Scan completed")
     yield from bps.sleep(0.2)
-    
+
     for det_name, det in devices_dict.items():
         if det_name == "sis3820":
             yield from det.set_external_trigger()
         elif det_name == "xrf":
             yield from det.after_stepscan()
-
-
-
-
-

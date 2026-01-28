@@ -66,7 +66,7 @@ def get_next_file_name(savedata):
     str
         Next file name
     """
-    
+
     # Update file name
     savedata.update_next_file_name()
     next_file_name = savedata.next_file_name
@@ -75,11 +75,18 @@ def get_next_file_name(savedata):
     return filename
 
 
-def setup_detectors_and_fileio(stepsize_x, num_pulses, motor_resolution, dwell_time,
-                               xrf_on=True, preamp1_on=True, preamp2_on=False):
+def setup_detectors_and_fileio(
+    stepsize_x,
+    num_pulses,
+    motor_resolution,
+    dwell_time,
+    xrf_on=True,
+    preamp1_on=True,
+    preamp2_on=False,
+):
     """
     Common setup for SIS3820, XMAP, and XRF netCDF file writer.
-    
+
     Parameters
     ----------
     stepsize_x : float
@@ -101,9 +108,11 @@ def setup_detectors_and_fileio(stepsize_x, num_pulses, motor_resolution, dwell_t
     str
         Filename for the scan
     """
-    
+
     # Validate the devices
-    devices, fileplugins = validate_device_connections(xrf_on, preamp1_on, preamp2_on, return_devices=True)
+    devices, fileplugins = validate_device_connections(
+        xrf_on, preamp1_on, preamp2_on, return_devices=True
+    )
     logger.debug(f"devices: {devices}")
     logger.debug(f"fileplugins: {fileplugins}")
 
@@ -111,17 +120,19 @@ def setup_detectors_and_fileio(stepsize_x, num_pulses, motor_resolution, dwell_t
     savedata = oregistry["savedata"]
     filename = get_next_file_name(savedata)
 
-
     # # Setup the SIS3820 and XMAP (XRF)
-    # yield from setup_flyscan_SIS3820_XMAP(sis3820, xrf, stepsize_x, 
+    # yield from setup_flyscan_SIS3820_XMAP(sis3820, xrf, stepsize_x,
     #                                     num_pulses, motor_resolution)
 
     # Setup detector and fileio
     for det, fileplugin in zip(devices, fileplugins):
         if det.name == "sis3820":
-            yield from det.before_flyscan(num_pulses, stepsize=stepsize_x, 
-                                      motor_resolution=motor_resolution,
-                                      update_prescale=True)
+            yield from det.before_flyscan(
+                num_pulses,
+                stepsize=stepsize_x,
+                motor_resolution=motor_resolution,
+                update_prescale=True,
+            )
         elif det.name == "xrf":
             yield from det.before_flyscan(num_pulses)
             # Setup the XRF netCDF
@@ -150,7 +161,7 @@ def setup_detectors_and_fileio(stepsize_x, num_pulses, motor_resolution, dwell_t
 def setup_motor_positions_and_speeds(x_start, x_motor_scan_speed, x_motor_retrace):
     """
     Common setup for motor positions and speeds.
-    
+
     Parameters
     ----------
     x_start : float
@@ -173,7 +184,7 @@ def setup_motor_positions_and_speeds(x_start, x_motor_scan_speed, x_motor_retrac
 def calculate_x_scan_parameters(width, x_center, stepsize_x, dwell):
     """
     Calculate common scan parameters.
-    
+
     Parameters
     ----------
     width : float
@@ -184,41 +195,41 @@ def calculate_x_scan_parameters(width, x_center, stepsize_x, dwell):
         Step size in x direction
     dwell : float
         Dwell time
-        
+
     Returns
     -------
     tuple
         (xarr, x_start, x_end, x_motor_scan_speed, x_motor_retrace, num_pulses)
     """
     samx = oregistry["samx"]
-    xarr = np.arange(x_center - width/2, x_center + width/2, stepsize_x)
+    xarr = np.arange(x_center - width / 2, x_center + width / 2, stepsize_x)
     x_motor_scan_speed = samx.calculate_scan_speed(stepsize_x, dwell)
     x_motor_retrace = samx.get_max_velocity()
     num_pulses = len(xarr) - 2
-    
+
     x_start = xarr[0]
     x_end = xarr[-1]
-    
+
     return xarr, x_start, x_end, x_motor_scan_speed, x_motor_retrace, num_pulses
 
 
 def validate_scan_parameters(stepsize_x=None, stepsize_y=None):
     """
     Validate common scan parameters.
-    
+
     Parameters
     ----------
     stepsize_x : float
         Step size in x direction
     stepsize_y : float
         Step size in y direction
-        
+
     Raises
     ------
     ValueError
         If step sizes are invalid
     """
-    if stepsize_x is not None and stepsize_x == 0: 
+    if stepsize_x is not None and stepsize_x == 0:
         raise ValueError("Step size cannot be 0, please check the input parameters")
     if stepsize_y is not None and stepsize_y == 0:
         raise ValueError("Step size cannot be 0, please check the input parameters")
@@ -227,7 +238,7 @@ def validate_scan_parameters(stepsize_x=None, stepsize_y=None):
 def validate_device_connections(xrf_on, preamp1_on, preamp2_on, return_devices=False):
     """
     Validate that required devices are connected.
-    
+
     Raises
     ------
     ValueError
@@ -244,7 +255,9 @@ def validate_device_connections(xrf_on, preamp1_on, preamp2_on, return_devices=F
             devices.append(xrf)
             fileplugins.append(xrf_netcdf)
         except KeyError:
-            logger.warning(f"Either {xrf.prefix} or {xrf_netcdf.prefix} is not connected, please check the status")
+            logger.warning(
+                f"Either {xrf.prefix} or {xrf_netcdf.prefix} is not connected, please check the status"
+            )
     if preamp1_on:
         try:
             tmm1 = oregistry["tmm1"]
@@ -252,7 +265,9 @@ def validate_device_connections(xrf_on, preamp1_on, preamp2_on, return_devices=F
             devices.append(tmm1)
             fileplugins.append(tmm1_hdf)
         except KeyError:
-            logger.warning(f"Either {tmm1.prefix} or {tmm1_hdf.prefix} is not connected, please check the status")
+            logger.warning(
+                f"Either {tmm1.prefix} or {tmm1_hdf.prefix} is not connected, please check the status"
+            )
     if preamp2_on:
         try:
             tmm2 = oregistry["tmm2"]
@@ -260,12 +275,14 @@ def validate_device_connections(xrf_on, preamp1_on, preamp2_on, return_devices=F
             devices.append(tmm2)
             fileplugins.append(tmm2_hdf)
         except KeyError:
-            logger.warning(f"Either {tmm2.prefix} or {tmm2_hdf.prefix} is not connected, please check the status")
+            logger.warning(
+                f"Either {tmm2.prefix} or {tmm2_hdf.prefix} is not connected, please check the status"
+            )
 
     for device in devices:
         if not device.connected:
             raise ValueError(f"{device.name} is not connected, please check the status")
-    
+
     for fileplugin in fileplugins:
         if fileplugin is not None and not fileplugin.connected:
             raise ValueError(f"{fileplugin.name} is not connected, please check the status")
@@ -299,7 +316,7 @@ def reorder_devices(devices):
 class DetectorFileSignal:
     """
     Create a DetectorFileSignal object to monitor the status of the fileplugins and detectors.
-    This class takes ophyd devices and fileplugins as input, and will subscribe to a single callback function named 
+    This class takes ophyd devices and fileplugins as input, and will subscribe to a single callback function named
     update_status. The update_status function will be called when the status of the ophyd devices or fileplugins changes.
     The update_status function will check the status of all other ophyd devices or fileplugins, and update the overall status of the DetectorFileSignal object.
     The overall status of the DetectorFileSignal object will be finished when all ophyd devices or fileplugins are done.
@@ -318,7 +335,7 @@ class DetectorFileSignal:
     """
 
     def __init__(self, fileplugins, devices):
-        
+
         self.fileplugins = fileplugins
         self.devices = devices
         self.ophyd_status = {}
@@ -327,33 +344,36 @@ class DetectorFileSignal:
 
         for fileplugin in self.fileplugins:
             if fileplugin is not None:
-                self.ophyd_status.update({fileplugin.name: {'status':False, 'ophyd_obj':fileplugin}})
+                self.ophyd_status.update(
+                    {fileplugin.name: {"status": False, "ophyd_obj": fileplugin}}
+                )
                 fileplugin.capture.unsubscribe_all()
                 fileplugin.capture.subscribe(self.update_status)
 
         for det in self.devices:
             if det is not None:
                 if det.name == "tmm1":
-                    self.ophyd_status.update({det.name: {'status':False, 'ophyd_obj':det}})
+                    self.ophyd_status.update({det.name: {"status": False, "ophyd_obj": det}})
                     det.acquire.unsubscribe_all()
                     det.acquire.subscribe(self.update_status)
                 elif det.name == "tmm2":
-                    self.ophyd_status.update({det.name: {'status':False, 'ophyd_obj':det}})
+                    self.ophyd_status.update({det.name: {"status": False, "ophyd_obj": det}})
                     det.acquire.unsubscribe_all()
                     det.acquire.subscribe(self.update_status)
-    
 
     def update_status(self, old_value, value, **kwargs):
-        ophyd_name = kwargs['obj'].parent.name
+        ophyd_name = kwargs["obj"].parent.name
         logger.debug(f"ophyd_name: {ophyd_name}, scan_active: {self.scan_active}")
 
         if self.scan_active:
-            self.ophyd_status[ophyd_name]['status'] = True
-            logger.debug(f"ophyd_name: {ophyd_name}, status: {self.ophyd_status[ophyd_name]['status']}")
+            self.ophyd_status[ophyd_name]["status"] = True
+            logger.debug(
+                f"ophyd_name: {ophyd_name}, status: {self.ophyd_status[ophyd_name]['status']}"
+            )
 
             all_status = []
             for _, v in self.ophyd_status.items():
-                all_status.append(v['status'])
+                all_status.append(v["status"])
             logger.debug(f"all_status: {all_status}")
 
             if all(all_status):
@@ -362,9 +382,8 @@ class DetectorFileSignal:
                 logger.debug(f"Scan is finished")
             else:
                 for k, v in self.ophyd_status.items():
-                    if not v['status']:
+                    if not v["status"]:
                         logger.debug(f"{k} is not done")
-                        
 
     def unsubscribe(self):
         for fileplugin in self.fileplugins:

@@ -10,6 +10,7 @@ Includes:
 """
 
 # Standard Library Imports
+from fileinput import filename
 import logging
 from pathlib import Path
 
@@ -32,8 +33,8 @@ from apsbits.utils.logging_setup import configure_logging
 
 # Utility functions from apstools and bluesky
 from apstools.utils import listobjects, listplans
-from bluesky import plan_stubs as bps  
-from bluesky import plans as bp  
+from bluesky import plan_stubs as bps
+from bluesky import plans as bp
 
 # Configuration block
 # Get the path to the instrument package
@@ -68,60 +69,51 @@ bec, peaks = init_bec_peaks(iconfig)
 cat = init_catalog(iconfig)
 RE, sd = init_RE(iconfig, subscribers=[bec, cat])
 
-
-# # These imports must come after the above setup.
-# # Queue server block
-# if running_in_queueserver():
-#     ### To make all the standard plans available in QS, import by '*', otherwise import
-#     ### plan by plan.
-#     from apstools.plans import lineup2  # noqa: F401
-#     from bluesky.plans import *  # noqa: F403
-# else:
-#     # Import bluesky plans and stubs with prefixes set by common conventions.
-#     # The apstools plans and utils are imported by '*'.
-#     from apstools.plans import *  # noqa: F403
-#     from apstools.utils import *  # noqa: F403
-#     from bluesky import plan_stubs as bps  # noqa: F401
-#     from bluesky import plans as bp  # noqa: F401
-
-
 # Experiment specific logic, device and plan loading. # Create the devices.
 make_devices(clear=False, file="devices.yml", device_manager=instrument)
 
-# if host_on_aps_subnet():
-#     RE(make_devices(clear=False, file="device_aps_only.yml"))
-
-local_mountpath = iconfig.get("STORAGE")["MICDATA_MOUNTPATH"]
-xmap_mountpath = iconfig.get("STORAGE")["XMAP_MOUNTPATH"]
-xrf_netcdf = oregistry["xrf_netcdf"]
-xrf_netcdf.micdata_mountpath = local_mountpath
-xrf_netcdf.data_path = xmap_mountpath
-tmm1_hdf = oregistry["tmm1_hdf"]
-tmm1_hdf.micdata_mountpath = local_mountpath
-tmm1_hdf.data_path = local_mountpath
+try:
+    xrf = oregistry["xrf"]
+    xrf.cam.buffer_size = iconfig.get("XMAP")["BUFFER"]
+    xrf.fileplugin.micdata_mountpath = iconfig.get("XMAP")["MOUNT_PATH"]
+    xrf.fileplugin.delimiter = iconfig.get("STORAGE")["FILE_DELIMITER"]
+    xrf.fileplugin.det_foldername = iconfig.get("XMAP")["DET_FOLDERNAME"]
+    xrf.fileplugin.savedata = oregistry["scanrecord"].savedata
+except KeyError:
+    logger.info("xrf not found or xrf.fileplugin not connected or scanrecord not found, skipping")
 
 try:
-    tmm2_hdf = oregistry["tmm2_hdf"]
-    tmm2_hdf.micdata_mountpath = local_mountpath
+    tmm1 = oregistry["tmm1"]
+    tmm1.fileplugin.micdata_mountpath = iconfig.get("STORAGE")["MICDATA_MOUNTPATH"]
+    # tmm1.fileplugin.data_path = iconfig.get("STORAGE")["MICDATA_MOUNTPATH"]
+    tmm1.fileplugin.delimiter = iconfig.get("STORAGE")["FILE_DELIMITER"]
+    tmm1.fileplugin.det_foldername = iconfig.get("TETRAMM")["DET_FOLDERNAME"]
+    tmm1.fileplugin.savedata = oregistry["scanrecord"].savedata
 except KeyError:
-    logger.info("tmm2_hdf not found, skipping")
+    logger.info("tmm1 not found or tmm1.fileplugin not connected or scanrecord not found, skipping")
 
 # Optional Nexus callback block
 if iconfig.get("NEXUS_DATA_FILES", {}).get("ENABLE", False):
     from mic_common.callbacks.nexus_data_file_writer import nxwriter_init
 
     nxwriter = nxwriter_init(RE)
-    nxwriter.savedata = oregistry['savedata']
-    nxwriter.micdata_mountpath = ""
+    try:
+        nxwriter.savedata = oregistry["scanrecord"].savedata
+        nxwriter.micdata_mountpath = ""
+    except KeyError:
+        logger.info("savedata not found, skipping")
 
 
-# from .plans import *
-from .plans.test_nexus import test_nexus
-#from .plans.fly2d import fly2d
+
+
+# # from .plans import *
+# from .plans.test_nexus import test_nexus
+from .plans.fly1d import fly1d
+from .plans.fly2d import fly2d
 from .plans.fly2d_scanrecord import fly2d_scanrecord
-from .plans.step1d_scanrecord import step1d_scanrecord
-# from .plans.step2d import step2d
-# from .plans.step1d import step1d
 
+# from .plans.step1d_scanrecord import step1d_scanrecord
+# # from .plans.step2d import step2d
+# # from .plans.step1d import step1d
 
 

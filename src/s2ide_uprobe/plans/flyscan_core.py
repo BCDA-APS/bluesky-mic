@@ -41,7 +41,7 @@ from s2idd_uprobe.utils.fly import (
     setup_detectors_and_fileio,
     setup_motor_positions_and_speeds,
     calculate_x_scan_parameters,
-    DetectorFileSignal
+    DetectorFileSignal,
 )
 from s2idd_uprobe.utils.nexus_bps_func import save_ophyd_value
 import logging
@@ -54,18 +54,18 @@ usercalc_xmap_filename = oregistry["usercalc_xmap_filename"]
 
 
 def _common_flyscan_setup(
-    xrf_on=True, 
+    xrf_on=True,
     ptycho_on=False,
     preamp_on=False,
     x_center=None,
     width=0,
     stepsize_x=0,
     stepsize_y=None,
-    dwell=0
+    dwell=0,
 ):
     """
     Common setup for both fly1d and fly2d plans.
-    
+
     Parameters
     ----------
     xrf_on : bool
@@ -82,41 +82,52 @@ def _common_flyscan_setup(
         Step size in y direction (for 2D scans)
     dwell : float
         Dwell time
-        
+
     Returns
     -------
     tuple
         (devices, fileplugins, xarr, x_start, x_end, x_motor_scan_speed, x_motor_retrace, num_pulses)
     """
-    
+
     """Disable usercalc"""
     usercalc_xmap_filename.set(0)
 
     """Check input parameters and detector status"""
     logger.info("Validating scan parameters and detector status")
     validate_scan_parameters(stepsize_x=stepsize_x, stepsize_y=stepsize_y)
-    devices, fileplugins = validate_device_connections(xrf_on, preamp_on, ptycho_on, return_devices=True)
+    devices, fileplugins = validate_device_connections(
+        xrf_on, preamp_on, ptycho_on, return_devices=True
+    )
 
     """Construct the scan points and calculate the motor speeds"""
     logger.info("Constructing the scan points and calculating the motor speeds")
-    xarr, x_start, x_end, x_motor_scan_speed, x_motor_retrace, num_pulses = calculate_x_scan_parameters(
-        width, x_center, stepsize_x, dwell
+    xarr, x_start, x_end, x_motor_scan_speed, x_motor_retrace, num_pulses = (
+        calculate_x_scan_parameters(width, x_center, stepsize_x, dwell)
     )
-    logger.info(f"x_start: {x_start}, x_end: {x_end}, x_motor_scan_speed: {x_motor_scan_speed}, num_pulses: {num_pulses}")
+    logger.info(
+        f"x_start: {x_start}, x_end: {x_end}, x_motor_scan_speed: {x_motor_scan_speed}, num_pulses: {num_pulses}"
+    )
 
     """Setup detectors and file I/O"""
     logger.info("Setting up detectors and file I/O")
     numpts_x = len(xarr)
     num_pulses = numpts_x - 2
-    yield from setup_detectors_and_fileio(stepsize_x, num_pulses, samx.resolution.get(), dwell,
-                                          xrf_on=xrf_on, preamp1_on=preamp1_on, preamp2_on=preamp2_on)
-        
+    yield from setup_detectors_and_fileio(
+        stepsize_x,
+        num_pulses,
+        samx.resolution.get(),
+        dwell,
+        xrf_on=xrf_on,
+        preamp1_on=preamp1_on,
+        preamp2_on=preamp2_on,
+    )
+
     """Setup motor positions and speeds"""
     yield from setup_motor_positions_and_speeds(x_start, x_motor_scan_speed, x_motor_retrace)
-    
+
     """Lets move the sis3820 device to the end of the list of devices"""
     devices = reorder_devices(devices)
-    
+
     return devices, fileplugins, xarr, x_start, x_end, x_motor_scan_speed, x_motor_retrace
 
 
@@ -131,7 +142,7 @@ def _common_flyscan_cleanup():
 def _fly1d(devices, fileplugins, samx, x_end):
     """
     This function is being used in both fly1d and fly2d plans.
-    
+
     Parameters
     ----------
     devices : list
@@ -144,7 +155,7 @@ def _fly1d(devices, fileplugins, samx, x_end):
         End position for x motor
     """
     status = DetectorFileSignal(fileplugins, devices)
-    
+
     for fileplugin in fileplugins:
         if fileplugin is not None:
             yield from fileplugin.set_capture("CAPTURING")
@@ -168,8 +179,3 @@ def _fly1d(devices, fileplugins, samx, x_end):
     yield from bps.sleep(0.2)
     yield from run_blocking_function(status.st.wait)
     status.unsubscribe()
-
-
-
-
-

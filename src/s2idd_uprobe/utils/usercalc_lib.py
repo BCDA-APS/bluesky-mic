@@ -32,11 +32,10 @@ def stop_dets(sis3820, xrf, xrf_netcdf):
     """
     yield from sis3820.set_stop_all(1)
     yield from xrf.set_stop_all(1)
-    yield from xrf_netcdf.set_capture("done")       
+    yield from xrf_netcdf.set_capture("done")
 
 
-
-def check_xstage_stuck(elapsed_realtime = 1, sis3820_current_channel = 0):
+def check_xstage_stuck(elapsed_realtime=1, sis3820_current_channel=0):
     """
     Check if the xstage is stuck
 
@@ -55,13 +54,15 @@ def check_xstage_stuck(elapsed_realtime = 1, sis3820_current_channel = 0):
     sis3820_current_channel = sis3820.current_channel.get()
     sis3820_elapsed_real = sis3820.elapsed_real.get()
 
-    if all([
-        sis3820_acquiring,
-        fscan1_running,
-        samx_done_moving,
-        sis3820_current_channel == sis3820_current_channel,
-        sis3820_elapsed_real > elapsed_realtime,
-    ]):
+    if all(
+        [
+            sis3820_acquiring,
+            fscan1_running,
+            samx_done_moving,
+            sis3820_current_channel == sis3820_current_channel,
+            sis3820_elapsed_real > elapsed_realtime,
+        ]
+    ):
         return True
     else:
         return False
@@ -69,7 +70,7 @@ def check_xstage_stuck(elapsed_realtime = 1, sis3820_current_channel = 0):
 
 def unstuck_xstage():
     """
-    Unstuck the xstage by moving to the start or end position 
+    Unstuck the xstage by moving to the start or end position
     depending on which is closer
     """
     start_position = fscan1.start_position.get()
@@ -86,10 +87,9 @@ def unstuck_xstage():
         logger.info(f"Unstuck xstage: Moving to start position {start_position}")
 
 
-
 def sis3820_config(sis3820, fscan1):
     """Set up SIS3820 based on the fscan1 parameters
-    
+
     Parameters:
         sis3820: SIS3820
             The SIS3820 device
@@ -105,7 +105,7 @@ def sis3820_config(sis3820, fscan1):
 
 def xrf_config(xrf, xrf_netcdf, scanrecord, fname, xmap_buffer_size=xmap_buffer):
     """Set up XRF and XRF_NetCDF based on parameters in fscanh
-    
+
     Parameters:
         xrf: XRF
             The XRF device
@@ -126,11 +126,9 @@ def xrf_config(xrf, xrf_netcdf, scanrecord, fname, xmap_buffer_size=xmap_buffer)
         num_buffer = int(np.ceil(total_trigger / xmap_buffer_size))
         yield from xrf_netcdf.set_capture("done")  # Stop capture
         yield from xrf_netcdf.set_filename(fname)  # Set the filename
-        yield from xrf_netcdf.set_filenumber(0)    # Set the next filenumber to 0
+        yield from xrf_netcdf.set_filenumber(0)  # Set the next filenumber to 0
         yield from xrf_netcdf.set_num_capture(num_buffer)
         yield from xrf.flyscan_before(total_trigger)
     else:
         # For step scan, we don't save netcdf files and just need to configure XMAP
         yield from xrf.stepscan_before()
-
-

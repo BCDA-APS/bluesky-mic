@@ -35,159 +35,98 @@ Key Features:
 
 __all__ = """
     fly2d
-""".split() 
+""".split()
 
 import logging
-import numpy as np
-import bluesky.plan_stubs as bps
 import bluesky.preprocessors as bpp
 from apsbits.core.instrument_init import oregistry
-from s2idd_uprobe.utils.fly import get_next_file_name
-from s2idd_uprobe.utils.param_capture import capture_params
-from s2idd_uprobe.plans.flyscan_core import (
-    _common_flyscan_setup,
-    _common_flyscan_cleanup,
-    _fly1d
-)
-from mic_common.utils.timer_decorator import loop_timer_context
-# from mic_common.utils.param_capture import capture_params
-from s2idd_uprobe.utils.nexus_bps_func import save_ophyd_value
+from s2idd_uprobe.utils.fly import validate_scan_parameters
+from mic_common.utils.param_capture import capture_params
+from s2idd_uprobe.plans.flyscan_core import _fly2d
 
 logger = logging.getLogger(__name__)
 
 savedata = oregistry["savedata"]
-samx = oregistry["samx"]
-samy = oregistry["samy"]
-samz = oregistry["samz"]
+sample = oregistry["sample"]
+# scanrecord = oregistry["scanrecord"]
+# savedata = scanrecord.savedata
 
 def fly2d(
-    samplename="smp1",
-    user_comments="",
-    width=0,
-    x_center=None,
-    stepsize_x=0,
-    height=0,
-    y_center=None,
-    stepsize_y=0,
-    dwell_ms=0,
-    sample_z=None,
-    inc_eng=None,
-    adjust_zp=False,
-    preamp2_on=False,
-    preamp1_on=True,
-    xrf_on=True,
-    snake_scan=False,
+    samplename: str = "smp1",
+    user_comments: str = "",
+    width: float = 0,
+    x_center: float = None,
+    stepsize_x: float = 0,
+    height: float = 0,
+    y_center: float = None,
+    stepsize_y: float = 0,
+    dwell_ms: float = 0,
+    sample_z: float = None,
+    preamp1_on: bool = True,
+    xrf_on: bool = True,
+    snake_scan: bool = False,
 ):
-    
     """
     Execute a 2D flyscan over a rectangular area without using Scan Record.
-    
+
     Parameters
     ----------
     samplename:
-        The name of the sample for file naming. Default: "smp1". Type: str
+        The name of the sample for file naming. Default: "smp1". 
     user_comments:
-        User comments to be recorded with the scan data. Default is "". Type: str
+        User comments to be recorded with the scan data. Default is "". 
     width:
-        The total width of the scan area in microns. Default: 0. Type: float
+        The total width of the scan area in microns. Default: 0. 
     x_center:
-        The center position of the scan in the x-direction in microns. If not provided, the current x-motor position will be used as the center. Default: None. Type: float
+        The center position of the scan in the x-direction in microns. If not provided, 
+        the current x-motor position will be used as the center. Default: None. 
     stepsize_x:
-        The step size (spatial resolution) in the x-direction in microns. Default: 0. Type: float
+        The step size (spatial resolution) in the x-direction in microns. Default: 0. 
     height:
-        The total height of the scan area in microns. Default: 0. Type: float
+        The total height of the scan area in microns. Default: 0. 
     y_center:
-        The center position of the scan in the y-direction in microns. If not provided, the current y-motor position will be used as the center. Default: None. Type: float
+        The center position of the scan in the y-direction in microns. If not provided, 
+        the current y-motor position will be used as the center. Default: None. 
     stepsize_y:
-        The step size (spatial resolution) in the y-direction in microns. Default: 0. Type: float
+        The step size (spatial resolution) in the y-direction in microns. Default: 0. 
     dwell_ms:
-        The dwell time per step in milliseconds. Default: 0. Type: float
+        The dwell time per step in milliseconds. Default: 0. 
     sample_z:
-        The sample z position in millimeters. If not provided, the current sample z position will be maintained. Default: None. Type: float
-    inc_eng:
-        The increment in energy (currently not implemented). Default: None. Type: float
-    adjust_zp:
-        Whether to adjust the zero point (currently not implemented). Default: False. Type: bool
+        The sample z position in millimeters. If not provided, the current sample z position
+        will be used. Default: None. 
     xrf_on:
-        Whether to enable the x-ray fluorescence detector. Default is True. Type: bool
+        Whether to enable the x-ray fluorescence detector. Default is True. 
     preamp1_on:
-        Whether to enable preamp1. Preamp1 is used to record metadata. Default is True. Type: bool
-    preamp2_on:
-        Whether to enable preamp2. Default is False. Type: bool
+        Whether to enable preamp1. Preamp1 is used to record metadata. Default is True. 
     snake_scan:
-        Whether to use snake scan pattern (alternating scan directions). When False, standard raster scan. Default is False. Type: bool
+        Whether to use snake scan pattern (alternating scan directions). 
+        When False, standard raster scan. Default is False. 
     """
 
     """Capture the input plan parameters"""
-    if x_center is None:
-        x_center = samx.position
-    if y_center is None:
-        y_center = samy.position
-    if sample_z is None:
-        sample_z = samz.position
-    plan_args = capture_params(fly2d, **locals())
-
-    """Common setup for flyscan plans"""
-    devices, fileplugins, xarr, x_start, x_end, x_motor_scan_speed, x_motor_retrace = yield from _common_flyscan_setup(
-        xrf_on=xrf_on, 
-        preamp1_on=preamp1_on, 
-        preamp2_on=preamp2_on,
-        x_center=x_center,
-        width=width,
-        height=height,
-        stepsize_x=stepsize_x,
-        stepsize_y=stepsize_y,
-        dwell_ms=dwell_ms
+    # Use the current motor positions if not provided. If provided, move the motor to the requested position.
+    validate_scan_parameters(
+        width=width, height=height, stepsize_x=stepsize_x, stepsize_y=stepsize_y, dwell_ms=dwell_ms
     )
-    
-    """Setup the sample z, x, and y position"""
-    if sample_z is not None:
-        yield from bps.mv(samz, sample_z)
-    if x_center is None:
-        yield from bps.mv(samx, samx.position - width/2)
-    if y_center is not None:
-        yield from bps.mv(samy, samy.position - height/2)
+    x_center = x_center if x_center is not None else (round(sample.x.position - width / 2, 2))
+    y_center = y_center if y_center is not None else (round(sample.y.position - height / 2, 2))
+    sample_z = sample_z if sample_z is not None else (round(sample.z.position, 2))
 
-    """Construct the y scan points"""
-    yarr = np.arange(y_center - height/2, y_center + height/2, stepsize_y)
-    
-    # Drive the y-motor to the start position
-    x_target = [x_end, x_start]
-    filename = get_next_file_name(savedata)
-    filename = filename.replace(".mda", "")
+    plan_args = capture_params(fly2d, **locals())
+    logger.info(f"Plan arguments: {plan_args}")
 
-    md = {"plan_args": plan_args,
-          "shape": (len(yarr), len(xarr)),
-          "extents": [[x_start, x_end], [yarr[0], yarr[-1]]],
-          }
+    scan_id = None
+    try:
+        scan_id = savedata.next_scan_number.get()
+        logger.info(f"Scan id: {scan_id}")
+    except Exception as e:
+        logger.error(f"Error getting scan id: {e}")
+        scan_id = None
+
+    md = {"plan_args": plan_args, "scan_id": scan_id}
 
     @bpp.run_decorator(md=md)
-    def _fly2d():
-        with loop_timer_context(f"Data saved to {filename}", total_iterations=len(yarr)) as timer:
-            for i, y in enumerate(yarr):
-                timer.iteration(i + 1, samy=y)
-                yield from bps.mv(samy, y)
-                yield from save_ophyd_value(samy)
+    def _fly2d_wrapper():
+        yield from _fly2d(**plan_args)
 
-                if i == 0:
-                    print("Open shutter")
-                    yield from savedata.set_next_scan_number(savedata.next_scan_number.get() + 1)
-                
-                if snake_scan:
-                    x_target_pos = x_target[i%2]
-                    yield from _fly1d(devices, fileplugins, samx, x_target_pos)
-                else:
-                    x_target_pos = x_end
-                    yield from _fly1d(devices, fileplugins, samx, x_target_pos)
-                    yield from bps.mv(samx.velocity, x_motor_retrace)
-                    yield from bps.mv(samx, x_start)
-                    yield from bps.mv(samx.velocity, x_motor_scan_speed)
-                    logger.debug(f"x_motor velocity = {samx.velocity.get()}")
-                timer.end_iteration()
-
-    yield from _fly2d()
-    
-    """Common cleanup for flyscan plans"""
-    yield from _common_flyscan_cleanup()
-
-    
+    yield from _fly2d_wrapper()

@@ -31,6 +31,7 @@ class ScanMonitor:
         line_delta (float): Time taken for line scan.
         scan_time_remaining (float): Estimated remaining scan time.
         outter_print_msg (bool): Whether to print outer loop messages.
+        sample (Sample, optional): Sample ophyd device.
     """
 
     current_line = 0
@@ -39,8 +40,10 @@ class ScanMonitor:
     line_delta = 0
     scan_time_remaining = 0
     outter_print_msg = False
-
-    def __init__(self, numpts_x=None, scan_name=None, numpts_y=0):
+    sample = None
+    verbose = False
+    
+    def __init__(self, numpts_x=None, scan_name=None, numpts_y=0, sample=None, verbose=False):
         """Initialize ScanMonitor.
 
         Parameters:
@@ -54,6 +57,8 @@ class ScanMonitor:
         self.numpts_x = numpts_x
         self.numpts_y = numpts_y
         self.scan_name = scan_name
+        self.sample = sample
+        self.verbose = verbose
 
     def update_eta(self):
         """Update estimated time remaining."""
@@ -69,12 +74,11 @@ class ScanMonitor:
             value (int): Current counter value.
             **kwargs: Additional keyword arguments.
         """
+
         if self.counter_active:
             if value >= 1:
                 self.update_eta()
-                self.scan_time_remaining = round(
-                    (self.numpts_y - value) * self.line_delta, 2
-                )
+                self.scan_time_remaining = round((self.numpts_y - value) * self.line_delta, 2)
                 self.current_line = value
                 if self.outter_print_msg:
                     prog = round(100 * value / self.numpts_y, 2)
@@ -98,9 +102,7 @@ class ScanMonitor:
             if all([value > 0, value > old_value, value < self.numpts_x]):
                 if self.numpts_y == 0:
                     self.update_eta()
-                    self.scan_time_remaining = round(
-                        (self.numpts_x - value) * self.line_delta, 2
-                    )
+                    self.scan_time_remaining = round((self.numpts_x - value) * self.line_delta, 2)
                     prog = round(100 * value / self.numpts_x, 2)
                     msg = f"Filename: {self.scan_name}, Scan_progress: {prog}%, "
                     msg += f"Line: 1/1, Scan_remaining: {self.scan_time_remaining}, "
@@ -134,9 +136,37 @@ class ScanMonitor:
             self.st.set_finished()
             logger.info(f"FINISHED: ScanMonitor.st {self.st}")
 
+    def watch_faze_inner(self, old_value, value, **kwargs):
+        """Monitor inner loop counter.
+
+        Parameters:
+            old_value (int): Previous counter value.
+            value (int): Current counter value.
+            **kwargs: Additional keyword arguments.
+        """
+        if self.verbose:
+            logger.debug(f"inner faze: old_value: {old_value}, value: {value}")
+
+        if self.sample is not None:
+            if self.counter_active:
+                if value==7:
+                    if self.sample.x.velocity.get() != self.sample.x.scan_speed:
+                        self.sample.x.set_speed(self.sample.x.scan_speed)
+                        if self.verbose:
+                            logger.debug(f"set samx speed to {self.sample.x.scan_speed}")
+                        time.sleep(0.2)
+                elif value==5:
+                    if self.verbose:
+                        logger.debug(f"is samx moving: {self.sample.x.motor_is_moving.get()}")
+                else:
+                    if self.sample.x.velocity.get() != self.sample.x.max_velocity.get():
+                        self.sample.x.set_speed(self.sample.x.max_velocity.get())
+                        if self.verbose:
+                            logger.debug(f"set samx speed to {self.sample.x.max_velocity.get()}")
+                        time.sleep(0.2)
 
 # Usage
-def execute_scan_1d(scan1, scan_name=""):
+def execute_scan_1d(scan1, scan_name="", verbose=False):
     """Execute a 1D scan with monitoring.
 
     Parameters:
@@ -152,7 +182,7 @@ def execute_scan_1d(scan1, scan_name=""):
     print(watcher.scan_name)
 
     scan1.execute_scan.subscribe(watcher.watch_execute_scan)  # Subscribe to the scan
-    scan1.number_points_rbv.subscribe(watcher.watch_counter_inner)
+    scan1.current_point.subscribe(watcher.watch_counter_inner)
 
     try:
         yield from bps.mv(scan1.execute_scan, 1)  # Start scan
@@ -161,12 +191,12 @@ def execute_scan_1d(scan1, scan_name=""):
         watcher.line_time_in = time.perf_counter()
         yield from run_blocking_function(watcher.st.wait)
     finally:
-        scan1.number_points_rbv.unsubscribe_all()
+        scan1.current_point.unsubscribe_all()
         scan1.execute_scan.unsubscribe_all()
     logger.info("Done executing scan")
 
 
-def execute_scan_2d(inner_scan, outter_scan, print_outter_msg=False, scan_name=""):
+def execute_scan_2d(inner_scan, outter_scan, sample=None, print_outter_msg=False, scan_name="", verbose=False):
     """Execute a 2D scan with monitoring.
 
     Parameters:
@@ -174,22 +204,24 @@ def execute_scan_2d(inner_scan, outter_scan, print_outter_msg=False, scan_name="
         outter_scan: Outer scan object.
         print_outter_msg (bool): Whether to print outer loop messages.
         scan_name (str): Name of the scan.
+        adjust_samx_speed (bool): Whether to adjust samx speed during the scan.
     """
     watcher = ScanMonitor(
         numpts_x=inner_scan.number_points.value,
         numpts_y=outter_scan.number_points.value,
         scan_name=scan_name.zfill(SCANNUM_DIGITS),
+        sample=sample,
+        verbose=verbose,
     )
     watcher.outter_print_msg = print_outter_msg
 
     logger.info("Done setting up scan, about to start scan")
     logger.info("Start executing scan")
 
-    outter_scan.execute_scan.subscribe(
-        watcher.watch_execute_scan
-    )  # Subscribe to the scan
-    outter_scan.number_points_rbv.subscribe(watcher.watch_counter_outter)
-    inner_scan.number_points_rbv.subscribe(watcher.watch_counter_inner)
+    outter_scan.execute_scan.subscribe(watcher.watch_execute_scan)  # Subscribe to the scan
+    outter_scan.current_point.subscribe(watcher.watch_counter_outter)
+    inner_scan.current_point.subscribe(watcher.watch_counter_inner)
+    inner_scan.scan_phase.subscribe(watcher.watch_faze_inner)
 
     try:
         yield from bps.mv(outter_scan.execute_scan, 1)  # Start scan
@@ -198,7 +230,8 @@ def execute_scan_2d(inner_scan, outter_scan, print_outter_msg=False, scan_name="
         watcher.line_time_in = time.perf_counter()
         yield from run_blocking_function(watcher.st.wait)
     finally:
-        inner_scan.number_points_rbv.unsubscribe_all()
-        outter_scan.number_points_rbv.unsubscribe_all()
+        inner_scan.current_point.unsubscribe_all()
+        inner_scan.scan_phase.unsubscribe_all()
+        outter_scan.current_point.unsubscribe_all()
         outter_scan.execute_scan.unsubscribe_all()
     logger.info("Done executing scan")

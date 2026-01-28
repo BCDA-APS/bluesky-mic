@@ -45,12 +45,11 @@ class ScanMonitor:
     inner_scan = None
     xmap = None
 
-    def __init__(self, outter_scan=None, inner_scan=None, 
-                 scan_name=None, hydra=None, sis3820=None,  
-                 xmap=None):
-        
+    def __init__(
+        self, outter_scan=None, inner_scan=None, scan_name=None, hydra=None, sis3820=None, xmap=None
+    ):
         """Initialize ScanMonitor.
-        
+
         Parameters:
             outter_scan (ScanRecord, optional): Ophyd outter scanrecord.
             inner_scan (ScanRecord, optional): Ophyd inner scanrecord.
@@ -59,7 +58,7 @@ class ScanMonitor:
             sis3820 (SIS3820, optional): Ophyd sis3820 device.
             xmap (XMap, optional): Ophyd xmap device.
         """
-        
+
         self.scan_active = False
         self.counter_active = False
         self.st = Status()
@@ -91,9 +90,7 @@ class ScanMonitor:
         if self.counter_active:
             if value >= 1:
                 self.update_eta()
-                self.scan_time_remaining = round(
-                    (self.numpts_y - value) * self.line_delta, 2
-                )
+                self.scan_time_remaining = round((self.numpts_y - value) * self.line_delta, 2)
                 self.current_line = value
                 if self.outter_print_msg:
                     prog = round(100 * value / self.numpts_y, 2)
@@ -120,9 +117,7 @@ class ScanMonitor:
             if all([value > 0, value > old_value, value < self.numpts_x]):
                 if self.numpts_y == 0:
                     self.update_eta()
-                    self.scan_time_remaining = round(
-                        (self.numpts_x - value) * self.line_delta, 2
-                    )
+                    self.scan_time_remaining = round((self.numpts_x - value) * self.line_delta, 2)
                     prog = round(100 * value / self.numpts_x, 2)
                     msg = f"Filename: {self.scan_name}, Scan_progress: {prog}%, "
                     msg += f"Line: 1/1, Scan_remaining: {self.scan_time_remaining}, "
@@ -188,8 +183,15 @@ def execute_scan_1d(scan1, scan_name=""):
     logger.info("Done executing scan")
 
 
-def execute_scan_2d(inner_scan, outter_scan, print_outter_msg=False, scan_name="",
-                    hydra=None, sis3820=None, xmap=None):
+def execute_scan_2d(
+    inner_scan,
+    outter_scan,
+    print_outter_msg=False,
+    scan_name="",
+    hydra=None,
+    sis3820=None,
+    xmap=None,
+):
     """Execute a 2D scan with monitoring.
 
     Parameters:
@@ -215,9 +217,7 @@ def execute_scan_2d(inner_scan, outter_scan, print_outter_msg=False, scan_name="
     logger.info("Done setting up scan, about to start scan")
     logger.info("Start executing scan")
 
-    outter_scan.execute_scan.subscribe(
-        watcher.watch_execute_scan
-    )  # Subscribe to the scan
+    outter_scan.execute_scan.subscribe(watcher.watch_execute_scan)  # Subscribe to the scan
     outter_scan.number_points_rbv.subscribe(watcher.watch_counter_outter)
     inner_scan.number_points_rbv.subscribe(watcher.watch_counter_inner)
 

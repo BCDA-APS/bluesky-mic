@@ -117,11 +117,7 @@ class WatchedPvGroup:
         Returns:
             dict: Dictionary of PV values.
         """
-        return {
-            self.name: {
-                key: item.value for key, item in self.db.items() if item.connected
-            }
-        }
+        return {self.name: {key: item.value for key, item in self.db.items() if item.connected}}
 
 
 def watch_single_pv(pvname):

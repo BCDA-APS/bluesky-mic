@@ -22,6 +22,7 @@ from s2ide_uprobe.utils.usercalc_lib import hydra_config, sis3820_config, xrf_co
 from s2ide_uprobe.plans.toggle_usercalc import enable_usercalc, disable_usercalc
 from ophyd.status import Status
 from apstools.plans import run_blocking_function
+
 # from s2ide_uprobe.plans.before_after_fly import setup_flyscan_ptycho_triggers, setup_flyscan_XRF_triggers
 from apsbits.utils.config_loaders import get_config
 from mic_common.utils.param_capture import capture_params
@@ -113,9 +114,9 @@ def step1d_focusing(
     dwell_ms=0,
     zp_z_mm=None,
 ):
-    """Step 1D focusing plan that drives the samx motor. 
-       If zp_z_mm is not provided, the plan will use the current 
-       position of zp_z"""
+    """Step 1D focusing plan that drives the samx motor.
+    If zp_z_mm is not provided, the plan will use the current
+    position of zp_z"""
 
     plan_args = capture_params(step1d_focusing, **locals())
     md = {"plan_args": plan_args}
@@ -158,7 +159,7 @@ def _step1d_scanrecord(
         yield from bps.mv(samz, samz_mm)
     if zp_z_mm is not None:
         yield from bps.mv(zp_z, zp_z_mm)
-    
+
     """Set up scan record based on the scan types and parameters"""
     yield from generalized_scan_1d(
         scanrecord=scan1,
@@ -172,7 +173,7 @@ def _step1d_scanrecord(
     yield from scan1.set_positioner_drive(f"{samx.prefix}.VAL")
     yield from scan1.set_positioner_readback("")
     yield from scan1.set_rel_abs_motion("ABSOLUTE")
-    
+
     """Start executing scan"""
     if exec_plan:
 
@@ -258,7 +259,9 @@ def _step2d_scanrecord(
     filename = next_file_name.replace(".mda", "_XMAP")
 
     """Start executing scan"""
-    yield from execute_scan_2d(scan1, scan2, scan_name=savedata.next_file_name, print_outter_msg=True)
+    yield from execute_scan_2d(
+        scan1, scan2, scan_name=savedata.next_file_name, print_outter_msg=True
+    )
 
     """Enable the usercalc that used in scan record"""
     yield from enable_usercalc()

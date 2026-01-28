@@ -22,9 +22,7 @@ def write_master_h5(
         )
 
     with h5py.File(master_path, "w") as f:
-        for det_name, file_ext, det_k in zip(
-            det_names, det_file_ext, det_key, strict=False
-        ):
+        for det_name, file_ext, det_k in zip(det_names, det_file_ext, det_key, strict=False):
             group = f.create_group(det_name)
             det_dir = os.path.join(*[basedir, sample_name, det_name])
             files = [fn for fn in os.listdir(det_dir) if file_ext in fn]

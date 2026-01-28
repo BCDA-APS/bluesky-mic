@@ -27,6 +27,8 @@ class SaveDataMic(SaveData):
     def update_next_file_name(self):
         """Update the next file name based on scan number."""
         next_scan_number = str(self.get().next_scan_number).zfill(4)
+        current_scan_number = str(self.get().next_scan_number - 1).zfill(4)
+        self.current_file_name = f"{self.get().base_name}{current_scan_number}.mda"
         self.next_file_name = f"{self.get().base_name}{next_scan_number}.mda"
         logger.info(f"Next mda file is: {self.next_file_name}")
 

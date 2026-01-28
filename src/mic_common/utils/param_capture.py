@@ -112,7 +112,9 @@ def capture_params(
     bound_args.apply_defaults()
 
     # Convert to dictionary and convert numpy scalars to Python native types
-    params_dict = {key: _convert_numpy_scalars(value) for key, value in bound_args.arguments.items()}
+    params_dict = {
+        key: _convert_numpy_scalars(value) for key, value in bound_args.arguments.items()
+    }
 
     # Only save to HDF5 if requested
     if save_to_h5:
