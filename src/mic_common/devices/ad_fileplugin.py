@@ -21,7 +21,6 @@ from mic_common.devices.save_data import SaveDataMic
 logger = logging.getLogger(__name__)
 logger.info(__file__)
 
-# savedata = oregistry["savedata"]
 
 class DetBase:
     """Base class for detector file plugins."""
@@ -119,111 +118,6 @@ class DetBase:
         self.stage_sigs["num_capture"] = num_capture
         self.stage_sigs["auto_save"] = 1
 
-    # def setup_file_writer(
-    #     self,
-    #     det_name,
-    #     num_capture,
-    #     next_filenum=0,
-    #     filename="test_$id",
-    #     beamline_delimiter="",
-    #     is19ID=False,
-    # ):
-    #     """
-    #     Set up the EPICS AreaDetector HDF5 filewriter.
-
-    #     Parameters:
-    #     - file_path: str
-    #         The path where the files will be saved.
-    #     - filename_pattern: str, optional
-    #     - eiger_filewriter: The default file writer from Eiger (default is None).
-    #     """
-
-    #     # Stop capturing in case the filewriter is busy
-    #     yield from self.set_capture("done")
-    #     det_path = self.generate_det_filepath(self.savedata, det_name)
-    #     if is19ID:
-    #         newpath = det_path
-    #     else:
-    #         newpath = self.sync_file_path(det_path, beamline_delimiter)
-
-    #     yield from self.set_enable("Enable")
-    #     yield from self.set_filepath(newpath)
-
-    #     if self.file_path_exists.get():
-    #         logger.info(f"File path is set to {self.file_path.get()}")
-    #         yield from self.set_filenumber(next_filenum)
-    #         yield from self.set_filename(filename)
-    #         if num_capture:
-    #             yield from self.set_num_capture(num_capture)
-    #         yield from self.set_auto_save("yes")
-    #         # yield from self.set_capture("capturing")
-    #     else:
-    #         logger.error(f"File path {self.file_path.get()} does not exist")
-    #         raise ValueError(f"File path {self.file_path.get()} does not exist")
-
-    # @value_setter("file_name")
-    # def set_filename(self, filename) -> None:
-    #     """Set the file name for the file writer.
-
-    #     Parameters:
-    #         filename (str): The filename to set.
-    #     """
-    #     pass
-
-    # @value_setter("file_number")
-    # def set_filenumber(self, filenumber) -> None:
-    #     """Set the file number for the file writer.
-
-    #     Parameters:
-    #         filenumber (int): The file number to set.
-    #     """
-    #     pass
-
-    # @value_setter("file_path")
-    # def set_filepath(self, path: str) -> None:
-    #     """Set the file path for the file writer.
-
-    #     Parameters:
-    #         path (str): The file path to set.
-    #     """
-    #     pass
-
-    # @value_setter("num_capture")
-    # def set_num_capture(self, num_capture: int) -> None:
-    #     """Set the number of captures for the file writer.
-
-    #     Parameters:
-    #         num_capture (int): The number of captures to set.
-    #     """
-    #     pass
-
-    # @mode_setter("capture")
-    # def set_capture(self, capture: str) -> None:
-    #     """Set the capture mode for the file writer.
-
-    #     Parameters:
-    #         capture (str): The capture mode to set.
-    #     """
-    #     pass
-
-    # @mode_setter("enable")
-    # def set_enable(self, mode: str) -> None:
-    #     """Set the enable mode for the file writer.
-
-    #     Parameters:
-    #         mode (str): The mode to enable.
-    #     """
-    #     pass
-
-    # @mode_setter("auto_save")
-    # def set_auto_save(self, mode: str) -> None:
-    #     """Set the auto-save mode for the file writer.
-
-    #     Parameters:
-    #         mode (str): The auto-save mode to set.
-    #     """
-    #     pass
-
     def unstage(self):
         """Unstage the device but avoid restoring file_path and file_name from stage_sigs.
 
@@ -249,6 +143,5 @@ class DetNetCDF(DetBase, NetCDFPlugin):
 
     def __init__(self, *args, **kwargs):
         """Initialize DetNetCDF."""
-        # kwargs["prefix"] = kwargs["prefix"] + ":"
         super().__init__(*args, **kwargs)
         self.capture.put(0)
