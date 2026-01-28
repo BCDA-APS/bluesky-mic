@@ -1,0 +1,711 @@
+"""ME7 setup"""
+
+import logging
+import datetime
+
+logger = logging.getLogger(__name__)
+
+import asyncio
+from collections import OrderedDict
+from pathlib import Path
+from time import sleep
+from time import time as ttime
+
+from bluesky.plan_stubs import wait_for
+from epics import caput
+from ophyd import ADComponent
+from ophyd import Component
+from ophyd import Device
+from ophyd import DynamicDeviceComponent
+from ophyd import EpicsSignal
+from ophyd import EpicsSignalRO
+from ophyd import SignalRO
+from ophyd import Staged
+from ophyd.areadetector import DetectorBase
+from ophyd.areadetector import EpicsSignalWithRBV
+from ophyd.areadetector.plugins import AttributePlugin
+from ophyd.areadetector.plugins import ROIPlugin
+from ophyd.areadetector.plugins import ROIStatPlugin
+from ophyd.areadetector.trigger_mixins import ADTriggerStatus
+from ophyd.areadetector.trigger_mixins import TriggerBase
+
+from .mic_ad_mixins import MicHDF5
+from .mic_ad_mixins import VortexDetectorCam
+from mic_common.utils.writeDetH5 import write_det_h5
+
+# MAX_IMAGES = 12216
+MAX_IMAGES = 524288
+MAX_ROIS = 8
+DELAY = 0.2
+
+
+class Trigger(TriggerBase):
+    """
+    This trigger mixin class takes one acquisition per trigger.
+    """
+
+    _status_type = ADTriggerStatus
+    _acquire_time = 0.01
+
+    trigger_mode = "Software"
+    save_images = False
+
+    # @property
+    # def acquire_time(self):
+    #     return self.cam.acquire_time
+
+
+    def __init__(self, *args, image_name=None, **kwargs):
+        super().__init__(*args, **kwargs)
+        if image_name is None:
+            image_name = "_".join([self.name, "image"])
+        self._image_name = image_name
+        self._acquisition_signal = self.cam.acquire
+        self._acquire_busy_signal = self.cam.acquire_busy
+        self._status = None
+        self._delay = DELAY
+        self._trigger_counter = 0
+        self.cam.stage_sigs["erase_on_start"] = "No"
+        # self.setup_software_trigger()
+
+    def setup_internal_trigger(self):
+        self.trigger_mode = "Internal"
+
+        # Stage signals
+        self.cam.stage_sigs["trigger_mode"] = "Internal"
+        self.cam.stage_sigs["num_images"] = 1
+        self.cam.stage_sigs["wait_for_plugins"] = "Yes"
+        self.cam.stage_sigs["acquire_time"] = self._acquire_time
+        if self.save_images:
+            self.hdf1.stage_sigs["enable"] = 1
+            self.hdf1.stage_sigs["auto_save"] = 1
+            self.hdf1.stage_sigs["num_capture"] = MAX_IMAGES
+        else:
+            self.hdf1.stage_sigs["enable"] = 0
+            self.hdf1.stage_sigs["auto_save"] = 0
+
+
+
+    def setup_external_trigger(self):
+        self.trigger_mode = "External"
+
+        # Stage signals
+        self.cam.stage_sigs["trigger_mode"] = "TTL Veto Only"
+        self.cam.stage_sigs["num_images"] = MAX_IMAGES
+        self.cam.stage_sigs["wait_for_plugins"] = "No"
+
+    def setup_software_trigger(self):
+        logger.info("Configuring detector for software triggering")
+        self.trigger_mode = "Software"
+
+        # Stage signals
+        self.cam.stage_sigs["trigger_mode"] = "Software"
+        self.cam.stage_sigs["num_images"] = MAX_IMAGES
+        self.cam.stage_sigs["wait_for_plugins"] = "Yes"
+        self.cam.stage_sigs["acquire_time"] = self._acquire_time
+        if self.save_images:
+            logger.info("Images being saved.")
+            self.hdf1.stage_sigs["enable"] = 1
+            self.hdf1.stage_sigs["auto_save"] = 1
+            self.hdf1.stage_sigs["num_capture"] = MAX_IMAGES
+        else:
+            self.hdf1.stage_sigs["enable"] = 0
+            self.hdf1.stage_sigs["auto_save"] = 0
+
+    def setup_flyscan_mode(
+        self, num_images=MAX_IMAGES, acq_time=0.01, hdf_images=MAX_IMAGES
+    ):
+        self.trigger_mode = "Flyscan"
+
+        # For flyscanning we want to disable all the plugins, which we don't need
+        self.set_plugins("Disable")
+
+        # Stage signals
+        self.cam.stage_sigs["num_images"] = num_images
+        self.cam.stage_sigs["trigger_mode"] = "TTL Veto Only"
+        self.cam.stage_sigs["acquire_time"] = acq_time
+        self.cam.stage_sigs["wait_for_plugins"] = "No"
+        self.cam.stage_sigs["erase_on_start"] = "No"
+
+        # For flyscanning we always want to save images
+        self.hdf1.stage_sigs["enable"] = 1
+        self.hdf1.stage_sigs["auto_save"] = 1
+        self.hdf1.stage_sigs["num_capture"] = hdf_images
+
+        # # Reduntant with set_plugins, this would be the correct way of doing it though,
+        # # so we are leaving the code here for the future.
+        # for i in range(1, 8):
+        #     comp = getattr(self, f"chan{i}")
+        #     comp.stage_sigs["enable"] = 0
+
+        # self._flysetup = True
+
+
+    def stage(self):
+
+        if self.trigger_mode == "Software":
+            # logger.info("Accessed software triggering staging sequence")
+            self._trigger_counter = 0
+            self._acquire_time = self.cam.acquire_time.get()
+            self.setup_software_trigger()
+        elif self.trigger_mode == "Internal":
+            self._acquire_time = self.cam.acquire_time.get()
+            self.setup_internal_trigger()
+
+        # Make sure that detector is not armed.
+        self._acquisition_signal.set(0).wait(timeout=10)
+
+        # if self.trigger_mode == "Internal":
+        #     self._acquire_busy_signal.subscribe(self._acquire_changed)
+
+        super().stage()
+
+        # if self._flysetup or self._softsetup:
+        if self.trigger_mode in ("Flyscan", "Software"):
+            logger.info("Enabling acquisition")
+            self._acquisition_signal.set(1).wait(timeout=10)
+            sleep(0.1)
+            self.cam.soft_trigger.set(0).wait(timeout=10)
+            sleep(self._delay)
+
+    def unstage(self):
+
+        super().unstage()
+        self.cam.acquire.set(0).wait(timeout=10)
+
+        # if self._flysetup:
+        if self.trigger_mode == "Flyscan":
+            self.setup_software_trigger()
+            self.set_plugins("Enable")
+        elif self.trigger_mode == "Software":
+            self._trigger_counter = 0
+
+        # # if not self._softsetup:
+        # if self.trigger_mode == "Internal":
+        #     self._acquire_busy_signal.clear_sub(self._acquire_changed)
+        # self._collect_image = False
+
+
+
+    def trigger(self):
+        if self._staged != Staged.yes:
+            raise RuntimeError(
+                "This detector is not ready to trigger."
+                "Call the stage() method before triggering."
+            )
+
+        # Click the Acquire_button
+        self._status = self._status_type(self)
+        # if self._softsetup:
+        if self.trigger_mode == "Software":
+            if self._trigger_counter >= MAX_IMAGES:
+                self.cam.erase.set(1).wait(timeout=1)
+                self.cam.acquire.set(1).wait(timeout=1)
+                sleep(self._delay)
+                self.cam.soft_trigger.set(0).wait(timeout=1)
+                self._trigger_counter = 0
+                sleep(self._delay)
+            self.cam.soft_trigger.set(1).wait(timeout=1)
+            sleep(self._acquire_time)
+            self.cam.soft_trigger.set(0).wait(timeout=1)
+            sleep(self._delay)
+            self._status.set_finished()
+            self._trigger_counter += 1
+        else:
+            self._acquisition_signal.put(1, wait=True) # TODO: we need to do this properly
+            sleep(self._acquire_time)
+            self._status.set_finished()
+        if self.hdf1.enable.get() in (True, 1, "on", "Enable"):
+            self.generate_datum(self._image_name, ttime(), {})
+
+        return self._status
+
+    def _acquire_changed(self, value=None, old_value=None, **kwargs):
+        "This is called when the 'acquire_busy' signal changes."
+
+        if self._status is None:
+            return
+        if (old_value != 0) and (value == 0):
+            # Negative-going edge means an acquisition just finished.
+            sleep(self._delay)
+            self._status.set_finished()
+            self._status = None
+
+    def arm_plan(self):
+        async def _wait_for_read():
+            future = asyncio.Future()
+
+            async def set_future_done(future):
+                # Checks if there is a new image being read. Stops when there is
+                # no new image for >  sleep_time.
+                status = 0
+                while status != 1:
+                    status = self.cam.acquire_busy.get()
+
+                # await asyncio.sleep(5)
+                future.set_result("Detector done!")
+
+            asyncio.create_task(set_future_done(future))
+            self._acquisition_signal.put(1, use_complete=True)
+            # Wait for the future to complete
+            await future
+
+        yield from wait_for([_wait_for_read], timeout=15)
+
+
+class ROIStatN(Device):
+    roi_name = Component(EpicsSignal, "Name", kind="config")
+    use = Component(EpicsSignal, "Use", kind="config")
+
+    max_sizex = Component(EpicsSignalRO, "MaxSizeX_RBV", kind="config")
+    roi_startx = Component(EpicsSignalWithRBV, "MinY", kind="config")
+    roi_sizex = Component(EpicsSignalWithRBV, "SizeY", kind="config")
+
+    max_sizey = Component(EpicsSignalRO, "MaxSizeY_RBV", kind="config")
+    roi_starty = Component(EpicsSignalWithRBV, "MinY", kind="config")
+    roi_sizey = Component(EpicsSignalWithRBV, "SizeY", kind="config")
+
+    bdg_width = Component(EpicsSignalWithRBV, "BgdWidth", kind="config")
+    min_value = Component(EpicsSignalRO, "MinValue_RBV", kind="omitted")
+    max_value = Component(EpicsSignalRO, "MaxValue_RBV", kind="omitted")
+    mean_value = Component(EpicsSignalRO, "MeanValue_RBV", kind="omitted")
+    total_value = Component(EpicsSignalRO, "Total_RBV", kind="normal")
+    net_value = Component(EpicsSignalRO, "Net_RBV", kind="omitted")
+
+    reset_button = Component(EpicsSignal, "Reset", kind="omitted")
+
+
+class VortexROIStatPlugin(ROIStatPlugin):
+    _default_read_attrs = tuple(f"roi{i}" for i in range(1, MAX_ROIS + 1))
+
+    # ROIs
+    roi1 = Component(ROIStatN, "1:")
+    roi2 = Component(ROIStatN, "2:")
+    roi3 = Component(ROIStatN, "3:")
+    roi4 = Component(ROIStatN, "4:")
+    roi5 = Component(ROIStatN, "5:")
+    roi6 = Component(ROIStatN, "6:")
+    roi7 = Component(ROIStatN, "7:")
+    roi8 = Component(ROIStatN, "8:")
+
+
+class VortexSCA(AttributePlugin):
+    _default_read_attrs = (
+        "clock_ticks",
+        "reset_ticks",
+        "reset_counts",
+        "all_events",
+        "all_good",
+        "window1",
+        "window2",
+        "pileup",
+        "event_width",
+        "dt_factor",
+        "dt_percent",
+    )
+
+    clock_ticks = Component(EpicsSignalRO, "0:Value_RBV")
+    reset_ticks = Component(EpicsSignalRO, "1:Value_RBV")
+    reset_counts = Component(EpicsSignalRO, "2:Value_RBV")
+    all_events = Component(EpicsSignalRO, "3:Value_RBV")
+    all_good = Component(EpicsSignalRO, "4:Value_RBV")
+    window1 = Component(EpicsSignalRO, "5:Value_RBV")
+    window2 = Component(EpicsSignalRO, "6:Value_RBV")
+    pileup = Component(EpicsSignalRO, "7:Value_RBV")
+    event_width = Component(EpicsSignalRO, "8:Value_RBV")
+    dt_factor = Component(EpicsSignalRO, "9:Value_RBV")
+    dt_percent = Component(EpicsSignalRO, "10:Value_RBV")
+
+
+class VortexHDF1Plugin(MicHDF5):
+    # The arVortexHDF1Pluginray counter readback pv is different...
+    array_counter = Component(EpicsSignal, "ArrayCounter", kind="config")
+    array_counter_readback = Component(EpicsSignalRO, "ArrayCounter_RBV", kind="config")
+
+
+class TotalCorrectedSignal(SignalRO):
+    """Signal that returns the deadtime corrected total counts"""
+
+    def __init__(self, prefix, roi_index, **kwargs):
+        if not roi_index:
+            raise ValueError(
+                "chnum must be the channel number, but " "f{roi_index} was passed."
+            )
+        self.roi_index = roi_index
+        super().__init__(**kwargs)
+
+    def get(self, **kwargs):
+        value = 0
+        for ch_num in range(1, self.root.num_channels + 1):
+            channel = getattr(self.root, f"sca{ch_num}")
+            roi = getattr(self.root, "stats{:d}.roi{:d}".format(ch_num, self.roi_index))
+            value += channel.dt_factor.get(**kwargs) * roi.total_value.get(**kwargs)
+        return value
+
+
+def _totals(attr_fix, id_range):
+    defn = OrderedDict()
+    for k in id_range:
+        defn["{}{:d}".format(attr_fix, k)] = (
+            TotalCorrectedSignal,
+            "",
+            {"roi_index": k, "kind": "normal"},
+        )
+    return defn
+
+
+class VortexXspress37(Trigger, DetectorBase):
+    _default_configuration_attrs = ("cam",)
+    _default_read_attrs = (
+        "hdf1",
+        "stats1",
+        "stats2",
+        "stats3",
+        "stats4",
+        "stats5",
+        "stats6",
+        "stats7",
+        "sca1",
+        "sca2",
+        "sca3",
+        "sca4",
+        "sca5",
+        "sca6",
+        "sca7",
+        "total",
+    )
+
+    _read_rois = [1]
+
+    cam = ADComponent(VortexDetectorCam, "det1:")
+
+    chan1 = ADComponent(ROIPlugin, "ROI1:")
+    chan2 = ADComponent(ROIPlugin, "ROI2:")
+    chan3 = ADComponent(ROIPlugin, "ROI3:")
+    chan4 = ADComponent(ROIPlugin, "ROI4:")
+    chan5 = ADComponent(ROIPlugin, "ROI5:")
+    chan6 = ADComponent(ROIPlugin, "ROI6:")
+    chan7 = ADComponent(ROIPlugin, "ROI7:")
+
+    stats1 = ADComponent(VortexROIStatPlugin, "MCA1ROI:")
+    stats2 = ADComponent(VortexROIStatPlugin, "MCA2ROI:")
+    stats3 = ADComponent(VortexROIStatPlugin, "MCA3ROI:")
+    stats4 = ADComponent(VortexROIStatPlugin, "MCA4ROI:")
+    stats5 = ADComponent(VortexROIStatPlugin, "MCA5ROI:")
+    stats6 = ADComponent(VortexROIStatPlugin, "MCA6ROI:")
+    stats7 = ADComponent(VortexROIStatPlugin, "MCA7ROI:")
+
+    sca1 = ADComponent(VortexSCA, "C1SCA:")
+    sca2 = ADComponent(VortexSCA, "C2SCA:")
+    sca3 = ADComponent(VortexSCA, "C3SCA:")
+    sca4 = ADComponent(VortexSCA, "C4SCA:")
+    sca5 = ADComponent(VortexSCA, "C5SCA:")
+    sca6 = ADComponent(VortexSCA, "C6SCA:")
+    sca7 = ADComponent(VortexSCA, "C7SCA:")
+
+    total = DynamicDeviceComponent(_totals("roi", range(1, MAX_ROIS + 1)))
+
+    hdf1 = ADComponent(MicHDF5, "HDF1:")
+
+    # TODO: REMOVE AFTER THE DETECTOR HAS SERVER ACCESS
+    _local_folder = "/home/beams/STAFF19ID/pml/xpress3/data"
+
+    def __init__(
+        self,
+        *args,
+        # default_folder=Path("/home/beams/STAFF19ID/pml/xpress3/data"),
+        hdf1_file_format="%s/%s_%6.6d.h5",
+        **kwargs,
+    ):
+        # self.default_folder = default_folder
+        self.hdf1_file_format = hdf1_file_format
+        super().__init__(*args, **kwargs)
+
+        self.default_settings()
+        # self.setup_software_trigger()
+
+    # Make this compatible with other detectors
+    @property
+    def preset_monitor(self):
+        return self.cam.acquire_time
+
+    @property
+    def num_channels(self):
+        return self.cam.num_channels.get()
+
+    def align_on(self, time=0.1):
+        """Start detector in alignment mode"""
+        self.save_images_off()
+        self.cam.trigger_mode.set("Internal").wait(timeout=10)
+        self.cam.num_images.set(MAX_IMAGES).wait(timeout=10)
+        self.preset_monitor.set(time).wait(timeout=10)
+        self.cam.acquire.set(1).wait(timeout=10)
+
+    def align_off(self):
+        """Stop detector"""
+        self.cam.acquire.set(0).wait(timeout=10)
+
+    # def save_images_on(self):
+    #     self.hdf1.enable.set("Enable").wait(timeout=10)
+
+    def save_images_off(self):
+        self.hdf1.enable.set("Disable").wait(timeout=10)
+
+    # def auto_save_on(self):
+    #     self.hdf1.auto_save.put(1)
+
+    # def auto_save_off(self):
+    #     self.hdf1.auto_save.put(0)
+
+    def wait_for_detector(self):
+        async def _wait_for_read():
+            future = asyncio.Future()
+
+            async def set_future_done(future):
+                # This is really just needed when running the detector very
+                # fast. Seems like that anything beyond ~50 ms count period is
+                # not a problem. So I think this 0.5 sec can be hardcoded.
+                sleep_time = 0.5
+
+                # Checks if there is a new image being read. Stops when there is
+                # no new image for >  sleep_time.
+                old = 0
+                new = self.cam.array_counter.read()["vortex_cam_array_counter"][
+                    "timestamp"
+                ]
+                while old != new:
+                    await asyncio.sleep(sleep_time)
+                    old = new
+                    new = self.cam.array_counter.read()["vortex_cam_array_counter"][
+                        "timestamp"
+                    ]
+
+                future.set_result("Detector done!")
+
+            # Schedule setting the future as done after 10 seconds
+            asyncio.create_task(set_future_done(future))
+
+            # Wait for the future to complete
+            await future
+
+        yield from wait_for([_wait_for_read], timeout=15)
+
+    def default_settings(self):
+        self.hdf1.file_template.put(self.hdf1_file_format)
+        # self.hdf1.file_path.put(str(self.default_folder))
+        self.hdf1.num_capture.put(0)
+
+        self.cam.trigger_mode.put("Internal")
+        self.cam.acquire.put(0)
+
+        self.hdf1.stage_sigs.pop("enable")
+        self.hdf1.stage_sigs["num_capture"] = 0
+        self.hdf1.stage_sigs["capture"] = 1
+
+        # self.setup_manual_trigger()
+        # self.save_images_off()
+        # self.auto_save_off()
+        self.read_rois = [1]
+        self.plot_roi1()
+
+        self.stage_sigs.pop("cam.image_mode")
+        self.cam.stage_sigs["erase_on_start"] = "No"
+
+        for nm in self.component_names:
+            obj = getattr(self, nm)
+            if "blocking_callbacks" in dir(obj):  # is it a plugin?
+                obj.stage_sigs["blocking_callbacks"] = "No"
+
+        self.setup_software_trigger()
+
+    @property
+    def read_rois(self):
+        return self._read_rois
+
+    @read_rois.setter
+    def read_rois(self, rois):
+        # Change total kinds
+        for i in range(1, MAX_ROIS + 1):
+            if i in rois:
+                ktot = getattr(self.total, f"roi{i}").kind.name
+                if ktot == "omitted":
+                    getattr(self.total, f"roi{i}").kind = "normal"
+            else:
+                getattr(self.total, f"roi{i}").kind = "omitted"
+
+        # change ROISTAT kinds
+        for pixel in range(1, self.num_channels + 1):
+            pix = getattr(self, f"stats{pixel}")
+            for i in range(1, MAX_ROIS + 1):
+                k = "normal" if i in rois else "omitted"
+                getattr(pix, f"roi{i}").kind = k
+
+        self._read_rois = list(rois)
+
+    def select_roi(self, rois):
+        for i in range(1, MAX_ROIS + 1):
+            k = (
+                "hinted"
+                if i in rois
+                else "normal"
+                if i in self.read_rois
+                else "omitted"
+            )
+
+            getattr(self.total, f"roi{i}").kind = k
+
+            if k == "hinted" and i not in self.read_rois:
+                self.read_rois.append(i)
+
+    def plot_roi1(self):
+        self.select_roi([1])
+
+    def plot_roi2(self):
+        self.select_roi([2])
+
+    def plot_roi3(self):
+        self.select_roi([3])
+
+    def plot_roi4(self):
+        self.select_roi([4])
+
+    @property
+    def label_option_map(self):
+        return {f"ROI{i} Total": i for i in range(1, MAX_ROIS + 1)}
+
+    @property
+    def plot_options(self):
+        # Return all named scaler channels
+        return list(self.label_option_map.keys())
+
+    def select_plot(self, channels):
+        chans = [self.label_option_map[i] for i in channels]
+        self.select_roi(chans)
+
+    def setup_images(self, base_folder, file_name_base, file_number, flyscan=False):
+        self.hdf1.file_name.set(file_name_base).wait(timeout=10)
+        self.hdf1.file_number.set(file_number).wait(timeout=10)
+        self.auto_save_on()
+        self._flysetup = flyscan
+
+        base_folder = str(base_folder) + f"/{self.name}/"
+        # self.hdf1.file_path.set(base_folder).wait(timeout=10)
+
+        # TODO: need to temporarily change the saving folder.
+        self.hdf1.file_path.set(self._local_folder).wait(timeout=10)
+
+        _, full_path, relative_path = self.hdf1.make_write_read_paths(base_folder)
+
+        return Path(full_path), Path(relative_path)
+
+    @property
+    def save_image_flag(self):
+        _hdf1_auto = True if self.hdf1.autosave.get() == "on" else False
+        _hdf1_on = True if self.hdf1.enable.get() == "Enable" else False
+        return _hdf1_on or _hdf1_auto
+
+    def set_plugins(self, state="Enable"):
+        # TODO: cleaner way to do this?
+
+        _plugins = (
+            "19idME7:Proc1:EnableCallbacks",
+            "19idME7:ROIStat1:EnableCallbacks",
+            "19idME7:ROI1:EnableCallbacks",
+            "19idME7:ROISUM1:EnableCallbacks",
+            "19idME7:C1SCA:EnableCallbacks",
+            "19idME7:C1SCA:TS:EnableCallbacks",
+            "19idME7:MCA1:EnableCallbacks",
+            "19idME7:MCASUM1:EnableCallbacks",
+            "19idME7:MCA1ROI:EnableCallbacks",
+            "19idME7:ROI2:EnableCallbacks",
+            "19idME7:ROISUM2:EnableCallbacks",
+            "19idME7:C2SCA:EnableCallbacks",
+            "19idME7:C2SCA:TS:EnableCallbacks",
+            "19idME7:MCA2:EnableCallbacks",
+            "19idME7:MCASUM2:EnableCallbacks",
+            "19idME7:MCA2ROI:EnableCallbacks",
+            "19idME7:ROI3:EnableCallbacks",
+            "19idME7:ROISUM3:EnableCallbacks",
+            "19idME7:C3SCA:EnableCallbacks",
+            "19idME7:C3SCA:TS:EnableCallbacks",
+            "19idME7:MCA3:EnableCallbacks",
+            "19idME7:MCASUM3:EnableCallbacks",
+            "19idME7:MCA3ROI:EnableCallbacks",
+            "19idME7:ROI4:EnableCallbacks",
+            "19idME7:ROISUM4:EnableCallbacks",
+            "19idME7:C4SCA:EnableCallbacks",
+            "19idME7:C4SCA:TS:EnableCallbacks",
+            "19idME7:MCA4:EnableCallbacks",
+            "19idME7:MCASUM4:EnableCallbacks",
+            "19idME7:MCA4ROI:EnableCallbacks",
+            "19idME7:ROI5:EnableCallbacks",
+            "19idME7:ROISUM5:EnableCallbacks",
+            "19idME7:C5SCA:EnableCallbacks",
+            "19idME7:C5SCA:TS:EnableCallbacks",
+            "19idME7:MCA5:EnableCallbacks",
+            "19idME7:MCASUM5:EnableCallbacks",
+            "19idME7:MCA5ROI:EnableCallbacks",
+            "19idME7:ROI6:EnableCallbacks",
+            "19idME7:ROISUM6:EnableCallbacks",
+            "19idME7:C6SCA:EnableCallbacks",
+            "19idME7:C6SCA:TS:EnableCallbacks",
+            "19idME7:MCA6:EnableCallbacks",
+            "19idME7:MCASUM6:EnableCallbacks",
+            "19idME7:MCA6ROI:EnableCallbacks",
+            "19idME7:ROI7:EnableCallbacks",
+            "19idME7:ROISUM7:EnableCallbacks",
+            "19idME7:C7SCA:EnableCallbacks",
+            "19idME7:C7SCA:TS:EnableCallbacks",
+            "19idME7:MCA7:EnableCallbacks",
+            "19idME7:MCASUM7:EnableCallbacks",
+            "19idME7:MCA7ROI:EnableCallbacks",
+        )
+
+        for plugin in _plugins:
+            caput(plugin, state)
+
+    def write_master_h5(
+        self,
+        masterfile_path: str = "",
+        detector_path: str = "",
+        scan_name: str = "",
+        det_name: str = "",
+        det_file_ext: str = ".h5",
+        det_key: str = "/entry",
+    ):
+        """
+        Write master file for detector.
+
+        Parameters:
+            masterfile_path (str): Path to master HDF5 file.
+            detector_path (str): Path to detector directory.
+            scan_name (str): Name of the scan.
+            det_name (str): Name of the detector.
+            det_file_ext (str): File extension for detector files.
+            det_key (str): Key for detector data in HDF5 file.
+        """
+        
+        logger.info(
+            f"{self.__class__.__name__}: Writing HDF5 file to {masterfile_path}"
+        )
+        logger.info(f"{self.__class__.__name__}: Detector path: {detector_path}")
+        logger.info(f"{self.__class__.__name__}: Scan name: {scan_name}")
+
+        attrs_values = {}
+        attrs_values.update({"datetime": str(datetime.datetime.now())})
+        attrs_values.update({"acquire_time": self.cam.acquire_time.get()})
+        attrs_values.update({"num_images": self.cam.num_images.get()})
+        attrs_values.update({"num_frames_saved": self.cam.frame_count.get()})
+
+        trigger_mode = self.cam.trigger_mode.enum_strs[self.cam.trigger_mode.get()]
+        attrs_values.update({"trigger_mode": trigger_mode})
+
+        write_det_h5(
+            masterfile_path=masterfile_path,
+            det_dir=detector_path,
+            scan_name=scan_name,
+            det_name=det_name,
+            det_file_ext=det_file_ext,
+            det_key=det_key,
+            det_attrs_values=attrs_values,
+        )

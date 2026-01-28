@@ -13,26 +13,28 @@ Includes:
 import logging
 from pathlib import Path
 
+# Temporary hklpy2 fix, importing gi before hklpy2 and matplotlib to prevent bugs
+import gi
+import hklpy2
+
 from apsbits.core.best_effort_init import init_bec_peaks
 from apsbits.core.catalog_init import init_catalog
+from apsbits.core.instrument_init import init_instrument
 from apsbits.core.instrument_init import make_devices
-from apsbits.core.instrument_init import oregistry
-
-# Core Functions
 from apsbits.core.run_engine_init import init_RE
-
-# Utility functions
-from apsbits.utils.aps_functions import aps_dm_setup
-from apsbits.utils.aps_functions import host_on_aps_subnet
 from apsbits.utils.baseline_setup import setup_baseline_stream
 
 # Configuration functions
 from apsbits.utils.config_loaders import load_config
 from apsbits.utils.helper_functions import register_bluesky_magics
+from apsbits.utils.helper_functions import running_in_queueserver
 from apsbits.utils.logging_setup import configure_logging
 
+# Utility functions
+from apstools.utils.aps_data_management import dm_setup
 
-# Utility functions from apstools and bluesky
+# Core Functions
+from tiled.client import from_profile
 
 # Configuration block
 # Get the path to the instrument package
@@ -46,44 +48,41 @@ iconfig = load_config(iconfig_path)
 # from the one in the apsbits package
 extra_logging_configs_path = instrument_path / "configs" / "extra_logging.yml"
 configure_logging(extra_logging_configs_path=extra_logging_configs_path)
+
 logger = logging.getLogger(__name__)
 logger.info("Starting Instrument with iconfig: %s", iconfig_path)
 
 # Load the master file config
 master_file_config_path = instrument_path / "configs" / "masterFileConfig.yml"
 
+# initialize instrument
+instrument, oregistry = init_instrument("guarneri")
+
 # Discard oregistry items loaded above.
 oregistry.clear()
 
 # Configure the session with callbacks, devices, and plans.
-aps_dm_setup(iconfig.get("DM_SETUP_FILE"))
+dm_setup(iconfig.get("DM_SETUP_FILE"))
 
 # Command-line tools, such as %wa, %ct, ...
 register_bluesky_magics()
 
 # Bluesky initialization block
-# Instrument = ...
-# oregistry = ...
-# oregistry.clear()
+if iconfig.get("TILED_PROFILE_NAME", {}):
+    profile_name = iconfig.get("TILED_PROFILE_NAME")
+    tiled_client = from_profile(profile_name)
+
 bec, peaks = init_bec_peaks(iconfig)
 cat = init_catalog(iconfig)
-RE, sd = init_RE(iconfig, bec_instance=bec, cat_instance=cat)
+RE, sd = init_RE(iconfig, subscribers=[bec, cat])
 
-# # Setup baseline stream with connect=False is default
-# # Devices with the label 'baseline' will be added to the baseline stream.
-# setup_baseline_stream(sd, oregistry, connect=False)
+# # # Optional Nexus callback block
+# # # delete this block if not using Nexus
+# if iconfig.get("NEXUS_DATA_FILES", {}).get("ENABLE", False):
+#     # from .callbacks.nexus_data_file_writer import nxwriter_init
+#     from mic_common.callbacks.nexus_data_file_writer import nxwriter_init
 
-# # Setup baseline stream with connect=False is default
-# # Devices with the label 'baseline' will be added to the baseline stream.
-# setup_baseline_stream(sd, oregistry, connect=False)
-
-
-# Optional Nexus callback block
-# delete this block if not using Nexus
-if iconfig.get("NEXUS_DATA_FILES", {}).get("ENABLE", False):
-    # from .callbacks.nexus_data_file_writer import nxwriter_init
-    from mic_common.callbacks.nexus_data_file_writer import nxwriter_init
-    nxwriter = nxwriter_init(RE)
+#     nxwriter = nxwriter_init(RE)
 
 # Optional SPEC callback block
 # delete this block if not using SPEC
@@ -97,57 +96,75 @@ if iconfig.get("SPEC_DATA_FILES", {}).get("ENABLE", False):
 
 # # These imports must come after the above setup.
 # # Queue server block
-# if running_in_queueserver():
-#     ### To make all the standard plans available in QS, import by '*', otherwise import
-#     ### plan by plan.
-#     from apstools.plans import lineup2  # noqa: F401
-#     from bluesky.plans import *  # noqa: F403
-# else:
-#     # Import bluesky plans and stubs with prefixes set by common conventions.
-#     # The apstools plans and utils are imported by '*'.
-#     from apstools.plans import *  # noqa: F403
-#     from apstools.utils import *  # noqa: F403
-#     from bluesky import plan_stubs as bps  # noqa: F401
-#     from bluesky import plans as bp  # noqa: F401
+if running_in_queueserver():
+    ### To make all the standard plans available in QS, import by '*', otherwise import
+    ### plan by plan.
+    from apstools.plans import lineup2  # noqa: F401
+    from bluesky.plans import *  # noqa: F403
+else:
+    # Import bluesky plans and stubs with prefixes set by common conventions.
+    # The apstools plans and utils are imported by '*'.
+    from apstools.utils import *  # noqa: F403
+    from bluesky import plan_stubs as bps  # noqa: F401
+    from bluesky import plans as bp  # noqa: F401
+
+# Experiment specific logic, device and plan loading. # Create the devices.
+make_devices(clear=False, file="save_data_device.yml", device_manager=instrument)
+make_devices(clear=False, file="devices.yml", device_manager=instrument)
 
 
-# Experiment specific logic, device and plan loading
-RE(make_devices(clear=False, file="devices.yml"))  # Create the devices.
+# Assign softglue detector key map
+det_keymap = iconfig.get("SOFTGLUE_OUTPUTS")
+try:
+    softglue = oregistry.find("softglue")
+    softglue.det_keymap = det_keymap
+except:
+    logger.info("Softglue not found, detector key map not generated.")
 
-if host_on_aps_subnet():
-    RE(make_devices(clear=False, file="devices_aps_only.yml"))
-    RE(make_devices(clear=False, file="devices_aps_only.yml"))
 
-## Re-initialize eiger hdf5 fileplugin
-ptycho = oregistry['ptycho']
-ptycho.set_filewriter(oregistry['ptycho_hdf'])
+# Diffractometer utilities:
+# import hklpy2 # noqa: F401
+sim_psic = hklpy2.creator(
+    name="sim_psic", solver="hkl_soleil", geometry="E6C",
+    reals="mu eta chi phi yaw pitch".split(),
+)
+sim_psic.core.mode="lifting_detector_mu"
 
-# local_mountpath = iconfig.get("STORAGE")["PATH"]
-# xrf_me7_hdf = oregistry["xrf_me7_hdf"]
-# xrf_me7_hdf.micdata_mountpath = local_mountpath
-# local_mountpath = iconfig.get("STORAGE")["PATH"]
-# xrf_me7_hdf = oregistry["xrf_me7_hdf"]
-# xrf_me7_hdf.micdata_mountpath = local_mountpath
+psic = oregistry['psic']
+psic.wait_for_connection()
+psic.core.mode = "lifting_detector_mu"
 
-from isn.plans.old_plans.sim_plans import *
-from bluesky import plan_stubs as bps
-from bluesky import plans as bp
+# if host_on_aps_subnet():
+#     RE(make_devices(clear=False, file="devices_aps_only.yml"))
+#     RE(make_devices(clear=False, file="devices_aps_only.yml"))
+
+# Setup baseline stream with connect=False is default
+# Devices with the label 'baseline' will be added to the baseline stream.
+setup_baseline_stream(sd, oregistry, connect=False)
+
+
+# # Optional Nexus callback block
+# # delete this block if not using Nexus
+if iconfig.get("NEXUS_DATA_FILES", {}).get("ENABLE", False):
+    # from .callbacks.nexus_data_file_writer import nxwriter_init
+    from mic_common.callbacks.nexus_data_file_writer import nxwriter_init
+
+    nxwriter = nxwriter_init(RE)
+    nxwriter.savedata = oregistry['savedata']
+    nxwriter.micdata_mountpath = ""
+
+
+
+# from isn.plans.old_plans.sim_plans import *
+
 from .plans import *
 
-from mic_common.utils.dm_utils import dm_experiment_setup
+# from mic_common.utils.dm_utils import *
 
-# baseline_devices = [
-#     "ring",
-#     "undulators",
-#     "wbs",
-#     "hhl_mirrors",
-#     "pbs",
-#     "mono",
-#     "lateral_mirror",
-#     "bpm_c",
-#     "bda_vert",
-#     "bpm_d",
-#     "bda_hor"
-# ]
 
-# sd.baseline = [oregistry[device] for device in baseline_devices]
+## QServer functions
+def get_save_data_path():
+    savedata = oregistry.find("savedata", allow_none=True)
+    if savedata is None:
+        return None
+    return savedata.file_system.get()

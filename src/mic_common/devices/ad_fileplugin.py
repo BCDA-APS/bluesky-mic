@@ -8,6 +8,8 @@ Created on Dec 03 2024
 import logging
 import os
 
+from apsbits.core.instrument_init import oregistry
+
 from ophyd.areadetector.plugins import HDF5Plugin
 from ophyd.areadetector.plugins import NetCDFPlugin
 
@@ -19,6 +21,7 @@ from mic_common.devices.save_data import SaveDataMic
 logger = logging.getLogger(__name__)
 logger.info(__file__)
 
+# savedata = oregistry["savedata"]
 
 class DetBase:
     """Base class for detector file plugins."""

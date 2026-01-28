@@ -1,6 +1,6 @@
-"""
-Setup new user in Bluesky.
-"""
+# """
+# Setup new user in Bluesky.
+# """
 
 import logging
 from datetime import datetime
@@ -94,7 +94,7 @@ def dm_upload_wait(
     raise TimeoutError(f"DM upload timed out after {time() - t0:.1f} s.")
 
 
-def list_esafs(year=None, sector="04"):
+def list_esafs(year=None, sector="19"):
     """List ESAFs for a given year and sector.
 
     Parameters:
@@ -208,3 +208,6 @@ def list_proposals(run: str = None):
     if run is None:
         run = get_current_run()["name"]
     return bss_api.listProposals(run)
+
+def dm_experiment_setup():
+    pass

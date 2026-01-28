@@ -1,12 +1,12 @@
 # Configuration for the Bluesky instrument package.
 
 # identify the version of this iconfig.yml file
-ICONFIG_VERSION: 2.0.0
+ICONFIG_VERSION: 2.0.1
 
 # Add additional configuration for use with your instrument.
 
 ### The short name for the databroker catalog.
-DATABROKER_CATALOG: &databroker_catalog 19id_isn
+DATABROKER_CATALOG: 19id_isn
 
 ### RunEngine configuration
 RUN_ENGINE:
@@ -14,7 +14,6 @@ RUN_ENGINE:
         beamline_id: 19IDE
         instrument_name: XSD 19-IDE
         proposal_id: commissioning
-        databroker_catalog: *databroker_catalog
 
     ### EPICS PV to use for the `scan_id`.
     ### Default: `RE.md["scan_id"]` (not using an EPICS PV)
@@ -30,31 +29,43 @@ RUN_ENGINE:
     ### Default: False
     USE_PROGRESS_BAR: false
 
-# Command-line tools, such as %wa, %ct, ...
-USE_BLUESKY_MAGICS: true
+### Baseline stream
+### When ENABLE=true, all ophyd objects with a "baseline" label
+### will be added to the baseline stream.
+BASELINE_LABEL:
+    ENABLE: true
+
 
 ### Best Effort Callback Configurations
 ### Defaults: all true
 ### except no plots in queueserver
 BEC:
     BASELINE: false
-    HEADING: false
+    HEADING: true
     PLOTS: true
-    TABLE: false
+    TABLE: true
 
 ### Support for known output file formats.
 ### Uncomment to use.  If undefined, will not write that type of file.
 ### Each callback should apply its configuration from here.
 NEXUS_DATA_FILES:
-    ENABLE: true
+    ENABLE: false
     FILE_EXTENSION: hdf
 
 SPEC_DATA_FILES:
-    ENABLE: false
+    ENABLE: true
     FILE_EXTENSION: dat
 
 STORAGE:
   PATH: "/gdata/dm/19ID"
+
+SOFTGLUE_OUTPUTS:
+    PTYCHO: 1
+    XRD: 2
+    ME7: 3
+    # RAYSPEC: 4
+    TETRAMM3: 4
+    TETRAMM1: 5
 
 FILE_DELIMITER: "19ID"
 SCAN_OVERHEAD: 0.3

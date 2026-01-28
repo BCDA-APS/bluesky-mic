@@ -1,5 +1,8 @@
-from ophyd import Device, Component, EpicsMotor
+from ophyd import Component
+from ophyd import Device
+from ophyd import EpicsMotor
+
 
 class Diamond_Window(Device):
-    x = Component(EpicsMotor, ':m1', kind='config', labels=('motor','baseline'))
-    y = Component(EpicsMotor, ':m2', kind='config', labels=('motor','baseline'))
+    x = Component(EpicsMotor, ":m1", labels=("motors",))
+    y = Component(EpicsMotor, ":m2", labels=("motors",))

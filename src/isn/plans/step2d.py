@@ -11,19 +11,21 @@ __all__ = """
 """.split()
 
 import logging
+import os
+from pathlib import Path
 
+import h5py
+from apsbits.utils.config_loaders import get_config
+from apsbits.utils.config_loaders import load_config_yaml
 from apsbits.utils.controls_setup import oregistry
 from bluesky import plan_stubs as bps
 from mic_common.utils.scan_monitor import execute_scan_2d
+from mic_common.utils.watch_pvs_write_hdf5 import write_scan_master_h5
+
+from isn.plans.utils.det_setup import ptycho_setup
+from isn.startup import master_file_config_path
 
 from .generallized_scan_1d import generalized_scan_1d
-from bluesky import plan_stubs as bps  
-from apsbits.utils.config_loaders import get_config, load_config_yaml
-from mic_common.utils.watch_pvs_write_hdf5 import write_scan_master_h5
-from pathlib import Path
-from isn.plans.utils.det_setup import xrf_me7_setup, ptycho_setup
-from isn.startup import master_file_config_path
-import h5py, os
 
 logger = logging.getLogger(__name__)
 logger.info(__file__)
@@ -114,11 +116,11 @@ def step2d(
         # Filter out special variables and functions
         params = {"plan_name": func_name.replace("_masterfile", "")}
         for k, v in outer_locals.items():
-            if not k.startswith('__') and not callable(v):
-                params.update({k:v})
+            if not k.startswith("__") and not callable(v):
+                params.update({k: v})
 
         return params
-    
+
     """Put the plan parameters in to dict"""
     bluesky_params = get_bluesky_params()
 
@@ -139,33 +141,46 @@ def step2d(
 
     """Set up the inner loop scan record based on the scan types and parameters"""
     yield from bps.mv(scan1.positioners.p1.abs_rel, "relative".upper())
-    yield from generalized_scan_1d(scan1, samy, scanmode=scanmode, x_center=0, width=height, 
-                                stepsize_x=stepsize_y, dwell=dwell)
+    yield from generalized_scan_1d(
+        scan1,
+        samy,
+        scanmode=scanmode,
+        x_center=0,
+        width=height,
+        stepsize_x=stepsize_y,
+        dwell=dwell,
+    )
 
     """Set up the outter loop scan record"""
     yield from scan2.set_scan_mode(scanmode)
     yield from bps.mv(scan2.positioners.p1.abs_rel, "relative".upper())
-    yield from generalized_scan_1d(scan2, samx, scanmode=scanmode, x_center=0, width=width, 
-                            stepsize_x=stepsize_x, dwell=dwell)
+    yield from generalized_scan_1d(
+        scan2,
+        samx,
+        scanmode=scanmode,
+        x_center=0,
+        width=width,
+        stepsize_x=stepsize_x,
+        dwell=dwell,
+    )
 
-    
     """Configure the detectors"""
     num_capture = scan1.number_points.get()
     savedata.update_next_file_name()
     filename = savedata.next_file_name.replace(".mda", "")
-    
+
     if ptycho_on and ptycho.connected and ptycho_hdf.connected:
         trigger_mode = "Internal Series"
-        yield from ptycho_setup(trigger_mode, num_capture, dwell, 
-                                ptycho_exp_factor, filename)
-        
+        yield from ptycho_setup(
+            trigger_mode, num_capture, dwell, ptycho_exp_factor, filename
+        )
+
     """Generate the scan master file"""
     next_file_name = savedata.next_file_name.replace(".mda", "_master.h5")
     scan_master_h5_path = Path(savedata.file_system.value) / next_file_name
     write_scan_master_h5(master_file_yaml, scan_master_h5_path, bluesky_params)
     logger.info(f"Scan master file saved to {scan_master_h5_path}")
-        
-    
+
     """Start executing scan"""
     savedata.update_next_file_name()
     yield from execute_scan_2d(scan1, scan2, scan_name=savedata.next_file_name)
@@ -177,23 +192,24 @@ def step2d(
         shutter_status = shutter_open_status.value
         yield from bps.sleep(0.2)
 
-
     """Disable manual trigger of eiger"""
     if ptycho_on and ptycho.connected:
         yield from ptycho.set_manual_trigger("Disable")
-    
+
     """Generate detector master file and update detector h5 master file in the scan master file"""
     det_h5_master_path = {}
     dets = {}
-    logger.info(f"Generating detector master file and updating detector h5 master file in the scan master file")
+    logger.info(
+        "Generating detector master file and updating detector h5 master file in the scan master file"
+    )
     if ptycho_on and ptycho.connected and ptycho_hdf.connected:
-        dets.update({'ptycho':{'cam':ptycho, 'file_plugin':ptycho_hdf}})
+        dets.update({"ptycho": {"cam": ptycho, "file_plugin": ptycho_hdf}})
     if xrf_me7_on and xrf_me7.connected and xrf_me7_hdf.connected:
-        dets.update({'xrf_me7':{'cam':xrf_me7, 'file_plugin':xrf_me7_hdf}})
-    
+        dets.update({"xrf_me7": {"cam": xrf_me7, "file_plugin": xrf_me7_hdf}})
+
     for det_name, det_var in dets.items():
-        cam = det_var['cam']
-        file_plugin = det_var['file_plugin']
+        cam = det_var["cam"]
+        file_plugin = det_var["file_plugin"]
         cap_det_name = det_name.upper()
         det_dir = file_plugin.file_path.value
         master_h5_path = Path(det_dir) / next_file_name.replace("_master.h5", ".h5")
@@ -203,10 +219,12 @@ def step2d(
         except Exception as e:
             logger.error(f"Error writing HDF5 file for {cap_det_name}: {e}")
 
-    with h5py.File(scan_master_h5_path, 'r+') as f:
+    with h5py.File(scan_master_h5_path, "r+") as f:
         group = f.create_group("DETECTORS")
         for det_name, master_h5_path in det_h5_master_path.items():
-            rel_path = os.path.relpath(Path(master_h5_path), Path(scan_master_h5_path).parent)
+            rel_path = os.path.relpath(
+                Path(master_h5_path), Path(scan_master_h5_path).parent
+            )
             group[det_name] = h5py.ExternalLink(rel_path, det_name)
 
     yield from bps.sleep(0.2)
