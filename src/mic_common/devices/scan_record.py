@@ -93,11 +93,11 @@ class ScanRecord(SscanRecord):
     start_position = Component(EpicsSignal, ".P1SP")
     end_position = Component(EpicsSignal, ".P1EP")
 
-    detTrigger_1_old = ""
-    detTrigger_2_old = ""
-    detTrigger_3_old = ""
-    detTrigger_4_old = ""
-    bspv_old = ""
+    detTrigger_1_old = ''
+    detTrigger_2_old = ''
+    detTrigger_3_old = ''
+    detTrigger_4_old = ''
+    bspv_old = ''
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -167,7 +167,8 @@ class ScanRecord(SscanRecord):
         self.triggers.t2.trigger_pv.put("")
         self.triggers.t3.trigger_pv.put("")
         self.triggers.t4.trigger_pv.put("")
-
+    
+    
     @mode_setter("scan_mode")
     def set_scan_mode(self, mode):
         pass

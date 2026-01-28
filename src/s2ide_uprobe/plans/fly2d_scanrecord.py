@@ -27,6 +27,7 @@ from s2ide_uprobe.plans.before_after_fly import (
 from apsbits.utils.config_loaders import get_config
 from mic_common.utils.param_capture import capture_params
 import bluesky.preprocessors as bpp
+import numpy as np
 
 logger = logging.getLogger(__name__)
 logger.info(__file__)
@@ -48,31 +49,34 @@ ptycho = oregistry["ptycho"]
 ptycho_hdf = oregistry["ptycho_hdf"]
 xrf_netcdf = oregistry["xrf_netcdf"]
 usercalc_xmap_filename = oregistry["usercalc_xmap_filename"]
+before_fly_out = oregistry["before_fly_out"]
+before_fly_out_trigger = oregistry["before_fly_out_trigger"]
 
 iconfig = get_config()
 scan_overhead = iconfig.get("SCAN_OVERHEAD")
-xmap_buffer = iconfig.get("XMAP", "BUFFER")
+xmap_buffer = iconfig.get("XMAP")["BUFFER"]
 netcdf_delimiter = iconfig.get("FILE_DELIMITER")
 det_foldername = {"xrf": "flyXRF", "preamp1": "tetramm", "preamp2": "tetramm2", "ptycho": "ptycho"}
 
 
 def fly2d_scanrecord(
-    samplename="smp1",
-    user_comments="",
-    width_mm=0,
-    x_center_mm=None,
-    stepsize_x_mm=0,
-    height_mm=0,
-    y_center_mm=None,
-    stepsize_y_mm=0,
-    dwell_ms=0,
-    smp_theta=None,
-    xrf_on=True,
-    ptycho_on=False,
-    ptycho_exp_factor=1,
-    preamp_on=False,
-    wf_run=False,
-    analysisMachine="mona2",
+    samplename: str = "smp1",
+    user_comments: str = "",
+    width_mm: float = 0,
+    x_center_mm: float = None,
+    stepsize_x_mm: float = 0,
+    height_mm: float = 0,
+    y_center_mm: float = None,
+    stepsize_y_mm: float = 0,
+    dwell_ms: float = 0,
+    smp_theta: float = None,
+    xrf_on: bool = True,
+    ptycho_on: bool = False,
+    ptycho_exp_factor: float = 1,
+    preamp_on: bool = False,
+    wf_run: bool = False,
+    analysisMachine: str = "mona2",
+    wait_after_done: int = 0
 ):
     """2D Bluesky plan that drives the x- and y- sample motors in flying mode using
     ScanRecord
@@ -117,14 +121,31 @@ def fly2d_scanrecord(
     """
 
     """Capture the input plan parameters"""
+    if x_center_mm is None:
+        x_center_mm = samx.position
+    if y_center_mm is None:
+        y_center_mm = samy.position
+
     plan_args = capture_params(fly2d_scanrecord, **locals())
     md = {"plan_args": plan_args}
 
+    """Get scan id"""
+    scan_id = None
+    try:
+        scan_id = savedata.next_scan_number.get()
+    except Exception as e:
+        logger.error(f"Error getting scan id: {e}")
+        scan_id = None
+
+    md = {"plan_args": plan_args, "scan_id": scan_id}
     @bpp.run_decorator(md=md)
     def _fly2d():
         yield from _fly2d_scanrecord(**plan_args)
 
     yield from _fly2d()
+
+    """ Wait if desired """
+    yield bps.sleep(wait_after_done)
 
 
 def _fly2d_scanrecord(
@@ -149,7 +170,12 @@ def _fly2d_scanrecord(
     ##TODO Close shutter while setting up scan parameters
 
     """Disable the usercalc that used in scan record"""
-    usercalc_xmap_filename.set(0)
+    usercalc_xmap_filename.put(0)
+    before_fly_out.put(0)
+    before_fly_out_trigger_idx = before_fly_out_trigger.get()
+    set_mode = "Passive"
+    before_fly_out_trigger.put(before_fly_out_trigger.enum_strs.index(set_mode))
+
 
     """Move sample theta to the requested angle"""
     if smp_theta is not None:
@@ -178,6 +204,8 @@ def _fly2d_scanrecord(
     yield from fscan1.set_scan_mode("linear")
     yield from fscan1.set_positioner_drive(f"{samy.prefix}.VAL")
     yield from fscan1.set_positioner_readback(f"{samy.prefix}.RBV")
+    fscan1.save_bspv()
+    fscan1.bspv.put('')
 
     # check if the scan movement is relative or absolute
     scan_movement = fscan1.scan_movement.enum_strs[fscan1.scan_movement.get()]
@@ -203,7 +231,7 @@ def _fly2d_scanrecord(
         num_pulses = numpts_x - 2
 
         if all([xrf_on, xrf.connected, xrf_netcdf.connected]):
-            num_capture = 0  # When it's zero, the num_capture won't be overwritten
+            num_capture = int(np.ceil(num_pulses / xmap_buffer))
             yield from setup_flyscan_XRF_triggers(fscanh, xrf, xrf_netcdf, sis3820, num_pulses)
             yield from xrf.before_flyscan(num_pulses)
 
@@ -254,3 +282,6 @@ def _fly2d_scanrecord(
 
     """Enable the usercalc that used in scan record"""
     usercalc_xmap_filename.put(1)
+    before_fly_out.put(1)
+    before_fly_out_trigger.put(before_fly_out_trigger_idx)
+    fscan1.restore_bspv()

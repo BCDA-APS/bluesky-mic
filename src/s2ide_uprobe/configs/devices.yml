@@ -84,12 +84,18 @@ ophyd.EpicsSignal:
 - name: fscanh_samx
   read_pv: 2xfmS1:userCalc3.A
   write_pv: 2xfmS1:userCalc3.A
-  # read_pv: 2idsft:userCalc5.A
-  # write_pv: 2idsft:userCalc5.A
   labels: ["signal"]
 - name: usercalc_xmap_filename
   write_pv: 2xfmS1:userStringCalc1Enable
   read_pv: 2xfmS1:userStringCalc1Enable
+  labels: ["usercalc"]
+- name: before_fly_out
+  write_pv: 2xfmS1:ExtrauserCalc2Enable
+  read_pv: 2xfmS1:ExtrauserCalc2Enable
+  labels: ["usercalc"]
+- name: before_fly_out_trigger
+  write_pv: 2xfmS1:ExtrauserCalc2.SCAN
+  read_pv: 2xfmS1:ExtrauserCalc2.SCAN
   labels: ["usercalc"]
 - name: usercalc_stepscan_dwell
   write_pv: 2xfmS1:userTran4Enable
@@ -99,3 +105,4 @@ ophyd.EpicsSignal:
   read_pv: 2xfm:Hydra1:StartPosition.VAL
   write_pv: 2xfm:Hydra1:StartPosition.VAL
   labels: ["signal"]
+
