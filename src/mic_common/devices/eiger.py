@@ -141,7 +141,7 @@ class Trigger(TriggerBase):
         self._status = None
         self.cam.acquire.set(0).wait(timeout=1)
         super().unstage()
-        logger.info("Unstaged eiger.")
+        logger.debug("Unstaged eiger.")
 
         if self.trigger_mode == "Flyscan":
             logger.debug("Reverting eiger to internal triggering")

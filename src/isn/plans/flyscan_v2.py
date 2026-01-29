@@ -22,7 +22,7 @@ eshutter = oregistry["eshutter"]
 iconfig = get_config()
 softglue_outputs = iconfig.get("SOFTGLUE_OUTPUTS")
 
-@bpp.run_decorator()
+# @bpp.run_decorator()
 def flyscan(
     detectors,
     x_min: float = -50,  # in um
@@ -40,7 +40,7 @@ def flyscan(
     # interferometer_frequency: int = 1000,  # in Hz
 ):
     
-    logging.info("Starting flyscan")
+    logging.debug("Starting flyscan")
 
     # --- Getting initial sample positions --- #
 
@@ -69,7 +69,7 @@ def flyscan(
             y_npts_ = int(((y_max - y_min) / dy)+1)
             #In y, we only care about max, min and npts.
         
-        logger.info(f"Preparing to collect a {x_npts_, y_npts_} image.")
+        logger.info(f"Starting a {x_npts_, y_npts_} flyscan. Type Ctrl+C twice to stop scan. \n Preparing stages and detectors...")
 
         # --- Getting initial positions --- #
 
@@ -82,7 +82,7 @@ def flyscan(
 
         yield from bps.checkpoint()
 
-        logger.info("Performing softglue cleaning.")
+        logger.debug("Performing softglue cleaning.")
 
         softglue.stop()
         softglue.reset()
@@ -100,7 +100,7 @@ def flyscan(
         # yield from mv(softglue.div_by_n_3.n, user_clock_N)
         softglue.div_by_n_3.n.put(user_clock_N)
 
-        logger.info(f"Interferometry reading set at {1/(interferometry_period*1e-3) :0.3e} Hz")
+        logger.debug(f"Interferometry reading set at {1/(interferometry_period*1e-3) :0.3e} Hz")
 
         # --- Defining Image clock (ckIM)--- #
 
@@ -140,7 +140,7 @@ def flyscan(
         # for the down counter
 
         theta = sample.theta.user_readback.get()
-        logger.info(f"Sample at {theta} degrees")
+        logger.debug(f"Sample at {theta} degrees")
 
         if x_npts_>0:
             # d_value = (x_max - x_min) * 1e-3 / (max(x_npts_,2) - 1)
@@ -208,7 +208,7 @@ def flyscan(
 
         yield from bps.checkpoint()
 
-        logger.info("Enabling analog mode.")
+        logger.debug("Enabling piezo stages analog control mode.")
 
         if not sample.in_analog_mode:
             sample.enable_analog_control()
@@ -241,26 +241,26 @@ def flyscan(
             _starting_x = x0 + step_x
             yield from mv(sample.x, _starting_x)
 
-            logger.info(f"Samply X stage moved to {_starting_x*1e3:0.3e} um.")
+            logger.debug(f"Samply X stage moved to {_starting_x*1e3:0.3e} um.")
 
             # Finally, we move z:
             step_z = sample.compensating_z(dx_)
             _starting_z = z0 + step_z
             yield from mv(sample.z, _starting_z)
 
-            logger.info(f"Samply Z stage moved to {_starting_z*1e3:0.3e} um.")
+            logger.debug(f"Samply Z stage moved to {_starting_z*1e3:0.3e} um.")
 
 
         # --- Load waveform --- #
 
         yield from bps.checkpoint()
 
-        logging.info("Loading waveform.")
+        logging.debug("Loading waveform.")
 
         yield from softglue.enable_waveform()
         yield from softglue.snake_y(y_min=y_min_abs, y_max=y_max_abs, F=F, npts=snake_npts)
 
-        logging.info("Flyscan waveform loaded.")
+        logging.debug("Flyscan waveform loaded.")
         softglue.dac1_write.put("funcGenPulse")
 
         # --- Update savedata's scan number --- #
@@ -288,9 +288,10 @@ def flyscan(
 
         yield from bps.checkpoint()
 
-        logging.info("Arming detectors")
+        logging.debug("Arming detectors")
 
         for detector in detectors:
+            # To follow correct bluesky procedure, we need to change towards using Prepare instead of stage. We should stage before the open run document is generated
             softglue.enable_detector_trigger(detector.name)
             detector.setup_flyscan_mode(
                 num_images=total_images,
@@ -301,9 +302,11 @@ def flyscan(
 
         # --- Open shutter --- #
 
+        yield from bps.open_run()
+
         yield from bps.checkpoint()
 
-        logger.info("Opening shutter.")
+        logger.debug("Opening shutter.")
 
         yield from abs_set(eshutter, "open", wait=True)
 
@@ -317,17 +320,17 @@ def flyscan(
 
     def cleanup():
 
-        logger.info("Flyscan done.")
+        logger.info("Flyscan done. Disarming detectors and returning to original position.")
 
         # --- Close shutter ---#
 
-        logger.info("Closing shutter.")
+        logger.debug("Closing shutter.")
 
         yield from abs_set(eshutter, "close", wait=True)
 
         # --- Unstage detectors --- #
 
-        logging.info("Scanning done.")
+        logging.debug("Scanning done.")
 
         for detector in detectors:
             detector.unstage()
@@ -337,7 +340,7 @@ def flyscan(
 
         # --- Filling up DMA for socket server acquisition --- #
 
-        logger.info("Flushing the DMA")
+        logger.debug("Flushing the DMA")
 
         for i in range(11):
             softglue.scal_to_stream_1.flush.put("1!")
@@ -354,7 +357,7 @@ def flyscan(
                     sample.z, z0)
         
 
-        logger.info("Returning to original positions.")
+        logger.debug("Returning to original positions.")
 
         # --- Softglue cleanup ---
 
@@ -363,7 +366,9 @@ def flyscan(
         softglue.reset()
         softglue.clear_output_fields()
 
-        logger.info("Performing softglue cleanup.")
+        logger.debug("Performing softglue cleanup.")
+
+        yield from bps.close_run()
 
     yield from bpp.finalize_wrapper(fly(), cleanup())
     # yield from fly()

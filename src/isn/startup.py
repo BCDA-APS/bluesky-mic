@@ -43,6 +43,8 @@ instrument_path = Path(__file__).parent
 iconfig_path = instrument_path / "configs" / "iconfig.yml"
 iconfig = load_config(iconfig_path)
 
+
+
 # Additional logging configuration
 # only needed if using different logging setup
 # from the one in the apsbits package
@@ -51,6 +53,8 @@ configure_logging(extra_logging_configs_path=extra_logging_configs_path)
 
 logger = logging.getLogger(__name__)
 logger.info("Starting Instrument with iconfig: %s", iconfig_path)
+
+
 
 # Load the master file config
 master_file_config_path = instrument_path / "configs" / "masterFileConfig.yml"
@@ -72,9 +76,13 @@ if iconfig.get("TILED_PROFILE_NAME", {}):
     profile_name = iconfig.get("TILED_PROFILE_NAME")
     tiled_client = from_profile(profile_name)
 
-bec, peaks = init_bec_peaks(iconfig)
-cat = init_catalog(iconfig)
-RE, sd = init_RE(iconfig, subscribers=[bec, cat])
+
+
+# bec, peaks = init_bec_peaks(iconfig)
+# cat = init_catalog(iconfig)
+# RE, sd = init_RE(iconfig, subscribers=[bec, cat])
+
+from .utils.run_engine import RE, sd
 
 # # # Optional Nexus callback block
 # # # delete this block if not using Nexus

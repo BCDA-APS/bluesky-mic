@@ -384,12 +384,12 @@ class SoftGlueZynq(Device):
     def enable_detector_trigger(self, detector_name, det_keymap=None):
         if det_keymap is None:
             det_keymap = self.det_keymap
-            logger.info(f"Using default softglue detector key mapping: {det_keymap}")
+            logger.debug(f"Using default softglue detector key mapping: {det_keymap}")
 
         try:
             trigger_output = det_keymap[detector_name.upper()]
         except:
-            logger.info(f"{detector_name} is not configured for TTL triggering.")
+            logger.debug(f"{detector_name} is not configured for TTL triggering.")
             return
         output_field = getattr(self.io, f"fo{trigger_output}")
         output_field.put("trigger")

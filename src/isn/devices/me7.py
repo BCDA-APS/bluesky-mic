@@ -95,7 +95,7 @@ class Trigger(TriggerBase):
         self.cam.stage_sigs["wait_for_plugins"] = "No"
 
     def setup_software_trigger(self):
-        logger.info("Configuring detector for software triggering")
+        logger.debug("Configuring detector for software triggering")
         self.trigger_mode = "Software"
 
         # Stage signals
@@ -104,7 +104,7 @@ class Trigger(TriggerBase):
         self.cam.stage_sigs["wait_for_plugins"] = "Yes"
         self.cam.stage_sigs["acquire_time"] = self._acquire_time
         if self.save_images:
-            logger.info("Images being saved.")
+            logger.info("Images being saved. Only proceed if necessary.")
             self.hdf1.stage_sigs["enable"] = 1
             self.hdf1.stage_sigs["auto_save"] = 1
             self.hdf1.stage_sigs["num_capture"] = MAX_IMAGES
@@ -162,7 +162,7 @@ class Trigger(TriggerBase):
 
         # if self._flysetup or self._softsetup:
         if self.trigger_mode in ("Flyscan", "Software"):
-            logger.info("Enabling acquisition")
+            logger.debug("Enabling acquisition")
             self._acquisition_signal.set(1).wait(timeout=10)
             sleep(0.1)
             self.cam.soft_trigger.set(0).wait(timeout=10)
@@ -685,11 +685,11 @@ class VortexXspress37(Trigger, DetectorBase):
             det_key (str): Key for detector data in HDF5 file.
         """
         
-        logger.info(
+        logger.debug(
             f"{self.__class__.__name__}: Writing HDF5 file to {masterfile_path}"
         )
-        logger.info(f"{self.__class__.__name__}: Detector path: {detector_path}")
-        logger.info(f"{self.__class__.__name__}: Scan name: {scan_name}")
+        logger.debug(f"{self.__class__.__name__}: Detector path: {detector_path}")
+        logger.debug(f"{self.__class__.__name__}: Scan name: {scan_name}")
 
         attrs_values = {}
         attrs_values.update({"datetime": str(datetime.datetime.now())})
