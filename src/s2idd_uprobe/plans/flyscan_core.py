@@ -12,10 +12,9 @@ import bluesky.plan_stubs as bps
 from apsbits.core.instrument_init import oregistry
 from apstools.plans import run_blocking_function
 from s2idd_uprobe.plans.toggle_usercalc import enable_usercalc, disable_usercalc
+from mic_common.utils.validation import validate_scan_parameters, validate_device_connections
 from s2idd_uprobe.utils.fly import (
     reorder_devices,
-    validate_scan_parameters,
-    validate_device_connections,
     setup_detectors_and_fileio,
     setup_motor_positions_and_speeds,
     calculate_x_scan_parameters,
@@ -111,7 +110,7 @@ def _common_flyscan_setup(
 
 
     """Setup motor positions and speeds"""
-    yield from setup_motor_positions_and_speeds(x_start, x_motor_scan_speed, x_motor_retrace)
+    yield from setup_motor_positions_and_speeds(x_start)
 
     """Lets move the sis3820 device to the end of the list of devices"""
     devices = reorder_devices(devices)
@@ -149,7 +148,7 @@ def _fly2d_scanrecord(
     det_names = ["sis3820", "xrf", "tmm1"]
     devices = validate_device_connections(det_bools, det_names, return_devices=True)
     yield from scanrecord.fly.stage2Dfly(
-        devices, sample, fscanh_samx, width, stepsize_x, height, stepsize_y
+        devices, sample, sample.x.user_setpoint, width, stepsize_x, height, stepsize_y
     )
     yield from bps.checkpoint()
 
@@ -197,8 +196,8 @@ def _fly2d(
 ):
     
     """Disable usercalc"""
-    yield from disable_usercalc()
-    yield from bps.mv(retrace_samx_passive, 0)
+    # yield from disable_usercalc()
+    # yield from bps.mv(retrace_samx_passive, 0)
 
     """Check input parameters and detector status"""
     logger.info("Validating scan parameters and detector status")
@@ -214,11 +213,11 @@ def _fly2d(
 
     det_bools = [True, xrf_on, preamp1_on]
     det_names = ["sis3820", "xrf", "tmm1"]
-    devices, x_start, x_end, yarr = (yield from _common_flyscan_setup(
+    devices, x_start, x_end, yarr = yield from _common_flyscan_setup(
         det_bools=det_bools, det_names=det_names, x_center=x_center, y_center=y_center,
         width=width, height=height, stepsize_x=stepsize_x, stepsize_y=stepsize_y, 
         dwell_ms=dwell_ms
-    ))
+    )
 
 
     """Main loop for the fly2d scan"""
@@ -233,7 +232,7 @@ def _fly2d(
 
             if i == 0:
                 print("Open shutter")
-                yield from savedata.set_next_scan_number(savedata.next_scan_number.get() + 1)
+                savedata.advance_scan_number()
 
             if snake_scan:
                 x_target_pos = x_target[i % 2]
@@ -249,8 +248,9 @@ def _fly2d(
             yield from bps.checkpoint()
 
     """Common cleanup for flyscan plans"""
-    yield from enable_usercalc()
-    yield from bps.mv(retrace_samx_passive, 2)
+    sample.x.set_speed()
+    # yield from enable_usercalc()
+    # yield from bps.mv(retrace_samx_passive, 2)
 
 
 
@@ -264,22 +264,25 @@ def _fly1d(
     preamp1_on: bool = False,
     **kwargs,
 ):
-    """Check input parameters and detector status"""
-    logger.info("Validating scan parameters and detector status")
+    """Check input parameters"""
+    logger.info("Validating scan parameters")
     validate_scan_parameters(stepsize_x=stepsize_x, width=width, dwell_ms=dwell_ms)
     x_center = x_center if x_center is not None else (round(sample.x.position - width / 2, 2))
+    sample_z = sample_z if sample_z is not None else (round(sample.z.position, 2))
+    yield from bps.mv(sample.x, x_center)
+    yield from bps.mv(sample.z, sample_z)
 
     det_bools = [True, xrf_on, preamp1_on]
     det_names = ["sis3820", "xrf", "tmm1"]
-    devices, x_start, x_end, _ = (yield from _common_flyscan_setup(
+    devices, x_start, x_end, _ = yield from _common_flyscan_setup(
         det_bools=det_bools, det_names=det_names, x_center=x_center, 
         width=width, stepsize_x=stepsize_x,
         dwell_ms=dwell_ms
-    ))
+    )
 
     """Disable usercalc"""
-    yield from disable_usercalc()
-    yield from bps.mv(retrace_samx_passive, 0)
+    # yield from disable_usercalc()
+    # yield from bps.mv(retrace_samx_passive, 0)
 
 
     # TODO: open shutter
@@ -287,7 +290,7 @@ def _fly1d(
     
     """Execute the fly1d scan"""
     filename = savedata.next_file_name
-    yield from savedata.set_next_scan_number(savedata.next_scan_number.get() + 1)
+    savedata.advance_scan_number()
     with loop_timer_context(f"Data saved to {filename}", total_iterations=1) as timer:
         timer.iteration(1, samx=sample.x)
         yield from _fly1d_core(devices, sample.x, x_end)
@@ -297,9 +300,10 @@ def _fly1d(
     """Restore motor speed and scan cleanup"""
     sample.x.set_speed()
     yield from bps.mv(sample.x, x_start)
-    yield from enable_usercalc()
-    yield from bps.mv(retrace_samx_passive, 2)
+    # yield from enable_usercalc()
+    # yield from bps.mv(retrace_samx_passive, 2)
     logger.info(f"Scan is finished, filename: {filename}")
+
 
 
 def _fly1d_core(devices, samx, x_end):
@@ -329,8 +333,10 @@ def _fly1d_core(devices, samx, x_end):
             cam.erase_start.put(1)
         elif "tmm" in cam.name:
             cam.acquire.put(1)
+        
+        yield from bps.sleep(0.2)
 
-    yield from bps.sleep(0.2)
+    # yield from bps.sleep(0.2)
     status.scan_active = True
     logger.debug(f"scan_active: {status.scan_active}")
     yield from save_ophyd_value(samx)

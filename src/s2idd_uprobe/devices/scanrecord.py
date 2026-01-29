@@ -85,18 +85,58 @@ class FlyScanRecord(Device):
 class StepScanRecord(Device):
     inner = Component(NewScanRecord, ":scan1", kind="config", labels=("scanrecord", "inner"))
     outer = Component(NewScanRecord, ":scan2", kind="config", labels=("scanrecord", "outer"))
+    detloop = Component(NewScanRecord, ":scanH", kind="config", labels=("scanrecord", "detloop"))
 
-    def stage2Dstep(self):
-        self.step.inner.stage()
-        yield from bps.sleep(0.2)
-        self.step.outer.stage()
+    def stage1Dstep(self, devices, scaler_count, positioner, width, stepsize_x):
+        dets_dict = {d.name: d for d in devices}
+
+        xrf = dets_dict.get("xrf", None)
+        preamp1 = dets_dict.get("tmm1", None)
+
+        det_triggers = []
+        if preamp1 is not None:
+            det_triggers.append(preamp1.cam.acquire.pvname)
+        if xrf is not None:
+            det_triggers.append(xrf.cam.erase_start.pvname)
+        det_triggers.append(scaler_count.pvname)
+        det_triggers.append(self.detloop.execute_scan.pvname)
+
+        self.unstage1Dstep()
+        self.inner.config(
+            positioner_setpoint=positioner.user_setpoint.pvname,
+            positioner_readback=positioner.user_readback.pvname,
+            scanmode=0,  # 0: "LINEAR", 1: "TABLE", 2: "FLY"
+            rel_abs_motion=1,  # 0: "ABSOLUTE", 1: "RELATIVE"
+            center=0,
+            width=round(width, 2),
+            stepsize=round(stepsize_x, 2),
+            trigger_pvs=det_triggers,
+        )
+
+        self.inner.stage()
         yield from bps.sleep(0.2)
 
-    def unstage2Dstep(self):
-        self.step.inner.unstage()
-        yield from bps.sleep(0.2)
-        self.step.outer.unstage()
-        yield from bps.sleep(0.2)
+
+    def unstage1Dstep(self):
+        if self.inner._staged == Staged.yes:
+            logger.info("Inner scanrecord is already staged, unstaging ... ...")
+            self.inner.unstage()
+            yield from bps.sleep(0.2)
+
+    def execute1Dstep(self, scan_name=""):
+        yield from execute_scan_1d(self.inner, scan_name=scan_name)
+
+    # def stage2Dstep(self):
+    #     self.step.inner.stage()
+    #     yield from bps.sleep(0.2)
+    #     self.step.outer.stage()
+    #     yield from bps.sleep(0.2)
+
+    # def unstage2Dstep(self):
+    #     self.step.inner.unstage()
+    #     yield from bps.sleep(0.2)
+    #     self.step.outer.unstage()
+    #     yield from bps.sleep(0.2)
 
 
 class CombinedScanRecord(Device):

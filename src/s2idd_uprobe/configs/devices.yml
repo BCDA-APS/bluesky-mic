@@ -1,23 +1,9 @@
 # Guarneri-style device YAML configuration
 
-# mic_common.devices.scan_record.NewScanRecord:
-# - name: scan1
-#   prefix: "2idd:scan1"
-#   labels: ["scanrecord"]
-# - name: scan2
-#   prefix: "2idd:scan2"
-#   labels: ["scanrecord"]
-# - name: fscan1
-#   prefix: "2idd:Fscan1"
-#   labels: ["scanrecord"]
-# - name: fscanh
-#   prefix: "2idd:FscanH"
-#   labels: ["scanrecord"]
-
 s2idd_uprobe.devices.scanrecord.CombinedScanRecord:
 - name: scanrecord
-  prefix: 2iddfS1
-  # prefix: 2idd
+  # prefix: 2iddfS1
+  prefix: 2idd
   labels: ["scanrecord"]
 
 s2idd_uprobe.devices.sample.Sample:
@@ -56,6 +42,10 @@ ophyd.EpicsSignal:
   write_pv: 2iddfS1:userCalc8.SCAN
   read_pv: 2iddfS1:userCalc8.SCAN
   labels: ["usercalc"]
+- name: scaler_count
+  write_pv: 2idd:scaler1.CNT
+  read_pv: 2idd:scaler1.CNT
+  labels: ["signal"]
 
 mic_common.devices.sis3820.SIS3820:
 - name: sis3820
@@ -76,23 +66,3 @@ s2idd_uprobe.devices.tetramm.MicTetrAMM:
 - name: tmm1
   prefix: 2iddtmm1
   labels: ["tetramm"]
-# - name: tmm2
-#   prefix: "2iddtmm2:"
-#   labels: ["tetramm"]
-
-# mic_common.devices.ad_fileplugin.DetNetCDF:
-# - name: xrf_netcdf
-#   prefix: "2iddXMAP:netCDF1:"
-#   labels: ["netcdf"]
-
-# mic_common.devices.ad_fileplugin.DetHDF5:
-# - name: tmm1_hdf
-#   prefix: "2iddtmm1:HDF1:"
-#   labels: ["fileplugin"]
-
-# - name: tetramm1_netcdf
-#   prefix: "2iddtmm1:netCDF1:"
-#   labels: ["netcdf"]
-# - name: tetramm2_netcdf
-#   prefix: "2iddtmm2:netCDF1:"
-#   labels: ["netcdf"]

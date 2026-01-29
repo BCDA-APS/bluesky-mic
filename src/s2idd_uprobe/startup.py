@@ -10,7 +10,6 @@ Includes:
 """
 
 # Standard Library Imports
-from fileinput import filename
 import logging
 from pathlib import Path
 
@@ -78,17 +77,18 @@ try:
     xrf.fileplugin.micdata_mountpath = iconfig.get("XMAP")["MOUNT_PATH"]
     xrf.fileplugin.delimiter = iconfig.get("STORAGE")["FILE_DELIMITER"]
     xrf.fileplugin.det_foldername = iconfig.get("XMAP")["DET_FOLDERNAME"]
-    xrf.fileplugin.savedata = oregistry["scanrecord"].savedata
+    # xrf.fileplugin.savedata = oregistry["scanrecord"].savedata
+    xrf.fileplugin.savedata = oregistry["savedata"]
 except KeyError:
     logger.info("xrf not found or xrf.fileplugin not connected or scanrecord not found, skipping")
 
 try:
     tmm1 = oregistry["tmm1"]
     tmm1.fileplugin.micdata_mountpath = iconfig.get("STORAGE")["MICDATA_MOUNTPATH"]
-    # tmm1.fileplugin.data_path = iconfig.get("STORAGE")["MICDATA_MOUNTPATH"]
     tmm1.fileplugin.delimiter = iconfig.get("STORAGE")["FILE_DELIMITER"]
     tmm1.fileplugin.det_foldername = iconfig.get("TETRAMM")["DET_FOLDERNAME"]
-    tmm1.fileplugin.savedata = oregistry["scanrecord"].savedata
+    # tmm1.fileplugin.savedata = oregistry["scanrecord"].savedata
+    tmm1.fileplugin.savedata = oregistry["savedata"]
 except KeyError:
     logger.info("tmm1 not found or tmm1.fileplugin not connected or scanrecord not found, skipping")
 
@@ -98,8 +98,9 @@ if iconfig.get("NEXUS_DATA_FILES", {}).get("ENABLE", False):
 
     nxwriter = nxwriter_init(RE)
     try:
-        nxwriter.savedata = oregistry["scanrecord"].savedata
-        nxwriter.micdata_mountpath = ""
+        # nxwriter.savedata = oregistry["scanrecord"].savedata
+        nxwriter.savedata = oregistry["savedata"]
+        nxwriter.micdata_mountpath = iconfig.get("STORAGE")["MICDATA_MOUNTPATH"]
     except KeyError:
         logger.info("savedata not found, skipping")
 
@@ -111,8 +112,7 @@ if iconfig.get("NEXUS_DATA_FILES", {}).get("ENABLE", False):
 from .plans.fly1d import fly1d
 from .plans.fly2d import fly2d
 from .plans.fly2d_scanrecord import fly2d_scanrecord
-
-# from .plans.step1d_scanrecord import step1d_scanrecord
+from .plans.step1d_scanrecord import step1d_scanrecord
 # # from .plans.step2d import step2d
 # # from .plans.step1d import step1d
 

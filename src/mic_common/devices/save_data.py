@@ -24,6 +24,8 @@ class SaveDataMic(SaveData):
     def __init__(self, *args, **kwargs):
         """Initialize SaveDataMic."""
         super().__init__(*args, **kwargs)
+        self.update_next_file_name()
+        logger.info(f"Next mda file is: {self.next_file_name}")
 
     def update_next_file_name(self):
         """Update the next file name based on scan number."""
@@ -31,7 +33,6 @@ class SaveDataMic(SaveData):
         current_scan_number = str(self.get().next_scan_number - 1).zfill(4)
         self.current_file_name = f"{self.get().base_name}{current_scan_number}.mda"
         self.next_file_name = f"{self.get().base_name}{next_scan_number}.mda"
-        logger.info(f"Next mda file is: {self.next_file_name}")
 
     def generate_det_path(self, det_name):
         base_path = self.file_system.get()
@@ -51,7 +52,7 @@ class SaveDataMic(SaveData):
     def advance_scan_number(self):
         current_scan_number = self.next_scan_number.get()
         self.next_scan_number.put(current_scan_number+1)
-        
+
 
     def update_current_file_name(self):
         """Update the current file name based on scan number."""

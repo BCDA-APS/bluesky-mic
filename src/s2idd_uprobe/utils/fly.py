@@ -46,35 +46,6 @@ from ophyd.status import Status
 from ophyd import Device
 
 logger = logging.getLogger(__name__)
-# sample = oregistry["sample"]
-# savedata = oregistry["savedata"]
-# iconfig = get_config()
-# netcdf_delimiter = iconfig.get("FILE_DELIMITER")
-# xmap_buffer = iconfig.get("XMAP")["BUFFER"]
-# det_foldername = {"xrf": "flyXRF", "tmm1": "tetramm1", "tmm2": "tetramm2"}
-
-
-# def get_next_file_name(savedata):
-#     """
-#     Get the next file name for the scan.
-
-#     Parameters
-#     ----------
-#     savedata : ophyd.Device
-#         Savedata device
-
-#     Returns
-#     -------
-#     str
-#         Next file name
-#     """
-
-#     # Update file name
-#     savedata.update_next_file_name()
-#     next_file_name = savedata.next_file_name
-#     filename = next_file_name.replace(".mda", "")
-
-#     return filename
 
 
 def setup_detectors_and_fileio(
@@ -166,67 +137,6 @@ def calculate_x_scan_parameters(width, x_center, stepsize_x, dwell):
     x_end = xarr[-1]
 
     return xarr, x_start, x_end, x_motor_scan_speed, x_motor_retrace, num_pulses
-
-
-def validate_scan_parameters(stepsize_x=None, stepsize_y=None, width=None, height=None, dwell_ms=None):
-    """
-    Validate common scan parameters.
-
-    Parameters
-    ----------
-    stepsize_x : float
-        Step size in x direction
-    stepsize_y : float
-        Step size in y direction
-    width : float
-        Width of the scan
-    height : float
-        Height of the scan
-    dwell_ms : float
-        Dwell time in ms
-
-    Raises
-    ------
-    ValueError
-        If step sizes are invalid
-    """
-    if stepsize_x is not None and stepsize_x == 0:
-        raise ValueError("Step size cannot be 0, please check the input parameters")
-    if stepsize_y is not None and stepsize_y == 0:
-        raise ValueError("Step size cannot be 0, please check the input parameters")
-    if width is not None and width == 0:
-        raise ValueError("Width cannot be 0, please check the input parameters")
-    if height is not None and height == 0:
-        raise ValueError("Height cannot be 0, please check the input parameters")
-    if dwell_ms is not None and dwell_ms == 0:
-        raise ValueError("Dwell time cannot be 0, please check the input parameters")
-
-
-def validate_device_connections(
-    det_bools: list[bool], det_names: list[str], return_devices: bool = False
-) -> list[Device]:
-    """
-    Validate that required devices are connected.
-
-    Raises
-    ------
-    ValueError
-        If any required device is not connected
-    """
-    devices = []
-
-    for det_bool, det_name in zip(det_bools, det_names):
-        if det_bool:
-            try:
-                det = oregistry[det_name]
-                if not det.connected:
-                    raise ValueError(f"{det.name} is not connected, please check the status")
-                devices.append(det)
-            except KeyError:
-                raise ValueError(f"{det_name} is not connected, please check the status")
-
-    if return_devices:
-        return devices
 
 
 def reorder_devices(devices):

@@ -33,7 +33,7 @@ import bluesky.preprocessors as bpp
 from apsbits.core.instrument_init import oregistry
 from s2idd_uprobe.plans.flyscan_core import _fly1d
 from mic_common.utils.param_capture import capture_params
-from s2idd_uprobe.utils.fly import validate_scan_parameters
+from mic_common.utils.validation import validate_scan_parameters
 import logging
 
 logger = logging.getLogger(__name__)

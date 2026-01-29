@@ -40,7 +40,7 @@ __all__ = """
 import logging
 import bluesky.preprocessors as bpp
 from apsbits.core.instrument_init import oregistry
-from s2idd_uprobe.utils.fly import validate_scan_parameters
+from mic_common.utils.validation import validate_scan_parameters
 from mic_common.utils.param_capture import capture_params
 from s2idd_uprobe.plans.flyscan_core import _fly2d
 
@@ -50,6 +50,7 @@ savedata = oregistry["savedata"]
 sample = oregistry["sample"]
 # scanrecord = oregistry["scanrecord"]
 # savedata = scanrecord.savedata
+
 
 def fly2d(
     samplename: str = "smp1",
