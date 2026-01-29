@@ -34,6 +34,7 @@ class MicHDF5(HDF5Plugin):
         file_name = base_name + f"{scan_number:04d}"
 
         # self.capture.put(0)
+        self.file_template.put("%s%s_%3.5d.h5")
         self.file_path.put(file_path)
         self.file_name.put(file_name)
         self.auto_increment.put(1)

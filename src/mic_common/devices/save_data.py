@@ -32,7 +32,8 @@ class SaveDataMic(SaveData):
 
     def generate_det_path(self, det_name):
         base_path = self.file_system.get()
-        det_path = os.path.join(base_path, det_name.upper())
+        scan_number = self.next_scan_number.get()
+        det_path = os.path.join(base_path, f'Scan_{scan_number:04d}', det_name.upper())
         logger.info(f"Setting up {det_name} to have data saved at {det_path}")
         if not os.path.exists(det_path):
             try:
