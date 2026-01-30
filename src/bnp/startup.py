@@ -91,28 +91,28 @@ make_devices(clear=False, file="devices.yml", device_manager=instrument)
 # if host_on_aps_subnet():
 #     RE(make_devices(clear=False, file="device_aps_only.yml"))
 
-local_mountpath = iconfig.get("STORAGE")["MICDATA_MOUNTPATH"]
-xmap_mountpath = iconfig.get("STORAGE")["XMAP_MOUNTPATH"]
-xrf_netcdf = oregistry["xrf_netcdf"]
-xrf_netcdf.micdata_mountpath = local_mountpath
-xrf_netcdf.data_path = xmap_mountpath
+# local_mountpath = iconfig.get("STORAGE")["MICDATA_MOUNTPATH"]
+# xmap_mountpath = iconfig.get("STORAGE")["XMAP_MOUNTPATH"]
+# xrf_netcdf = oregistry["xrf_netcdf"]
+# xrf_netcdf.micdata_mountpath = local_mountpath
+# xrf_netcdf.data_path = xmap_mountpath
 
 
-# Optional Nexus callback block
-if iconfig.get("NEXUS_DATA_FILES", {}).get("ENABLE", False):
-    from mic_common.callbacks.nexus_data_file_writer import nxwriter_init
-    nxwriter = nxwriter_init(RE)
-    nxwriter.savedata = oregistry['savedata']
-    nxwriter.micdata_mountpath = ""
+# # Optional Nexus callback block
+# if iconfig.get("NEXUS_DATA_FILES", {}).get("ENABLE", False):
+#     from mic_common.callbacks.nexus_data_file_writer import nxwriter_init
+#     nxwriter = nxwriter_init(RE)
+#     nxwriter.savedata = oregistry['savedata']
+#     nxwriter.micdata_mountpath = ""
 
 
-# # from .plans import *
-# from .plans.test_nexus import test_nexus
-# #from .plans.fly2d import fly2d
-# from .plans.fly2d_scanrecord import fly2d_scanrecord
-# from .plans.step1d_scanrecord import step1d_scanrecord
-# # from .plans.step2d import step2d
-# # from .plans.step1d import step1d
+# # # from .plans import *
+# # from .plans.test_nexus import test_nexus
+# # #from .plans.fly2d import fly2d
+from .plans.fly2d_scanrecord import fly2d_scanrecord
+# # from .plans.step1d_scanrecord import step1d_scanrecord
+# # # from .plans.step2d import step2d
+# # # from .plans.step1d import step1d
 
 
 

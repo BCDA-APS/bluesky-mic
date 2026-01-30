@@ -4,12 +4,17 @@
 # - { creator: ophyd.sim.motor, name: sim_motor }
 # - { creator: ophyd.sim.noisy_det, name: sim_det }
 
-mic_common.devices.scan_record.NewScanRecord:
-- name: fscan_inner
-  prefix: 9idbBNP:scan1
-  labels: ["scanrecord"]
-- name: fscan_outer
-  prefix: 9idbBNP:scan2
+# mic_common.devices.scan_record.NewScanRecord:
+# - name: fscan_inner
+#   prefix: 9idbBNP:scan1
+#   labels: ["scanrecord"]
+# - name: fscan_outer
+#   prefix: 9idbBNP:scan2
+#   labels: ["scanrecord"]
+
+bnp.devices.scanrecord.FlyScanRecord:
+- name: scanrecord
+  prefix: 9idbBNP
   labels: ["scanrecord"]
 
 bnp.devices.sample.Sample:
@@ -28,20 +33,31 @@ mic_common.devices.sis3820.SIS3820:
   labels: ["sis3820"]
 
 mic_common.devices.xmap.XMAP:
-- name: xrf
+- name: xmap
   prefix: 9idbXMAP
   labels: ["xmap"]
 
-mic_common.devices.ad_fileplugin.DetNetCDF:
-- name: xrf_netcdf
-  prefix: "9idbXMAP:netCDF1:"
-  labels: ["netcdf"]
-
+bnp.devices.xspress3.Xspress3:
+- name: xp3
+  prefix: bnpXP3
+  labels: ["xsp3"]
 
 ophyd.EpicsSignal:
-- name: SM_PS_busy
-  write_pv: 9idbTAU:SM:Ps:Busy
-  read_pv: 9idbTAU:SM:Ps:Busy
+- name: fly_dwell
+  write_pv: 9idbBNP:scanTran3.C
+  read_pv: 9idbBNP:scanTran3.C
   labels: ["signal"]
+
+# mic_common.devices.ad_fileplugin.DetNetCDF:
+# - name: xrf_netcdf
+#   prefix: "9idbXMAP:netCDF1:"
+#   labels: ["netcdf"]
+
+
+# ophyd.EpicsSignal:
+# - name: SM_PS_busy
+#   write_pv: 9idbTAU:SM:Ps:Busy
+#   read_pv: 9idbTAU:SM:Ps:Busy
+#   labels: ["signal"]
 
 
