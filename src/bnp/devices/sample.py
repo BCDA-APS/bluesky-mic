@@ -1,11 +1,13 @@
-from ophyd import Device, Component, EpicsSignal, PVPositioner, EpicsSignalRO
-# from ophyd.utils.epics_pvs import raise_if_disconnected
+from bnp.devices.deltaTau import DeltaTauPiezoBase
+from ophyd import Component, Device, EpicsSignal, EpicsSignalRO, PVPositioner
 
-class DeltaTauPiezoX(PVPositioner):
+class DeltaTauPiezoX(DeltaTauPiezoBase):
     done = Component(EpicsSignalRO, 'Ps:RunPrg')
     stop_signal = Component(EpicsSignal, 'Ps:Abort')
     setpoint = Component(EpicsSignal, 'PX:RqsPos')
     readback = Component(EpicsSignalRO, 'PX:ActPos')
+    center = Component(EpicsSignal, 'Ps:xCenter.PROC')
+
 
 class DeltaTauStepperX(PVPositioner):
     done = Component(EpicsSignalRO, 'Ps:RunPrg')
@@ -13,11 +15,12 @@ class DeltaTauStepperX(PVPositioner):
     setpoint = Component(EpicsSignal, 'SX:RqsPos')
     readback = Component(EpicsSignalRO, 'SX:ActPos')
 
-class DeltaTauPiezoY(PVPositioner):
+class DeltaTauPiezoY(DeltaTauPiezoBase):
     done = Component(EpicsSignalRO, 'Ps:RunPrg')
     stop_signal = Component(EpicsSignal, 'Ps:Abort')
     setpoint = Component(EpicsSignal, 'PY:RqsPos')
     readback = Component(EpicsSignalRO, 'PY:ActPos')
+    center = Component(EpicsSignal, 'Ps:yCenter.PROC')
 
 class DeltaTauStepperY(PVPositioner):
     done = Component(EpicsSignalRO, 'Ps:RunPrg')

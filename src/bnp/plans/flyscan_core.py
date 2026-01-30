@@ -65,11 +65,14 @@ def _fly2d_scanrecord(
     yield from bps.checkpoint()
 
     """Start executing scan"""
-    fname = savedata.next_file_name
+    yield from bps.mv(sample.y.piezo.center, 1)
+    yield from bps.mv(sample.x.piezo.center, 1)
+    logger.info(f"Centering piezo motors before scan")
     #TODO: open BDA
     logger.info(f"Opening BDA")
     sample.x.motion.put(4)
     logger.info(f"Putting sample x motor to fly scan mode")
+    fname = savedata.next_file_name
     yield from scanrecord.execute2Dfly(scan_name=fname)
 
     """Enable the usercalc that used in scan record"""
@@ -79,5 +82,7 @@ def _fly2d_scanrecord(
     #TODO: close BDA
     logger.info(f"Closing BDA")
     sample.x.motion.put(1)
-    logger.info(f"Putting sample x motor to combined step mode")
+    logger.info(f"Putting sample x motor to combined mode")
+    yield from bps.mv(sample.y.piezo.center, 1)
+    logger.info(f"Centering Y-piezo motors after scan")
 
