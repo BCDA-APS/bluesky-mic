@@ -10,7 +10,6 @@ common operations.
 
 import bluesky.plan_stubs as bps
 from apsbits.core.instrument_init import oregistry
-# from s2idd_uprobe.plans.toggle_usercalc import enable_usercalc, disable_usercalc
 from mic_common.utils.validation import validate_scan_parameters, validate_device_connections
 import logging
 
@@ -74,9 +73,6 @@ def _fly2d_scanrecord(
     logger.info(f"Putting sample x motor to fly scan mode")
     fname = savedata.next_file_name
     yield from scanrecord.execute2Dfly(scan_name=fname)
-
-    """Enable the usercalc that used in scan record"""
-    # yield from enable_usercalc()
 
     yield from scanrecord.unstage2Dfly()
     #TODO: close BDA
