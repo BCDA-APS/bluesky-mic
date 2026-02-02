@@ -10,6 +10,8 @@ from bluesky.plan_stubs import abs_set
 import bluesky.preprocessors as bpp
 import bluesky.plan_stubs as bps
 
+from ..utils.run_engine import RE
+
 logger = logging.getLogger(__name__)
 logger.info(__file__)
 
@@ -22,7 +24,7 @@ eshutter = oregistry["eshutter"]
 iconfig = get_config()
 softglue_outputs = iconfig.get("SOFTGLUE_OUTPUTS")
 
-# @bpp.run_decorator()
+# @bpp.run_decorator() # To just use this we need to rewrite the staging methods in the detectors to no start acquiring and implementing a kickoff function
 def flyscan(
     detectors,
     x_min: float = -50,  # in um
@@ -267,7 +269,8 @@ def flyscan(
 
         yield from bps.checkpoint()
 
-        savedata.advance_scan_number()
+        # savedata.advance_scan_number()
+        savedata.next_scan_number.put(RE.md['scan_id']+1)
 
         # --- Preparing socket server --- #
 
@@ -276,7 +279,7 @@ def flyscan(
         total_images = int((max(x_npts_, 1) * y_npts_) / F - 1)
         images_per_line = int(y_npts_ / F)
         interferometry_per_line = images_per_line * interferometer_per_pixel
-        total_lines = total_images*(interferometer_per_pixel+1) # We add one to leave room for events in which more frames per line are reached
+        # total_lines = total_images*(interferometer_per_pixel+1) # We add one to leave room for events in which more frames per line are reached
 
         # socketserver.setup_flyscan_mode(num_lines = total_lines)
         # We are changing to the new structure in which we have as many position files as detector files
@@ -336,7 +339,6 @@ def flyscan(
             detector.unstage()
             detector.hdf1.unstage()
 
-        socketserver.unstage()
 
         # --- Filling up DMA for socket server acquisition --- #
 

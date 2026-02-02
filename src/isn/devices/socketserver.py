@@ -15,6 +15,8 @@ import logging
 import datetime
 logger = logging.getLogger(__name__)
 
+from time import sleep
+
 
 class Trigger(SingleTrigger):
     # We can't use the ADTriggerStatus since we have no cam
@@ -39,9 +41,11 @@ class Trigger(SingleTrigger):
     #     return self._status
 
     def unstage(self):
+        sleep(2) # We put this since the autosave buffer forces the capture to restart if we don't wait long enough. We need to run it in thread
         self.acquire.put(0)
         self.hdf1.unstage()
         super().unstage()
+        # self.hdf1.capture.put(0)
 
     # def finish_capture(self):
     #     self.acquire.put(0, wait=False)

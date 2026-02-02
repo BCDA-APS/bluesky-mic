@@ -17,11 +17,11 @@ from pathlib import Path
 import gi
 import hklpy2
 
-from apsbits.core.best_effort_init import init_bec_peaks
-from apsbits.core.catalog_init import init_catalog
+# from apsbits.core.best_effort_init import init_bec_peaks
+# from apsbits.core.catalog_init import init_catalog
 from apsbits.core.instrument_init import init_instrument
 from apsbits.core.instrument_init import make_devices
-from apsbits.core.run_engine_init import init_RE
+# from apsbits.core.run_engine_init import init_RE
 from apsbits.utils.baseline_setup import setup_baseline_stream
 
 # Configuration functions
@@ -155,7 +155,7 @@ setup_baseline_stream(sd, oregistry, connect=False)
 # # delete this block if not using Nexus
 if iconfig.get("NEXUS_DATA_FILES", {}).get("ENABLE", False):
     # from .callbacks.nexus_data_file_writer import nxwriter_init
-    from mic_common.callbacks.nexus_data_file_writer import nxwriter_init
+    from isn.callbacks.nexus_data_file_writer import nxwriter_init
 
     nxwriter = nxwriter_init(RE)
     nxwriter.savedata = oregistry['savedata']
