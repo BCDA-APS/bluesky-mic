@@ -108,6 +108,8 @@ class Trigger(TriggerBase):
         elif self.trigger_mode == "Software":
             self.acquire_time = self.cam.acquire_time.get()
             self._trigger_counter = 0
+            self.cam.acquire.put(1)
+            sleep(0.2)
 
 
     def trigger(self):
