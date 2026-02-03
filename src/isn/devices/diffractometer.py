@@ -9,7 +9,7 @@ from .robot import RobotArmPositioner
 class RobotArmDiffractometer(hklpy2.DiffractometerBase):
     """ISN Robot Arm as Diffractometer."""
 
-    _real = "mu eta chi phi pitch yaw".split()
+    _real = "mu eta chi phi yaw pitch".split()
 
     h = Cpt(hklpy2.diffract.Hklpy2PseudoAxis, "", kind="hinted")
     k = Cpt(hklpy2.diffract.Hklpy2PseudoAxis, "", kind="hinted")

@@ -1,6 +1,6 @@
 # from isn.devices.mic_ad_mixins import MicHDF5
 
-from mic_common.devices.ad_fileplugin import MicHDF5
+# from mic_common.devices.ad_fileplugin import MicHDF5
 from ophyd import ADComponent
 from ophyd import DeviceStatus
 from ophyd import EpicsSignal
@@ -8,10 +8,14 @@ from ophyd import EpicsSignalWithRBV
 from ophyd.areadetector import DetectorBase
 from ophyd.areadetector import SingleTrigger
 
+from .mic_ad_mixins import MicHDF5
+
 from mic_common.utils.writeDetH5 import write_det_h5
 import logging
 import datetime
 logger = logging.getLogger(__name__)
+
+from time import sleep
 
 
 class Trigger(SingleTrigger):
@@ -20,6 +24,10 @@ class Trigger(SingleTrigger):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
+
+    def trigger(self):
+        self.hdf1.capture.put(1)
+        super().trigger()
 
     # def trigger(self):
     #     #This one will always return True as it can't access a real Status signal
@@ -33,9 +41,11 @@ class Trigger(SingleTrigger):
     #     return self._status
 
     def unstage(self):
+        sleep(2) # We put this since the autosave buffer forces the capture to restart if we don't wait long enough. We need to run it in thread
         self.acquire.put(0)
         self.hdf1.unstage()
         super().unstage()
+        # self.hdf1.capture.put(0)
 
     # def finish_capture(self):
     #     self.acquire.put(0, wait=False)
@@ -56,13 +66,21 @@ class SocketServer(Trigger, DetectorBase):
         # #TODO: Fix this so that we can use them as real staging signals
         # self.hdf1.stage_sigs["num_capture"] = 50000
         self.stage_sigs = {}
+        self.hdf1.stage_sigs.pop('parent.cam.array_callbacks')
 
     _default_configuration_attrs = None
 
     hdf1 = ADComponent(MicHDF5, "HDF1:")
-
     acquire = ADComponent(EpicsSignal, "SG1:Acquire")
     array_counter = ADComponent(EpicsSignalWithRBV, "SG1:ArrayCounter")
+
+    def setup_flyscan_mode(self, num_lines = 50000, hdf_images = 50000):
+        self.array_counter.put(0)
+        self.hdf1.stage_sigs["enable"] = 1
+        self.hdf1.stage_sigs["auto_save"] = 1
+        self.hdf1.stage_sigs['num_capture'] = hdf_images
+        self.hdf1.stage_sigs['queue_size'] = 2e5
+        # self.hdf1.stage_sigs['capture'] = 1
 
     def write_master_h5(
         self,

@@ -34,7 +34,7 @@ from .mic_ad_mixins import VortexDetectorCam
 from mic_common.utils.writeDetH5 import write_det_h5
 
 # MAX_IMAGES = 12216
-MAX_IMAGES = 500000
+MAX_IMAGES = 524288
 MAX_ROIS = 8
 DELAY = 0.2
 
@@ -62,12 +62,11 @@ class Trigger(TriggerBase):
         self._image_name = image_name
         self._acquisition_signal = self.cam.acquire
         self._acquire_busy_signal = self.cam.acquire_busy
-        # self._flysetup = False
         self._status = None
         self._delay = DELAY
         self._trigger_counter = 0
         self.cam.stage_sigs["erase_on_start"] = "No"
-        # self.setup_soft_trigger()
+        # self.setup_software_trigger()
 
     def setup_internal_trigger(self):
         self.trigger_mode = "Internal"
@@ -84,8 +83,7 @@ class Trigger(TriggerBase):
         else:
             self.hdf1.stage_sigs["enable"] = 0
             self.hdf1.stage_sigs["auto_save"] = 0
-        # self._flysetup = False
-        # self._softsetup = False
+
 
 
     def setup_external_trigger(self):
@@ -96,8 +94,8 @@ class Trigger(TriggerBase):
         self.cam.stage_sigs["num_images"] = MAX_IMAGES
         self.cam.stage_sigs["wait_for_plugins"] = "No"
 
-    def setup_soft_trigger(self):
-        logger.info("Configuring detector for software triggering")
+    def setup_software_trigger(self):
+        logger.debug("Configuring detector for software triggering")
         self.trigger_mode = "Software"
 
         # Stage signals
@@ -106,14 +104,13 @@ class Trigger(TriggerBase):
         self.cam.stage_sigs["wait_for_plugins"] = "Yes"
         self.cam.stage_sigs["acquire_time"] = self._acquire_time
         if self.save_images:
-            logger.info("Images being saved.")
+            logger.info("Images being saved. Only proceed if necessary.")
             self.hdf1.stage_sigs["enable"] = 1
             self.hdf1.stage_sigs["auto_save"] = 1
             self.hdf1.stage_sigs["num_capture"] = MAX_IMAGES
         else:
             self.hdf1.stage_sigs["enable"] = 0
             self.hdf1.stage_sigs["auto_save"] = 0
-        # self._softsetup = True
 
     def setup_flyscan_mode(
         self, num_images=MAX_IMAGES, acq_time=0.01, hdf_images=MAX_IMAGES
@@ -147,10 +144,10 @@ class Trigger(TriggerBase):
     def stage(self):
 
         if self.trigger_mode == "Software":
-            logger.info("Accessed software triggering staging sequence")
+            # logger.info("Accessed software triggering staging sequence")
             self._trigger_counter = 0
             self._acquire_time = self.cam.acquire_time.get()
-            self.setup_soft_trigger()
+            self.setup_software_trigger()
         elif self.trigger_mode == "Internal":
             self._acquire_time = self.cam.acquire_time.get()
             self.setup_internal_trigger()
@@ -165,7 +162,7 @@ class Trigger(TriggerBase):
 
         # if self._flysetup or self._softsetup:
         if self.trigger_mode in ("Flyscan", "Software"):
-            logger.info("Enabling acquisition")
+            logger.debug("Enabling acquisition")
             self._acquisition_signal.set(1).wait(timeout=10)
             sleep(0.1)
             self.cam.soft_trigger.set(0).wait(timeout=10)
@@ -178,7 +175,7 @@ class Trigger(TriggerBase):
 
         # if self._flysetup:
         if self.trigger_mode == "Flyscan":
-            self.setup_soft_trigger()
+            self.setup_software_trigger()
             self.set_plugins("Enable")
         elif self.trigger_mode == "Software":
             self._trigger_counter = 0
@@ -416,16 +413,16 @@ class VortexXspress37(Trigger, DetectorBase):
     def __init__(
         self,
         *args,
-        default_folder=Path("/home/beams/STAFF19ID/pml/xpress3/data"),
+        # default_folder=Path("/home/beams/STAFF19ID/pml/xpress3/data"),
         hdf1_file_format="%s/%s_%6.6d.h5",
         **kwargs,
     ):
-        self.default_folder = default_folder
+        # self.default_folder = default_folder
         self.hdf1_file_format = hdf1_file_format
         super().__init__(*args, **kwargs)
 
         self.default_settings()
-        # self.setup_soft_trigger()
+        # self.setup_software_trigger()
 
     # Make this compatible with other detectors
     @property
@@ -495,7 +492,7 @@ class VortexXspress37(Trigger, DetectorBase):
 
     def default_settings(self):
         self.hdf1.file_template.put(self.hdf1_file_format)
-        self.hdf1.file_path.put(str(self.default_folder))
+        # self.hdf1.file_path.put(str(self.default_folder))
         self.hdf1.num_capture.put(0)
 
         self.cam.trigger_mode.put("Internal")
@@ -518,6 +515,8 @@ class VortexXspress37(Trigger, DetectorBase):
             obj = getattr(self, nm)
             if "blocking_callbacks" in dir(obj):  # is it a plugin?
                 obj.stage_sigs["blocking_callbacks"] = "No"
+
+        self.setup_software_trigger()
 
     @property
     def read_rois(self):
@@ -609,57 +608,57 @@ class VortexXspress37(Trigger, DetectorBase):
         # TODO: cleaner way to do this?
 
         _plugins = (
-            "XSP3_7Chan:Proc1:EnableCallbacks",
-            "XSP3_7Chan:ROIStat1:EnableCallbacks",
-            "XSP3_7Chan:ROI1:EnableCallbacks",
-            "XSP3_7Chan:ROISUM1:EnableCallbacks",
-            "XSP3_7Chan:C1SCA:EnableCallbacks",
-            "XSP3_7Chan:C1SCA:TS:EnableCallbacks",
-            "XSP3_7Chan:MCA1:EnableCallbacks",
-            "XSP3_7Chan:MCASUM1:EnableCallbacks",
-            "XSP3_7Chan:MCA1ROI:EnableCallbacks",
-            "XSP3_7Chan:ROI2:EnableCallbacks",
-            "XSP3_7Chan:ROISUM2:EnableCallbacks",
-            "XSP3_7Chan:C2SCA:EnableCallbacks",
-            "XSP3_7Chan:C2SCA:TS:EnableCallbacks",
-            "XSP3_7Chan:MCA2:EnableCallbacks",
-            "XSP3_7Chan:MCASUM2:EnableCallbacks",
-            "XSP3_7Chan:MCA2ROI:EnableCallbacks",
-            "XSP3_7Chan:ROI3:EnableCallbacks",
-            "XSP3_7Chan:ROISUM3:EnableCallbacks",
-            "XSP3_7Chan:C3SCA:EnableCallbacks",
-            "XSP3_7Chan:C3SCA:TS:EnableCallbacks",
-            "XSP3_7Chan:MCA3:EnableCallbacks",
-            "XSP3_7Chan:MCASUM3:EnableCallbacks",
-            "XSP3_7Chan:MCA3ROI:EnableCallbacks",
-            "XSP3_7Chan:ROI4:EnableCallbacks",
-            "XSP3_7Chan:ROISUM4:EnableCallbacks",
-            "XSP3_7Chan:C4SCA:EnableCallbacks",
-            "XSP3_7Chan:C4SCA:TS:EnableCallbacks",
-            "XSP3_7Chan:MCA4:EnableCallbacks",
-            "XSP3_7Chan:MCASUM4:EnableCallbacks",
-            "XSP3_7Chan:MCA4ROI:EnableCallbacks",
-            "XSP3_7Chan:ROI5:EnableCallbacks",
-            "XSP3_7Chan:ROISUM5:EnableCallbacks",
-            "XSP3_7Chan:C5SCA:EnableCallbacks",
-            "XSP3_7Chan:C5SCA:TS:EnableCallbacks",
-            "XSP3_7Chan:MCA5:EnableCallbacks",
-            "XSP3_7Chan:MCASUM5:EnableCallbacks",
-            "XSP3_7Chan:MCA5ROI:EnableCallbacks",
-            "XSP3_7Chan:ROI6:EnableCallbacks",
-            "XSP3_7Chan:ROISUM6:EnableCallbacks",
-            "XSP3_7Chan:C6SCA:EnableCallbacks",
-            "XSP3_7Chan:C6SCA:TS:EnableCallbacks",
-            "XSP3_7Chan:MCA6:EnableCallbacks",
-            "XSP3_7Chan:MCASUM6:EnableCallbacks",
-            "XSP3_7Chan:MCA6ROI:EnableCallbacks",
-            "XSP3_7Chan:ROI7:EnableCallbacks",
-            "XSP3_7Chan:ROISUM7:EnableCallbacks",
-            "XSP3_7Chan:C7SCA:EnableCallbacks",
-            "XSP3_7Chan:C7SCA:TS:EnableCallbacks",
-            "XSP3_7Chan:MCA7:EnableCallbacks",
-            "XSP3_7Chan:MCASUM7:EnableCallbacks",
-            "XSP3_7Chan:MCA7ROI:EnableCallbacks",
+            "19idME7:Proc1:EnableCallbacks",
+            "19idME7:ROIStat1:EnableCallbacks",
+            "19idME7:ROI1:EnableCallbacks",
+            "19idME7:ROISUM1:EnableCallbacks",
+            "19idME7:C1SCA:EnableCallbacks",
+            "19idME7:C1SCA:TS:EnableCallbacks",
+            "19idME7:MCA1:EnableCallbacks",
+            "19idME7:MCASUM1:EnableCallbacks",
+            "19idME7:MCA1ROI:EnableCallbacks",
+            "19idME7:ROI2:EnableCallbacks",
+            "19idME7:ROISUM2:EnableCallbacks",
+            "19idME7:C2SCA:EnableCallbacks",
+            "19idME7:C2SCA:TS:EnableCallbacks",
+            "19idME7:MCA2:EnableCallbacks",
+            "19idME7:MCASUM2:EnableCallbacks",
+            "19idME7:MCA2ROI:EnableCallbacks",
+            "19idME7:ROI3:EnableCallbacks",
+            "19idME7:ROISUM3:EnableCallbacks",
+            "19idME7:C3SCA:EnableCallbacks",
+            "19idME7:C3SCA:TS:EnableCallbacks",
+            "19idME7:MCA3:EnableCallbacks",
+            "19idME7:MCASUM3:EnableCallbacks",
+            "19idME7:MCA3ROI:EnableCallbacks",
+            "19idME7:ROI4:EnableCallbacks",
+            "19idME7:ROISUM4:EnableCallbacks",
+            "19idME7:C4SCA:EnableCallbacks",
+            "19idME7:C4SCA:TS:EnableCallbacks",
+            "19idME7:MCA4:EnableCallbacks",
+            "19idME7:MCASUM4:EnableCallbacks",
+            "19idME7:MCA4ROI:EnableCallbacks",
+            "19idME7:ROI5:EnableCallbacks",
+            "19idME7:ROISUM5:EnableCallbacks",
+            "19idME7:C5SCA:EnableCallbacks",
+            "19idME7:C5SCA:TS:EnableCallbacks",
+            "19idME7:MCA5:EnableCallbacks",
+            "19idME7:MCASUM5:EnableCallbacks",
+            "19idME7:MCA5ROI:EnableCallbacks",
+            "19idME7:ROI6:EnableCallbacks",
+            "19idME7:ROISUM6:EnableCallbacks",
+            "19idME7:C6SCA:EnableCallbacks",
+            "19idME7:C6SCA:TS:EnableCallbacks",
+            "19idME7:MCA6:EnableCallbacks",
+            "19idME7:MCASUM6:EnableCallbacks",
+            "19idME7:MCA6ROI:EnableCallbacks",
+            "19idME7:ROI7:EnableCallbacks",
+            "19idME7:ROISUM7:EnableCallbacks",
+            "19idME7:C7SCA:EnableCallbacks",
+            "19idME7:C7SCA:TS:EnableCallbacks",
+            "19idME7:MCA7:EnableCallbacks",
+            "19idME7:MCASUM7:EnableCallbacks",
+            "19idME7:MCA7ROI:EnableCallbacks",
         )
 
         for plugin in _plugins:
@@ -686,11 +685,11 @@ class VortexXspress37(Trigger, DetectorBase):
             det_key (str): Key for detector data in HDF5 file.
         """
         
-        logger.info(
+        logger.debug(
             f"{self.__class__.__name__}: Writing HDF5 file to {masterfile_path}"
         )
-        logger.info(f"{self.__class__.__name__}: Detector path: {detector_path}")
-        logger.info(f"{self.__class__.__name__}: Scan name: {scan_name}")
+        logger.debug(f"{self.__class__.__name__}: Detector path: {detector_path}")
+        logger.debug(f"{self.__class__.__name__}: Scan name: {scan_name}")
 
         attrs_values = {}
         attrs_values.update({"datetime": str(datetime.datetime.now())})

@@ -14,15 +14,21 @@ isn.devices.lateral_mirror.Lateral_Mirror:
   prefix: 19idMR
   labels: ["baseline"]
 
+# isn.devices.sample.Sample:
+# - name: sample
+#   prefix: 19idAERO
+#   labels: ["baseline"]
+
 isn.devices.sample.Sample:
 - name: sample
-  prefix: 19idAERO
+  aero_prefix: "19idAERO:"
+  micronix_prefix: "19idMMC:"
   labels: ["baseline"]
 
-isn.devices.micronix.Micronix:
-- name: micronix
-  prefix: "19idMMC:"
-  labels: ["baseline"]
+# isn.devices.micronix.Micronix:
+# - name: micronix
+#   prefix: "19idMMC:"
+#   labels: ["baseline"]
 
 # isn.devices.xrayeye.XRayEye:
 # - name: xrayeye
@@ -31,7 +37,7 @@ isn.devices.micronix.Micronix:
 isn.devices.softgluezynq.SoftGlueZynq:
 - name: softglue
   prefix: acq_isn
-  labels: ["baseline"]
+  # labels: ["baseline"]
 
 isn.devices.bda.BDA:
 - name: bda_vert
@@ -44,10 +50,10 @@ isn.devices.bda.BDA:
   axis: H
   labels: ["baseline"]
 
-isn.devices.diamond_window.Diamond_Window:
-- name: diamond
-  prefix: "19idACS"
-  labels: ["baseline"]
+# isn.devices.diamond_window.Diamond_Window:
+# - name: diamond
+#   prefix: "19idACS"
+#   labels: ["baseline"]
 
 
 isn.devices.tetramm.MyTetrAMM:
@@ -61,68 +67,75 @@ isn.devices.tetramm.MyTetrAMM:
 #   port_name: "TetrAMM2"
 #   labels: ["detector"]
 
-# - name: tetramm3
-#   prefix: "19idSFT3:TetrAMM3:"
-#   port_name: "TetrAMM3"
-#   labels: ["detector"]
+- name: tetramm3
+  prefix: "19idSFT3:TetrAMM3:"
+  port_name: "TetrAMM3"
+  labels: ["detector"]
 
 - name: tetramm4
   prefix: "19idSFT4:T4:"
   port_name: "TetrAMM4"
   labels: ["detector"]
 
-isn.devices.bpm.MyBPM:
-- name: bpm_c
-  quadem_prefix: "19idBPMC:T4U:"
-  vertical_motor_prefix: "19idBDA:m5"
-  horizontal_motor_prefix: "19idBDA:m6"
-  labels: ["baseline"]
+# isn.devices.bpm.MyBPM:
+# - name: bpm_c
+#   quadem_prefix: "19idBPMC:T4U:"
+#   vertical_motor_prefix: "19idBDA:m5"
+#   horizontal_motor_prefix: "19idBDA:m6"
+#   labels: ["baseline"]
 
-- name: bpm_d
-  quadem_prefix: "19idBPMD:T4U:"
-  vertical_motor_prefix: "19idBDA:m13"
-  horizontal_motor_prefix: "19idBDA:m14"
-  labels: ["baseline"]
+# - name: bpm_d
+#   quadem_prefix: "19idBPMD:T4U:"
+#   vertical_motor_prefix: "19idBDA:m13"
+#   horizontal_motor_prefix: "19idBDA:m14"
+#   labels: ["baseline"]
 
-apstools.devices.aps_machine.ApsMachineParametersDevice:
-- name: ring
-  labels: ["baseline"]
+# apstools.devices.aps_machine.ApsMachineParametersDevice:
+# - name: ring
+#   labels: ["baseline"]
+
+apstools.devices.shutters.ApsPssShutter:
+- name: eshutter
+  prefix: ""
+  close_pv: "S19ID-PSS:SES:CloseEPICSC"
+  open_pv: "S19ID-PSS:SES:OpenEPICSC"
 
 
-apstools.devices.hhl_slits.HHLSlits:
-- name: wbs
-  prefix: "19idWBS:US:"
-  pitch_motor: m3
-  yaw_motor: m4
-  horizontal_motor: m1
-  diagonal_motor: m2
-  labels: ["baseline"]
+# apstools.devices.hhl_slits.HHLSlits:
+# - name: wbs
+#   prefix: "19idWBS:US:"
+#   pitch_motor: m3
+#   yaw_motor: m4
+#   horizontal_motor: m1
+#   diagonal_motor: m2
+#   labels: ["baseline"]
 
-- name: pbs
-  prefix: "19idWBS:DS:"
-  pitch_motor: m7
-  yaw_motor: m8
-  horizontal_motor: m5
-  diagonal_motor: m6
-  labels: ["baseline"]
+# - name: pbs
+#   prefix: "19idWBS:DS:"
+#   pitch_motor: m7
+#   yaw_motor: m8
+#   horizontal_motor: m5
+#   diagonal_motor: m6
+#   labels: ["baseline"]
 
 isn.devices.undulators.UndulatorPair:
 - name: undulators
   prefix: S19ID
   labels: ["baseline"]
 
-# isn.devices.diffractometer.RobotArmDiffractometer:
-# - name: psic
-#   prefix: ""
+isn.devices.diffractometer.RobotArmDiffractometer:
+- name: psic
+  prefix: ""
+  labels: ["baseline"]
 
-isn.devices.robot.RobotArmPositioner:
-- name: yaw
-  prefix: "19IDRobot:"
-  setpoint: "Yaw"
-  readback: "Last_Position_Yaw"
-  done: "MC"
-  execute: "EXE"
-  command: "CMD"
+# isn.devices.robot.RobotArmPositioner:
+# - name: yaw
+#   prefix: "19IDRobot:"
+#   setpoint: "Yaw"
+#   readback: "Last_Position_Yaw"
+#   done: "MC"
+#   execute: "EXE"
+#   command: "CMD"
 
 isn.devices.kb.KB:
 - name: kb
@@ -173,7 +186,7 @@ mic_common.devices.eiger.Eiger:
 
 isn.devices.me7.VortexXspress37:
 - name: me7
-  prefix: "XSP3_7Chan:"
+  prefix: "19idME7:"
   labels: ["detector"]
 
 isn.devices.socketserver.SocketServer:

@@ -14,11 +14,14 @@ import logging
 from pathlib import Path
 
 # Temporary hklpy2 fix, importing gi before hklpy2 and matplotlib to prevent bugs
-from apsbits.core.best_effort_init import init_bec_peaks
-from apsbits.core.catalog_init import init_catalog
+import gi
+import hklpy2
+
+# from apsbits.core.best_effort_init import init_bec_peaks
+# from apsbits.core.catalog_init import init_catalog
 from apsbits.core.instrument_init import init_instrument
 from apsbits.core.instrument_init import make_devices
-from apsbits.core.run_engine_init import init_RE
+# from apsbits.core.run_engine_init import init_RE
 from apsbits.utils.baseline_setup import setup_baseline_stream
 
 # Configuration functions
@@ -40,6 +43,8 @@ instrument_path = Path(__file__).parent
 iconfig_path = instrument_path / "configs" / "iconfig.yml"
 iconfig = load_config(iconfig_path)
 
+
+
 # Additional logging configuration
 # only needed if using different logging setup
 # from the one in the apsbits package
@@ -48,6 +53,8 @@ configure_logging(extra_logging_configs_path=extra_logging_configs_path)
 
 logger = logging.getLogger(__name__)
 logger.info("Starting Instrument with iconfig: %s", iconfig_path)
+
+
 
 # Load the master file config
 master_file_config_path = instrument_path / "configs" / "masterFileConfig.yml"
@@ -69,9 +76,13 @@ if iconfig.get("TILED_PROFILE_NAME", {}):
     profile_name = iconfig.get("TILED_PROFILE_NAME")
     tiled_client = from_profile(profile_name)
 
-bec, peaks = init_bec_peaks(iconfig)
-cat = init_catalog(iconfig)
-RE, sd = init_RE(iconfig, subscribers=[bec, cat])
+
+
+# bec, peaks = init_bec_peaks(iconfig)
+# cat = init_catalog(iconfig)
+# RE, sd = init_RE(iconfig, subscribers=[bec, cat])
+
+from .utils.run_engine import RE, sd
 
 # # # Optional Nexus callback block
 # # # delete this block if not using Nexus
@@ -119,17 +130,17 @@ except:
     logger.info("Softglue not found, detector key map not generated.")
 
 
-# # Diffractometer utilities:
-# # import hklpy2 # noqa: F401
-# sim_psic = hklpy2.creator(
-#     name="sim_psic", solver="hkl_soleil", geometry="E6C",
-#     reals="mu eta chi phi yaw pitch".split(),
-# )
-# sim_psic.core.mode="lifting_detector_mu"
+# Diffractometer utilities:
+# import hklpy2 # noqa: F401
+sim_psic = hklpy2.creator(
+    name="sim_psic", solver="hkl_soleil", geometry="E6C",
+    reals="mu eta chi phi yaw pitch".split(),
+)
+sim_psic.core.mode="lifting_detector_mu"
 
-# psic = oregistry['psic']
-# psic.wait_for_connection()
-# psic.core.mode = "lifting_detector_mu"
+psic = oregistry['psic']
+psic.wait_for_connection()
+psic.core.mode = "lifting_detector_mu"
 
 # if host_on_aps_subnet():
 #     RE(make_devices(clear=False, file="devices_aps_only.yml"))
@@ -144,7 +155,7 @@ setup_baseline_stream(sd, oregistry, connect=False)
 # # delete this block if not using Nexus
 if iconfig.get("NEXUS_DATA_FILES", {}).get("ENABLE", False):
     # from .callbacks.nexus_data_file_writer import nxwriter_init
-    from mic_common.callbacks.nexus_data_file_writer import nxwriter_init
+    from isn.callbacks.nexus_data_file_writer import nxwriter_init
 
     nxwriter = nxwriter_init(RE)
     nxwriter.savedata = oregistry['savedata']

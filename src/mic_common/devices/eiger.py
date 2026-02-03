@@ -1,3 +1,7 @@
+import logging
+
+logger = logging.getLogger(__name__)
+
 from ophyd import (
     ADComponent,
     Component,
@@ -6,24 +10,28 @@ from ophyd import (
 )
 
 from ophyd.areadetector import (
-    SingleTrigger,
     EigerDetectorCam, 
     DetectorBase,
     ImagePlugin,
-    StatsPlugin,
     ROIPlugin,
     ADTriggerStatus,
     Staged
 )
 
+from ophyd.areadetector.trigger_mixins import TriggerBase
+
 from apstools.utils import run_in_thread
 from isn.devices.mic_ad_mixins import MicHDF5
+from isn.devices.mic_ad_mixins import MicStatsPlugin
 from time import sleep
 
 MAX_IMAGES = 1e4
 DELAY = 0.3
 
-class Trigger(SingleTrigger):
+class Trigger(TriggerBase):
+
+    trigger_mode = "Software"
+    acquire_time = 0
 
     _status_type = ADTriggerStatus
     
@@ -32,10 +40,12 @@ class Trigger(SingleTrigger):
         self._internal_trigger = False
         self._delay = DELAY
         self._trigger_counter = 0
-        self.setup_soft_trigger()
+        # It is better if we specify on the full device level the behavior we want
+        #self.setup_internal_trigger()
 
     def setup_internal_trigger(self, num_images=None):
-        self._acquisition_signal_pv = "cam1:Acquire"
+        self.trigger_mode = "Internal"
+        # self._acquisition_signal_pv = "cam1:Acquire"
         self.cam.stage_sigs["trigger_mode"] = "Internal Series"
         self.cam.stage_sigs["manual_trigger"] = "Enable"
         if not num_images:
@@ -45,25 +55,27 @@ class Trigger(SingleTrigger):
             self.cam.stage_sigs["num_images"] = num_images
             self.cam.stage_sigs["num_triggers"] = num_images
         self.cam.stage_sigs["num_exposures"] = 1
-        self._flysetup = False
-        self._internal_trigger = False
-        self._soft_trigger = True
+        # self._flysetup = False
+        # self._internal_trigger = False
+        # self._soft_trigger = True
 
-    def setup_soft_trigger(self):
-        self._acquisition_signal_pv = "cam1:Trigger"
+    def setup_software_trigger(self):
+        self.trigger_mode = "Software"
+        # self._acquisition_signal_pv = "cam1:Trigger"
         self.cam.stage_sigs["trigger_mode"] = "Internal Series"
         self.cam.stage_sigs["manual_trigger"] = "Enable"
         self.cam.stage_sigs["num_images"] = 1
         self.cam.stage_sigs["num_triggers"] = MAX_IMAGES
         self.cam.stage_sigs.move_to_end("num_triggers", last=False)
         self.cam.stage_sigs["num_exposures"] = 1
-        self.cam.stage_sigs["acquire"] = 1
+        # self.cam.stage_sigs["acquire"] = 1
         self.hdf1.stage_sigs["num_capture"] = MAX_IMAGES
-        self._flysetup = False
-        self._internal_trigger = False
-        self._soft_trigger = True
+        # self._flysetup = False
+        # self._internal_trigger = False
+        # self._soft_trigger = True
 
     def setup_flyscan_mode(self, num_images=1, acq_time=0.01, hdf_images=MAX_IMAGES):
+        self.trigger_mode = "Flyscan"
         self.cam.stage_sigs["trigger_mode"] = "External Enable"
         self.cam.stage_sigs["num_triggers"] = num_images
         self.cam.stage_sigs.move_to_end("num_triggers", last=False)
@@ -72,13 +84,13 @@ class Trigger(SingleTrigger):
         self.cam.stage_sigs["acquire_period"]= acq_time
         self.cam.stage_sigs["manual_trigger"] = "Disable"
         self.cam.stage_sigs["num_exposures"] = 1
-        self.cam.stage_sigs["acquire"] = 1
+        # self.cam.stage_sigs["acquire"] = 1
         self.hdf1.stage_sigs["enable"] = 1
         self.hdf1.stage_sigs["auto_save"] = 1
         self.hdf1.stage_sigs["num_capture"] = hdf_images
 
 
-        self._flysetup = True
+        # self._flysetup = True
 
 
     def stage(self):
@@ -86,11 +98,18 @@ class Trigger(SingleTrigger):
 
         #Guarantee we are not collecting
         self.cam.acquire.put(0)
-        self.delay = self.cam.acquire_time.get()
-        self.delay = max(self.delay, self._delay)
-        self._trigger_counter = 0
         
         super().stage()
+
+        if self.trigger_mode == "Flyscan":
+            # self.cam.acquire.set("1").wait(timeout=10)
+            self.cam.acquire.put(1)
+            sleep(0.2)
+        elif self.trigger_mode == "Software":
+            self.acquire_time = self.cam.acquire_time.get()
+            self._trigger_counter = 0
+            self.cam.acquire.put(1)
+            sleep(0.2)
 
 
     def trigger(self):
@@ -98,7 +117,7 @@ class Trigger(SingleTrigger):
             raise RuntimeError("This detector is not ready to trigger."
                                "Call the stage() method before triggering.")
         
-        if self._internal_trigger:
+        if self.trigger_mode == "Internal":
             super().trigger()
 
         #The following only applies to soft triggering as flyscanning never triggers.
@@ -110,7 +129,7 @@ class Trigger(SingleTrigger):
 
         @run_in_thread
         def exposure_delay(status_obj):
-            sleep(self.delay)
+            sleep(self._delay + self.acquire_time)
             status_obj.set_finished()
 
         self._status = self._status_type(self)
@@ -122,9 +141,13 @@ class Trigger(SingleTrigger):
 
     def unstage(self):
         self._status = None
-        self.cam.acquire.set(0).wait(timeout=10)
+        self.cam.acquire.set(0).wait(timeout=1)
         super().unstage()
-    
+        logger.debug("Unstaged eiger.")
+
+        if self.trigger_mode == "Flyscan":
+            logger.debug("Reverting eiger to internal triggering")
+            self.setup_internal_trigger()
 
 
 class EigerCam(EigerDetectorCam):
@@ -161,6 +184,12 @@ class EigerCam(EigerDetectorCam):
 
 class Eiger(Trigger, DetectorBase):
 
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.setup_software_trigger()
+
+    _default_read_attrs = ('stats4.total',)
+
     cam = ADComponent(EigerCam, 'cam1:')
     image = ADComponent(ImagePlugin, 'image1:')
     hdf1 = ADComponent(MicHDF5, 'HDF1:')
@@ -170,11 +199,11 @@ class Eiger(Trigger, DetectorBase):
     roi2 = ADComponent(ROIPlugin, 'ROI2:')
     roi3 = ADComponent(ROIPlugin, 'ROI3:')
     roi4 = ADComponent(ROIPlugin, 'ROI4:')
-    stats1 = ADComponent(StatsPlugin, 'Stats1:')
-    stats2 = ADComponent(StatsPlugin, 'Stats2:')
-    stats3 = ADComponent(StatsPlugin, 'Stats3:')
-    stats4 = ADComponent(StatsPlugin, 'Stats4:')
-    stats5 = ADComponent(StatsPlugin, 'Stats5:')
+    stats1 = ADComponent(MicStatsPlugin, 'Stats1:')
+    stats2 = ADComponent(MicStatsPlugin, 'Stats2:')
+    stats3 = ADComponent(MicStatsPlugin, 'Stats3:')
+    stats4 = ADComponent(MicStatsPlugin, 'Stats4:')
+    stats5 = ADComponent(MicStatsPlugin, 'Stats5:')
 
 
 
