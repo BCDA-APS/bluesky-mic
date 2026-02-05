@@ -13,6 +13,11 @@ class FlyScanRecord(Device):
     inner = Component(NewScanRecord, ":FscanH", kind="config", labels=("scanrecord", "inner"))
     outer = Component(NewScanRecord, ":Fscan1", kind="config", labels=("scanrecord", "outer"))
 
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.outer.pause = self.pause
+        self.outer.resume = self.resume
+
     def stage2Dfly(self, devices, sample, fscanh_samx, width, stepsize_x, height, stepsize_y):
         inner_triggers = []
         outer_triggers = []
@@ -67,11 +72,11 @@ class FlyScanRecord(Device):
         yield from bps.sleep(0.1)
 
     def unstage2Dfly(self):
-        if self.inner._staged == Staged.yes:
+        if self.inner._staged == Staged.yes or self.inner._staged == Staged.partially:
             logger.info("Inner scanrecord is already staged, unstaging ... ...")
             self.inner.unstage()
             yield from bps.sleep(0.1)
-        if self.outer._staged == Staged.yes:
+        if self.outer._staged == Staged.yes or self.outer._staged == Staged.partially:
             logger.info("Outer scanrecord is already staged, unstaging ... ...")
             self.outer.unstage()
             yield from bps.sleep(0.1)

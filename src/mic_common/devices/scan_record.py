@@ -16,13 +16,13 @@ from ophyd import EpicsSignal
 from mic_common.utils.device_utils import mode_setter
 from mic_common.utils.device_utils import value_setter
 from mic_common.utils.device_utils import LoggingStageSigs
+from mic_common.utils.device_utils import unstage_with_skip
 
 logger = logging.getLogger(__name__)
 logger.info(__file__)
 
 
 class NewScanRecord(SscanRecord):
-
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.P1PA = PV(f"{self.prefix}.P1PA")
@@ -31,10 +31,30 @@ class NewScanRecord(SscanRecord):
         original_stage_sigs = self.stage_sigs
         self.stage_sigs = LoggingStageSigs(original_stage_sigs, prefix=self.prefix)
 
+    def pause(self):
+        logger.info("Pausing scanrecord ...")
+        logger.info("In the custom pause function")
+        self.wait.put(1)
+
+    def resume(self):
+        logger.info("Resuming scanrecord ...")
+        logger.info("In the custom resume function")
+        self.wait.put(0)
+
     def stage_detTriggers(self, trigger_pvs):
         """Stage detector triggers for the scan record."""
         for i, t_pv in enumerate(trigger_pvs):
             self.stage_sigs[f"triggers.t{i+1}.trigger_pv"] = t_pv
+
+    def unstage(self):
+        """Unstage the device but avoid restoring file_path and file_name from stage_sigs.
+
+        Uses the unstage_with_skip utility to prevent certain fields from being
+        restored during unstage.
+        """
+        fields_to_skip = ["positioners.p1.step_size"]
+        unstage_with_skip(self, fields_to_skip)
+        return super().unstage()
 
     def config(
         self,
@@ -45,8 +65,8 @@ class NewScanRecord(SscanRecord):
         center: float = None,
         width: float = 0,
         stepsize: float = 0,
-        bspv: str = "",
-        aspv: str = "",
+        bspv: str = None,
+        aspv: str = None,
         trigger_pvs: list = None,
     ):
         """Stage the corresponding signals for scanrecord configuration
@@ -65,15 +85,20 @@ class NewScanRecord(SscanRecord):
         """
         if self.connected:
             self.stage_sigs.clear()
-            self.stage_sigs["bspv"] = bspv
+            if bspv is not None:
+                self.stage_sigs["bspv"] = bspv
             self.stage_sigs["positioners.p1.setpoint_pv"] = positioner_setpoint
             self.stage_sigs["positioners.p1.readback_pv"] = positioner_readback
             self.stage_sigs["positioners.p1.mode"] = scanmode
             self.stage_sigs["positioners.p1.abs_rel"] = rel_abs_motion
             self.stage_sigs["positioners.p1.center"] = center
             self.stage_sigs["positioners.p1.width"] = width
-            self.stage_sigs["aspv"] = aspv
-            self.positioners.p1.step_size.put(stepsize)
+            self.stage_sigs["positioners.p1.step_size"] = stepsize
+
+            if aspv is not None:
+                self.stage_sigs["aspv"] = aspv
+            # self.positioners.p1.step_size.put(stepsize)
+
             if trigger_pvs is not None:
                 self.stage_detTriggers(trigger_pvs)
 

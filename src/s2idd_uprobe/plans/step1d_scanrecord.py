@@ -10,44 +10,6 @@ __all__ = """
     step1d_scanrecord
 """.split()
 
-# import logging
-
-# import bluesky.plan_stubs as bps
-# import bluesky.preprocessors as bpp
-# from apsbits.core.instrument_init import oregistry
-# from apsbits.utils.config_loaders import get_config
-
-# from mic_common.plans.generallized_scan_1d import generalized_scan_1d
-# from mic_common.utils.param_capture import capture_params
-# from mic_common.utils.scan_monitor import execute_scan_1d
-
-# # from s2idd_uprobe.plans.before_after_fly import setup_flyscan_XRF_triggers, setup_flyscan_tmm_triggers
-# # from s2idd_uprobe.plans.helper_funcs import selected_dets
-# from s2idd_uprobe.plans.toggle_usercalc import disable_usercalc
-# from s2idd_uprobe.plans.toggle_usercalc import enable_usercalc
-# from s2idd_uprobe.plans.stepscan_core import _common_stepscan_setup
-# from s2idd_uprobe.utils.fly import get_next_file_name
-
-# logger = logging.getLogger(__name__)
-
-# # det_foldername = {"xrf": "flyXRF", "preamp1": "tetramm", "preamp2": "tetramm2"}
-
-
-# # scan1 = oregistry["scan1"]
-# # samx = oregistry["samx"]
-# # samz = oregistry["samz"]
-# # savedata = oregistry["savedata"]
-# # sis3820 = oregistry["sis3820"]
-# # xrf = oregistry["xrf"]
-# # xrf_netcdf = oregistry["xrf_netcdf"]
-# # preamp1_hdf = oregistry["tmm1_hdf"]
-# # preamp1 = oregistry["tmm1"]
-# # iconfig = get_config()
-# # scan_overhead = iconfig.get("SCAN_OVERHEAD")
-# # netcdf_delimiter = iconfig.get("FILE_DELIMITER")
-# # xmap_buffer = iconfig.get("XMAP", "BUFFER")
-
-
 
 
 import logging
@@ -61,11 +23,6 @@ from mic_common.utils.param_capture import capture_params
 
 logger = logging.getLogger(__name__)
 
-sample = oregistry["sample"]
-scanrecord = oregistry["scanrecord"]
-scaler_count = oregistry["scaler_count"]
-savedata = oregistry["savedata"]
-
 def _step1d_scanrecord(
     width=0,
     x_center=None,
@@ -76,6 +33,13 @@ def _step1d_scanrecord(
     preamp1_on=False,
     **kwargs,
 ):
+    
+    """Load ophyd objects"""
+    sample = oregistry["sample"]
+    scanrecord = oregistry["scanrecord"]
+    scaler_count = oregistry["scaler_count"]
+    savedata = oregistry["savedata"]
+
     """Check input parameters and detector status"""
     logger.info("Validating scan parameters and detector status")
     validate_scan_parameters(stepsize_x=stepsize_x, width=width, dwell_ms=dwell_ms)
@@ -147,6 +111,10 @@ def step1d_scanrecord(
     preamp1_on:
         Whether to enable preamp1. Preamp1 is used to record metadata. Default is True. Type: bool
     """
+
+    sample = oregistry['sample']
+    savedata = oregistry['savedata']
+
 
     """Capture the input plan parameters"""
     x_center = round(sample.x.position, 2) if x_center is None else x_center

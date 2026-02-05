@@ -69,6 +69,8 @@ def fly2d_scanrecord(
         Whether to enable preamp1. Preamp1 is used to record metadata. Default is True. 
     """
 
+
+    
     """Capture the input plan parameters"""
     # Use the current motor positions if not provided
     x_center = round(sample.x.position, 2) if x_center is None else x_center

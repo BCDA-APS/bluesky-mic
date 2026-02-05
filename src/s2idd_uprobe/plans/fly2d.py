@@ -46,8 +46,7 @@ from s2idd_uprobe.plans.flyscan_core import _fly2d
 
 logger = logging.getLogger(__name__)
 
-savedata = oregistry["savedata"]
-sample = oregistry["sample"]
+
 # scanrecord = oregistry["scanrecord"]
 # savedata = scanrecord.savedata
 
@@ -103,6 +102,12 @@ def fly2d(
         Whether to use snake scan pattern (alternating scan directions). 
         When False, standard raster scan. Default is False. 
     """
+
+    """Load ophyd objects"""
+    savedata = oregistry["savedata"]
+    sample = oregistry["sample"]
+
+
 
     """Capture the input plan parameters"""
     # Use the current motor positions if not provided. If provided, move the motor to the requested position.

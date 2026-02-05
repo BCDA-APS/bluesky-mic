@@ -23,16 +23,20 @@ s2idd_uprobe.devices.motor.Motor:
 
 ophyd.EpicsSignal:
 - name: fscanh_samx
-  write_pv: 2iddfS1:ExtrauserCalc13.A
-  read_pv: 2iddfS1:ExtrauserCalc13.A
+  write_pv: 2idd:ExtrauserCalc1.A
+  read_pv: 2idd:ExtrauserCalc1.A
   labels: ["usercalc"]
 - name: fscanh_dwell
   write_pv: 2idd:Flyscans:Setup:DwellTime
   read_pv: 2idd:Flyscans:Setup:DwellTime
   labels: ["usercalc"]
-- name: fly_calc
-  write_pv: 2iddfS1:userCalcEnable.VAL
-  read_pv: 2iddfS1:userCalcEnable.VAL
+# - name: fly_calc
+#   write_pv: 2idd:userCalcEnable.VAL
+#   read_pv: 2idd:userCalcEnable.VAL
+#   labels: ["usercalc"]
+- name: fly_calc10
+  write_pv: 2idd:userCalc10Enable
+  read_pv: 2idd:userCalc10Enable
   labels: ["usercalc"]
 - name: usercalc_samx_speed
   write_pv: 2iddfS1:userCalc8Enable

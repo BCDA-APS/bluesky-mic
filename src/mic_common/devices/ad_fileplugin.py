@@ -135,7 +135,7 @@ class DetHDF5(DetBase, HDF5Plugin):
     def __init__(self, *args, **kwargs):
         """Initialize DetHDF5."""
         super().__init__(*args, **kwargs)
-        self.capture.put(0)
+        # self.capture.put(0)
 
 
 class DetNetCDF(DetBase, NetCDFPlugin):
@@ -144,4 +144,4 @@ class DetNetCDF(DetBase, NetCDFPlugin):
     def __init__(self, *args, **kwargs):
         """Initialize DetNetCDF."""
         super().__init__(*args, **kwargs)
-        self.capture.put(0)
+        # self.capture.put(0)

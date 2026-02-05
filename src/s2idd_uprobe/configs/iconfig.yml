@@ -100,8 +100,10 @@ OPHYD:
 
     ### default timeouts (seconds)
     TIMEOUTS:
+        # PV_READ: 10
+        # PV_CONNECTION: 10 
         PV_READ: &TIMEOUT 5
         PV_WRITE: *TIMEOUT
-        PV_CONNECTION: *TIMEOUT
+        PV_CONNECTION: *TIMEOUT 
 
 XMODE_DEBUG_LEVEL: Plain

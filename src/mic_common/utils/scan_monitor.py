@@ -228,6 +228,7 @@ def execute_scan_2d(inner_scan, outter_scan, sample=None, print_outter_msg=False
         watcher.scan_active = True
         watcher.counter_active = True
         watcher.line_time_in = time.perf_counter()
+        yield from bps.checkpoint()
         yield from run_blocking_function(watcher.st.wait)
     finally:
         inner_scan.current_point.unsubscribe_all()

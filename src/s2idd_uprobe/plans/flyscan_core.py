@@ -11,7 +11,7 @@ common operations.
 import bluesky.plan_stubs as bps
 from apsbits.core.instrument_init import oregistry
 from apstools.plans import run_blocking_function
-from s2idd_uprobe.plans.toggle_usercalc import enable_usercalc, disable_usercalc
+# from s2idd_uprobe.plans.toggle_usercalc import enable_usercalc, disable_usercalc
 from mic_common.utils.validation import validate_scan_parameters, validate_device_connections
 from s2idd_uprobe.utils.fly import (
     reorder_devices,
@@ -26,12 +26,6 @@ import logging
 import numpy as np
 
 logger = logging.getLogger(__name__)
-scanrecord = oregistry["scanrecord"]
-fscanh_dwell = oregistry["fscanh_dwell"]
-fscanh_samx = oregistry["fscanh_samx"]
-sample = oregistry["sample"]
-savedata = oregistry["savedata"]
-retrace_samx_passive = oregistry["retrace_samx_passive"]
 
 
 def _common_flyscan_setup(
@@ -132,8 +126,18 @@ def _fly2d_scanrecord(
     preamp1_on=False,
     **kwargs,
 ):
+    """Load ophyd objects"""
+    scanrecord = oregistry["scanrecord"]
+    fscanh_dwell = oregistry["fscanh_dwell"]
+    fscanh_samx = oregistry["fscanh_samx"]
+    sample = oregistry["sample"]
+    savedata = oregistry["savedata"]
+    flycalc = oregistry['fly_calc10']
+    
     """Disable the usercalc that used in scan record"""
     # yield from disable_usercalc()
+    if flycalc.value == 0:
+        yield from bps.mv(flycalc, 1)
 
     """Move the sample to the requested z position"""
     if sample_z is not None:
@@ -148,8 +152,9 @@ def _fly2d_scanrecord(
     det_names = ["sis3820", "xrf", "tmm1"]
     devices = validate_device_connections(det_bools, det_names, return_devices=True)
     yield from scanrecord.fly.stage2Dfly(
-        devices, sample, sample.x.user_setpoint, width, stepsize_x, height, stepsize_y
+        devices, sample, fscanh_samx, width, stepsize_x, height, stepsize_y
     )
+    logger.info("after validataion")
     yield from bps.checkpoint()
 
     """Assign the per-pixel dwell time"""
@@ -170,9 +175,11 @@ def _fly2d_scanrecord(
 
     """Start executing scan"""
     fname = savedata.next_file_name
-    yield from scanrecord.fly.execute2Dfly(scan_name=fname, sample=sample)
+    # yield from scanrecord.fly.execute2Dfly(scan_name=fname, sample=sample)
+    yield from scanrecord.fly.execute2Dfly(scan_name=fname)
 
     """Enable the usercalc that used in scan record"""
+    yield from bps.mv(flycalc, 0)
     # yield from enable_usercalc()
 
     yield from scanrecord.fly.unstage2Dfly()
@@ -195,6 +202,11 @@ def _fly2d(
     **kwargs,
 ):
     
+    """Load ophyd objects"""
+    sample = oregistry['sample']
+    savedata = oregistry['savedata']
+
+
     """Disable usercalc"""
     # yield from disable_usercalc()
     # yield from bps.mv(retrace_samx_passive, 0)
@@ -264,6 +276,11 @@ def _fly1d(
     preamp1_on: bool = False,
     **kwargs,
 ):
+    
+    """Load ophyd object"""
+    sample = oregistry['sample']
+    savedata = oregistry['savedata']
+
     """Check input parameters"""
     logger.info("Validating scan parameters")
     validate_scan_parameters(stepsize_x=stepsize_x, width=width, dwell_ms=dwell_ms)
