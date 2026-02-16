@@ -82,7 +82,10 @@ if iconfig.get("TILED_PROFILE_NAME", {}):
 # cat = init_catalog(iconfig)
 # RE, sd = init_RE(iconfig, subscribers=[bec, cat])
 
-from .utils.run_engine import RE, sd
+from .utils.run_engine import RE, sd, bec
+
+#Defaulting to 0 just in case first scan is flyscan.
+RE.md['scan_id'] = 0
 
 # # # Optional Nexus callback block
 # # # delete this block if not using Nexus
