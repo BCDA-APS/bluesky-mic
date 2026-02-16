@@ -197,6 +197,10 @@ isn.devices.hutch.HutchTemp:
 - name: hutch_temp
   prefix: "BL19ID-Metasys:"
 
+isn.devices.filters.APSFilter:
+- name: filters
+  prefix: "19idBC:filter:"
+
 
 
 
