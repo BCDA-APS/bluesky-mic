@@ -52,7 +52,7 @@ class NewScanRecord(SscanRecord):
         Uses the unstage_with_skip utility to prevent certain fields from being
         restored during unstage.
         """
-        fields_to_skip = ["positioners.p1.step_size"]
+        fields_to_skip = ["positioners.p1.step_size", "positioners.p1.width"]
         unstage_with_skip(self, fields_to_skip)
         return super().unstage()
 

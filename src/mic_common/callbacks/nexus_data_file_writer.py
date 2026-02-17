@@ -32,6 +32,7 @@ class MicNXWriter(NXWriter):
         super().__init__(*args, **kwargs)
         self.savedata = None
         self.micdata_mountpath = "/mnt/micdata1"
+        self.keithley_scan = False
 
     def set_savedata(self, savedata):
         self.savedata = savedata
@@ -69,7 +70,7 @@ class MicNXWriter(NXWriter):
             return path / fname
         else:
             self.savedata.update_next_file_name()
-            fname = self.savedata.current_file_name.replace(".mda", "_run.h5")
+            fname = self.savedata.current_file_name.replace(".mda", "_run.h5" if not self.keithley_scan else "_keithley_run.h5")
             path = pathlib.Path(
                 self.savedata.get().file_system.replace("//micdata/data1", self.micdata_mountpath),
                 "bluesky",

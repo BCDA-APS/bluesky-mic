@@ -70,3 +70,8 @@ s2idd_uprobe.devices.tetramm.MicTetrAMM:
 - name: tmm1
   prefix: 2iddtmm1
   labels: ["tetramm"]
+
+# s2idd_uprobe.user.keithley2400_moxa.Keithley2400:
+# - name: keithley
+#   prefix: ""
+#   labels: ["keithley"]

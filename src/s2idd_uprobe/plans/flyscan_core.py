@@ -180,6 +180,8 @@ def _fly2d_scanrecord(
 
     """Enable the usercalc that used in scan record"""
     yield from bps.mv(flycalc, 0)
+    sample.x.set_speed(sample.x.get_max_velocity())
+    yield from bps.checkpoint()
     # yield from enable_usercalc()
 
     yield from scanrecord.fly.unstage2Dfly()

@@ -23,6 +23,14 @@ from mic_common.utils.param_capture import capture_params
 
 logger = logging.getLogger(__name__)
 
+"""Load ophyd objects"""
+sample = oregistry["sample"]
+scanrecord = oregistry["scanrecord"]
+scaler_count = oregistry["scaler_count"]
+savedata = oregistry["savedata"]
+flycalc = oregistry['fly_calc10']
+
+
 def _step1d_scanrecord(
     width=0,
     x_center=None,
@@ -33,12 +41,6 @@ def _step1d_scanrecord(
     preamp1_on=False,
     **kwargs,
 ):
-    
-    """Load ophyd objects"""
-    sample = oregistry["sample"]
-    scanrecord = oregistry["scanrecord"]
-    scaler_count = oregistry["scaler_count"]
-    savedata = oregistry["savedata"]
 
     """Check input parameters and detector status"""
     logger.info("Validating scan parameters and detector status")
@@ -51,9 +53,11 @@ def _step1d_scanrecord(
     det_bools = [xrf_on, preamp1_on]
     det_names = ["xrf", "tmm1"]
     devices = validate_device_connections(det_bools, det_names, return_devices=True)
-    
+
     """Disable the usercalc that used in scan record"""
     # yield from disable_usercalc()
+    if flycalc.value == 0:
+        yield from bps.mv(flycalc, 1)
 
     """Set up scan record"""
     yield from scanrecord.step.stage1Dstep(
@@ -75,6 +79,7 @@ def _step1d_scanrecord(
     yield from scanrecord.step.unstage1Dstep()
     for d in devices:
         d.unstage()
+    yield from bps.mv(flycalc, 0)
 
 
 def step1d_scanrecord(

@@ -58,11 +58,17 @@ SPEC_DATA_FILES:
     ENABLE: false
     FILE_EXTENSION: dat
 
+KEITHLEY:
+    ENABLE: true
+
 XMAP:
     BUFFER: 124
     DET_FOLDERNAME: "flyXRF"
     MOUNT_PATH: "W:"
 
+SAVE_DATA:
+    MOUNT_PATH: "//micdata/data1/"
+    
 TETRAMM:
     DET_FOLDERNAME: "tetramm"
 
