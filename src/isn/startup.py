@@ -82,7 +82,8 @@ if iconfig.get("TILED_PROFILE_NAME", {}):
 # cat = init_catalog(iconfig)
 # RE, sd = init_RE(iconfig, subscribers=[bec, cat])
 
-from .utils.run_engine import RE, sd, bec
+from .utils.run_engine import RE, sd, bec, cat
+
 
 #Defaulting to 0 just in case first scan is flyscan.
 RE.md['scan_id'] = 0
@@ -179,3 +180,12 @@ def get_save_data_path():
     if savedata is None:
         return None
     return savedata.file_system.get()
+
+from .utils.experiment_utils import load_experiment
+
+
+from mictools.load_data import *
+from mictools.process_data import *
+from mictools.config import *
+from mictools.plot_data import *
+from mictools.roi_utils import Roi

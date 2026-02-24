@@ -79,12 +79,10 @@ class Trigger(TriggerBase):
         self.cam.stage_sigs["trigger_mode"] = "External Enable"
         self.cam.stage_sigs["num_triggers"] = num_images
         self.cam.stage_sigs.move_to_end("num_triggers", last=False)
-        # self.cam.stage_sigs["num_images"] = num_images
         self.cam.stage_sigs["acquire_time"] = acq_time
         self.cam.stage_sigs["acquire_period"]= acq_time
         self.cam.stage_sigs["manual_trigger"] = "Disable"
         self.cam.stage_sigs["num_exposures"] = 1
-        # self.cam.stage_sigs["acquire"] = 1
         self.hdf1.stage_sigs["enable"] = 1
         self.hdf1.stage_sigs["auto_save"] = 1
         self.hdf1.stage_sigs["num_capture"] = hdf_images

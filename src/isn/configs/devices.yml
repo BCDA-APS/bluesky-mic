@@ -77,18 +77,18 @@ isn.devices.tetramm.MyTetrAMM:
   port_name: "TetrAMM4"
   labels: ["detector"]
 
-# isn.devices.bpm.MyBPM:
-# - name: bpm_c
-#   quadem_prefix: "19idBPMC:T4U:"
-#   vertical_motor_prefix: "19idBDA:m5"
-#   horizontal_motor_prefix: "19idBDA:m6"
-#   labels: ["baseline"]
+isn.devices.bpm.MyBPM:
+- name: bpm_c
+  quadem_prefix: "19idBPMC:T4U:"
+  vertical_motor_prefix: "19idBDA:m5"
+  horizontal_motor_prefix: "19idBDA:m6"
+  labels: ["baseline"]
 
-# - name: bpm_d
-#   quadem_prefix: "19idBPMD:T4U:"
-#   vertical_motor_prefix: "19idBDA:m13"
-#   horizontal_motor_prefix: "19idBDA:m14"
-#   labels: ["baseline"]
+- name: bpm_d
+  quadem_prefix: "19idBPMD:T4U:"
+  vertical_motor_prefix: "19idBDA:m13"
+  horizontal_motor_prefix: "19idBDA:m14"
+  labels: ["baseline"]
 
 # apstools.devices.aps_machine.ApsMachineParametersDevice:
 # - name: ring
@@ -101,22 +101,22 @@ apstools.devices.shutters.ApsPssShutter:
   open_pv: "S19ID-PSS:SES:OpenEPICSC"
 
 
-# apstools.devices.hhl_slits.HHLSlits:
-# - name: wbs
-#   prefix: "19idWBS:US:"
-#   pitch_motor: m3
-#   yaw_motor: m4
-#   horizontal_motor: m1
-#   diagonal_motor: m2
-#   labels: ["baseline"]
+apstools.devices.hhl_slits.HHLSlits:
+- name: wbs
+  prefix: "19idWBS:US:"
+  pitch_motor: m3
+  yaw_motor: m4
+  horizontal_motor: m1
+  diagonal_motor: m2
+  labels: ["baseline"]
 
-# - name: pbs
-#   prefix: "19idWBS:DS:"
-#   pitch_motor: m7
-#   yaw_motor: m8
-#   horizontal_motor: m5
-#   diagonal_motor: m6
-#   labels: ["baseline"]
+- name: pbs
+  prefix: "19idWBS:DS:"
+  pitch_motor: m7
+  yaw_motor: m8
+  horizontal_motor: m5
+  diagonal_motor: m6
+  labels: ["baseline"]
 
 isn.devices.undulators.UndulatorPair:
 - name: undulators
@@ -175,6 +175,12 @@ isn.devices.flag.Flag:
   in_position: -20
   out_position: 0
 
+- name: xeye
+  flag_prefix: "19idXEYE:"
+  motor_prefix: "19idXEYE:m1"
+  in_position: 0.03
+  out_position: -200
+
 mic_common.devices.eiger.Eiger:
 - name: ptycho
   prefix: "19idPTYCHO:"
@@ -196,6 +202,10 @@ isn.devices.socketserver.SocketServer:
 isn.devices.hutch.HutchTemp:
 - name: hutch_temp
   prefix: "BL19ID-Metasys:"
+
+isn.devices.rayspec.Rayspec:
+- name: rayspec
+  prefix: "19idACS:"
 
 
 

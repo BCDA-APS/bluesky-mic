@@ -114,6 +114,7 @@ class MyTetrAMM(TetrAMM):
 
     def unstage(self):
         self._status = None
+        # self.hdf1.enable.set('Disable')
         super().unstage()
 
     def plot_currents(self, currents: list):

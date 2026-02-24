@@ -79,5 +79,5 @@ class Sample(Device):
     def compensating_z(self, x_step):
         '''Returns the amount the z stage would need to compensate for an x_step to keep the sample in focus.'''
         th = self.theta.user_readback.get()
-        return x_step*np.tan(-np.radians(th))
+        return (x_step * np.sin(-1*np.radians(th)))
 

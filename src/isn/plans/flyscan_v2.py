@@ -246,8 +246,8 @@ def flyscan(
             logger.debug(f"Samply X stage moved to {_starting_x*1e3:0.3e} um.")
 
             # Finally, we move z:
-            step_z = sample.compensating_z(dx_)
-            _starting_z = z0 + step_z
+            step_z = sample.compensating_z(x_min) * 1e-3
+            _starting_z = z0 + step_z - _z_tweak_value
             yield from mv(sample.z, _starting_z)
 
             logger.debug(f"Samply Z stage moved to {_starting_z*1e3:0.3e} um.")
@@ -312,6 +312,8 @@ def flyscan(
         logger.debug("Opening shutter.")
 
         yield from abs_set(eshutter, "open", wait=True)
+
+        yield from bps.sleep(3)
 
         # --- Start softglue --- #
 
