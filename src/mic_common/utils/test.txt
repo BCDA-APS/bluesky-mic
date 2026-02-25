@@ -1,0 +1,5 @@
+from s8bmb_uprobe.startup import *
+from mic_common.utils.validation import validate_scan_parameters, validate_device_connections
+det_bools = [True, False, False]
+det_names = ["scaler", "xp3", "xmap"]
+devices = validate_device_connections(det_bools, det_names, return_devices=True)

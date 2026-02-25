@@ -1,0 +1,57 @@
+# Guarneri-style device YAML configuration
+
+s8bmb_uprobe.devices.scanrecord.CombinedScanRecord:
+- name: scanrecord
+  prefix: 8bmbsft
+  labels: ["scanrecord"]
+
+# mic_common.devices.scan_record.NewScanRecord:
+# - name: scanrecord
+#   prefix: 8bmb
+#   labels: ["scanrecord"]
+
+s8bmb_uprobe.devices.sample.Sample:
+- name: sample
+  prefix: 8bmb
+  labels: ["sample"]
+
+mic_common.devices.save_data.SaveDataMic:
+- name: savedata
+  prefix: "8bmbsft:saveData_"
+  labels: ["savedata"]
+
+ophyd.EpicsSignal:
+- name: fly_calc
+  write_pv: 8bmbsft:userCalc10Enable.VAL
+  read_pv: 8bmbsft:userCalc10Enable.VAL
+  labels: ["usercalc"]  
+
+- name: fly_dwell
+  write_pv: 8bmb:Flyscans:Setup:DwellTime
+  read_pv: 8bmb:Flyscans:Setup:DwellTime
+  labels: ["usercalc"]
+
+- name: step_dwell
+  write_pv: 8bmbsft:userTran6.A
+  read_pv: 8bmbsft:userTran6.A
+  labels: ["usercalc"]
+
+mic_common.devices.sis3820.SIS3820:
+- name: sis3820
+  prefix: 8bmb:3820
+  labels: ["sis3820"]
+
+mic_common.devices.scaler.SCALER:
+- name: scaler
+  prefix: 8bmb:3820
+  labels: ["scaler"]
+
+s8bmb_uprobe.devices.xspress3.Xspress3:
+- name: xp3
+  prefix: 8bmbXP3
+  labels: ["xp3"]
+
+# mic_common.devices.xmap.XMAP:
+# - name: xmap
+#   prefix: 8bmbXMAP
+#   labels: ["xmap"]

@@ -22,6 +22,8 @@ class SIS3820(Device):
     prescale = Component(EpicsSignal, ":Prescale")
     trigger_mode = Component(EpicsSignal, ":ChannelAdvance")
     software_trigger = Component(EpicsSignal, ":SoftwareChannelAdvance")
+    time_period = Component(EpicsSignal, ":scaler1.TP")
+    count_mode = Component(EpicsSignal, ":scaler1.CONT")
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -59,6 +61,14 @@ class SIS3820(Device):
                 self.stage_sigs["prescale"] = prescale
             else:
                 raise ValueError("Stepsize and motor resolution must be provided")
+
+    def config_stepscan(self, dwell_time=None, **kwargs):
+        """Configure for step scan"""
+        self.unstage()
+        self.stage_sigs.clear()
+        self.stage_sigs["stop_all"] = 1
+        self.stage_sigs["count_mode"] = 0
+        self.stage_sigs["time_period"] = dwell_time
 
     def unstage(self):
         """Unstage the SIS3820 device."""

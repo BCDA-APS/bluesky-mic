@@ -221,13 +221,55 @@ def execute_scan_2d(inner_scan, outter_scan, sample=None, print_outter_msg=False
     outter_scan.execute_scan.subscribe(watcher.watch_execute_scan)  # Subscribe to the scan
     outter_scan.current_point.subscribe(watcher.watch_counter_outter)
     inner_scan.current_point.subscribe(watcher.watch_counter_inner)
+     #if sample velocity is not behaving as expected, disable this and use the inner loop busy/calc reocrds
     inner_scan.scan_phase.subscribe(watcher.watch_faze_inner)
+    try:
+        yield from bps.mv(outter_scan.execute_scan, 1)  # Start scan
+        watcher.scan_active = True
+        watcher.counter_active = True
+        watcher.line_time_in = time.perf_counter()
+        yield from run_blocking_function(watcher.st.wait)
+    finally:
+        inner_scan.current_point.unsubscribe_all()
+        inner_scan.scan_phase.unsubscribe_all()
+        outter_scan.current_point.unsubscribe_all()
+        outter_scan.execute_scan.unsubscribe_all()
+    logger.info("Done executing scan")
+    
+def execute_snake_2d(inner_scan, outter_scan, sample=None, print_outter_msg=False, scan_name="", verbose=False):
+    """Execute a 2D scan with monitoring.
+
+    Parameters:
+        inner_scan: Inner scan object.
+        outter_scan: Outer scan object.
+        print_outter_msg (bool): Whether to print outer loop messages.
+        scan_name (str): Name of the scan.
+        adjust_samx_speed (bool): Whether to adjust samx speed during the scan.
+    """
+    watcher = ScanMonitor(
+        numpts_x=inner_scan.number_points.value,
+        numpts_y=outter_scan.number_points.value,
+        scan_name=scan_name.zfill(SCANNUM_DIGITS),
+        sample=sample,
+        verbose=verbose,
+    )
+    watcher.outter_print_msg = print_outter_msg
+
+    logger.info("Done setting up scan, about to start scan")
+    logger.info("Start executing scan")
+
+    outter_scan.execute_scan.subscribe(watcher.watch_execute_scan)  # Subscribe to the scan
+    outter_scan.current_point.subscribe(watcher.watch_counter_outter)
+    inner_scan.current_point.subscribe(watcher.watch_counter_inner)
+    inner_scan.before_inner_busy.subscribe(watcher.watch_busy_inner)
+    inner_scan.after_inner_busy.subscribe(watcher.watch_busy_outer)
 
     try:
         yield from bps.mv(outter_scan.execute_scan, 1)  # Start scan
         watcher.scan_active = True
         watcher.counter_active = True
         watcher.line_time_in = time.perf_counter()
+        yield from bps.checkpoint()
         yield from run_blocking_function(watcher.st.wait)
     finally:
         inner_scan.current_point.unsubscribe_all()

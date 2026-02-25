@@ -27,6 +27,7 @@ class XMAPBase(Device):
     start_all = Component(EpicsSignal, ":StartAll")
     stop_all = Component(EpicsSignal, ":StopAll")
     erase_start = Component(EpicsSignal, ":EraseStart")
+    acquire = Component(EpicsSignal, ":EraseStart")
     erase_all = Component(EpicsSignal, ":EraseAll")
     acquiring = Component(EpicsSignalRO, ":Acquiring", string=True)
     collection_mode = Component(EpicsSignal, ":CollectMode")
@@ -40,6 +41,7 @@ class XMAPBase(Device):
     pixels_per_run = Component(EpicsSignal, ":PixelsPerRun")
     buffer_size: int = 124
     num_capture: int = 1
+    array_size: int = 2048
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)

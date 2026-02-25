@@ -24,7 +24,7 @@ class SaveDataMic(SaveData):
     def __init__(self, *args, **kwargs):
         """Initialize SaveDataMic."""
         super().__init__(*args, **kwargs)
-        self.update_next_file_name()
+        # self.update_next_file_name()
         logger.info(f"Next mda file is: {self.next_file_name}")
 
     def update_next_file_name(self):

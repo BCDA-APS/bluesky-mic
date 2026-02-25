@@ -53,7 +53,7 @@ class DetBase:
         fileplugin_path = self.file_path.get()
         if fileplugin_path.startswith(self.micdata_mountpath[0]) and self.micdata_mountpath not in fileplugin_path:
             fileplugin_path = fileplugin_path.replace(self.micdata_mountpath[0], self.micdata_mountpath)
-        elif fileplugin_path == "":
+        elif fileplugin_path == "" or fileplugin_path == "/":
             return det_path
         
         fileplugin_path_split = fileplugin_path.split(self.delimiter)
@@ -61,14 +61,17 @@ class DetBase:
         fileplugin_path_new = fileplugin_path_split[0] + self.delimiter + det_path_split[-1]
         return fileplugin_path_new
 
-    def generate_det_filepath(self):
+    def generate_det_filepath(self, upper_det_foldername=True):
         """
         Generate the file path and or create the directory
         for the EPICS AreaDetector filewriter.
         """
         basepath = self.savedata.file_system.get()
         basepath = basepath.replace("//micdata/data1/", self.micdata_mountpath)
-        det_path = os.path.join(basepath, self.det_foldername.upper())
+        if upper_det_foldername:
+            det_path = os.path.join(basepath, self.det_foldername.upper())
+        else:
+            det_path = os.path.join(basepath, self.det_foldername)
         logger.info(f"Setting up {self.det_foldername} to have data saved at {det_path}")
         if not os.path.exists(det_path) and "W:" not in det_path:
             try:
@@ -91,6 +94,7 @@ class DetBase:
         num_capture,
         next_filenum=0,
         is19ID=False,
+        upper_det_foldername=True,
         **kwargs,
     ):
         """
@@ -103,7 +107,7 @@ class DetBase:
         - eiger_filewriter: The default file writer from Eiger (default is None).
         """
 
-        det_path = self.generate_det_filepath()
+        det_path = self.generate_det_filepath(upper_det_foldername)
         self.update_filename()
         if is19ID:
             newpath = det_path
