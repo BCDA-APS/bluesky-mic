@@ -27,6 +27,7 @@ class XMAPBase(Device):
     start_all = Component(EpicsSignal, ":StartAll")
     stop_all = Component(EpicsSignal, ":StopAll")
     erase_start = Component(EpicsSignal, ":EraseStart")
+    acquire = Component(EpicsSignal, ":EraseStart")
     erase_all = Component(EpicsSignal, ":EraseAll")
     acquiring = Component(EpicsSignalRO, ":Acquiring", string=True)
     collection_mode = Component(EpicsSignal, ":CollectMode")

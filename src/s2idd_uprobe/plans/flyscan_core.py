@@ -122,6 +122,7 @@ def _fly2d_scanrecord(
     stepsize_y=0,
     dwell_ms=0,
     sample_z=None,
+    energy_keV=None,
     xrf_on=True,
     preamp1_on=False,
     **kwargs,
@@ -133,6 +134,7 @@ def _fly2d_scanrecord(
     sample = oregistry["sample"]
     savedata = oregistry["savedata"]
     flycalc = oregistry['fly_calc10']
+    mono = oregistry['kohzu_mono']
     
     """Disable the usercalc that used in scan record"""
     # yield from disable_usercalc()
@@ -146,6 +148,8 @@ def _fly2d_scanrecord(
         yield from bps.mv(sample.x, x_center)
     if y_center is not None:
         yield from bps.mv(sample.y, y_center)
+    if energy_keV is not None:
+        yield from bps.mv(mono, energy_keV)
 
     """Set up inner / outer scan record based on the scan types and parameters"""
     det_bools = [True, xrf_on, preamp1_on]
@@ -177,6 +181,8 @@ def _fly2d_scanrecord(
     fname = savedata.next_file_name
     # yield from scanrecord.fly.execute2Dfly(scan_name=fname, sample=sample)
     yield from scanrecord.fly.execute2Dfly(scan_name=fname)
+    # Safe resume point: if paused during post-scan cleanup, do not replay the finished scan.
+    yield from bps.checkpoint()
 
     """Enable the usercalc that used in scan record"""
     yield from bps.mv(flycalc, 0)

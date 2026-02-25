@@ -21,6 +21,11 @@ s2idd_uprobe.devices.motor.Motor:
   prefix: 2idd:m44
   labels: ["motor"]
 
+s2idd_uprobe.devices.motor.Motor:
+- name: osa_y
+  prefix: 2idd:m12
+  labels: ["motor"]
+
 ophyd.EpicsSignal:
 - name: fscanh_samx
   write_pv: 2idd:ExtrauserCalc1.A
@@ -30,10 +35,6 @@ ophyd.EpicsSignal:
   write_pv: 2idd:Flyscans:Setup:DwellTime
   read_pv: 2idd:Flyscans:Setup:DwellTime
   labels: ["usercalc"]
-# - name: fly_calc
-#   write_pv: 2idd:userCalcEnable.VAL
-#   read_pv: 2idd:userCalcEnable.VAL
-#   labels: ["usercalc"]
 - name: fly_calc10
   write_pv: 2idd:userCalc10Enable
   read_pv: 2idd:userCalc10Enable
@@ -50,6 +51,10 @@ ophyd.EpicsSignal:
   write_pv: 2idd:scaler1.CNT
   read_pv: 2idd:scaler1.CNT
   labels: ["signal"]
+- name: solarsim_shutter
+  write_pv: 2idsft:u1:Bd8
+  read_pv: 2idsft:u1:Bd8
+  labels: ['signal']
 
 mic_common.devices.sis3820.SIS3820:
 - name: sis3820

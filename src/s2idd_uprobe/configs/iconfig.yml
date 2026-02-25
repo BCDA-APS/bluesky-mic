@@ -59,23 +59,28 @@ SPEC_DATA_FILES:
     FILE_EXTENSION: dat
 
 KEITHLEY:
-    ENABLE: true
+    ENABLE: false
 
 XMAP:
     BUFFER: 124
     DET_FOLDERNAME: "flyXRF"
     MOUNT_PATH: "W:"
+    # MOUNT_PATH: "Z:"
 
 SAVE_DATA:
     MOUNT_PATH: "//micdata/data1/"
+    # MOUNT_PATH: "//s2data/"
     
 TETRAMM:
     DET_FOLDERNAME: "tetramm"
 
 STORAGE:
-  MICDATA_MOUNTPATH: "/mnt/micdata1/"
-  FILE_DELIMITER: "2idd"
-#   XMAP_MOUNTPATH: "W:"
+    MICDATA_MOUNTPATH: "/mnt/micdata1/"
+    AUTO_MOUNTPATH: "/net/micdata/data1/"
+    FILE_DELIMITER: "2idd"
+    # MICDATA_MOUNTPATH: "/net/s2data/"
+    # AUTO_MOUNTPATH: "/net/s2data/"
+    # FILE_DELIMITER: "2-idd"
 
 # FILE_DELIMITER: "2idd"
 # SCAN_OVERHEAD: 0.3

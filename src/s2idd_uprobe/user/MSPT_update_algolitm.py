@@ -12,7 +12,7 @@ import numpy as np
 from scipy import stats
 import sys
 import os
-import pyvisa
+# import pyvisa
 import logging
 
 # -------------------- Experiment Parameters --------------------
@@ -301,12 +301,15 @@ def run_JV_sweep(keithley2400_1, file_path, attempt=1, max_attempts=2, JV_durati
     with np.errstate(divide='ignore', invalid='ignore'):
         denominator = (voltages + currents * Rs) ** n
         VJ_over_V_plus_JRs = np.where(denominator != 0, voltages * currents / denominator, 0)
-    if np.any(VJ_over_V_plus_JRs):
-        idx_max_vsp = np.argmax(VJ_over_V_plus_JRs)
-        V_msp_local = voltages[idx_max_vsp]
+    finite_mask = np.isfinite(VJ_over_V_plus_JRs)
+    if np.any(finite_mask):
+        valid_values = VJ_over_V_plus_JRs[finite_mask]
+        valid_voltages = voltages[finite_mask]
+        idx_max_vsp = np.argmax(valid_values)
+        V_msp_local = valid_voltages[idx_max_vsp]
     else:
         V_msp_local = 0.0
-        logging.warning("Unable to calculate V_msp due to division by zero or invalid values.")
+        logging.warning("Unable to calculate V_msp due to no finite metric values.")
 
     characteristics = [
         initial_PCE, Voc, Jsc, Rsh, Rs, FF, Vmp, Jmp, V_msp_local, V_mpp_local

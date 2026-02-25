@@ -72,9 +72,10 @@ RE, sd = init_RE(iconfig, subscribers=[bec, cat])
 make_devices(clear=False, file="devices.yml", device_manager=instrument)
 
 try:
-    sd = oregistry["savedata"]
-    sd.micdata_mountpath = iconfig.get("SAVE_DATA")["MOUNT_PATH"]
-    sd.storage_path = iconfig.get("STORAGE")["MICDATA_MOUNTPATH"]
+    savedata = oregistry["savedata"]
+    savedata.micdata_mountpath = iconfig.get("SAVE_DATA")["MOUNT_PATH"]
+    savedata.storage_path = iconfig.get("STORAGE")["MICDATA_MOUNTPATH"]
+    savedata.auto_mountpath = iconfig.get("STORAGE")["AUTO_MOUNTPATH"]
 except KeyError:
     logger.info("savedata not found, skipping")
 
@@ -118,20 +119,29 @@ if iconfig.get("KEITHLEY", {}).get("ENABLE", False):
     from s2idd_uprobe.user.keithley2400_moxa import Keithley2400
     try:
         keithley = Keithley2400()
-        keithley.name = "keithley"
-        oregistry.register(keithley, labels=["keithley"])
-        logger.info("Adding keithley to oregistry")
+        logger.info(f"Keithley 2400 opened: {keithley._opened_here}")
+        if keithley._opened_here:
+            keithley.close()
+            keithley.name = "keithley"
+            oregistry.register(keithley, labels=["keithley"])
+            logger.info("Adding keithley to oregistry")
+            from .plans.keithley_plans import jv_sweep, mppt, mspt
+
     except KeyError:
-        logger.info("keithley not found, skipping")
+        logger.info("keithley not found or not opened, skipping")
 
 
 # # from .plans import *
 # from .plans.test_nexus import test_nexus
 from .plans.fly1d import fly1d
 from .plans.fly2d import fly2d
-from .plans.fly2d_scanrecord import fly2d_scanrecord
-from .plans.step1d_scanrecord import step1d_scanrecord
-from .plans.keithley_plans import jv_sweep
+from .plans.fly2d_scanrecord import fly2d_scanrecord, fly3d_xanes_scanrecord
+from .plans.step1d_scanrecord import step1d_scanrecord, xanes_1d
+from .plans.timer import savedata, timer
+# from .plans.mov_optics import osa_in, osa_out, solarsim_on, solarsim_off
 # # from .plans.step2d import step2d
 # # from .plans.step1d import step1d
+
+## QServer functions
+from .utils.qsgui_helpers import get_save_data_path
 

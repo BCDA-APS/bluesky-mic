@@ -21,14 +21,8 @@ existing_devices:
   kohzu_mono:
     classname: KohzuMono
     components:
-      energy:
-        classname: EpicsSignal
-        is_flyable: false
-        is_movable: true
-        is_readable: true
-        module: ophyd.signal
-      energy_rbv:
-        classname: EpicsSignal
+      done:
+        classname: EpicsSignalRO
         is_flyable: false
         is_movable: true
         is_readable: true
@@ -39,28 +33,167 @@ existing_devices:
         is_movable: true
         is_readable: true
         module: ophyd.signal
-      mode2:
+      readback:
+        classname: EpicsSignalRO
+        is_flyable: false
+        is_movable: true
+        is_readable: true
+        module: ophyd.signal
+      setpoint:
         classname: EpicsSignal
         is_flyable: false
         is_movable: true
         is_readable: true
         module: ophyd.signal
-      move:
-        classname: EpicsSignal
+      user_readback:
+        classname: EpicsSignalRO
         is_flyable: false
         is_movable: true
         is_readable: true
         module: ophyd.signal
-      moving:
+      user_setpoint:
         classname: EpicsSignal
         is_flyable: false
         is_movable: true
         is_readable: true
         module: ophyd.signal
     is_flyable: false
-    is_movable: false
+    is_movable: true
     is_readable: true
     module: s2idd_uprobe.devices.kohzu
+  osa_y:
+    classname: Motor
+    components:
+      acceleration:
+        classname: EpicsSignal
+        is_flyable: false
+        is_movable: true
+        is_readable: true
+        module: ophyd.signal
+      direction_of_travel:
+        classname: EpicsSignal
+        is_flyable: false
+        is_movable: true
+        is_readable: true
+        module: ophyd.signal
+      high_limit_switch:
+        classname: EpicsSignalRO
+        is_flyable: false
+        is_movable: true
+        is_readable: true
+        module: ophyd.signal
+      high_limit_travel:
+        classname: EpicsSignal
+        is_flyable: false
+        is_movable: true
+        is_readable: true
+        module: ophyd.signal
+      home_forward:
+        classname: EpicsSignal
+        is_flyable: false
+        is_movable: true
+        is_readable: true
+        module: ophyd.signal
+      home_reverse:
+        classname: EpicsSignal
+        is_flyable: false
+        is_movable: true
+        is_readable: true
+        module: ophyd.signal
+      low_limit_switch:
+        classname: EpicsSignalRO
+        is_flyable: false
+        is_movable: true
+        is_readable: true
+        module: ophyd.signal
+      low_limit_travel:
+        classname: EpicsSignal
+        is_flyable: false
+        is_movable: true
+        is_readable: true
+        module: ophyd.signal
+      max_velocity:
+        classname: EpicsSignal
+        is_flyable: false
+        is_movable: true
+        is_readable: true
+        module: ophyd.signal
+      motor_done_move:
+        classname: EpicsSignalRO
+        is_flyable: false
+        is_movable: true
+        is_readable: true
+        module: ophyd.signal
+      motor_egu:
+        classname: EpicsSignal
+        is_flyable: false
+        is_movable: true
+        is_readable: true
+        module: ophyd.signal
+      motor_is_moving:
+        classname: EpicsSignalRO
+        is_flyable: false
+        is_movable: true
+        is_readable: true
+        module: ophyd.signal
+      motor_stop:
+        classname: EpicsSignal
+        is_flyable: false
+        is_movable: true
+        is_readable: true
+        module: ophyd.signal
+      offset_freeze_switch:
+        classname: EpicsSignal
+        is_flyable: false
+        is_movable: true
+        is_readable: true
+        module: ophyd.signal
+      resolution:
+        classname: EpicsSignal
+        is_flyable: false
+        is_movable: true
+        is_readable: true
+        module: ophyd.signal
+      set_use_switch:
+        classname: EpicsSignal
+        is_flyable: false
+        is_movable: true
+        is_readable: true
+        module: ophyd.signal
+      user_offset:
+        classname: EpicsSignal
+        is_flyable: false
+        is_movable: true
+        is_readable: true
+        module: ophyd.signal
+      user_offset_dir:
+        classname: EpicsSignal
+        is_flyable: false
+        is_movable: true
+        is_readable: true
+        module: ophyd.signal
+      user_readback:
+        classname: EpicsSignalRO
+        is_flyable: false
+        is_movable: true
+        is_readable: true
+        module: ophyd.signal
+      user_setpoint:
+        classname: EpicsSignal
+        is_flyable: false
+        is_movable: true
+        is_readable: true
+        module: ophyd.signal
+      velocity:
+        classname: EpicsSignal
+        is_flyable: false
+        is_movable: true
+        is_readable: true
+        module: ophyd.signal
+    is_flyable: false
+    is_movable: true
+    is_readable: true
+    module: s2idd_uprobe.devices.motor
   retrace_samx_passive:
     classname: EpicsSignal
     is_flyable: false
@@ -588,6 +721,12 @@ existing_devices:
       fly:
         classname: FlyScanRecord
         components:
+          abort_signal:
+            classname: EpicsSignal
+            is_flyable: false
+            is_movable: true
+            is_readable: true
+            module: ophyd.signal
           inner:
             classname: NewScanRecord
             components:
@@ -5458,6 +5597,12 @@ existing_devices:
       step:
         classname: StepScanRecord
         components:
+          abort_signal:
+            classname: EpicsSignal
+            is_flyable: false
+            is_movable: true
+            is_readable: true
+            module: ophyd.signal
           detloop:
             classname: NewScanRecord
             components:
@@ -12667,6 +12812,12 @@ existing_devices:
     is_movable: false
     is_readable: true
     module: mic_common.devices.sis3820
+  solarsim_shutter:
+    classname: EpicsSignal
+    is_flyable: false
+    is_movable: true
+    is_readable: true
+    module: ophyd.signal
   tmm1:
     classname: MicTetrAMM
     components:
@@ -12698,6 +12849,12 @@ existing_devices:
       cam:
         classname: XMAPBase
         components:
+          acquire:
+            classname: EpicsSignal
+            is_flyable: false
+            is_movable: true
+            is_readable: true
+            module: ophyd.signal
           acquiring:
             classname: EpicsSignalRO
             is_flyable: false
@@ -12796,139 +12953,6 @@ existing_devices:
     is_movable: false
     is_readable: true
     module: mic_common.devices.xmap
-  zp_z:
-    classname: Motor
-    components:
-      acceleration:
-        classname: EpicsSignal
-        is_flyable: false
-        is_movable: true
-        is_readable: true
-        module: ophyd.signal
-      direction_of_travel:
-        classname: EpicsSignal
-        is_flyable: false
-        is_movable: true
-        is_readable: true
-        module: ophyd.signal
-      high_limit_switch:
-        classname: EpicsSignalRO
-        is_flyable: false
-        is_movable: true
-        is_readable: true
-        module: ophyd.signal
-      high_limit_travel:
-        classname: EpicsSignal
-        is_flyable: false
-        is_movable: true
-        is_readable: true
-        module: ophyd.signal
-      home_forward:
-        classname: EpicsSignal
-        is_flyable: false
-        is_movable: true
-        is_readable: true
-        module: ophyd.signal
-      home_reverse:
-        classname: EpicsSignal
-        is_flyable: false
-        is_movable: true
-        is_readable: true
-        module: ophyd.signal
-      low_limit_switch:
-        classname: EpicsSignalRO
-        is_flyable: false
-        is_movable: true
-        is_readable: true
-        module: ophyd.signal
-      low_limit_travel:
-        classname: EpicsSignal
-        is_flyable: false
-        is_movable: true
-        is_readable: true
-        module: ophyd.signal
-      max_velocity:
-        classname: EpicsSignal
-        is_flyable: false
-        is_movable: true
-        is_readable: true
-        module: ophyd.signal
-      motor_done_move:
-        classname: EpicsSignalRO
-        is_flyable: false
-        is_movable: true
-        is_readable: true
-        module: ophyd.signal
-      motor_egu:
-        classname: EpicsSignal
-        is_flyable: false
-        is_movable: true
-        is_readable: true
-        module: ophyd.signal
-      motor_is_moving:
-        classname: EpicsSignalRO
-        is_flyable: false
-        is_movable: true
-        is_readable: true
-        module: ophyd.signal
-      motor_stop:
-        classname: EpicsSignal
-        is_flyable: false
-        is_movable: true
-        is_readable: true
-        module: ophyd.signal
-      offset_freeze_switch:
-        classname: EpicsSignal
-        is_flyable: false
-        is_movable: true
-        is_readable: true
-        module: ophyd.signal
-      resolution:
-        classname: EpicsSignal
-        is_flyable: false
-        is_movable: true
-        is_readable: true
-        module: ophyd.signal
-      set_use_switch:
-        classname: EpicsSignal
-        is_flyable: false
-        is_movable: true
-        is_readable: true
-        module: ophyd.signal
-      user_offset:
-        classname: EpicsSignal
-        is_flyable: false
-        is_movable: true
-        is_readable: true
-        module: ophyd.signal
-      user_offset_dir:
-        classname: EpicsSignal
-        is_flyable: false
-        is_movable: true
-        is_readable: true
-        module: ophyd.signal
-      user_readback:
-        classname: EpicsSignalRO
-        is_flyable: false
-        is_movable: true
-        is_readable: true
-        module: ophyd.signal
-      user_setpoint:
-        classname: EpicsSignal
-        is_flyable: false
-        is_movable: true
-        is_readable: true
-        module: ophyd.signal
-      velocity:
-        classname: EpicsSignal
-        is_flyable: false
-        is_movable: true
-        is_readable: true
-        module: ophyd.signal
-    is_flyable: false
-    is_movable: true
-    is_readable: true
-    module: s2idd_uprobe.devices.motor
 existing_plans:
   fly1d:
     description: Execute a 1D flyscan along the x-axis.
@@ -13211,6 +13235,152 @@ existing_plans:
         value: 1
       name: sample_z
     - annotation:
+        type: float
+      default: None
+      description: "The energy of the incident x-rays in keV. If not provided, the\
+        \ current energy \nwill be used. Default: None. "
+      kind:
+        name: POSITIONAL_OR_KEYWORD
+        value: 1
+      name: energy_keV
+    - annotation:
+        type: bool
+      default: 'True'
+      description: 'Whether to enable the x-ray fluorescence detector. Default is
+        True. '
+      kind:
+        name: POSITIONAL_OR_KEYWORD
+        value: 1
+      name: xrf_on
+    - annotation:
+        type: bool
+      default: 'False'
+      description: Whether to enable preamp1. Preamp1 is used to record metadata.
+        Default is True.
+      kind:
+        name: POSITIONAL_OR_KEYWORD
+        value: 1
+      name: preamp1_on
+    properties:
+      is_generator: true
+  fly3d_xanes_scanrecord:
+    description: 3D fly scan plan that first go to a desired energy, then drives the
+      x-, y- motors in fly mode using ScanRecord
+    module: s2idd_uprobe.plans.fly2d_scanrecord
+    name: fly3d_xanes_scanrecord
+    parameters:
+    - annotation:
+        type: str
+      default: '''smp1'''
+      description: 'The name of the sample for file naming. Default: "smp1". '
+      kind:
+        name: POSITIONAL_OR_KEYWORD
+        value: 1
+      name: samplename
+    - annotation:
+        type: str
+      default: ''''''
+      description: 'User comments to be recorded with the scan data. Default is "". '
+      kind:
+        name: POSITIONAL_OR_KEYWORD
+        value: 1
+      name: user_comments
+    - annotation:
+        type: float
+      default: None
+      description: 'The starting energy of the scan in keV. '
+      kind:
+        name: POSITIONAL_OR_KEYWORD
+        value: 1
+      name: energy_start
+    - annotation:
+        type: float
+      default: None
+      description: 'The ending energy of the scan in keV. '
+      kind:
+        name: POSITIONAL_OR_KEYWORD
+        value: 1
+      name: energy_end
+    - annotation:
+        type: float
+      default: None
+      description: 'The step size (energy resolution) in the x-direction in keV. '
+      kind:
+        name: POSITIONAL_OR_KEYWORD
+        value: 1
+      name: energy_step
+    - annotation:
+        type: float
+      default: '0'
+      description: 'The total width of the scan area in microns. Default: 0. '
+      kind:
+        name: POSITIONAL_OR_KEYWORD
+        value: 1
+      name: width
+    - annotation:
+        type: float
+      default: None
+      description: "The center position of the scan in the x-direction in microns.\
+        \ If not provided, \nthe current x-motor position will be used as the center.\
+        \ Default: None. "
+      kind:
+        name: POSITIONAL_OR_KEYWORD
+        value: 1
+      name: x_center
+    - annotation:
+        type: float
+      default: '0'
+      description: 'The step size (spatial resolution) in the x-direction in microns.
+        Default: 0. '
+      kind:
+        name: POSITIONAL_OR_KEYWORD
+        value: 1
+      name: stepsize_x
+    - annotation:
+        type: float
+      default: '0'
+      description: 'The total height of the scan area in microns. Default: 0. '
+      kind:
+        name: POSITIONAL_OR_KEYWORD
+        value: 1
+      name: height
+    - annotation:
+        type: float
+      default: None
+      description: "The center position of the scan in the y-direction in microns.\
+        \ If not provided, \nthe current y-motor position will be used as the center.\
+        \ Default: None. "
+      kind:
+        name: POSITIONAL_OR_KEYWORD
+        value: 1
+      name: y_center
+    - annotation:
+        type: float
+      default: '0'
+      description: 'The step size (spatial resolution) in the y-direction in microns.
+        Default: 0. '
+      kind:
+        name: POSITIONAL_OR_KEYWORD
+        value: 1
+      name: stepsize_y
+    - annotation:
+        type: float
+      default: '0'
+      description: 'The dwell time per step in milliseconds. Default: 0. '
+      kind:
+        name: POSITIONAL_OR_KEYWORD
+        value: 1
+      name: dwell_ms
+    - annotation:
+        type: float
+      default: None
+      description: "The sample z position in millimeters. If not provided, the current\
+        \ sample z \nposition will be maintained. Default: None. "
+      kind:
+        name: POSITIONAL_OR_KEYWORD
+        value: 1
+      name: sample_z
+    - annotation:
         type: bool
       default: 'True'
       description: 'Whether to enable the x-ray fluorescence detector. Default is
@@ -13255,9 +13425,18 @@ existing_plans:
         value: 1
       name: user_comments
     - annotation:
+        type: str
+      default: '''x'''
+      description: 'The name of the positioner to be scanned. Default: "x". Other
+        options: "y", "z", "energy"'
+      kind:
+        name: POSITIONAL_OR_KEYWORD
+        value: 1
+      name: positioner_name
+    - annotation:
         type: float
       default: '0'
-      description: 'The total width of the scan area in microns. Default: 0. Type:
+      description: 'The total width of the positioner scan range. Default: 0. Type:
         float'
       kind:
         name: POSITIONAL_OR_KEYWORD
@@ -13265,14 +13444,13 @@ existing_plans:
       name: width
     - annotation:
         type: float
-      default: None
-      description: 'The center position of the scan in the x-direction in microns.
-        If not provided, the current x-motor position will be used as the center.
-        Default: None. Type: float'
+      default: '0'
+      description: 'The center position of the positioner scan range. Default: 0.
+        Type: float'
       kind:
         name: POSITIONAL_OR_KEYWORD
         value: 1
-      name: x_center
+      name: center
     - annotation:
         type: float
       default: '0'
@@ -13293,12 +13471,176 @@ existing_plans:
     - annotation:
         type: float
       default: None
+      description: 'The sample x position in millimeters. If not provided, the current
+        sample x position will be maintained. Default: None. Type: float'
+      kind:
+        name: POSITIONAL_OR_KEYWORD
+        value: 1
+      name: sample_x
+    - annotation:
+        type: float
+      default: None
+      description: 'The sample y position in millimeters. If not provided, the current
+        sample y position will be maintained. Default: None. Type: float'
+      kind:
+        name: POSITIONAL_OR_KEYWORD
+        value: 1
+      name: sample_y
+    - annotation:
+        type: float
+      default: None
       description: 'The sample z position in millimeters. If not provided, the current
         sample z position will be maintained. Default: None. Type: float'
       kind:
         name: POSITIONAL_OR_KEYWORD
         value: 1
       name: sample_z
+    - annotation:
+        type: float
+      default: None
+      description: 'The energy in keV. If not provided, the current energy will be
+        maintained. Default: None. Type: float'
+      kind:
+        name: POSITIONAL_OR_KEYWORD
+        value: 1
+      name: energy
+    - annotation:
+        type: bool
+      default: 'True'
+      description: 'Whether to enable the x-ray fluorescence detector. Default is
+        True. Type: bool'
+      kind:
+        name: POSITIONAL_OR_KEYWORD
+        value: 1
+      name: xrf_on
+    - annotation:
+        type: bool
+      default: 'False'
+      description: 'Whether to enable preamp1. Preamp1 is used to record metadata.
+        Default is True. Type: bool'
+      kind:
+        name: POSITIONAL_OR_KEYWORD
+        value: 1
+      name: preamp1_on
+    properties:
+      is_generator: true
+  timer:
+    description: A timer plan that waits for a specified time.
+    module: s2idd_uprobe.plans.timer
+    name: timer
+    parameters:
+    - annotation:
+        type: float
+      default: '2'
+      description: 'The time to wait in minutes. Default is 1 minute. Type: float'
+      kind:
+        name: POSITIONAL_OR_KEYWORD
+        value: 1
+      name: sleep_time_minutes
+    - annotation:
+        type: float
+      default: '0.1'
+      description: 'The time frequency to report the remaining time. Type: float'
+      kind:
+        name: POSITIONAL_OR_KEYWORD
+        value: 1
+      name: update_every_minutes
+    properties:
+      is_generator: true
+  xanes_1d:
+    description: 1D Bluesky plan that drives the energy in step mode using ScanRecord
+    module: s2idd_uprobe.plans.step1d_scanrecord
+    name: xanes_1d
+    parameters:
+    - annotation:
+        type: str
+      default: '''smp1'''
+      description: 'The name of the sample for file naming. Default: "smp1". Type:
+        str'
+      kind:
+        name: POSITIONAL_OR_KEYWORD
+        value: 1
+      name: samplename
+    - annotation:
+        type: str
+      default: ''''''
+      description: 'User comments to be recorded with the scan data. Default is "".
+        Type: str'
+      kind:
+        name: POSITIONAL_OR_KEYWORD
+        value: 1
+      name: user_comments
+    - annotation:
+        type: float
+      default: '0'
+      description: 'The total width of the energy scan range in keV. Default: 0. Type:
+        float'
+      kind:
+        name: POSITIONAL_OR_KEYWORD
+        value: 1
+      name: width_keV
+    - annotation:
+        type: float
+      default: '0'
+      description: 'The center position of the energy scan range in keV. Default:
+        0. Type: float'
+      kind:
+        name: POSITIONAL_OR_KEYWORD
+        value: 1
+      name: center_keV
+    - annotation:
+        type: float
+      default: '0'
+      description: 'The step size (energy resolution) in the x-direction in keV. Default:
+        0. Type: float'
+      kind:
+        name: POSITIONAL_OR_KEYWORD
+        value: 1
+      name: stepsize_keV
+    - annotation:
+        type: float
+      default: '0'
+      description: 'The dwell time per step in milliseconds. Default: 0. Type: float'
+      kind:
+        name: POSITIONAL_OR_KEYWORD
+        value: 1
+      name: dwell_ms
+    - annotation:
+        type: float
+      default: None
+      description: 'The sample x position in millimeters. If not provided, the current
+        sample x position will be maintained. Default: None. Type: float'
+      kind:
+        name: POSITIONAL_OR_KEYWORD
+        value: 1
+      name: sample_x
+    - annotation:
+        type: float
+      default: None
+      description: 'The sample y position in millimeters. If not provided, the current
+        sample y position will be maintained. Default: None. Type: float'
+      kind:
+        name: POSITIONAL_OR_KEYWORD
+        value: 1
+      name: sample_y
+    - annotation:
+        type: float
+      default: None
+      description: 'The sample z position in millimeters. If not provided, the current
+        sample z position will be maintained. Default: None. Type: float'
+      kind:
+        name: POSITIONAL_OR_KEYWORD
+        value: 1
+      name: sample_z
+    - annotation:
+        type: float
+      default: None
+      description: 'The energy in keV. If not provided, the current energy will be
+        maintained. Default: None. Type: float'
+      kind:
+        name: POSITIONAL_OR_KEYWORD
+        value: 1
+      name: energy
     - annotation:
         type: bool
       default: 'True'

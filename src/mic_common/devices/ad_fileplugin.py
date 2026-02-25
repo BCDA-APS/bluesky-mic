@@ -66,22 +66,28 @@ class DetBase:
         Generate the file path and or create the directory
         for the EPICS AreaDetector filewriter.
         """
-        basepath = self.savedata.get_storage_path()
-        det_path = os.path.join(basepath, self.det_foldername.upper() if upper_det_foldername else self.det_foldername)
-        logger.info(f"Setting up {self.det_foldername} to have data saved at {det_path}")
+        try:
+            det_path = self.savedata.generate_det_path(self.det_foldername)
+        except Exception as e:
+            logger.error(f"Failed to generate det path for {self.det_foldername}: {e}")
+            raise e
+        return det_path 
+        # basepath = self.savedata.get_storage_path()
+        # det_path = os.path.join(basepath, self.det_foldername.upper() if upper_det_foldername else self.det_foldername)
+        # logger.info(f"Setting up {self.det_foldername} to have data saved at {det_path}")
         
-        if not os.path.exists(det_path):
-            try:
-                os.makedirs(det_path, exist_ok=True)
-                logger.info(f"Directory '{det_path}' created for {self.det_foldername}.")
-                return det_path
-            except Exception as e:
-                logger.error(
-                    f"Failed to create directory '{det_path}' for {self.det_foldername}: {e}"
-                )
-                raise e
+        # if not os.path.exists(det_path):
+        #     try:
+        #         os.makedirs(det_path, exist_ok=True)
+        #         logger.info(f"Directory '{det_path}' created for {self.det_foldername}.")
+        #         return det_path
+        #     except Exception as e:
+        #         logger.error(
+        #             f"Failed to create directory '{det_path}' for {self.det_foldername}: {e}"
+        #         )
+        #         raise e
 
-        return det_path
+        # return det_path
 
     def config_file_writer(
         self,

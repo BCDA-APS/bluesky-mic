@@ -80,6 +80,7 @@ class Keithley2400:
         self._timeout = timeout
         self._write_timeout = write_timeout
 
+        self._opened_here = False
         self.open()
 
         self.v_mpp = 0.0
@@ -105,15 +106,21 @@ class Keithley2400:
         if self._host is not None:
             # Moxa NPort: connect via TCP socket (pyserial socket URL)
             url = f"socket://{self._host}:{self._port_number}"
-            self._ser = serial.serial_for_url(
-                url,
-                baudrate=self._baudrate,
-                bytesize=self._bytesize,
-                parity=self._parity,
-                stopbits=self._stopbits,
-                timeout=self._timeout,
-                write_timeout=self._write_timeout,
-            )
+            try:
+                self._ser = serial.serial_for_url(
+                    url,
+                    baudrate=self._baudrate,
+                    bytesize=self._bytesize,
+                    parity=self._parity,
+                    stopbits=self._stopbits,
+                    timeout=self._timeout,
+                    write_timeout=self._write_timeout,
+                )
+            except Exception as e:
+                logger.error(f"Error opening Keithley 2400: {e}")
+                self._opened_here = False
+                return
+                
         elif self._port is not None:
             self._ser = serial.Serial(
                 port=self._port,
@@ -125,7 +132,9 @@ class Keithley2400:
                 write_timeout=self._write_timeout,
             )
         else:
-            raise ValueError("Provide either port= (serial path) or host= (Moxa IP).")
+            # raise ValueError("Provide either port= (serial path) or host= (Moxa IP).")
+            logger.info("Not able to open Keithley 2400, skipping")
+            return
 
         self._opened_here = True
         # Terminators: Keithley 2400 typically uses CR+LF or LF on RS-232
@@ -395,6 +404,7 @@ class Keithley2400:
         jv_end: float = 1.3,
         voltage_step: float = 0.01,
         number_of_sweeps: int = 2,
+        **kwargs
     ) -> Optional[List[float]]:
         
         logger.info("JV Sweep Attempt %s", attempt)
@@ -548,9 +558,12 @@ class Keithley2400:
         with np.errstate(divide="ignore", invalid="ignore"):
             denominator = (voltages + currents * rs) ** n_value
             metric = np.where(denominator != 0, voltages * currents / denominator, 0.0)
-        if np.any(metric):
-            idx_max_vsp = int(np.argmax(metric))
-            v_msp_local = float(voltages[idx_max_vsp])
+        finite_mask = np.isfinite(metric)
+        if np.any(finite_mask):
+            valid_metric = metric[finite_mask]
+            valid_voltages = voltages[finite_mask]
+            idx_max_vsp = int(np.argmax(valid_metric))
+            v_msp_local = float(valid_voltages[idx_max_vsp])
         else:
             v_msp_local = 0.0
 
@@ -622,9 +635,10 @@ class Keithley2400:
         area: float = 0.0625,
         stabilization_time: float = 0.5,
         delta_v_threshold: float = 0.5,
+        **kwargs,
     ) -> None:
         if self.v_msp == 0.0:
-            self.logger.warning("V_msp is not set. Run JV sweep first.")
+            logger.warning("V_msp is not set. Run JV sweep first.")
             return
         self._ensure_start_time()
         self.output_on()
@@ -637,6 +651,11 @@ class Keithley2400:
         while time.time() < end_time_cycle:
             t0 = time.time()
             _, current_a = self.read_voltage_current()
+            remaining_time = max(end_time_cycle - time.time(), 0.0)
+            remaining_min = remaining_time / 60.0
+            logger.info(
+                f"MSPT voltage: {round(self.v_app_mspt, 5)}, current: {round(current_a,5)}, remaining: {remaining_min:.2f} min"
+            )
             total_delay = (time.time() - t0) * 1000.0
             current_a = -current_a
             meas_time = time.time() - self.start_time
@@ -656,6 +675,8 @@ class Keithley2400:
                     ]
                 )
             time.sleep(stabilization_time)
+
+        self.output_off()
 
         if len(cycle_measurements) < 2:
             return
@@ -733,9 +754,10 @@ class Keithley2400:
         duration: float,
         area: float = 0.0625,
         stabilization_time: float = 0.5,
+        **kwargs,
     ) -> None:
         if self.v_mpp == 0.0:
-            self.logger.warning("V_mpp is not set. Run JV sweep first.")
+            logger.warning("V_mpp is not set. Run JV sweep first.")
             return
         self._ensure_start_time()
         self.output_on()
@@ -745,7 +767,11 @@ class Keithley2400:
         while time.time() < end_time:
             t0 = time.time()
             _, current_a = self.read_voltage_current()
-            logger.info(f"MPPT voltage: {round(self.v_mpp, 5)}, current: {round(current_a,5)}")
+            remaining_time = max(end_time - time.time(), 0.0)
+            remaining_min = remaining_time / 60.0
+            logger.info(
+                f"MPPT voltage: {round(self.v_mpp, 5)}, current: {round(current_a,5)}, remaining: {remaining_min:.2f} min"
+            )
             total_delay = (time.time() - t0) * 1000.0
             measurement_time = time.time() - self.start_time
             j_current = (current_a * 1000.0) / area
@@ -763,6 +789,7 @@ class Keithley2400:
                     ]
                 )
             time.sleep(stabilization_time)
+        self.output_off()
 
     # Compatibility wrappers using original script naming.
     def compute_alpha_from_MSPT(self, J_initial: float, J_final: float, T: float) -> float:

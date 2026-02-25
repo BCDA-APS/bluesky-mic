@@ -23,6 +23,7 @@ logger.info(__file__)
 
 
 class NewScanRecord(SscanRecord):
+
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.P1PA = PV(f"{self.prefix}.P1PA")
@@ -30,16 +31,6 @@ class NewScanRecord(SscanRecord):
         # Wrap stage_sigs with LoggingDict to log all assignments
         original_stage_sigs = self.stage_sigs
         self.stage_sigs = LoggingStageSigs(original_stage_sigs, prefix=self.prefix)
-
-    def pause(self):
-        logger.info("Pausing scanrecord ...")
-        logger.info("In the custom pause function")
-        self.wait.put(1)
-
-    def resume(self):
-        logger.info("Resuming scanrecord ...")
-        logger.info("In the custom resume function")
-        self.wait.put(0)
 
     def stage_detTriggers(self, trigger_pvs):
         """Stage detector triggers for the scan record."""
