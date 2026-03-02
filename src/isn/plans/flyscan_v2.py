@@ -40,6 +40,7 @@ def flyscan(
     F: float = 0.9,  # Fraction of wave in straight line 0-1
     interferometer_per_pixel: int = 5, # Number of interferometry counts per image
     # interferometer_frequency: int = 1000,  # in Hz
+    ptycho = False,
 ):
     
     logging.debug("Starting flyscan")
@@ -141,7 +142,10 @@ def flyscan(
         # We set up the tweak value and the number of points
         # for the down counter
 
-        theta = sample.theta.user_readback.get()
+        if ptycho:
+            theta = 0
+        else:
+            theta = sample.theta.user_readback.get()
         logger.debug(f"Sample at {theta} degrees")
 
         if x_npts_>0:
@@ -246,11 +250,12 @@ def flyscan(
             logger.debug(f"Samply X stage moved to {_starting_x*1e3:0.3e} um.")
 
             # Finally, we move z:
-            step_z = sample.compensating_z(x_min) * 1e-3
-            _starting_z = z0 + step_z - _z_tweak_value
-            yield from mv(sample.z, _starting_z)
+            if not ptycho:
+                step_z = sample.compensating_z(x_min) * 1e-3
+                _starting_z = z0 + step_z - _z_tweak_value
+                yield from mv(sample.z, _starting_z)
 
-            logger.debug(f"Samply Z stage moved to {_starting_z*1e3:0.3e} um.")
+                logger.debug(f"Samply Z stage moved to {_starting_z*1e3:0.3e} um.")
 
 
         # --- Load waveform --- #
@@ -365,6 +370,10 @@ def flyscan(
 
         # --- Softglue cleanup ---
 
+        softglue.up_down_counter_1.load.put("1!")
+        softglue.stop()
+        softglue.reset()
+        softglue.clear_output_fields()
         softglue.up_down_counter_1.load.put("1!")
         softglue.stop()
         softglue.reset()

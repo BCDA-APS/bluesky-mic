@@ -26,7 +26,8 @@ class Trigger(SingleTrigger):
         super().__init__(*args, **kwargs)
 
     def trigger(self):
-        self.hdf1.capture.put(1)
+        # self.hdf1.capture.put(1)
+        self.hdf1.capture.set(1).wait()
         super().trigger()
 
     # def trigger(self):
@@ -41,11 +42,12 @@ class Trigger(SingleTrigger):
     #     return self._status
 
     def unstage(self):
-        sleep(2) # We put this since the autosave buffer forces the capture to restart if we don't wait long enough. We need to run it in thread
-        self.acquire.put(0)
+        sleep(4) # We put this since the autosave buffer forces the capture to restart if we don't wait long enough. We need to run it in thread
+        # self.acquire.put(0)
+        self.acquire.set(0).wait()
         self.hdf1.unstage()
         super().unstage()
-        # self.hdf1.capture.put(0)
+        self.hdf1.capture.set(0).wait()
 
     # def finish_capture(self):
     #     self.acquire.put(0, wait=False)
@@ -75,7 +77,8 @@ class SocketServer(Trigger, DetectorBase):
     array_counter = ADComponent(EpicsSignalWithRBV, "SG1:ArrayCounter")
 
     def setup_flyscan_mode(self, num_lines = 50000, hdf_images = 50000):
-        self.array_counter.put(0)
+        # self.array_counter.put(0)
+        self.array_counter.set(0).wait()
         self.hdf1.stage_sigs["enable"] = 1
         self.hdf1.stage_sigs["auto_save"] = 1
         self.hdf1.stage_sigs['num_capture'] = hdf_images

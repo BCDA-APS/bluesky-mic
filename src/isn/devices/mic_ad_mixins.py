@@ -7,6 +7,7 @@ from ophyd import EpicsSignalWithRBV
 from ophyd.areadetector import Xspress3DetectorCam
 from ophyd.areadetector.plugins import HDF5Plugin
 from ophyd.areadetector.plugins import StatsPlugin
+from ophyd.areadetector.plugins import PluginBase
 
 from ..utils.run_engine import RE
 
@@ -60,5 +61,14 @@ class MicStatsPlugin(StatsPlugin):
         self.total.kind = 'hinted'
 
     _default_read_attrs = ('total',)
+
+
+class MicCodecPlugin(PluginBase):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.codec_kind = 'config'
+
+    def stage(self):
+        super().stage()
 
     

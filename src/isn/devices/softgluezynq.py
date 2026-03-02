@@ -226,9 +226,12 @@ class SoftGlueZynq(Device):
         return self._status
     
     def prepare(self):
-        self.dma.enable.put(1)
-        self.dma.clear_button.put(1)
-        self.dma.clear_buffer.put(1)
+        # self.dma.enable.put(1)
+        # self.dma.clear_button.put(1)
+        # self.dma.clear_buffer.put(1)
+        self.dma.enable.set(1).wait()
+        self.dma.clear_button.set(1).wait()
+        self.dma.clear_buffer.set(1).wait()
     
     def trigger(self):
         def check_bi(*, old_value, value, **kwargs):
@@ -242,18 +245,23 @@ class SoftGlueZynq(Device):
 
     def stop(self):
         self.or_1.in_2.put("1!")
-        self.buffer_4.in_signal.put("0")
+        # self.buffer_4.in_signal.put("0")
+        self.buffer_4.in_signal.set("0").wait()
 
     def pause(self):
-        self.and_1.in_2.put("0")
+        # self.and_1.in_2.put("0")
+        self.and_1.in_2.set("0").wait()
 
     def resume(self):
-        self.and_1.in_2.put("1")
+        # self.and_1.in_2.put("1")
+        self.and_1.in_2.set("1").wait()
 
     def reset(self):
         # Repeated it on purpose to clear ScalToStream 1 FIFO CT
-        self.buffer_1.in_signal.put("1!")
-        self.buffer_1.in_signal.put("1!")
+        # self.buffer_1.in_signal.put("1!")
+        # self.buffer_1.in_signal.put("1!")
+        self.buffer_1.in_signal.set("1!").wait()
+        self.buffer_1.in_signal.set("1!").wait()
 
     def reset_interferometers(self):
         yield from mv(self.buffer_2.in_signal, "1!")
@@ -302,8 +310,14 @@ class SoftGlueZynq(Device):
         )
 
         self.ram_n.put(str(len(array)))
+        yield from sleep(0.1)
         self.mem_clk.put("funcGenPulse")
+        yield from sleep(0.1)
         self.ram_n.put(str(len(array)))
+        yield from sleep(0.1)
+        # self.ram_n.set(str(len(array))).wait()
+        # self.mem_clk.set("funcGenPulse").wait()
+        # self.ram_n.set(str(len(array))).wait()
 
     def create_snake_bits(self, A=32767, F=0.9, npts=1000, offset=0):
         # Take one half cycle of a sine wave, from -pi/2 to pi/2 and cut it at
