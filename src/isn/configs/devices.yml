@@ -14,10 +14,6 @@ isn.devices.lateral_mirror.Lateral_Mirror:
   prefix: 19idMR
   labels: ["baseline"]
 
-# isn.devices.sample.Sample:
-# - name: sample
-#   prefix: 19idAERO
-#   labels: ["baseline"]
 
 isn.devices.sample.Sample:
 - name: sample
@@ -25,14 +21,6 @@ isn.devices.sample.Sample:
   micronix_prefix: "19idMMC:"
   labels: ["baseline"]
 
-# isn.devices.micronix.Micronix:
-# - name: micronix
-#   prefix: "19idMMC:"
-#   labels: ["baseline"]
-
-# isn.devices.xrayeye.XRayEye:
-# - name: xrayeye
-#   prefix: 19idXEYE
 
 isn.devices.softgluezynq.SoftGlueZynq:
 - name: softglue
@@ -50,10 +38,10 @@ isn.devices.bda.BDA:
   axis: H
   labels: ["baseline"]
 
-# isn.devices.diamond_window.Diamond_Window:
-# - name: diamond
-#   prefix: "19idACS"
-#   labels: ["baseline"]
+isn.devices.diamond_window.Diamond_Window:
+- name: diamond
+  prefix: "19idACS"
+  labels: ["baseline"]
 
 
 isn.devices.tetramm.MyTetrAMM:
@@ -62,10 +50,10 @@ isn.devices.tetramm.MyTetrAMM:
   port_name: "TetrAMM1"
   labels: ["detector"]
 
-# - name: tetramm2
-#   prefix: "19idSFT2:TetrAMM2:"
-#   port_name: "TetrAMM2"
-#   labels: ["detector"]
+# # - name: tetramm2
+# #   prefix: "19idSFT2:TetrAMM2:"
+# #   port_name: "TetrAMM2"
+# #   labels: ["detector"]
 
 - name: tetramm3
   prefix: "19idSFT3:TetrAMM3:"
@@ -77,18 +65,18 @@ isn.devices.tetramm.MyTetrAMM:
   port_name: "TetrAMM4"
   labels: ["detector"]
 
-# isn.devices.bpm.MyBPM:
-# - name: bpm_c
-#   quadem_prefix: "19idBPMC:T4U:"
-#   vertical_motor_prefix: "19idBDA:m5"
-#   horizontal_motor_prefix: "19idBDA:m6"
-#   labels: ["baseline"]
+isn.devices.bpm.MyBPM:
+- name: bpm_c
+  quadem_prefix: "19idBPMC:T4U:"
+  vertical_motor_prefix: "19idBDA:m5"
+  horizontal_motor_prefix: "19idBDA:m6"
+  labels: ["baseline"]
 
-# - name: bpm_d
-#   quadem_prefix: "19idBPMD:T4U:"
-#   vertical_motor_prefix: "19idBDA:m13"
-#   horizontal_motor_prefix: "19idBDA:m14"
-#   labels: ["baseline"]
+- name: bpm_d
+  quadem_prefix: "19idBPMD:T4U:"
+  vertical_motor_prefix: "19idBDA:m13"
+  horizontal_motor_prefix: "19idBDA:m14"
+  labels: ["baseline"]
 
 # apstools.devices.aps_machine.ApsMachineParametersDevice:
 # - name: ring
@@ -101,22 +89,22 @@ apstools.devices.shutters.ApsPssShutter:
   open_pv: "S19ID-PSS:SES:OpenEPICSC"
 
 
-# apstools.devices.hhl_slits.HHLSlits:
-# - name: wbs
-#   prefix: "19idWBS:US:"
-#   pitch_motor: m3
-#   yaw_motor: m4
-#   horizontal_motor: m1
-#   diagonal_motor: m2
-#   labels: ["baseline"]
+apstools.devices.hhl_slits.HHLSlits:
+- name: wbs
+  prefix: "19idWBS:US:"
+  pitch_motor: m3
+  yaw_motor: m4
+  horizontal_motor: m1
+  diagonal_motor: m2
+  labels: ["baseline"]
 
-# - name: pbs
-#   prefix: "19idWBS:DS:"
-#   pitch_motor: m7
-#   yaw_motor: m8
-#   horizontal_motor: m5
-#   diagonal_motor: m6
-#   labels: ["baseline"]
+- name: pbs
+  prefix: "19idWBS:DS:"
+  pitch_motor: m7
+  yaw_motor: m8
+  horizontal_motor: m5
+  diagonal_motor: m6
+  labels: ["baseline"]
 
 isn.devices.undulators.UndulatorPair:
 - name: undulators
@@ -126,16 +114,7 @@ isn.devices.undulators.UndulatorPair:
 isn.devices.diffractometer.RobotArmDiffractometer:
 - name: psic
   prefix: ""
-  labels: ["baseline"]
-
-# isn.devices.robot.RobotArmPositioner:
-# - name: yaw
-#   prefix: "19IDRobot:"
-#   setpoint: "Yaw"
-#   readback: "Last_Position_Yaw"
-#   done: "MC"
-#   execute: "EXE"
-#   command: "CMD"
+#   # labels: ["baseline"]
 
 isn.devices.kb.KB:
 - name: kb
@@ -175,6 +154,17 @@ isn.devices.flag.Flag:
   in_position: -20
   out_position: 0
 
+- name: xeye
+  flag_prefix: "19idXEYE:"
+  motor_prefix: "19idXEYE:m1"
+  in_position: 0.03
+  out_position: -200
+
+isn.devices.ivm.Ivm:
+- name: ivm
+  prefix: "19idIVM:"
+  labels: ["baseline"]
+
 mic_common.devices.eiger.Eiger:
 - name: ptycho
   prefix: "19idPTYCHO:"
@@ -200,6 +190,13 @@ isn.devices.hutch.HutchTemp:
 isn.devices.filters.APSFilter:
 - name: filters
   prefix: "19idBC:filter:"
+isn.devices.rayspec.Rayspec:
+- name: rayspec
+  prefix: "19idACS:"
+
+isn.devices.labjack.IsnLabJackT8:
+- name: labjack_kb
+  prefix: "19idKB:LJT8:1:"
 
 
 

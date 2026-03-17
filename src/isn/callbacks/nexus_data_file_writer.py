@@ -10,6 +10,7 @@ from apsbits.utils.aps_functions import host_on_aps_subnet
 from apsbits.utils.config_loaders import get_config
 import datetime
 import pathlib
+import os
 
 
 logger = logging.getLogger(__name__)
@@ -70,8 +71,10 @@ class MicNXWriter(NXWriter):
         else:
             fname = f"Scan_{self.scan_id:04d}.h5"
             path = pathlib.Path(self.savedata.file_system.get())
-            self.file_path = path
-            return path / fname
+            subdirectory = pathlib.Path(self.savedata.subdirectory.get())
+            self.file_path = os.path.join(path, subdirectory)
+            return os.path.join(path, subdirectory, fname)
+            # return path / fname
 
 
 def nxwriter_init(RE):

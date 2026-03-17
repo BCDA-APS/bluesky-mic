@@ -2,6 +2,8 @@ import logging
 
 logger = logging.getLogger(__name__)
 
+from epics import caput
+
 from ophyd import (
     ADComponent,
     Component,
@@ -23,6 +25,7 @@ from ophyd.areadetector.trigger_mixins import TriggerBase
 from apstools.utils import run_in_thread
 from isn.devices.mic_ad_mixins import MicHDF5
 from isn.devices.mic_ad_mixins import MicStatsPlugin
+from isn.devices.mic_ad_mixins import MicCodecPlugin
 from time import sleep
 
 MAX_IMAGES = 1e4
@@ -48,12 +51,12 @@ class Trigger(TriggerBase):
         # self._acquisition_signal_pv = "cam1:Acquire"
         self.cam.stage_sigs["trigger_mode"] = "Internal Series"
         self.cam.stage_sigs["manual_trigger"] = "Enable"
-        if not num_images:
-            self.cam.stage_sigs["num_images"] = 1
-            self.cam.stage_sigs["num_triggers"] = MAX_IMAGES
-        else:
-            self.cam.stage_sigs["num_images"] = num_images
-            self.cam.stage_sigs["num_triggers"] = num_images
+        # if not num_images:
+        #     self.cam.stage_sigs["num_images"] = 1
+        #     self.cam.stage_sigs["num_triggers"] = MAX_IMAGES
+        # else:
+        #     self.cam.stage_sigs["num_images"] = num_images
+        #     self.cam.stage_sigs["num_triggers"] = num_images
         self.cam.stage_sigs["num_exposures"] = 1
         # self._flysetup = False
         # self._internal_trigger = False
@@ -64,7 +67,7 @@ class Trigger(TriggerBase):
         # self._acquisition_signal_pv = "cam1:Trigger"
         self.cam.stage_sigs["trigger_mode"] = "Internal Series"
         self.cam.stage_sigs["manual_trigger"] = "Enable"
-        self.cam.stage_sigs["num_images"] = 1
+        # self.cam.stage_sigs["num_images"] = 1
         self.cam.stage_sigs["num_triggers"] = MAX_IMAGES
         self.cam.stage_sigs.move_to_end("num_triggers", last=False)
         self.cam.stage_sigs["num_exposures"] = 1
@@ -75,19 +78,25 @@ class Trigger(TriggerBase):
         # self._soft_trigger = True
 
     def setup_flyscan_mode(self, num_images=1, acq_time=0.01, hdf_images=MAX_IMAGES):
+
+        # self.set_plugins(0)
+
         self.trigger_mode = "Flyscan"
         self.cam.stage_sigs["trigger_mode"] = "External Enable"
         self.cam.stage_sigs["num_triggers"] = num_images
         self.cam.stage_sigs.move_to_end("num_triggers", last=False)
-        # self.cam.stage_sigs["num_images"] = num_images
         self.cam.stage_sigs["acquire_time"] = acq_time
         self.cam.stage_sigs["acquire_period"]= acq_time
         self.cam.stage_sigs["manual_trigger"] = "Disable"
         self.cam.stage_sigs["num_exposures"] = 1
-        # self.cam.stage_sigs["acquire"] = 1
         self.hdf1.stage_sigs["enable"] = 1
         self.hdf1.stage_sigs["auto_save"] = 1
         self.hdf1.stage_sigs["num_capture"] = hdf_images
+
+        # for plugin in plugins:
+        #     cpt = 
+        #     cpt.stage_sigs["enable"] = 0
+        #     cpt.stage_sigs["blocking"] = 0
 
 
         # self._flysetup = True
@@ -102,6 +111,7 @@ class Trigger(TriggerBase):
         super().stage()
 
         if self.trigger_mode == "Flyscan":
+            self.set_plugins(0)
             # self.cam.acquire.set("1").wait(timeout=10)
             self.cam.acquire.put(1)
             sleep(0.2)
@@ -193,6 +203,7 @@ class Eiger(Trigger, DetectorBase):
     cam = ADComponent(EigerCam, 'cam1:')
     image = ADComponent(ImagePlugin, 'image1:')
     hdf1 = ADComponent(MicHDF5, 'HDF1:')
+    codec = ADComponent(MicCodecPlugin, 'Codec1:')
 
 
     roi1 = ADComponent(ROIPlugin, 'ROI1:')
@@ -271,3 +282,48 @@ class Eiger(Trigger, DetectorBase):
             getattr(self, f"stats{i}").enable.put(
                 1 if i in stats else 0
             )
+
+    def set_plugins(self, state=1):
+
+        pref = self.name.upper()
+
+        _plugins = (
+            f"19id{pref}:image2:EnableCallbacks",
+            f"19id{pref}:netCDF1:EnableCallbacks",
+            f"19id{pref}:TIFF1:EnableCallbacks",
+            f"19id{pref}:JPEG1:EnableCallbacks",
+            f"19id{pref}:Nexus1:EnableCallbacks",
+            f"19id{pref}:Magick1:EnableCallbacks",
+            f"19id{pref}:ROI1:EnableCallbacks",
+            f"19id{pref}:ROI2:EnableCallbacks",
+            f"19id{pref}:ROI3:EnableCallbacks",
+            f"19id{pref}:ROI4:EnableCallbacks",
+            f"19id{pref}:ROIStat1:EnableCallbacks",
+            f"19id{pref}:Proc1:EnableCallbacks",
+            f"19id{pref}:Proc1:TIFF:EnableCallbacks",
+            f"19id{pref}:Scatter1:EnableCallbacks",
+            f"19id{pref}:Gather1:EnableCallbacks",
+            f"19id{pref}:image2:EnableCallbacks",
+            f"19id{pref}:Stats1:EnableCallbacks",
+            f"19id{pref}:Stats1:TS:EnableCallbacks",
+            f"19id{pref}:Stats2:EnableCallbacks",
+            f"19id{pref}:Stats2:TS:EnableCallbacks",
+            f"19id{pref}:Stats3:EnableCallbacks",
+            f"19id{pref}:Stats3:TS:EnableCallbacks",
+            f"19id{pref}:Stats4:EnableCallbacks",
+            f"19id{pref}:Stats4:TS:EnableCallbacks",
+            f"19id{pref}:Stats5:EnableCallbacks",
+            f"19id{pref}:Stats5:TS:EnableCallbacks",
+            f"19id{pref}:Trans1:EnableCallbacks",
+            f"19id{pref}:Over1:EnableCallbacks",
+            f"19id{pref}:CC1:EnableCallbacks",
+            f"19id{pref}:CC2:EnableCallbacks",
+            f"19id{pref}:CB1:EnableCallbacks",
+            f"19id{pref}:Attr1:EnableCallbacks",
+            f"19id{pref}:Attr1:TS:EnableCallbacks",
+            f"19id{pref}:FFT1:EnableCallbacks",
+            f"19id{pref}:Codec2:EnableCallbacks",
+        )
+
+        for plugin in _plugins:
+            caput(plugin, state)

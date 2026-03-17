@@ -6,6 +6,7 @@
 # from .step2d_random_pos import step2d_random_pos
 from .flyscan import flyscan
 from .flyscan_v2 import flyscan as flyscan_v2
+from .scan_piezos import scan_piezo
 # from .nexus_gen import nexus_gen
 # from .test_logger import test_logger
 # from .flyscan_eigerOnly import flyscan

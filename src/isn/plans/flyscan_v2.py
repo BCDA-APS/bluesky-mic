@@ -40,6 +40,7 @@ def flyscan(
     F: float = 0.9,  # Fraction of wave in straight line 0-1
     interferometer_per_pixel: int = 5, # Number of interferometry counts per image
     # interferometer_frequency: int = 1000,  # in Hz
+    ptycho = False,
 ):
     
     logging.debug("Starting flyscan")
@@ -49,6 +50,12 @@ def flyscan(
     x0 = sample.x.user_readback.get()
     y0 = sample.y.user_readback.get()
     z0 = sample.z.user_readback.get()
+
+    # --- Verifying detectors are unstaged - - - #
+
+    for detector in detectors:
+        detector.unstage()
+        detector.hdf1.unstage()
 
     # --- Defining flying sequence --- #
 
@@ -141,7 +148,10 @@ def flyscan(
         # We set up the tweak value and the number of points
         # for the down counter
 
-        theta = sample.theta.user_readback.get()
+        if ptycho:
+            theta = 0
+        else:
+            theta = sample.theta.user_readback.get()
         logger.debug(f"Sample at {theta} degrees")
 
         if x_npts_>0:
@@ -246,11 +256,12 @@ def flyscan(
             logger.debug(f"Samply X stage moved to {_starting_x*1e3:0.3e} um.")
 
             # Finally, we move z:
-            step_z = sample.compensating_z(dx_)
-            _starting_z = z0 + step_z
-            yield from mv(sample.z, _starting_z)
+            if not ptycho:
+                step_z = sample.compensating_z(x_min) * 1e-3
+                _starting_z = z0 + step_z - _z_tweak_value
+                yield from mv(sample.z, _starting_z)
 
-            logger.debug(f"Samply Z stage moved to {_starting_z*1e3:0.3e} um.")
+                logger.debug(f"Samply Z stage moved to {_starting_z*1e3:0.3e} um.")
 
 
         # --- Load waveform --- #
@@ -313,6 +324,8 @@ def flyscan(
 
         yield from abs_set(eshutter, "open", wait=True)
 
+        yield from bps.sleep(3)
+
         # --- Start softglue --- #
 
         softglue.prepare()
@@ -330,6 +343,14 @@ def flyscan(
         logger.debug("Closing shutter.")
 
         yield from abs_set(eshutter, "close", wait=True)
+
+        # --- Return sample to initial positions ---
+
+        yield from softglue.move_y_analog(45)
+        sample.y.enable()
+        yield from mv(sample.x, x0,
+                    sample.y, y0,
+                    sample.z, z0)
 
         # --- Unstage detectors --- #
 
@@ -349,20 +370,16 @@ def flyscan(
             yield from sleep(0.1)
 
         socketserver.unstage()
-
-        # --- Return sample to initial positions ---
-
-        yield from softglue.move_y_analog(45)
-        sample.y.enable()
-        yield from mv(sample.x, x0,
-                    sample.y, y0,
-                    sample.z, z0)
         
 
         logger.debug("Returning to original positions.")
 
         # --- Softglue cleanup ---
 
+        softglue.up_down_counter_1.load.put("1!")
+        softglue.stop()
+        softglue.reset()
+        softglue.clear_output_fields()
         softglue.up_down_counter_1.load.put("1!")
         softglue.stop()
         softglue.reset()

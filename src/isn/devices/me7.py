@@ -36,7 +36,7 @@ from mic_common.utils.writeDetH5 import write_det_h5
 # MAX_IMAGES = 12216
 MAX_IMAGES = 524288
 MAX_ROIS = 8
-DELAY = 0.2
+DELAY = 0.05
 
 
 class Trigger(TriggerBase):
@@ -258,8 +258,8 @@ class ROIStatN(Device):
     use = Component(EpicsSignal, "Use", kind="config")
 
     max_sizex = Component(EpicsSignalRO, "MaxSizeX_RBV", kind="config")
-    roi_startx = Component(EpicsSignalWithRBV, "MinY", kind="config")
-    roi_sizex = Component(EpicsSignalWithRBV, "SizeY", kind="config")
+    roi_startx = Component(EpicsSignalWithRBV, "MinX", kind="config")
+    roi_sizex = Component(EpicsSignalWithRBV, "SizeX", kind="config")
 
     max_sizey = Component(EpicsSignalRO, "MaxSizeY_RBV", kind="config")
     roi_starty = Component(EpicsSignalWithRBV, "MinY", kind="config")
@@ -542,7 +542,7 @@ class VortexXspress37(Trigger, DetectorBase):
 
         self._read_rois = list(rois)
 
-    def select_roi(self, rois):
+    def select_rois(self, rois):
         for i in range(1, MAX_ROIS + 1):
             k = (
                 "hinted"
@@ -557,17 +557,24 @@ class VortexXspress37(Trigger, DetectorBase):
             if k == "hinted" and i not in self.read_rois:
                 self.read_rois.append(i)
 
+    def define_roi(self, roi_number, roi_name=None, roi_min=0, roi_size=0):
+        for i in range(1, 8):
+            roi = getattr(self, f'stats{i}.roi{roi_number}')
+            roi.roi_name.set(roi_name).wait()
+            roi.roi_startx.set(roi_min)
+            roi.roi_sizex.set(roi_size)
+
     def plot_roi1(self):
-        self.select_roi([1])
+        self.select_rois([1])
 
     def plot_roi2(self):
-        self.select_roi([2])
+        self.select_rois([2])
 
     def plot_roi3(self):
-        self.select_roi([3])
+        self.select_rois([3])
 
     def plot_roi4(self):
-        self.select_roi([4])
+        self.select_rois([4])
 
     @property
     def label_option_map(self):
@@ -580,7 +587,7 @@ class VortexXspress37(Trigger, DetectorBase):
 
     def select_plot(self, channels):
         chans = [self.label_option_map[i] for i in channels]
-        self.select_roi(chans)
+        self.select_rois(chans)
 
     def setup_images(self, base_folder, file_name_base, file_number, flyscan=False):
         self.hdf1.file_name.set(file_name_base).wait(timeout=10)

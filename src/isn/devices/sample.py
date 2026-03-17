@@ -4,6 +4,12 @@ from ophyd import Device
 from ophyd import EpicsMotor
 from ophyd import EpicsSignal
 from ophyd import EpicsSignalRO
+from ophyd import Signal
+
+from ophyd import PseudoPositioner
+from ophyd import PseudoSingle
+from ophyd.pseudopos import pseudo_position_argument
+from ophyd.pseudopos import real_position_argument
 
 import numpy as np
 
@@ -29,6 +35,25 @@ class EpicsMotorWithTweak(EpicsMotor):
     tweak_value = Component(EpicsSignal, ".TWV")
     tweak_forward = Component(EpicsSignal, ".TWF", kind="config")
     tweak_reverse = Component(EpicsSignal, ".TWR", kind="config")
+
+
+# class MicronixStage(PseudoPositioner):
+
+#     xp = Component(EpicsMotor, ":m2")
+#     zp = Component(EpicsMotor, ":m3")
+#     thetap = Component(EpicsMotor, ":m4")
+
+#     _real = ["xp", "zp", "thetap"]
+#     _pseudo = ["x", "z", "theta"]
+
+#     def __init__(self, *args, **kwargs):
+#         super().__init__(*args, **kwargs)
+#         self.theta_offset = 0
+
+#     def calc_wx
+
+#     @pseudo_position_argument
+#     def forward(self, pseudo_pos):
 
 
 class Sample(Device):
@@ -79,5 +104,5 @@ class Sample(Device):
     def compensating_z(self, x_step):
         '''Returns the amount the z stage would need to compensate for an x_step to keep the sample in focus.'''
         th = self.theta.user_readback.get()
-        return x_step*np.tan(-np.radians(th))
+        return (x_step * np.sin(-1*np.radians(th)))
 
