@@ -4,6 +4,12 @@ from ophyd import Device
 from ophyd import EpicsMotor
 from ophyd import EpicsSignal
 from ophyd import EpicsSignalRO
+from ophyd import Signal
+
+from ophyd import PseudoPositioner
+from ophyd import PseudoSingle
+from ophyd.pseudopos import pseudo_position_argument
+from ophyd.pseudopos import real_position_argument
 
 import numpy as np
 
@@ -29,6 +35,25 @@ class EpicsMotorWithTweak(EpicsMotor):
     tweak_value = Component(EpicsSignal, ".TWV")
     tweak_forward = Component(EpicsSignal, ".TWF", kind="config")
     tweak_reverse = Component(EpicsSignal, ".TWR", kind="config")
+
+
+# class MicronixStage(PseudoPositioner):
+
+#     xp = Component(EpicsMotor, ":m2")
+#     zp = Component(EpicsMotor, ":m3")
+#     thetap = Component(EpicsMotor, ":m4")
+
+#     _real = ["xp", "zp", "thetap"]
+#     _pseudo = ["x", "z", "theta"]
+
+#     def __init__(self, *args, **kwargs):
+#         super().__init__(*args, **kwargs)
+#         self.theta_offset = 0
+
+#     def calc_wx
+
+#     @pseudo_position_argument
+#     def forward(self, pseudo_pos):
 
 
 class Sample(Device):

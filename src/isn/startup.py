@@ -183,9 +183,15 @@ def get_save_data_path():
 
 from .utils.experiment_utils import load_experiment
 
+# redefining logger to fix the issues that arise when we use the DM
+logger = logging.getLogger(__name__)
+logger.setLevel(logging.DEBUG)
+
 
 from mictools.load_data import *
 from mictools.process_data import *
 from mictools.config import *
 from mictools.plot_data import *
 from mictools.roi_utils import Roi
+
+logger.info('Startup done.')
