@@ -51,6 +51,12 @@ def flyscan(
     y0 = sample.y.user_readback.get()
     z0 = sample.z.user_readback.get()
 
+    # --- Verifying detectors are unstaged - - - #
+
+    for detector in detectors:
+        detector.unstage()
+        detector.hdf1.unstage()
+
     # --- Defining flying sequence --- #
 
     def fly():
@@ -338,6 +344,14 @@ def flyscan(
 
         yield from abs_set(eshutter, "close", wait=True)
 
+        # --- Return sample to initial positions ---
+
+        yield from softglue.move_y_analog(45)
+        sample.y.enable()
+        yield from mv(sample.x, x0,
+                    sample.y, y0,
+                    sample.z, z0)
+
         # --- Unstage detectors --- #
 
         logging.debug("Scanning done.")
@@ -356,14 +370,6 @@ def flyscan(
             yield from sleep(0.1)
 
         socketserver.unstage()
-
-        # --- Return sample to initial positions ---
-
-        yield from softglue.move_y_analog(45)
-        sample.y.enable()
-        yield from mv(sample.x, x0,
-                    sample.y, y0,
-                    sample.z, z0)
         
 
         logger.debug("Returning to original positions.")

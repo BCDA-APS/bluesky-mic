@@ -157,13 +157,14 @@ class SoftGlueZynq(Device):
     div_by_n_4 = Component(DivByN, ":SG:DivByN-4_", kind="config")
 
     up_counter_1 = Component(UpCounter, ":SG:UpCntr-1_")  # 1 MHz clock
-    up_counter_2 = Component(UpCounter, ":SG:UpCntr-1_")  # Usr clock
-    up_counter_3 = Component(UpCounter, ":SG:UpCntr-1_")
-    up_counter_4 = Component(UpCounter, ":SG:UpCntr-1_")
+    up_counter_2 = Component(UpCounter, ":SG:UpCntr-2_")  # Usr clock
+    up_counter_3 = Component(UpCounter, ":SG:UpCntr-3_")
+    up_counter_4 = Component(UpCounter, ":SG:UpCntr-4_")
 
     down_counter_1 = Component(DownCounter, ":SG:DnCntr-1_")
 
     up_down_counter_1 = Component(UpDownCounter, ":SG:UpDnCntr-1_")
+    up_down_counter_2 = Component(UpDownCounter, ":SG:UpDnCntr-2_")
 
     gate_delay_1 = Component(GateDelay, ":SG:GateDly-1")
 
