@@ -67,7 +67,7 @@ class Trigger(TriggerBase):
         # self._acquisition_signal_pv = "cam1:Trigger"
         self.cam.stage_sigs["trigger_mode"] = "Internal Series"
         self.cam.stage_sigs["manual_trigger"] = "Enable"
-        self.cam.stage_sigs["num_images"] = 1
+        # self.cam.stage_sigs["num_images"] = 1
         self.cam.stage_sigs["num_triggers"] = MAX_IMAGES
         self.cam.stage_sigs.move_to_end("num_triggers", last=False)
         self.cam.stage_sigs["num_exposures"] = 1
@@ -79,7 +79,7 @@ class Trigger(TriggerBase):
 
     def setup_flyscan_mode(self, num_images=1, acq_time=0.01, hdf_images=MAX_IMAGES):
 
-        self.set_plugins(0)
+        # self.set_plugins(0)
 
         self.trigger_mode = "Flyscan"
         self.cam.stage_sigs["trigger_mode"] = "External Enable"
@@ -92,6 +92,11 @@ class Trigger(TriggerBase):
         self.hdf1.stage_sigs["enable"] = 1
         self.hdf1.stage_sigs["auto_save"] = 1
         self.hdf1.stage_sigs["num_capture"] = hdf_images
+
+        # for plugin in plugins:
+        #     cpt = 
+        #     cpt.stage_sigs["enable"] = 0
+        #     cpt.stage_sigs["blocking"] = 0
 
 
         # self._flysetup = True
