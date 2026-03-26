@@ -9,6 +9,19 @@ from apsbits.core.instrument_init import oregistry
 logger = logging.getLogger(__name__)
 osa_y = oregistry["osa_y"]
 solarsim_shutter = oregistry['solarsim_shutter']
+sample = oregistry['sample']
+
+def set_samx_speed(speed: float = 500):
+    """Set the x motor speed
+    
+    Parameters
+    ----------
+    speed: float
+        The speed of the x motor in mm/s. Default: 500 which is the max speed
+    """
+    logger.info(f"Setting x motor speed to {speed} mm/s")
+    yield from bps.mv(sample.x.velocity, speed)
+    logger.info(f"Set x motor speed to {sample.x.velocity.get()} mm/s")
 
 def mov_osa_y(position: float):
     """Move the osa_y motor to the specified position"""

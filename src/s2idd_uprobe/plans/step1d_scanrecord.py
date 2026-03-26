@@ -14,6 +14,7 @@ __all__ = """
 
 
 import logging
+from decimal import Decimal
 import bluesky.plan_stubs as bps
 import bluesky.preprocessors as bpp
 from apsbits.core.instrument_init import oregistry
@@ -34,6 +35,52 @@ mono = oregistry['kohzu_mono']
 scaler_count = oregistry['scaler_count']
 
 
+def build_energy_setpoints_eV(energy_list_eV: list[float], stepsize_list_eV: list[float]) -> list[float]:
+    """Expand energy breakpoints into explicit setpoints.
+
+    Convention:
+    - `energy_list_eV` contains ordered breakpoint energies.
+    - `stepsize_list_eV[i]` is used for the segment from `energy_list_eV[i]` to
+      `energy_list_eV[i+1]`.
+    - The final endpoint is included once.
+
+    `stepsize_list_eV` may be the same length as `energy_list_eV`; in that case
+    the last step size is ignored.
+    """
+    if len(energy_list_eV) < 2:
+        raise ValueError("energy_list_eV must contain at least two energies.")
+
+    if len(stepsize_list_eV) not in (len(energy_list_eV) - 1, len(energy_list_eV)):
+        raise ValueError(
+            "stepsize_list_eV must have length len(energy_list_eV)-1 "
+            "or len(energy_list_eV)."
+        )
+
+    energies = [Decimal(str(v)) for v in energy_list_eV]
+    steps = [Decimal(str(v)) for v in stepsize_list_eV[: len(energy_list_eV) - 1]]
+    print(f"energies: {energies}")
+    print(f"steps: {steps}")
+
+    setpoints: list[Decimal] = [energies[0]]
+    for i, step in enumerate(steps):
+        start = energies[i]
+        stop = energies[i + 1]
+        if step <= 0:
+            raise ValueError(f"Step size must be > 0 for segment {i}.")
+        if stop <= start:
+            raise ValueError("energy_list_eV must be strictly increasing.")
+
+        current = start
+        while current + step < stop:
+            current += step
+            setpoints.append(current)
+
+        if setpoints[-1] != stop:
+            setpoints.append(stop)
+
+    return [float(v) for v in setpoints]
+
+
 def _step1d_scanrecord(
     positioner_name: str = "x", # available: "x", "y", "z", "energy"
     width: float = 0,
@@ -46,6 +93,8 @@ def _step1d_scanrecord(
     energy: float = None,
     xrf_on: bool = True,
     preamp1_on: bool = False,
+    setpoint_list: list[float] = None,
+    table_mode: bool = False,
     **kwargs,
 ):
 
@@ -71,7 +120,15 @@ def _step1d_scanrecord(
     det_bools = [xrf_on, preamp1_on]
     det_names = ["xrf", "tmm1"]
     devices = validate_device_connections(det_bools, det_names, return_devices=True)
-    yield from scanrecord.step.stage1Dstep(devices, scaler_count, positioner, width, center, stepsize_x)
+    if not table_mode:
+        yield from scanrecord.step.stage1Dstep(devices, 
+                                           scaler_count,
+                                           positioner, width, 
+                                           center, stepsize_x)
+    else:
+        yield from scanrecord.step.stage1Dstep_TabelMode(devices, 
+                                           scaler_count,
+                                           positioner, setpoint_list)
 
     """Setup the detectors and file I/O"""
     setup_detectors_and_fileio(devices, dwell_time=dwell_ms)
@@ -95,6 +152,9 @@ def _step1d_scanrecord(
         d.unstage()
     yield from bps.mv(flycalc, 0)
 
+    """Set the x motor speed back to default, patch fix during Mariana's beamtime 2026c1"""
+    yield from bps.mv(sample.x.velocity, sample.x.max_velocity.get())
+
 
 def step1d_scanrecord(
     samplename: str = "smp1",
@@ -110,6 +170,8 @@ def step1d_scanrecord(
     energy: float = None,
     xrf_on: bool = True,
     preamp1_on: bool = False,
+    setpoint_list: list[float] = None,
+    table_mode: bool = False,
 ):
     """1D Bluesky plan that drives the x- sample motors in step mode using ScanRecord
 
@@ -141,6 +203,10 @@ def step1d_scanrecord(
         Whether to enable the x-ray fluorescence detector. Default is True. Type: bool
     preamp1_on:
         Whether to enable preamp1. Preamp1 is used to record metadata. Default is True. Type: bool
+    setpoint_list:
+        List of energy breakpoints in eV. Default: None. Type: list[float]
+    table_mode:
+        Whether to use table mode. Default: False. Type: bool
     """
 
     """Capture the input plan parameters"""
@@ -162,7 +228,72 @@ def step1d_scanrecord(
     yield from _step1d()
 
 
-def xanes_1d(
+
+def xanes_1d_nonlinear_step(
+    samplename: str = "smp1",
+    user_comments: str = "",
+    energy_list_eV: list = [],
+    stepsize_list_eV: list = [],
+    dwell_ms: float = 0,
+    sample_x: float = None,
+    sample_y: float = None,
+    sample_z: float = None,
+    energy: float = None,
+    xrf_on: bool = True,
+    preamp1_on: bool = False,
+):
+
+    """1D Bluesky plan that drives the energy in step mode using ScanRecord
+    
+    Parameters
+    ----------
+    samplename: str
+        The name of the sample for file naming. Default: "smp1". Type: str
+    user_comments: str
+        User comments to be recorded with the scan data. Default is "". Type: str
+    energy_list_eV: list
+        The energy list in eV. Default: []
+    stepsize_list_eV: list
+        The step size list in eV. Default: []
+    dwell_ms: float
+        The dwell time per step in milliseconds. Default: 0. Type: float
+    sample_x: float
+        The sample x position in millimeters. If not provided, the current sample x position will be maintained. Default: None. Type: float
+    sample_y: float
+        The sample y position in millimeters. If not provided, the current sample y position will be maintained. Default: None. Type: float
+    sample_z: float
+        The sample z position in millimeters. If not provided, the current sample z position will be maintained. Default: None. Type: float
+    energy: float
+        The energy in keV. If not provided, the current energy will be maintained. Default: None. Type: float
+    xrf_on: bool
+        Whether to enable the x-ray fluorescence detector. Default is True. Type: bool
+    preamp1_on: bool
+        Whether to enable preamp1. Preamp1 is used to record metadata. Default is True. Type: bool
+    """
+    
+    positioner_name = "energy"
+    energy_list_eV = build_energy_setpoints_eV(energy_list_eV, stepsize_list_eV)
+    energy_list = [e/1000 for e in energy_list_eV]
+    table_mode = True   
+
+    yield from step1d_scanrecord(
+        samplename=samplename,
+        user_comments=user_comments,
+        positioner_name=positioner_name,
+        dwell_ms=dwell_ms,
+        sample_x=sample_x,
+        sample_y=sample_y,
+        sample_z=sample_z,
+        energy=energy,
+        xrf_on=xrf_on,
+        preamp1_on=preamp1_on,
+        setpoint_list=energy_list,
+        table_mode=table_mode,
+    )
+
+
+
+def xanes_1d_linear(
     samplename: str = "smp1",
     user_comments: str = "",
     width_keV: float = 0,
@@ -226,3 +357,5 @@ def xanes_1d(
         xrf_on=xrf_on,
         preamp1_on=preamp1_on,
     )
+
+    yield from bps.sleep(40)

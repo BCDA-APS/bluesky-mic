@@ -23,10 +23,11 @@ logger.info(__file__)
 
 
 class NewScanRecord(SscanRecord):
+    p1pa = Component(EpicsSignal, ".P1PA")
+    
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.P1PA = PV(f"{self.prefix}.P1PA")
         self.P2PA = PV(f"{self.prefix}.P2PA")
         # Wrap stage_sigs with LoggingDict to log all assignments
         original_stage_sigs = self.stage_sigs
@@ -59,6 +60,9 @@ class NewScanRecord(SscanRecord):
         bspv: str = None,
         aspv: str = None,
         trigger_pvs: list = None,
+        setpoint_list: list = None,
+        num_points: int = None,
+
     ):
         """Stage the corresponding signals for scanrecord configuration
 
@@ -82,12 +86,19 @@ class NewScanRecord(SscanRecord):
             self.stage_sigs["positioners.p1.readback_pv"] = positioner_readback
             self.stage_sigs["positioners.p1.mode"] = scanmode
             self.stage_sigs["positioners.p1.abs_rel"] = rel_abs_motion
-            self.stage_sigs["positioners.p1.center"] = center
-            self.stage_sigs["positioners.p1.width"] = width
-            self.stage_sigs["positioners.p1.step_size"] = stepsize
+
+            if scanmode == 1:
+                self.stage_sigs["p1pa"] = setpoint_list
+            else:
+                self.stage_sigs["positioners.p1.center"] = center
+                self.stage_sigs["positioners.p1.width"] = width
+                self.stage_sigs["positioners.p1.step_size"] = stepsize
 
             if aspv is not None:
                 self.stage_sigs["aspv"] = aspv
+
+            if num_points is not None:
+                self.stage_sigs["number_points"] = num_points
             # self.positioners.p1.step_size.put(stepsize)
 
             if trigger_pvs is not None:

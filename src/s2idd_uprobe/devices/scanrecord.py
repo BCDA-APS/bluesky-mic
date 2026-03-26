@@ -161,7 +161,7 @@ class StepScanRecord(Device):
             rel_abs_motion=1,  # 0: "ABSOLUTE", 1: "RELATIVE"
             center=center,
             width=round(width, 2),
-            stepsize=round(stepsize_x, 2),
+            stepsize=round(stepsize_x, 5),
             trigger_pvs=inner_triggers,
         )
         self.detloop.config(
@@ -180,6 +180,49 @@ class StepScanRecord(Device):
         self.detloop.stage()
         yield from bps.sleep(0.2)
 
+    def stage1Dstep_TabelMode(self, devices, scaler_count, positioner, setpoint_list):
+        dets_dict = {d.name: d for d in devices}
+
+        xrf = dets_dict.get("xrf", None)
+        preamp1 = dets_dict.get("tmm1", None)
+
+        det_triggers = []
+        if xrf is not None:
+            det_triggers.append(xrf.cam.erase_start.pvname)
+        if preamp1 is not None:
+            det_triggers.append(preamp1.cam.acquire.pvname)
+        det_triggers += [''] * (self.num_det_triggers - len(det_triggers))
+
+        inner_triggers = []
+        inner_triggers.append(scaler_count.pvname)
+        inner_triggers.append(self.detloop.execute_scan.pvname)
+        inner_triggers += [''] * (self.num_det_triggers - len(inner_triggers))
+
+        yield from self.unstage1Dstep()
+        self.inner.config(
+            positioner_setpoint=positioner.user_setpoint.pvname,
+            positioner_readback=positioner.user_readback.pvname,
+            scanmode=1,  # 0: "LINEAR", 1: "TABLE", 2: "FLY"
+            rel_abs_motion=0,  # 0: "ABSOLUTE", 1: "RELATIVE"
+            setpoint_list=setpoint_list,
+            trigger_pvs=inner_triggers,
+            num_points=len(setpoint_list),
+        )
+        self.detloop.config(
+            positioner_setpoint="",
+            positioner_readback="",
+            scanmode=0,  # 0: "LINEAR", 1: "TABLE", 2: "FLY"
+            rel_abs_motion=0,  # 0: "ABSOLUTE", 1: "RELATIVE"
+            center=0,
+            width=0,
+            stepsize=0,
+            trigger_pvs=det_triggers,
+        )
+
+        self.inner.stage()
+        yield from bps.sleep(0.2)
+        self.detloop.stage()
+        yield from bps.sleep(0.2)
 
     def unstage1Dstep(self):
         if self.inner._staged == Staged.yes or self.inner._staged == Staged.partially:

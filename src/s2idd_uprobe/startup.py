@@ -133,12 +133,12 @@ if iconfig.get("KEITHLEY", {}).get("ENABLE", False):
 
 # # from .plans import *
 # from .plans.test_nexus import test_nexus
-from .plans.fly1d import fly1d
-from .plans.fly2d import fly2d
+# from .plans.fly1d import fly1d
+# from .plans.fly2d import fly2d
 from .plans.fly2d_scanrecord import fly2d_scanrecord, fly3d_xanes_scanrecord
-from .plans.step1d_scanrecord import step1d_scanrecord, xanes_1d
+from .plans.step1d_scanrecord import step1d_scanrecord, xanes_1d_linear, xanes_1d_nonlinear_step
 from .plans.timer import savedata, timer
-# from .plans.mov_optics import osa_in, osa_out, solarsim_on, solarsim_off
+from .plans.helper_funcs import set_samx_speed #, mov_osa_y, osa_in, osa_out, solarsim_on, solarsim_off
 # # from .plans.step2d import step2d
 # # from .plans.step1d import step1d
 
