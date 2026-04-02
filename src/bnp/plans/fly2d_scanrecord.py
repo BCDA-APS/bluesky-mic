@@ -19,6 +19,7 @@ from apsbits.core.instrument_init import oregistry
 logger = logging.getLogger(__name__)
 savedata = oregistry["savedata"]
 sample = oregistry["sample"]
+bda = oregistry["bda"]
 
 def fly2d_scanrecord(
     samplename: str = "smp1",
@@ -31,8 +32,10 @@ def fly2d_scanrecord(
     stepsize_y: float = 0,
     dwell_ms: float = 0,
     sample_z: float = None,
-    xmap_on: bool = False,
-    xp3_on: bool = True,
+    theta: float = None,
+    bda_position: float = None,
+    xmap_on: bool = True,
+    xp3_on: bool = False,
     eiger_on: bool = False,
     ptycho_exp_factor: float = 1,
 ):
@@ -63,6 +66,11 @@ def fly2d_scanrecord(
     sample_z:
         The sample z position in millimeters. If not provided, the current sample z 
         position will be maintained. Default: None. 
+    theta:
+        The sample theta position in degrees. If not provided, the current sample theta 
+        position will be maintained. Default: None. 
+    bda_position:
+        The open BDA position in millimeters, which will let beam through. Default: None. 
     xmap_on:
         Whether to enable the readout for x-ray fluorescence detector. Default is False. 
     xp3_on:
@@ -78,6 +86,8 @@ def fly2d_scanrecord(
     x_center = round(sample.x.piezo.position, 2) if x_center is None else x_center
     y_center = round(sample.y.piezo.position, 2) if y_center is None else y_center
     sample_z = round(sample.z.position, 2) if sample_z is None else sample_z
+    theta = round(sample.theta.position, 2) if theta is None else theta
+    bda_position = round(bda.x.position, 2) if bda_position is None else bda_position
 
     plan_args = capture_params(fly2d_scanrecord, **locals())
     scan_id = None
@@ -94,5 +104,4 @@ def fly2d_scanrecord(
         yield from _fly2d_scanrecord(**plan_args)
 
     yield from _fly2d()
-
 

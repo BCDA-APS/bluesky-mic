@@ -37,8 +37,9 @@ class SaveDataMic(SaveData):
         """Update the next file name based on scan number."""
         next_scan_number = str(self.get().next_scan_number).zfill(4)
         current_scan_number = str(self.get().next_scan_number - 1).zfill(4)
-        self.current_file_name = f"{self.get().base_name}{current_scan_number}.mda"
-        self.next_file_name = f"{self.get().base_name}{next_scan_number}.mda"
+        base_name = self.get().base_name
+        self.current_file_name = f"{base_name}{current_scan_number}.mda"
+        self.next_file_name = f"{base_name}{next_scan_number}.mda"
 
     def generate_det_path(self, det_name):
         base_path = self.get_auto_storage_path()

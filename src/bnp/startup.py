@@ -69,50 +69,66 @@ cat = init_catalog(iconfig)
 RE, sd = init_RE(iconfig, subscribers=[bec, cat])
 
 
-# # These imports must come after the above setup.
-# # Queue server block
-# if running_in_queueserver():
-#     ### To make all the standard plans available in QS, import by '*', otherwise import
-#     ### plan by plan.
-#     from apstools.plans import lineup2  # noqa: F401
-#     from bluesky.plans import *  # noqa: F403
-# else:
-#     # Import bluesky plans and stubs with prefixes set by common conventions.
-#     # The apstools plans and utils are imported by '*'.
-#     from apstools.plans import *  # noqa: F403
-#     from apstools.utils import *  # noqa: F403
-#     from bluesky import plan_stubs as bps  # noqa: F401
-#     from bluesky import plans as bp  # noqa: F401
-
-
 # Experiment specific logic, device and plan loading. # Create the devices.
 make_devices(clear=False, file="devices.yml", device_manager=instrument)
 
-# if host_on_aps_subnet():
-#     RE(make_devices(clear=False, file="device_aps_only.yml"))
+try:
+    savedata = oregistry["savedata"]
+    savedata.micdata_mountpath = iconfig.get("SAVE_DATA")["MOUNT_PATH"]
+    savedata.storage_path = iconfig.get("STORAGE")["MICDATA_MOUNTPATH"]
+    savedata.auto_mountpath = iconfig.get("STORAGE")["AUTO_MOUNTPATH"]
+except KeyError:
+    logger.info("savedata not found, skipping")
 
-# local_mountpath = iconfig.get("STORAGE")["MICDATA_MOUNTPATH"]
-# xmap_mountpath = iconfig.get("STORAGE")["XMAP_MOUNTPATH"]
-# xrf_netcdf = oregistry["xrf_netcdf"]
-# xrf_netcdf.micdata_mountpath = local_mountpath
-# xrf_netcdf.data_path = xmap_mountpath
+try:
+    xmap = oregistry["xmap"]
+    xmap.cam.buffer_size = iconfig.get("XMAP")["BUFFER"]
+    xmap.fileplugin.micdata_mountpath = iconfig.get("XMAP")["MOUNT_PATH"]
+    xmap.fileplugin.delimiter = iconfig.get("STORAGE")["FILE_DELIMITER"]
+    xmap.fileplugin.det_foldername = iconfig.get("XMAP")["DET_FOLDERNAME"]
+    xmap.fileplugin.savedata = oregistry["savedata"]
+except KeyError:
+    logger.info("xmap not found or xmap.fileplugin not connected or scanrecord not found, skipping")
+
+try:
+    ptycho = oregistry["ptycho"]
+    ptycho.fileplugin.micdata_mountpath = iconfig.get("EIGER")["MOUNT_PATH"]
+    ptycho.fileplugin.delimiter = iconfig.get("STORAGE")["FILE_DELIMITER"]
+    ptycho.fileplugin.det_foldername = iconfig.get("EIGER")["DET_FOLDERNAME"]
+    ptycho.fileplugin.savedata = oregistry["savedata"]
+except KeyError:
+    logger.info("xmap not found or xmap.fileplugin not connected or scanrecord not found, skipping")
 
 
-# # Optional Nexus callback block
-# if iconfig.get("NEXUS_DATA_FILES", {}).get("ENABLE", False):
-#     from mic_common.callbacks.nexus_data_file_writer import nxwriter_init
-#     nxwriter = nxwriter_init(RE)
-#     nxwriter.savedata = oregistry['savedata']
-#     nxwriter.micdata_mountpath = ""
+
+# Optional Nexus callback block
+if iconfig.get("NEXUS_DATA_FILES", {}).get("ENABLE", False):
+    from mic_common.callbacks.nexus_data_file_writer import nxwriter_init
+
+    nxwriter = nxwriter_init(RE)
+    nxwriter.name = "nxwriter"
+    oregistry.register(nxwriter, labels=["nxwriter"])
+    logger.info("Adding nxwriter to oregistry")
+    try:
+        # nxwriter.savedata = oregistry["scanrecord"].savedata
+        nxwriter.savedata = oregistry["savedata"]
+        nxwriter.micdata_mountpath = iconfig.get("STORAGE")["MICDATA_MOUNTPATH"]
+    except KeyError:
+        logger.info("savedata not found, skipping")
 
 
 # # # from .plans import *
 # # from .plans.test_nexus import test_nexus
 # # #from .plans.fly2d import fly2d
 from .plans.fly2d_scanrecord import fly2d_scanrecord
+from .plans.coarse_fine_scanrecord import coarse_fine_scanrecord
 # # from .plans.step1d_scanrecord import step1d_scanrecord
 # # # from .plans.step2d import step2d
 # # # from .plans.step1d import step1d
 
 
+## QServer functions
+from .qserver.helper_funcs import get_save_data_path
+from .qserver.helper_funcs import syncXYZ
+from .qserver.helper_funcs import syncXYZ_transform
 

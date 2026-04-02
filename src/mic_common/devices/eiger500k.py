@@ -14,16 +14,80 @@ import os
 from typing import Any
 from typing import Generator
 
-from ophyd import Component
+from ophyd import Component, Device, EpicsSignal, Staged
 from ophyd import EigerDetectorCam
-from ophyd import EpicsSignal
 
-from mic_common.utils.device_utils import mode_setter
-from mic_common.utils.device_utils import value_setter
+from mic_common.devices.ad_fileplugin import DetHDF5
+from mic_common.utils.device_utils import mode_setter, value_setter, LoggingStageSigs
 
 logger = logging.getLogger(__name__)
 logger.info(__file__)
 
+
+class EigerBase(EigerDetectorCam):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        original_stage_sigs = self.stage_sigs
+        self.stage_sigs = LoggingStageSigs(original_stage_sigs, prefix=self.prefix)
+
+    def config(
+        self, 
+        num_pulses: int,
+        dwell_time: float, # unit in seconds
+        trigger_mode: int = 2, # 2: "external series"
+        num_triggers: int = 1, # number of triggers
+        **kwargs):
+
+        self.stage_sigs.clear()
+        self.stage_sigs['acquire'] = 0
+        self.stage_sigs['trigger_mode'] = trigger_mode
+        self.stage_sigs['acquire_time'] = dwell_time
+        self.stage_sigs['acquire_period'] = dwell_time
+        self.stage_sigs['num_images'] = num_pulses
+        self.stage_sigs['num_triggers'] = num_triggers
+        
+
+class Eiger2ID(Device):
+    cam = Component(EigerBase, ":cam1:", kind="config", labels=("eiger2id", "cam"))
+    fileplugin = Component(DetHDF5, ":HDF1:", kind="config", labels=("eiger2id", "fileplugin"))
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        try:
+            self.fileplugin.stage_sigs.pop("parent.cam.array_callbacks", None)
+            logger.info("Removing array_callbacks stage signal from Eiger2ID fileplugin")
+        except Exception as e:
+            logger.error(f"Error removing array_callbacks stage signal from Eiger2ID fileplugin: {e}")
+            raise e
+
+    def config_flyscan(self, num_pulses: int = None, dwell_time: float = None, **kwargs):
+        """Configure the Eiger2ID device for a flyscan with the given points and dwell time."""
+        self.unstage()
+        try:
+            self.cam.config(num_pulses, dwell_time, **kwargs)
+        except Exception as e:
+            logger.error(f"Error configuring cam for fly scan: {e}")
+            raise e
+
+        try:
+            self.fileplugin.config_file_writer(num_pulses, **kwargs)
+            self.fileplugin.stage_sigs.pop("parent.cam.array_callbacks", None)
+        except Exception as e:
+            logger.error(f"Error configuring fileplugin for fly scan: {e}")
+            raise e
+
+    def unstage(self):
+        """Unstage the Eiger2ID device."""
+        # Check if device is already staged and unstage if necessary
+        if self._staged == Staged.yes:
+            logger.info("Eiger2ID is unstaged, unstaging ... ...")
+            return super().unstage()
+        elif self._staged == Staged.partially:
+            logger.info("Eiger2ID is partially staged, unstaging cam and fileplugin separately...")
+            if self.cam._staged == Staged.yes:
+                self.cam.unstage()
+            if self.fileplugin._staged == Staged.yes:
+                self.fileplugin.unstage()
 
 class Eiger500k(EigerDetectorCam):
     """

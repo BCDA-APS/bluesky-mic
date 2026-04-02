@@ -21,6 +21,7 @@ class DeltaTauPiezoBase(PVPositioner):
     TOTAL_TIMEOUT = 60.0   # max seconds before giving up
     POLL_DT = 0.1         # seconds between done checks
     tolerance = 0.01       # |setpoint - readback| must be <= this to be "done"
+    settle_time = 0.2      # When move is done, wait for this long before returning
 
     def move(self, position, **kwargs):
         status = Status(self)
@@ -34,7 +35,10 @@ class DeltaTauPiezoBase(PVPositioner):
 
     def _is_done(self):
         """Consider move done when setpoint and readback agree within tolerance."""
-        return abs(self.setpoint.get() - self.readback.get()) <= self.tolerance
+        if abs(self.setpoint.get() - self.readback.get()) <= self.tolerance:
+            time.sleep(self.settle_time)
+            return True
+        return False
 
     def _move_with_retry(self, position, status):
         start = time.monotonic()

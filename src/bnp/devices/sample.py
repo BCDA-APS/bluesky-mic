@@ -1,13 +1,21 @@
 from bnp.devices.deltaTau import DeltaTauPiezoBase
 from ophyd import Component, Device, EpicsSignal, EpicsSignalRO, PVPositioner
 
+
+class SampleCoorOffset(Device):
+    x_sample_origin = Component(EpicsSignalRO, ':SM:SXO.VAL', kind='config', labels=('signal',))
+    y_sample_origin = Component(EpicsSignalRO, ':SY:SYO.VAL', kind='config', labels=('signal',))
+    z_sample_origin = Component(EpicsSignalRO, ':SM:SZO.VAL', kind='config', labels=('signal',))
+    x_optical_axis = Component(EpicsSignalRO, ':SM:SXA.VAL', kind='config', labels=('signal',))
+    y_optical_axis = Component(EpicsSignalRO, ':SY:SYA.VAL', kind='config', labels=('signal',))
+    z_optical_axis = Component(EpicsSignalRO, ':SM:SZA.VAL', kind='config', labels=('signal',))
+
 class DeltaTauPiezoX(DeltaTauPiezoBase):
     done = Component(EpicsSignalRO, 'Ps:RunPrg')
     stop_signal = Component(EpicsSignal, 'Ps:Abort')
     setpoint = Component(EpicsSignal, 'PX:RqsPos')
     readback = Component(EpicsSignalRO, 'PX:ActPos')
     center = Component(EpicsSignal, 'Ps:xCenter.PROC')
-
 
 class DeltaTauStepperX(PVPositioner):
     done = Component(EpicsSignalRO, 'Ps:RunPrg')

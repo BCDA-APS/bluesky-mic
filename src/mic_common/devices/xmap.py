@@ -51,24 +51,6 @@ class XMAPBase(Device):
         """Calculate the number of capture based on number of scan points."""
         self.num_capture = int(np.ceil(num_pulses / self.buffer_size))
 
-    # def config_flyscan(self, num_pts):
-    #     """Configure XMAP for fly scan."""
-    #     self.stage_sigs.clear()
-    #     self.stage_sigs["stop_all"] = 1
-    #     self.stage_sigs["collection_mode"] = 1  # "MCA MAPPING"
-    #     self.stage_sigs["pixels_per_run"] = num_pts
-
-    # def config_stepscan(self, dwell_ms):
-    #     """Configure XMAP for step scan."""
-    #     dwell_sec = dwell_ms / 1000
-    #     self.stage_sigs.clear()
-    #     self.stage_sigs["stop_all"] = 1
-    #     self.stage_sigs["collection_mode"] = 0  # "MCA MAPPING"
-    #     self.stage_sigs["preset_mode"] = 1
-    #     self.stage_sigs["preset_real_time"] = dwell_sec
-    #     self.stage_sigs["status_rate"] = 8  # 0.2 second
-    #     self.stage_sigs["read_rate"] = 0    # Passive
-
     def config(self, 
         num_pulses: int = None,
         dwell_ms: float = None,

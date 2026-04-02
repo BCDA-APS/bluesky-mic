@@ -22,6 +22,16 @@ bnp.devices.sample.Sample:
   prefix: 9idbTAU
   labels: ["sample"]
 
+bnp.devices.sample.SampleCoorOffset:
+- name: sample_coor_offset
+  prefix: 9idbTAU
+  labels: ["sample_coor_offset"]
+
+bnp.devices.bda.BDA:
+- name: bda
+  prefix: 9idbTAU:UA
+  labels: ["bda"]
+
 mic_common.devices.save_data.SaveDataMic:
 - name: savedata
   prefix: "9idbBNP:saveData_"
@@ -36,6 +46,11 @@ mic_common.devices.xmap.XMAP:
 - name: xmap
   prefix: 9idbXMAP
   labels: ["xmap"]
+
+mic_common.devices.eiger500k.Eiger2ID:
+- name: eiger
+  prefix: 2iddEGR
+  labels: ["eiger2id"]
 
 bnp.devices.xspress3.Xspress3:
 - name: xp3
@@ -59,5 +74,4 @@ ophyd.EpicsSignal:
 #   write_pv: 9idbTAU:SM:Ps:Busy
 #   read_pv: 9idbTAU:SM:Ps:Busy
 #   labels: ["signal"]
-
 
