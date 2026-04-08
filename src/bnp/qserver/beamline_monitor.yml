@@ -1,0 +1,106 @@
+plans:
+  fly2d_scanrecord:
+    baseline:
+      - sample
+      - scanrecord
+      - fly_dwell
+      - ring
+    conditional_detectors:
+      xmap_on: xmap
+      xp3_on: xp3
+      eiger_on: eiger
+
+  coarse_fine_scanrecord:
+    baseline:
+      - sample
+      - scanrecord
+      - fly_dwell
+      - ring
+    conditional_detectors:
+      xmap_on: xmap
+      xp3_on: xp3
+      eiger_on: eiger
+
+devices:
+  ring:
+    category: storebeam
+    include:
+      - current
+      - operating_mode
+      - shutter_status
+      - operator_messages.last_trip_message
+
+  sample:
+    category: motion
+    include:
+      - busy
+      - x.motion
+      - x.piezo.setpoint
+      - x.piezo.readback
+      - y.motion
+      - y.piezo.setpoint
+      - y.piezo.readback
+      - z.setpoint
+      - z.readback
+      - theta.setpoint
+      - theta.readback
+
+  bda:
+    category: motion
+    include:
+      - x.readback
+      - x.setpoint
+      - x.done
+
+  scanrecord:
+    category: scanrecord
+    include:
+      - inner.number_points
+      - inner.current_point
+      - inner.execute_scan
+      - inner.scan_phase
+      - inner.wait 
+      - outer.number_points
+      - outer.current_point
+      - outer.execute_scan
+      - outer.scan_phase
+      - outer.wait
+      - pause_signal
+
+  fly_dwell:
+    category: signal
+
+  xmap:
+    category: detector
+    include:
+      - fileplugin.capture
+      - fileplugin.write_file
+      - fileplugin.file_name
+      - fileplugin.num_capture
+    # extra_pvs:
+    #   detector_state: 9idbXMAP:netCDF1:DetectorState_RBV
+    #   write_status: 9idbXMAP:netCDF1:WriteFile_RBV
+
+  xp3:
+    category: detector
+    include:
+      - cam.acquire
+      - fileplugin.capture
+      - fileplugin.file_name
+      - fileplugin.num_capture
+    # extra_pvs:
+    #   detector_state: bnpXP3:det1:DetectorState_RBV
+
+  eiger:
+    category: detector
+    include:
+      - cam.acquire
+      - cam.acquire_period
+      - cam.num_images
+      - cam.trigger_mode
+      - fileplugin.capture
+      - fileplugin.file_name
+      - fileplugin.file_path
+      - fileplugin.num_capture
+    # extra_pvs:
+    #   num_triggers: 2iddEGR:cam1:NumTriggers_RBV

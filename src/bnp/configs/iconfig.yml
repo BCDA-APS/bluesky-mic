@@ -67,6 +67,10 @@ EIGER:
     DET_FOLDERNAME: "ptycho"
     MOUNT_PATH: "/net/micdata/data1"
 
+XP3:
+    DET_FOLDERNAME: "flyXRF"
+    MOUNT_PATH: "/net/micdata/data1"
+
 SAVE_DATA:
     MOUNT_PATH: "//micdata/data1/"
 

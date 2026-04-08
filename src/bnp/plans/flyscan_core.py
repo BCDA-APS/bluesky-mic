@@ -108,7 +108,8 @@ def _fly2d_scanrecord(
     sample_z = sample_z if sample_z is not None else (round(sample.z.position, 2))
     sample_x = x_center if x_center is not None else (round(sample.x.piezo.position, 2))
     sample_y = y_center if y_center is not None else (round(sample.y.piezo.position, 2))
-    yield from _move_with_timeout(sample.theta, theta, timeout=10, retries=4, atol=0.02)
+    if abs(sample.theta.position - theta) > 0.02:
+        yield from _move_with_timeout(sample.theta, theta, timeout=10, retries=4, atol=0.02)
     yield from bps.mv(sample.z, sample_z)
     yield from bps.mv(sample.x.piezo, sample_x)
     yield from bps.mv(sample.y.piezo, sample_y)
@@ -133,7 +134,7 @@ def _fly2d_scanrecord(
     """Initialize detectors with desired pts, exposure time and file writer """
     numpts_x = scanrecord.inner.number_points.value
     num_pulses = numpts_x
-    setup_detectors_and_fileio(devices, num_pulses=num_pulses, dwell_time=dwell_ms, stepsize=stepsize_x)
+    setup_detectors_and_fileio(devices, num_pulses=num_pulses, dwell_time=dwell_ms, stepsize=stepsize_x, ptycho_exp_factor=ptycho_exp_factor)
     yield from bps.checkpoint()
 
     """Start executing scan"""

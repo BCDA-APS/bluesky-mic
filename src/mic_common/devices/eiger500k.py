@@ -11,6 +11,7 @@ external triggers and manage acquisition parameters for the detector.
 
 import logging
 import os
+import time
 from typing import Any
 from typing import Generator
 
@@ -88,6 +89,33 @@ class Eiger2ID(Device):
                 self.cam.unstage()
             if self.fileplugin._staged == Staged.yes:
                 self.fileplugin.unstage()
+
+    def unhang(self, retries: int = 1, delay_s: float = 0.1) -> dict[str, object]:
+        attempts = max(1, int(retries))
+        results: list[dict[str, object]] = []
+        for attempt in range(1, attempts + 1):
+            print(f"Attempt {attempt} to unhang Eiger2ID")
+            try:
+                self.cam.acquire.put(0)
+                self.fileplugin.capture.put(0)
+                results.append({"attempt": attempt, "success": True})
+                if attempt < attempts and delay_s > 0:
+                    time.sleep(delay_s)
+            except Exception as exc:
+                logger.exception("Failed to unhang Eiger2ID on attempt %s", attempt)
+                results.append({"attempt": attempt, "success": False, "error": str(exc)})
+                return {
+                    "device": self.name,
+                    "success": False,
+                    "retries": attempts,
+                    "attempts": results,
+                }
+        return {
+            "device": self.name,
+            "success": True,
+            "retries": attempts,
+            "attempts": results,
+        }
 
 class Eiger500k(EigerDetectorCam):
     """

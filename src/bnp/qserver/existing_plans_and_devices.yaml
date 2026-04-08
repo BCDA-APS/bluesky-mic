@@ -69,12 +69,141 @@ existing_devices:
     is_movable: false
     is_readable: true
     module: bnp.devices.bda
+  eiger:
+    classname: Eiger2ID
+    components:
+      cam:
+        classname: EigerBase
+        is_flyable: false
+        is_movable: false
+        is_readable: true
+        module: mic_common.devices.eiger500k
+      fileplugin:
+        classname: DetHDF5
+        is_flyable: false
+        is_movable: false
+        is_readable: true
+        module: mic_common.devices.ad_fileplugin
+    is_flyable: false
+    is_movable: false
+    is_readable: true
+    module: mic_common.devices.eiger500k
   fly_dwell:
     classname: EpicsSignal
     is_flyable: false
     is_movable: true
     is_readable: true
     module: ophyd.signal
+  ring:
+    classname: ApsMachineParametersDevice
+    components:
+      aps_cycle:
+        classname: ApsCycleDM
+        is_flyable: false
+        is_movable: true
+        is_readable: true
+        module: apstools.devices.aps_cycle
+      current:
+        classname: EpicsSignalRO
+        is_flyable: false
+        is_movable: true
+        is_readable: true
+        module: ophyd.signal
+      fill_number:
+        classname: EpicsSignalRO
+        is_flyable: false
+        is_movable: true
+        is_readable: true
+        module: ophyd.signal
+      machine_status:
+        classname: EpicsSignalRO
+        is_flyable: false
+        is_movable: true
+        is_readable: true
+        module: ophyd.signal
+      operating_mode:
+        classname: EpicsSignalRO
+        is_flyable: false
+        is_movable: true
+        is_readable: true
+        module: ophyd.signal
+      operator_messages:
+        classname: ApsOperatorMessagesDevice
+        components:
+          fill_pattern:
+            classname: EpicsSignalRO
+            is_flyable: false
+            is_movable: true
+            is_readable: true
+            module: ophyd.signal
+          floor_coordinator:
+            classname: EpicsSignalRO
+            is_flyable: false
+            is_movable: true
+            is_readable: true
+            module: ophyd.signal
+          last_problem_message:
+            classname: EpicsSignalRO
+            is_flyable: false
+            is_movable: true
+            is_readable: true
+            module: ophyd.signal
+          last_trip_message:
+            classname: EpicsSignalRO
+            is_flyable: false
+            is_movable: true
+            is_readable: true
+            module: ophyd.signal
+          message6:
+            classname: EpicsSignalRO
+            is_flyable: false
+            is_movable: true
+            is_readable: true
+            module: ophyd.signal
+          message7:
+            classname: EpicsSignalRO
+            is_flyable: false
+            is_movable: true
+            is_readable: true
+            module: ophyd.signal
+          message8:
+            classname: EpicsSignalRO
+            is_flyable: false
+            is_movable: true
+            is_readable: true
+            module: ophyd.signal
+          operators:
+            classname: EpicsSignalRO
+            is_flyable: false
+            is_movable: true
+            is_readable: true
+            module: ophyd.signal
+        is_flyable: false
+        is_movable: false
+        is_readable: true
+        module: apstools.devices.aps_machine
+      orbit_correction:
+        classname: EpicsSignalRO
+        is_flyable: false
+        is_movable: true
+        is_readable: true
+        module: ophyd.signal
+      shutter_status:
+        classname: EpicsSignalRO
+        is_flyable: false
+        is_movable: true
+        is_readable: true
+        module: ophyd.signal
+      shutters_open:
+        classname: EpicsSignalRO
+        is_flyable: false
+        is_movable: true
+        is_readable: true
+        module: ophyd.signal
+    is_flyable: false
+    is_movable: false
+    is_readable: true
+    module: apstools.devices.aps_machine
   sample:
     classname: Sample
     components:
@@ -507,6 +636,12 @@ existing_devices:
             is_movable: true
             is_readable: true
             module: ophyd.signal
+          beforeScan:
+            classname: EpicsSignal
+            is_flyable: false
+            is_movable: true
+            is_readable: true
+            module: ophyd.signal
           center:
             classname: EpicsSignal
             is_flyable: false
@@ -598,6 +733,12 @@ existing_devices:
             is_movable: true
             is_readable: true
             module: ophyd.signal
+          beforeScan:
+            classname: EpicsSignal
+            is_flyable: false
+            is_movable: true
+            is_readable: true
+            module: ophyd.signal
           center:
             classname: EpicsSignal
             is_flyable: false
@@ -680,6 +821,12 @@ existing_devices:
         is_movable: false
         is_readable: true
         module: bnp.devices.scanrecord
+      pause_signal:
+        classname: EpicsSignal
+        is_flyable: false
+        is_movable: true
+        is_readable: true
+        module: ophyd.signal
     is_flyable: false
     is_movable: false
     is_readable: true

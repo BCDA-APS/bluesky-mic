@@ -29,6 +29,7 @@ from apsbits.utils.config_loaders import load_config
 from apsbits.utils.helper_functions import register_bluesky_magics
 from apsbits.utils.helper_functions import running_in_queueserver
 from apsbits.utils.logging_setup import configure_logging
+from mic_common.utils.beamline_monitor_manifest import generate_beamline_monitor_manifest
 
 # Utility functions from apstools and bluesky
 from apstools.utils import listobjects, listplans
@@ -91,13 +92,22 @@ except KeyError:
     logger.info("xmap not found or xmap.fileplugin not connected or scanrecord not found, skipping")
 
 try:
-    ptycho = oregistry["ptycho"]
-    ptycho.fileplugin.micdata_mountpath = iconfig.get("EIGER")["MOUNT_PATH"]
-    ptycho.fileplugin.delimiter = iconfig.get("STORAGE")["FILE_DELIMITER"]
-    ptycho.fileplugin.det_foldername = iconfig.get("EIGER")["DET_FOLDERNAME"]
-    ptycho.fileplugin.savedata = oregistry["savedata"]
+    eiger = oregistry["eiger"]
+    eiger.fileplugin.micdata_mountpath = iconfig.get("EIGER")["MOUNT_PATH"]
+    eiger.fileplugin.delimiter = iconfig.get("STORAGE")["FILE_DELIMITER"]
+    eiger.fileplugin.det_foldername = iconfig.get("EIGER")["DET_FOLDERNAME"]
+    eiger.fileplugin.savedata = oregistry["savedata"]
 except KeyError:
-    logger.info("xmap not found or xmap.fileplugin not connected or scanrecord not found, skipping")
+    logger.info("eiger not found or eiger.fileplugin not connected or scanrecord not found, skipping")
+
+try:
+    xp3 = oregistry["xp3"]
+    xp3.fileplugin.micdata_mountpath = iconfig.get("XP3")["MOUNT_PATH"]
+    xp3.fileplugin.delimiter = iconfig.get("STORAGE")["FILE_DELIMITER"]
+    xp3.fileplugin.det_foldername = iconfig.get("XP3")["DET_FOLDERNAME"]
+    xp3.fileplugin.savedata = oregistry["savedata"]
+except KeyError:
+    logger.info("xp3 not found or xp3.fileplugin not connected or scanrecord not found, skipping")
 
 
 
@@ -129,6 +139,20 @@ from .plans.coarse_fine_scanrecord import coarse_fine_scanrecord
 
 ## QServer functions
 from .qserver.helper_funcs import get_save_data_path
+from .qserver.helper_funcs import get_global_health_snapshot
+from .qserver.helper_funcs import get_plan_monitor_snapshot
+from .qserver.helper_funcs import recover_detector
 from .qserver.helper_funcs import syncXYZ
 from .qserver.helper_funcs import syncXYZ_transform
 
+
+try:
+    logger.info("Generating beamline monitor PVs")
+    beamline_monitor_manifest = generate_beamline_monitor_manifest(
+        oregistry=oregistry,
+        output_path=instrument_path / "qserver" / "beamline_monitor.json",
+        config_path=instrument_path / "qserver" / "beamline_monitor.yml",
+    )
+    logger.info("Beamline monitor PVs written to %s", beamline_monitor_manifest)
+except Exception:
+    logger.exception("Failed to generate beamline monitor PVs")

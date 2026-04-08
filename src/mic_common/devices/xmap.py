@@ -17,6 +17,7 @@ from mic_common.devices.ad_fileplugin import DetNetCDF
 from mic_common.devices.save_data import SaveDataMic
 import numpy as np
 import logging
+import time
 
 logger = logging.getLogger(__name__)
 
@@ -139,3 +140,28 @@ class XMAP(Device):
             if self.fileplugin._staged == Staged.yes:
                 self.fileplugin.unstage()
 
+    def unhang(self, retries: int = 1, delay_s: float = 0.1) -> dict[str, object]:
+        attempts = max(1, int(retries))
+        results: list[dict[str, object]] = []
+        for attempt in range(1, attempts + 1):
+            try:
+                self.cam.stop_all.put(1)
+                self.fileplugin.capture.put(0)
+                results.append({"attempt": attempt, "success": True})
+                if attempt < attempts and delay_s > 0:
+                    time.sleep(delay_s)
+            except Exception as exc:
+                logger.exception("Failed to unhang XMAP on attempt %s", attempt)
+                results.append({"attempt": attempt, "success": False, "error": str(exc)})
+                return {
+                    "device": self.name,
+                    "success": False,
+                    "retries": attempts,
+                    "attempts": results,
+                }
+        return {
+            "device": self.name,
+            "success": True,
+            "retries": attempts,
+            "attempts": results,
+        }

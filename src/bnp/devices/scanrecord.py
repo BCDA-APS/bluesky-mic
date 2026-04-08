@@ -11,6 +11,8 @@ logger = logging.getLogger(__name__)
 
 
 class BNPScanRecord(Device):
+
+    beforeScan = Component(EpicsSignal, ".BSPV")
     center = Component(EpicsSignal, ".P1CP")
     width = Component(EpicsSignal, ".P1WD")
     step_size = Component(EpicsSignal, ".P1SI")
@@ -50,6 +52,7 @@ class BNPScanRecord(Device):
         mode: int = None,
         abs_rel: int = None,
         trigger_pvs: list = None,
+        beforeScan: str = None,
     ):
         if self.connected:
             self.stage_sigs.clear()
@@ -60,6 +63,8 @@ class BNPScanRecord(Device):
             self.stage_sigs["abs_rel"] = abs_rel
             if trigger_pvs is not None:
                 self.stage_detTriggers(trigger_pvs)
+            if beforeScan is not None:
+                self.stage_sigs["beforeScan"] = beforeScan
         else:
             logger.error(f"Scan record {self.prefix} is not connected")
 
@@ -67,6 +72,7 @@ class FlyScanRecord(Device):
     inner = Component(BNPScanRecord, ":scan1", kind="config", labels=("scanrecord", "inner"))
     outer = Component(BNPScanRecord, ":scan2", kind="config", labels=("scanrecord", "outer"))
     abort_signal = Component(EpicsSignal, ":AbortScans.PROC")
+    pause_signal = Component(EpicsSignal, ":scanPause.VAL")
 
     def pad_detector_triggers(self, triggers_list, num_detectors = 4):
         return triggers_list + [''] * (num_detectors - len(triggers_list))
@@ -80,6 +86,12 @@ class FlyScanRecord(Device):
         sis3820 = dets_dict.get("sis3820", None)
         xp3 = dets_dict.get("xp3", None)
         eiger = dets_dict.get("eiger", None)
+
+        ## change beforeScan PV for the inner scan record when changing the xmap and xp3
+        if xmap is not None:
+            beforescan_pv_value = '21:D3:PreFlyScan.PROC'
+        elif xp3 is not None:
+            beforescan_pv_value = 'bnpsft:FbeforeH'
 
         try:
             yield from self.unstage2Dfly()
@@ -99,6 +111,7 @@ class FlyScanRecord(Device):
             step_size = round(stepsize_x, 2),
             mode = 2,     # 0: "LINEAR", 1: "TABLE", 2: "FLY"
             abs_rel = 0 , # 0: "ABSOLUTE", 1: "RELATIVE"
+            beforeScan = beforescan_pv_value,
             # trigger_pvs = inner_triggers,
         )
 

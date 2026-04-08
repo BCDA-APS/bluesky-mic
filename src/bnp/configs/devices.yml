@@ -12,6 +12,10 @@
 #   prefix: 9idbBNP:scan2
 #   labels: ["scanrecord"]
 
+apstools.devices.aps_machine.ApsMachineParametersDevice:
+- name: ring
+  labels: ["storebeam"]
+
 bnp.devices.scanrecord.FlyScanRecord:
 - name: scanrecord
   prefix: 9idbBNP
@@ -52,10 +56,10 @@ mic_common.devices.eiger500k.Eiger2ID:
   prefix: 2iddEGR
   labels: ["eiger2id"]
 
-bnp.devices.xspress3.Xspress3:
+bnp.devices.xspress3.BNPXspress3:
 - name: xp3
   prefix: bnpXP3
-  labels: ["xsp3"]
+  labels: ["xp3"]
 
 ophyd.EpicsSignal:
 - name: fly_dwell

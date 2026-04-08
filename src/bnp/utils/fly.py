@@ -8,6 +8,7 @@ def setup_detectors_and_fileio(
         dwell_time:float = None, 
         stepsize: float = None, 
         motor_resolution: float = None,
+        ptycho_exp_factor: float = 1,
         **kwargs
 ):
     """
@@ -29,6 +30,7 @@ def setup_detectors_and_fileio(
 
 
     for det in devices:
+        det_dwell_time = (dwell_time / ptycho_exp_factor if det.name == "eiger" else dwell_time) / 1000 # convert to seconds
         if det.name == "xmap":
             det.unstage()
             # update num_capture for xmap fileplugin    
@@ -41,7 +43,7 @@ def setup_detectors_and_fileio(
         else:
             det.config_flyscan(
                 num_pulses=num_pulses,
-                dwell_time=dwell_time,
+                dwell_time=det_dwell_time,
                 stepsize=stepsize,
                 motor_resolution=motor_resolution,
             )
