@@ -1003,14 +1003,14 @@ existing_devices:
     is_readable: true
     module: mic_common.devices.xmap
   xp3:
-    classname: Xspress3
+    classname: BNPXspress3
     components:
       cam:
-        classname: Xspress3DetectorCam
+        classname: Xspress3Base
         is_flyable: false
         is_movable: false
         is_readable: true
-        module: ophyd.areadetector.cam
+        module: bnp.devices.xspress3
       fileplugin:
         classname: DetHDF5
         is_flyable: false

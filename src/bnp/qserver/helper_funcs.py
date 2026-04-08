@@ -103,7 +103,7 @@ def syncXYZ_transform(
 
 
 def get_global_health_snapshot(manifest_path: str | None = None) -> dict[str, object]:
-    """Return a baseline monitor snapshot using worker-side device access."""
+    """Return an enriched baseline monitor snapshot using worker-side device access."""
 
     try:
         return _get_named_monitor_snapshot(
@@ -122,13 +122,36 @@ def get_global_health_snapshot(manifest_path: str | None = None) -> dict[str, ob
         }
 
 
+def get_named_monitor_snapshot(
+    device_names: list[str],
+    manifest_path: str | None = None,
+) -> dict[str, object]:
+    """Return an enriched monitor snapshot for an explicit device list."""
+
+    try:
+        return _get_named_monitor_snapshot(
+            list(device_names),
+            manifest_path=manifest_path,
+        )
+    except Exception as exc:
+        logger.exception("Failed to build named monitor snapshot")
+        return {
+            "timestamp": None,
+            "device_names": list(device_names),
+            "devices": {},
+            "pv_backend": "qserver-worker",
+            "manifest_path": manifest_path,
+            "error": str(exc),
+        }
+
+
 def get_plan_monitor_snapshot(
     plan_name: str,
     plan_args: dict[str, object] | None = None,
     include_baseline: bool = True,
     manifest_path: str | None = None,
 ) -> dict[str, object]:
-    """Return a plan-aware monitor snapshot using worker-side device access."""
+    """Return an enriched plan-aware monitor snapshot using worker-side device access."""
 
     try:
         return _get_plan_monitor_snapshot(
