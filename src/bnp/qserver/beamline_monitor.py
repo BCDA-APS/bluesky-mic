@@ -7,6 +7,7 @@ from typing import Any, Mapping
 
 from apsbits.core.instrument_init import oregistry
 
+from .recovery_state import is_detector_recovering
 from mic_common.utils.beamline_monitor_helpers import collect_axis_states
 from mic_common.utils.beamline_monitor_helpers import device_category
 from mic_common.utils.beamline_monitor_helpers import find_matching_pv
@@ -213,10 +214,12 @@ class BNPMonitorPolicy(BeamlineMonitorPolicy):
     def enrich_device(self, device_name: str, device: Mapping[str, Any], snapshot: Mapping[str, Any]) -> dict[str, Any]:
         enriched = dict(device)
         role = self._infer_device_role(device_name, device)
+        recovering = role == "detector" and is_detector_recovering(device_name)
         enriched["role"] = role
-        enriched["health"] = self._evaluate_device_health(device_name, device, snapshot, role)
-        enriched["summary"] = self._summarize_device(device_name, device, snapshot, role)
-        enriched["actions"] = self._device_actions(device_name, role)
+        enriched["state"] = "recovering" if recovering else "hung" if role == "detector" and self._detector_hung(device_name, snapshot) else "normal"
+        enriched["health"] = self._evaluate_device_health(device_name, device, snapshot, role, recovering=recovering)
+        enriched["summary"] = self._summarize_device(device_name, device, snapshot, role, recovering=recovering)
+        enriched["actions"] = self._device_actions(device_name, role, recovering=recovering)
         return enriched
 
     def _evaluate_device_health(
@@ -225,9 +228,13 @@ class BNPMonitorPolicy(BeamlineMonitorPolicy):
         device: Mapping[str, Any],
         snapshot: Mapping[str, Any],
         role: str,
+        *,
+        recovering: bool = False,
     ) -> str:
         pvs = device.get("pvs")
         if not isinstance(pvs, Mapping) or not pvs:
+            return "warning"
+        if recovering:
             return "warning"
         if role == "ring":
             current = self._ring_current(snapshot)
@@ -261,10 +268,20 @@ class BNPMonitorPolicy(BeamlineMonitorPolicy):
             return "warning"
         return "error"
 
-    def _summarize_device(self, device_name: str, device: Mapping[str, Any], snapshot: Mapping[str, Any], role: str) -> str:
+    def _summarize_device(
+        self,
+        device_name: str,
+        device: Mapping[str, Any],
+        snapshot: Mapping[str, Any],
+        role: str,
+        *,
+        recovering: bool = False,
+    ) -> str:
         pvs = device.get("pvs")
         if not isinstance(pvs, Mapping):
             return "No PV data"
+        if recovering:
+            return "Recovering detector"
         if role == "scanrecord":
             if self._scanrecord_paused(pvs):
                 reasons = []
@@ -334,12 +351,12 @@ class BNPMonitorPolicy(BeamlineMonitorPolicy):
         connected = sum(1 for pv in pvs.values() if isinstance(pv, Mapping) and pv.get("connected"))
         return f"{connected}/{len(pvs)} PVs connected"
 
-    def _device_actions(self, device_name: str, role: str) -> dict[str, Any]:
+    def _device_actions(self, device_name: str, role: str, *, recovering: bool = False) -> dict[str, Any]:
         recover_supported = False
-        if role == "detector":
+        if role == "detector" and not recovering:
             target = oregistry.find(device_name, allow_none=True)
             recover_supported = bool(target is not None and hasattr(target, "unhang"))
-        return {"recover": recover_supported}
+        return {"recover": recover_supported, "recovering": recovering}
 
     def summarize_activity(self, snapshot: Mapping[str, Any]) -> str:
         error = snapshot.get("error")
@@ -348,6 +365,15 @@ class BNPMonitorPolicy(BeamlineMonitorPolicy):
         if error:
             return str(error)
         plan_name = snapshot.get("plan_name")
+        devices = snapshot.get("devices")
+        devices = dict(devices) if isinstance(devices, Mapping) else {}
+        recovering = [
+            str(device_name)
+            for device_name, device in devices.items()
+            if isinstance(device, Mapping) and device.get("state") == "recovering"
+        ]
+        if recovering:
+            return f"Recovering detector: {', '.join(recovering)}"
         scanrecord = self._scanrecord_device(snapshot)
         if isinstance(scanrecord, Mapping):
             pvs = scanrecord.get("pvs")
@@ -361,8 +387,6 @@ class BNPMonitorPolicy(BeamlineMonitorPolicy):
                     return f"{plan_name or 'Scan'} line {current}/{total}" + (
                         f" | phase {phase}" if phase not in (None, "") else ""
                     )
-        devices = snapshot.get("devices")
-        devices = dict(devices) if isinstance(devices, Mapping) else {}
         for device_name, device in devices.items():
             if not isinstance(device, Mapping) or self._infer_device_role(str(device_name), device) != "detector":
                 continue

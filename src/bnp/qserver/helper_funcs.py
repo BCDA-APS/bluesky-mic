@@ -7,6 +7,7 @@ from typing import Optional
 
 from apsbits.core.instrument_init import oregistry
 from bnp.utils.coordinate_transform import coordinate_transform
+from .recovery_state import set_detector_recovering
 from .beamline_monitor import get_named_monitor_snapshot as _get_named_monitor_snapshot
 from .beamline_monitor import get_plan_monitor_snapshot as _get_plan_monitor_snapshot
 
@@ -193,9 +194,12 @@ def recover_detector(
             "success": False,
             "error": f"{device_name} does not implement unhang()",
         }
+
+    set_detector_recovering(device_name, True)
     try:
         result = device.unhang(retries=retries)
         if isinstance(result, dict):
+            result.setdefault("device", device_name)
             return result
         return {
             "device": device_name,
@@ -209,3 +213,5 @@ def recover_detector(
             "success": False,
             "error": str(exc),
         }
+    finally:
+        set_detector_recovering(device_name, False)

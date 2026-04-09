@@ -153,6 +153,8 @@ def _fly2d_scanrecord(
     logger.info(f"Closing BDA")
     bda_block = bda_position + 1500 # 1500 um
     yield from _move_with_timeout(bda.x, bda_block, timeout=10, retries=4, atol=0.02)
+    sample.x.motion.put(3)  # 1: CombinedStep; 4: FlyScan; 3: FineScan
+    yield from bps.sleep(1)
     sample.x.motion.put(1)
     logger.info(f"Putting sample x motor to combined mode")
     yield from bps.mv(sample.y.piezo.center, 1)
@@ -163,3 +165,5 @@ def _fly2d_scanrecord(
         det.unstage()
     yield from scanrecord.unstage2Dfly()
 
+    sample.x.motion.put(1)
+    logger.info(f"Putting sample x motor to combined mode")

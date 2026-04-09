@@ -74,6 +74,8 @@ class ScanMonitor:
         self._pause_signal = pause_signal
         self._abort_signal = abort_signal
         self.name = name
+        self.execute_done = False
+        self.outer_idle = False
 
     def pause(self):
         if self._pause_signal is not None and not self.pause_sent:
@@ -88,6 +90,10 @@ class ScanMonitor:
             time.sleep(0.5)
 
     def stop(self, success=False):
+        self.scan_active = False
+        self.counter_active = False
+        self.execute_done = False
+        self.outer_idle = False
         if self._abort_signal is not None:
             self._abort_signal.put(1)
             time.sleep(0.5)
@@ -99,14 +105,26 @@ class ScanMonitor:
         if self._execute_signal is None:
             raise RuntimeError("ScanMonitor.trigger() requires an execute_signal.")
 
+        if self.scan_active and self.st is not None and not self.st.done:
+            return self.st
+
         self.st = Status()
         self.scan_active = True
         self.counter_active = True
         self.line_time_in = time.perf_counter()
         self.current_line = 0
+        self.execute_done = False
+        self.outer_idle = False
 
         self._execute_signal.put(1)
         return self.st
+
+    def _finish_if_ready(self):
+        if self.scan_active and self.execute_done and self.outer_idle:
+            self.scan_active = False
+            self.counter_active = False
+            self.st.set_finished()
+            logger.info(f"FINISHED: ScanMonitor.st {self.st}")
 
     def update_eta(self):
         """Update estimated time remaining."""
@@ -181,8 +199,14 @@ class ScanMonitor:
             **kwargs: Additional keyword arguments.
         """
         if self.scan_active and old_value == 1 and value == 0:
-            self.st.set_finished()
-            logger.info(f"FINISHED: ScanMonitor.st {self.st}")
+            self.execute_done = True
+            self._finish_if_ready()
+
+    def watch_faze_outer(self, old_value, value, **kwargs):
+        """Monitor outer scan phase and mark completion once it returns to IDLE."""
+        if self.scan_active:
+            self.outer_idle = value == 0
+            self._finish_if_ready()
 
     def watch_faze_inner(self, old_value, value, **kwargs):
         """Monitor inner loop counter.
@@ -275,6 +299,7 @@ def execute_scan_2d(inner_scan, outter_scan, abort_signal, sample=None, print_ou
 
     outter_scan.execute_scan.subscribe(watcher.watch_execute_scan)  # Subscribe to the scan
     outter_scan.current_point.subscribe(watcher.watch_counter_outter)
+    outter_scan.scan_phase.subscribe(watcher.watch_faze_outer)
     inner_scan.current_point.subscribe(watcher.watch_counter_inner)
     inner_scan.scan_phase.subscribe(watcher.watch_faze_inner)
 
@@ -290,5 +315,6 @@ def execute_scan_2d(inner_scan, outter_scan, abort_signal, sample=None, print_ou
         inner_scan.current_point.unsubscribe_all()
         inner_scan.scan_phase.unsubscribe_all()
         outter_scan.current_point.unsubscribe_all()
+        outter_scan.scan_phase.unsubscribe_all()
         outter_scan.execute_scan.unsubscribe_all()
     logger.info("Done executing scan")
