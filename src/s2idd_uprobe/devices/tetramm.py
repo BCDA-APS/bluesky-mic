@@ -25,6 +25,7 @@ from ophyd import Component, Device
 from ophyd import TetrAMM
 from ophyd.device import Staged
 import logging
+import time
 
 from mic_common.utils.device_utils import mode_setter
 from mic_common.utils.device_utils import value_setter
@@ -126,3 +127,29 @@ class MicTetrAMM(Device):
                 self.cam.unstage()
             if self.fileplugin._staged == Staged.yes:
                 self.fileplugin.unstage()
+
+    def unhang(self, retries: int = 1, delay_s: float = 0.1) -> dict[str, object]:
+        attempts = max(1, int(retries))
+        results: list[dict[str, object]] = []
+        for attempt in range(1, attempts + 1):
+            try:
+                self.cam.acquire.put(0)
+                self.fileplugin.capture.put(0)
+                results.append({"attempt": attempt, "success": True})
+                if attempt < attempts and delay_s > 0:
+                    time.sleep(delay_s)
+            except Exception as exc:
+                logger.exception("Failed to unhang TetraMM on attempt %s", attempt)
+                results.append({"attempt": attempt, "success": False, "error": str(exc)})
+                return {
+                    "device": self.name,
+                    "success": False,
+                    "retries": attempts,
+                    "attempts": results,
+                }
+        return {
+            "device": self.name,
+            "success": True,
+            "retries": attempts,
+            "attempts": results,
+        }

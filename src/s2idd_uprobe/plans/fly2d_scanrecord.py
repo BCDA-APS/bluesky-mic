@@ -169,6 +169,7 @@ def fly3d_xanes_scanrecord(
         logger.info(
             f"Preparing stage to run fly2d scan at {energy} keV, {i+1} of {len(energy_arr)} energies"
         )
+        energy = round(energy, 4)
         yield from fly2d_scanrecord(
             samplename=samplename,
             user_comments=user_comments,

@@ -30,7 +30,7 @@ class KohzuMono(DeltaTauPiezoBase):
     done = Component(EpicsSignalRO, "KohzuMoving")
     speed_control = Component(EpicsSignal, "KohzuSpeedCtrl")
     POLL_DT = 0.3         # seconds between done checks
-    tolerance = 0.00015
+    tolerance = 0.0003
     
 
     def _is_done(self):

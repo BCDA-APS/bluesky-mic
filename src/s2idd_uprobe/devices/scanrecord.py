@@ -13,6 +13,8 @@ class FlyScanRecord(Device):
     inner = Component(NewScanRecord, ":FscanH", kind="config", labels=("scanrecord", "inner"))
     outer = Component(NewScanRecord, ":Fscan1", kind="config", labels=("scanrecord", "outer"))
     abort_signal = Component(EpicsSignal, ":FAbortScans.PROC")
+    pause_signal = Component(EpicsSignal, ":FscanPause.VAL")
+    wait = Component(EpicsSignal, ":Fscan1.WAIT")
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)

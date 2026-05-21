@@ -67,4 +67,19 @@ class SIS3820(Device):
             logger.info("SIS3820 is already staged, unstaging ... ...")
             return super().unstage()
 
+    def unhang(self, retries: int = 1, delay_s: float = 0.0) -> dict[str, object]:
+        """Stop SIS3820 acquisition immediately."""
+        del delay_s
+        attempts = max(1, int(retries))
+        results: list[dict[str, object]] = []
+        for attempt in range(1, attempts + 1):
+            self.stop_all.put(1)
+            results.append({"attempt": attempt, "success": True})
+        return {
+            "device": self.name,
+            "success": True,
+            "retries": attempts,
+            "attempts": results,
+        }
+
    

@@ -34,6 +34,7 @@ from apsbits.utils.logging_setup import configure_logging
 from apstools.utils import listobjects, listplans
 from bluesky import plan_stubs as bps
 from bluesky import plans as bp
+from mic_common.utils.beamline_monitor_manifest import generate_beamline_monitor_manifest
 
 # Configuration block
 # Get the path to the instrument package
@@ -70,6 +71,17 @@ RE, sd = init_RE(iconfig, subscribers=[bec, cat])
 
 # Experiment specific logic, device and plan loading. # Create the devices.
 make_devices(clear=False, file="devices.yml", device_manager=instrument)
+
+try:
+    scanrecord = oregistry["scanrecord"]
+    scanrecord_fly = scanrecord.fly
+    scanrecord_fly.name = "scanrecord_fly"
+    oregistry.register(scanrecord_fly, labels=["scanrecord", "fly"])
+    scanrecord_step = scanrecord.step
+    scanrecord_step.name = "scanrecord_step"
+    oregistry.register(scanrecord_step, labels=["scanrecord", "step"])
+except Exception:
+    logger.exception("Failed to register scanrecord monitor aliases")
 
 try:
     savedata = oregistry["savedata"]
@@ -143,5 +155,19 @@ from .plans.helper_funcs import set_samx_speed #, mov_osa_y, osa_in, osa_out, so
 # # from .plans.step1d import step1d
 
 ## QServer functions
-from .utils.qsgui_helpers import get_save_data_path
+from .qserver.helper_funcs import get_global_health_snapshot
+from .qserver.helper_funcs import get_named_monitor_snapshot
+from .qserver.helper_funcs import get_plan_monitor_snapshot
+from .qserver.helper_funcs import recover_detector
+from .qserver.helper_funcs import get_save_data_path
 
+try:
+    logger.info("Generating beamline monitor PVs")
+    beamline_monitor_manifest = generate_beamline_monitor_manifest(
+        oregistry=oregistry,
+        output_path=instrument_path / "qserver" / "beamline_monitor.json",
+        config_path=instrument_path / "qserver" / "beamline_monitor.yml",
+    )
+    logger.info("Beamline monitor PVs written to %s", beamline_monitor_manifest)
+except Exception:
+    logger.exception("Failed to generate beamline monitor PVs")

@@ -1,5 +1,9 @@
 # Guarneri-style device YAML configuration
 
+apstools.devices.aps_machine.ApsMachineParametersDevice:
+- name: ring
+  labels: ["storebeam"]
+
 s2idd_uprobe.devices.scanrecord.CombinedScanRecord:
 - name: scanrecord
   # prefix: 2iddfS1
