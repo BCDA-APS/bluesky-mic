@@ -69,25 +69,6 @@ existing_devices:
     is_movable: false
     is_readable: true
     module: bnp.devices.bda
-  eiger:
-    classname: Eiger2ID
-    components:
-      cam:
-        classname: EigerBase
-        is_flyable: false
-        is_movable: false
-        is_readable: true
-        module: mic_common.devices.eiger500k
-      fileplugin:
-        classname: DetHDF5
-        is_flyable: false
-        is_movable: false
-        is_readable: true
-        module: mic_common.devices.ad_fileplugin
-    is_flyable: false
-    is_movable: false
-    is_readable: true
-    module: mic_common.devices.eiger500k
   fly_dwell:
     classname: EpicsSignal
     is_flyable: false
@@ -311,6 +292,12 @@ existing_devices:
                 is_movable: true
                 is_readable: true
                 module: ophyd.signal
+              state:
+                classname: EpicsSignal
+                is_flyable: false
+                is_movable: true
+                is_readable: true
+                module: ophyd.signal
               stop_signal:
                 classname: EpicsSignal
                 is_flyable: false
@@ -392,6 +379,12 @@ existing_devices:
                 is_movable: true
                 is_readable: true
                 module: ophyd.signal
+              state:
+                classname: EpicsSignal
+                is_flyable: false
+                is_movable: true
+                is_readable: true
+                module: ophyd.signal
               stop_signal:
                 classname: EpicsSignal
                 is_flyable: false
@@ -402,6 +395,12 @@ existing_devices:
             is_movable: true
             is_readable: true
             module: bnp.devices.sample
+          piezo_value:
+            classname: EpicsSignalRO
+            is_flyable: false
+            is_movable: true
+            is_readable: true
+            module: ophyd.signal
           stepper:
             classname: DeltaTauStepperY
             components:

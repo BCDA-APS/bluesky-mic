@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import logging
 from pathlib import Path
 from typing import Any, Mapping
 
@@ -26,6 +27,8 @@ from mic_common.utils.beamline_monitor_snapshot import get_plan_monitor_snapshot
 _DEFAULT_MANIFEST_PATH = Path(__file__).with_name("beamline_monitor.json")
 _DETECTOR_TIMEOUT_FACTOR = 3.0
 _SAMPLE_POSITION_TOLERANCE = 0.1
+
+logger = logging.getLogger(__name__)
 
 class BNPMonitorPolicy(BeamlineMonitorPolicy):
     def _infer_device_role(self, device_name: str, device: Mapping[str, Any]) -> str:
@@ -56,12 +59,22 @@ class BNPMonitorPolicy(BeamlineMonitorPolicy):
                 return device
         return None
 
-    def _scanrecord_paused(self, pvs: Mapping[str, Any]) -> bool:
-        return (
-            truthy_pv(find_matching_pv(pvs, "scan_pause", "pause_signal"))
-            or pv_at_least_one(find_matching_pv(pvs, "inner_client_wait", "inner.wait"))
-            or pv_at_least_one(find_matching_pv(pvs, "outer_client_wait", "outer.wait"))
-        )
+    def _scanrecord_paused(
+        self,
+        pvs: Mapping[str, Any],
+        *,
+        ignore_scan_pause: bool = False,
+        ignore_inner_wait: bool = False,
+        ignore_outer_wait: bool = False,
+    ) -> bool:
+        paused = False
+        if not ignore_scan_pause:
+            paused = paused or truthy_pv(find_matching_pv(pvs, "scan_pause", "pause_signal"))
+        if not ignore_inner_wait:
+            paused = paused or pv_at_least_one(find_matching_pv(pvs, "inner_client_wait", "inner.wait"))
+        if not ignore_outer_wait:
+            paused = paused or pv_at_least_one(find_matching_pv(pvs, "outer_client_wait", "outer.wait"))
+        return paused
 
     def _sample_hung_axes(self, snapshot: Mapping[str, Any], sample_name: str) -> list[str]:
         devices = snapshot.get("devices")
@@ -139,17 +152,54 @@ class BNPMonitorPolicy(BeamlineMonitorPolicy):
                 continue
         return None
 
-    def _inner_scan_point_count(self, snapshot: Mapping[str, Any]) -> float | None:
+    def _scanrecord_pvs(self, snapshot: Mapping[str, Any]) -> Mapping[str, Any] | None:
         scanrecord = self._scanrecord_device(snapshot)
         if not isinstance(scanrecord, Mapping):
             return None
         pvs = scanrecord.get("pvs")
+        return pvs if isinstance(pvs, Mapping) else None
+
+    def _scanrecord_float(self, snapshot: Mapping[str, Any], *aliases: str) -> float | None:
+        pvs = self._scanrecord_pvs(snapshot)
         if not isinstance(pvs, Mapping):
             return None
         try:
-            return float(pv_value_by_aliases(pvs, "inner.number_points"))
+            return float(pv_value_by_aliases(pvs, *aliases))
         except Exception:
             return None
+
+    def _sample_pvs(self, snapshot: Mapping[str, Any]) -> Mapping[str, Any] | None:
+        devices = snapshot.get("devices")
+        if not isinstance(devices, Mapping):
+            return None
+        sample = devices.get("sample")
+        if not isinstance(sample, Mapping):
+            return None
+        pvs = sample.get("pvs")
+        return pvs if isinstance(pvs, Mapping) else None
+
+    def _sample_float(self, snapshot: Mapping[str, Any], *aliases: str) -> float | None:
+        pvs = self._sample_pvs(snapshot)
+        if not isinstance(pvs, Mapping):
+            return None
+        try:
+            return float(pv_value_by_aliases(pvs, *aliases))
+        except Exception:
+            return None
+
+    def _sample_y_piezo_over_limit(self, snapshot: Mapping[str, Any]) -> tuple[bool, float | None, float | None]:
+        sample = oregistry.find("sample", allow_none=True)
+        if sample is None:
+            return False, None, None
+
+        piezo_value = self._sample_float(snapshot, "y.piezo_value")
+        try:
+            piezo_max_value = float(sample.y.piezo_max_value)
+        except Exception:
+            piezo_max_value = None
+        if piezo_value is None or piezo_max_value is None:
+            return False, piezo_value, piezo_max_value
+        return piezo_value > piezo_max_value, piezo_value, piezo_max_value
 
     def _scan_phase_waiting_for_detectors(self, snapshot: Mapping[str, Any]) -> bool:
         scanrecord = self._scanrecord_device(snapshot)
@@ -165,7 +215,14 @@ class BNPMonitorPolicy(BeamlineMonitorPolicy):
                 return True
         return False
 
-    def _detector_hung(self, device_name: str, snapshot: Mapping[str, Any]) -> bool:
+    def _detector_hung(
+        self,
+        device_name: str,
+        snapshot: Mapping[str, Any],
+        *,
+        ignore_scan_pause: bool = False,
+        ignore_outer_wait: bool = False,
+    ) -> bool:
         devices = snapshot.get("devices")
         if not isinstance(devices, Mapping):
             return False
@@ -181,7 +238,11 @@ class BNPMonitorPolicy(BeamlineMonitorPolicy):
         scanrecord_pvs = scanrecord.get("pvs")
         if not isinstance(scanrecord_pvs, Mapping):
             return False
-        if self._scanrecord_paused(scanrecord_pvs) or not self._scan_phase_waiting_for_detectors(snapshot):
+        if self._scanrecord_paused(
+            scanrecord_pvs,
+            ignore_scan_pause=ignore_scan_pause,
+            ignore_outer_wait=ignore_outer_wait,
+        ) or not self._scan_phase_waiting_for_detectors(snapshot):
             return False
         ring_current = self._ring_current(snapshot)
         if ring_current is None or ring_current <= 0:
@@ -197,7 +258,7 @@ class BNPMonitorPolicy(BeamlineMonitorPolicy):
         if not acquiring:
             return False
         dwell_seconds = self._fly_dwell_seconds(snapshot)
-        inner_point_count = self._inner_scan_point_count(snapshot)
+        inner_point_count = self._scanrecord_float(snapshot, "inner.number_points")
         if dwell_seconds is None or dwell_seconds <= 0 or inner_point_count is None or inner_point_count <= 0:
             return False
         capture = find_matching_pv(pvs, "fileplugin.capture", "capture")
@@ -215,8 +276,9 @@ class BNPMonitorPolicy(BeamlineMonitorPolicy):
         enriched = dict(device)
         role = self._infer_device_role(device_name, device)
         recovering = role == "detector" and is_detector_recovering(device_name)
+        detector_hung = role == "detector" and self._detector_hung(device_name, snapshot)
         enriched["role"] = role
-        enriched["state"] = "recovering" if recovering else "hung" if role == "detector" and self._detector_hung(device_name, snapshot) else "normal"
+        enriched["state"] = "recovering" if recovering else "hung" if detector_hung else "normal"
         enriched["health"] = self._evaluate_device_health(device_name, device, snapshot, role, recovering=recovering)
         enriched["summary"] = self._summarize_device(device_name, device, snapshot, role, recovering=recovering)
         enriched["actions"] = self._device_actions(device_name, role, recovering=recovering)
@@ -243,12 +305,16 @@ class BNPMonitorPolicy(BeamlineMonitorPolicy):
                 return "error"
             if current is not None and current < 100:
                 return "warning"
+        if device_name == "sample" and self._sample_y_piezo_over_limit(snapshot)[0]:
+            return "warning"
         if role == "scanrecord" and self._scanrecord_paused(pvs):
             return "warning"
         if role == "motion" and self._sample_hung_axes(snapshot, device_name):
             return "error"
-        if role == "detector" and self._detector_hung(device_name, snapshot):
-            return "error"
+        if role == "detector":
+            detector_hung = self._detector_hung(device_name, snapshot)
+            if detector_hung:
+                return "error"
         connected = 0
         disconnected = 0
         degraded = 0
@@ -299,7 +365,8 @@ class BNPMonitorPolicy(BeamlineMonitorPolicy):
                 return f"Progress {current}/{total}" + (f" | phase {phase}" if phase not in (None, "") else "")
             return "Waiting for scan record progress"
         if role == "detector":
-            if self._detector_hung(device_name, snapshot):
+            detector_hung = self._detector_hung(device_name, snapshot)
+            if detector_hung:
                 return "Detector hangs"
             parts = []
             if truthy_pv(find_matching_pv(pvs, "fileplugin.capture", "capture")):
@@ -334,6 +401,14 @@ class BNPMonitorPolicy(BeamlineMonitorPolicy):
             hung_axes = self._sample_hung_axes(snapshot, device_name)
             if hung_axes:
                 parts.append(f"motor hangs: {', '.join(hung_axes)}")
+            if device_name == "sample":
+                over_limit, piezo_value, piezo_max_value = self._sample_y_piezo_over_limit(snapshot)
+                if piezo_value is not None:
+                    parts.append(f"y_piezo_value={piezo_value}")
+                if piezo_max_value is not None:
+                    parts.append(f"y_piezo_max={piezo_max_value}")
+                if over_limit:
+                    parts.append("y piezo over limit")
             if busy in (0, "0", False):
                 parts.append("ready")
             return " | ".join(parts) if parts else "Motion state unavailable"

@@ -87,11 +87,14 @@ class FlyScanRecord(Device):
         xp3 = dets_dict.get("xp3", None)
         eiger = dets_dict.get("eiger", None)
 
-        ## change beforeScan PV for the inner scan record when changing the xmap and xp3
-        if xmap is not None:
-            beforescan_pv_value = '21:D3:PreFlyScan.PROC'
-        elif xp3 is not None:
-            beforescan_pv_value = 'bnpsft:FbeforeH'
+        # ## change beforeScan PV for the inner scan record when changing the xmap and xp3
+        # if xmap is not None:
+        #     beforescan_pv_value = '21:D3:PreFlyScan.PROC'
+        # elif xp3 is not None:
+        #     beforescan_pv_value = 'bnpsft:FbeforeH'
+
+        ## use the same beforescan_pv_value for both xmap and xp3 (21:D3:PreFlyScan.PROC)
+        beforescan_pv_value = '21:D3:PreFlyScan.PROC'
 
         try:
             yield from self.unstage2Dfly()

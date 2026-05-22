@@ -8,7 +8,33 @@ import logging
 logger = logging.getLogger(__name__)
 
 
-class DeltaTauPiezoBase(PVPositioner):
+class DeltaTauPVPositionerBase(PVPositioner):
+    """
+    Base PVPositioner with optional suppression of RunEngine-style stop calls.
+
+    Bluesky pause currently stops all moved PVPositioners with ``success=True``.
+    For Delta Tau fly motion we sometimes want to suppress the stop-signal write
+    on those pause-driven stops while preserving explicit failure/abort stops.
+    """
+
+    suppress_re_stop = False
+
+    def set_re_stop_suppressed(self, suppressed: bool = True):
+        self.suppress_re_stop = bool(suppressed)
+
+    def stop(self, *, success=False):
+        if self.suppress_re_stop and success:
+            logger.warning(
+                "Suppressing RE stop for %s success=%s stop_signal=%s",
+                self.name,
+                success,
+                getattr(getattr(self, "stop_signal", None), "pvname", None),
+            )
+            return
+        return super().stop(success=success)
+
+
+class DeltaTauPiezoBase(DeltaTauPVPositionerBase):
     """
     Base for Delta Tau piezo axes with custom move: re-command the move every
     1 second until setpoint and readback agree within tolerance (handles

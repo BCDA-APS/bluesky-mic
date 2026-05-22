@@ -3,15 +3,18 @@
 from __future__ import annotations
 
 import logging
+import time
 from typing import Optional
 
 from apsbits.core.instrument_init import oregistry
 from bnp.utils.coordinate_transform import coordinate_transform
+from .beamline_monitor import BNPMonitorPolicy
 from .recovery_state import set_detector_recovering
 from .beamline_monitor import get_named_monitor_snapshot as _get_named_monitor_snapshot
 from .beamline_monitor import get_plan_monitor_snapshot as _get_plan_monitor_snapshot
 
 logger = logging.getLogger(__name__)
+_Y_PIEZO_RECOVERY_DEVICES = ["sample", "scanrecord", "fly_dwell", "ring", "xmap", "xp3", "eiger"]
 
 
 def _get_savedata():
@@ -215,3 +218,100 @@ def recover_detector(
         }
     finally:
         set_detector_recovering(device_name, False)
+
+
+def recover_y_piezo(
+    *,
+    inner_scan_timeout: float = 30.0,
+    poll_period_s: float = 0.2,
+) -> dict[str, object]:
+    """Center the sample y piezo after the inner scan is idle and detectors look healthy."""
+
+    sample = oregistry.find("sample", allow_none=True)
+    if sample is None:
+        return {
+            "device": "sample.y.piezo",
+            "success": False,
+            "error": "sample device is not available",
+        }
+
+    policy = BNPMonitorPolicy()
+    deadline = time.monotonic() + max(0.0, float(inner_scan_timeout))
+
+    try:
+        while time.monotonic() <= deadline:
+            snapshot = _get_named_monitor_snapshot(_Y_PIEZO_RECOVERY_DEVICES)
+            detector_name = _hung_detector_during_y_recovery(policy, snapshot)
+            if detector_name is not None:
+                logger.warning("Aborting y piezo recovery because detector %s appears hung", detector_name)
+                return {
+                    "device": "sample.y.piezo",
+                    "success": False,
+                    "error": f"Detector {detector_name} appears hung during y piezo recovery",
+                }
+            if _inner_scan_finished(snapshot):
+                break
+            time.sleep(max(0.05, float(poll_period_s)))
+        else:
+            return {
+                "device": "sample.y.piezo",
+                "success": False,
+                "error": "Timed out waiting for inner scan to finish",
+            }
+
+        sample.y.piezo.center.put(1)
+        logger.warning("Manually centered sample.y.piezo")
+        return {
+            "device": "sample.y.piezo",
+            "success": True,
+        }
+    except Exception as exc:
+        logger.exception("Failed to manually recover sample.y.piezo")
+        return {
+            "device": "sample.y.piezo",
+            "success": False,
+            "error": str(exc),
+        }
+
+
+def _inner_scan_finished(snapshot: dict[str, object]) -> bool:
+    devices = snapshot.get("devices")
+    if not isinstance(devices, dict):
+        return False
+    scanrecord = devices.get("scanrecord")
+    if not isinstance(scanrecord, dict):
+        return False
+    pvs = scanrecord.get("pvs")
+    if not isinstance(pvs, dict):
+        return False
+    inner_execute = pvs.get("inner.execute_scan")
+    if not isinstance(inner_execute, dict):
+        return False
+    value = inner_execute.get("value")
+    if value is None:
+        value = inner_execute.get("char_value")
+    try:
+        return float(value) == 0.0
+    except Exception:
+        return str(value).strip().lower() in {"0", "idle", "done", "false", "off"}
+
+
+def _hung_detector_during_y_recovery(
+    policy: BNPMonitorPolicy,
+    snapshot: dict[str, object],
+) -> str | None:
+    devices = snapshot.get("devices")
+    if not isinstance(devices, dict):
+        return None
+    for detector_name in ("xmap", "xp3", "eiger"):
+        device = devices.get(detector_name)
+        if not isinstance(device, dict):
+            continue
+        if policy._detector_hung(
+            detector_name,
+            snapshot,
+            ignore_scan_pause=True,
+            ignore_outer_wait=True,
+        ):
+            return detector_name
+    return None

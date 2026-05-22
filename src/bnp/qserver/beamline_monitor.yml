@@ -40,6 +40,7 @@ devices:
       - y.motion
       - y.piezo.setpoint
       - y.piezo.readback
+      - y.piezo_value
       - z.setpoint
       - z.readback
       - theta.setpoint

@@ -99,71 +99,86 @@ def _fly2d_scanrecord(
     ptycho_exp_factor=1,
     **kwargs,
 ):
-    """Validate scan parameters"""
-    validate_scan_parameters(stepsize_x=stepsize_x, stepsize_y=stepsize_y, width=width, height=height)
+    devices = []
+    suppression_applied = False
+    try:
+        if hasattr(sample, "set_re_stop_suppressed"):
+            sample.set_re_stop_suppressed(True)
+            suppression_applied = True
+            logger.warning("Enabled RE stop suppression for BNP sample motors during fly2d_scanrecord")
 
-    """To move sample motors we need to be in combine motion"""
-    sample.x.motion.put(1)  # 1: CombinedStep; 4: FlyScan; 3: FineScan
-    sample.y.motion.put(1)  # 1: CombinedStep; 4: FlyScan; 3: FineScan
-    sample_z = sample_z if sample_z is not None else (round(sample.z.position, 2))
-    sample_x = x_center if x_center is not None else (round(sample.x.piezo.position, 2))
-    sample_y = y_center if y_center is not None else (round(sample.y.piezo.position, 2))
-    if abs(sample.theta.position - theta) > 0.02:
-        yield from _move_with_timeout(sample.theta, theta, timeout=10, retries=4, atol=0.02)
-    yield from bps.mv(sample.z, sample_z)
-    yield from bps.mv(sample.x.piezo, sample_x)
-    yield from bps.mv(sample.y.piezo, sample_y)
-    yield from bps.mv(bda.x, bda_position)
-    yield from piezo_centering()
-    yield from bps.checkpoint()
+        """Validate scan parameters"""
+        validate_scan_parameters(stepsize_x=stepsize_x, stepsize_y=stepsize_y, width=width, height=height)
 
-    """Set up inner / outer scan record based on the scan types and parameters"""
-    det_bools = [xmap_on, xp3_on, eiger_on]
-    det_names = ["xmap", "xp3", "eiger"]
-    devices = validate_device_connections(det_bools, det_names, return_devices=True)
-    yield from scanrecord.stage2Dfly(
-        devices, sample, width, stepsize_x, height, stepsize_y
-    )
-    yield from bps.checkpoint()
+        """To move sample motors we need to be in combine motion"""
+        sample.x.motion.put(1)  # 1: CombinedStep; 4: FlyScan; 3: FineScan
+        sample.y.motion.put(1)  # 1: CombinedStep; 4: FlyScan; 3: FineScan
+        sample_z = sample_z if sample_z is not None else (round(sample.z.position, 2))
+        sample_x = x_center if x_center is not None else (round(sample.x.piezo.position, 2))
+        sample_y = y_center if y_center is not None else (round(sample.y.piezo.position, 2))
+        if abs(sample.theta.position - theta) > 0.02:
+            yield from _move_with_timeout(sample.theta, theta, timeout=10, retries=4, atol=0.02)
+        yield from bps.mv(sample.z, sample_z)
+        yield from bps.mv(sample.x.piezo, sample_x)
+        yield from bps.mv(sample.y.piezo, sample_y)
+        yield from bps.mv(bda.x, bda_position)
+        yield from piezo_centering()
+        yield from bps.checkpoint()
 
-    """Assign the per-pixel dwell time"""
-    logger.info(f"Setting per-pixel dwell time ({fly_dwell.pvname}) to {dwell_ms} ms")
-    yield from bps.mv(fly_dwell, dwell_ms)
-    yield from bps.checkpoint()
+        """Set up inner / outer scan record based on the scan types and parameters"""
+        det_bools = [xmap_on, xp3_on, eiger_on]
+        det_names = ["xmap", "xp3", "eiger"]
+        devices = validate_device_connections(det_bools, det_names, return_devices=True)
+        yield from scanrecord.stage2Dfly(
+            devices, sample, width, stepsize_x, height, stepsize_y
+        )
+        yield from bps.checkpoint()
 
-    """Initialize detectors with desired pts, exposure time and file writer """
-    numpts_x = scanrecord.inner.number_points.value
-    num_pulses = numpts_x
-    setup_detectors_and_fileio(devices, num_pulses=num_pulses, dwell_time=dwell_ms, stepsize=stepsize_x, ptycho_exp_factor=ptycho_exp_factor)
-    yield from bps.checkpoint()
+        """Assign the per-pixel dwell time"""
+        logger.info(f"Setting per-pixel dwell time ({fly_dwell.pvname}) to {dwell_ms} ms")
+        yield from bps.mv(fly_dwell, dwell_ms)
+        yield from bps.checkpoint()
 
-    """Start executing scan"""
-    yield from piezo_centering()
-    yield from piezo_centering()
-    
-    logger.info(f"Opening BDA")
-    yield from _move_with_timeout(bda.x, bda_position, timeout=10, retries=4, atol=0.02)
-    sample.x.motion.put(3)
-    logger.info(f"Putting sample x motor to fly scan mode")
-    fname = savedata.next_file_name
-    yield from scanrecord.execute2Dfly(scan_name=fname)
+        """Initialize detectors with desired pts, exposure time and file writer """
+        numpts_x = scanrecord.inner.number_points.value
+        num_pulses = numpts_x
+        setup_detectors_and_fileio(devices, num_pulses=num_pulses, dwell_time=dwell_ms, stepsize=stepsize_x, ptycho_exp_factor=ptycho_exp_factor)
+        yield from bps.checkpoint()
 
-    yield from scanrecord.unstage2Dfly()
+        """Start executing scan"""
+        yield from piezo_centering()
+        yield from piezo_centering()
+        
+        logger.info(f"Opening BDA")
+        yield from _move_with_timeout(bda.x, bda_position, timeout=10, retries=4, atol=0.02)
+        sample.x.motion.put(3)
+        logger.info(f"Putting sample x motor to fly scan mode")
+        fname = savedata.next_file_name
+        yield from scanrecord.execute2Dfly(scan_name=fname)
 
-    logger.info(f"Closing BDA")
-    bda_block = bda_position + 1500 # 1500 um
-    yield from _move_with_timeout(bda.x, bda_block, timeout=10, retries=4, atol=0.02)
-    sample.x.motion.put(3)  # 1: CombinedStep; 4: FlyScan; 3: FineScan
-    yield from bps.sleep(1)
-    sample.x.motion.put(1)
-    logger.info(f"Putting sample x motor to combined mode")
-    yield from bps.mv(sample.y.piezo.center, 1)
-    logger.info(f"Centering Y-piezo motors after scan")
+        yield from scanrecord.unstage2Dfly()
 
-    ## unstage detectors
-    for det in devices:
-        det.unstage()
-    yield from scanrecord.unstage2Dfly()
-
-    sample.x.motion.put(1)
-    logger.info(f"Putting sample x motor to combined mode")
+        logger.info(f"Closing BDA")
+        bda_block = bda_position + 1500 # 1500 um
+        yield from _move_with_timeout(bda.x, bda_block, timeout=10, retries=4, atol=0.02)
+        sample.x.motion.put(3)  # 1: CombinedStep; 4: FlyScan; 3: FineScan
+        yield from bps.sleep(1)
+        sample.x.motion.put(1)
+        logger.info(f"Putting sample x motor to combined mode")
+        yield from bps.mv(sample.y.piezo.center, 1)
+        logger.info(f"Centering Y-piezo motors after scan")
+    finally:
+        ## unstage detectors
+        for det in devices:
+            try:
+                det.unstage()
+            except Exception as exc:
+                logger.warning(f"Failed to unstage detector {getattr(det, 'name', det)} during cleanup: {exc}")
+        try:
+            yield from scanrecord.unstage2Dfly()
+        finally:
+            sample.x.motion.put(1)
+            logger.info(f"Putting sample x motor to combined mode")
+            if suppression_applied:
+                sample.set_re_stop_suppressed(False)
+                logger.warning("Disabled RE stop suppression for BNP sample motors after fly2d_scanrecord")

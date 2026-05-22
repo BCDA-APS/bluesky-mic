@@ -79,12 +79,22 @@ class ScanMonitor:
 
     def pause(self):
         if self._pause_signal is not None and not self.pause_sent:
+            logger.info(
+                "Pausing scan monitor %s via %s",
+                self.name,
+                getattr(self._pause_signal, "pvname", self._pause_signal),
+            )
             self._pause_signal.put(1)
             self.pause_sent = True
             time.sleep(0.5)
 
     def resume(self):
         if self._pause_signal is not None and self.pause_sent:
+            logger.info(
+                "Resuming scan monitor %s via %s",
+                self.name,
+                getattr(self._pause_signal, "pvname", self._pause_signal),
+            )
             self._pause_signal.put(0)
             self.pause_sent = False
             time.sleep(0.5)

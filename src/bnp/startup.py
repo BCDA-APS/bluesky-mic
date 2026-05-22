@@ -141,7 +141,7 @@ from .plans.coarse_fine_scanrecord import coarse_fine_scanrecord
 from .qserver.helper_funcs import get_save_data_path
 from .qserver.helper_funcs import get_global_health_snapshot
 from .qserver.helper_funcs import get_plan_monitor_snapshot
-from .qserver.helper_funcs import recover_detector
+from .qserver.helper_funcs import recover_detector, recover_y_piezo
 from .qserver.helper_funcs import syncXYZ
 from .qserver.helper_funcs import syncXYZ_transform
 

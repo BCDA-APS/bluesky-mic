@@ -48,6 +48,15 @@ class BNPXspress3(Device):
     cam = Component(Xspress3Base, ":det1:", kind="config", labels=("xsp3", "cam"))
     fileplugin = Component(DetHDF5, ":HDF1:", kind="config", labels=("xsp3", "fileplugin"))
 
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        try:
+            self.fileplugin.stage_sigs.pop("parent.cam.array_callbacks", None)
+            logger.info("Removing array_callbacks stage signal from XP3 fileplugin")
+        except Exception as e:
+            logger.error(f"Error removing array_callbacks stage signal from XP3 fileplugin: {e}")
+            raise e
+
     def config_flyscan(self, num_pulses: int = None, dwell_time: float = None, **kwargs):
         """Configure the Eiger2ID device for a flyscan with the given points and dwell time."""
         self.unstage()
