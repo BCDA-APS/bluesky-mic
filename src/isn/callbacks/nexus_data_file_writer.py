@@ -69,7 +69,7 @@ class MicNXWriter(NXWriter):
             path = self.file_path or pathlib.Path(".")
             return path / fname
         else:
-            fname = f"Scan_{self.scan_id:04d}.h5"
+            fname = f"Scan_{self.scan_id:04d}.{self.file_extension}"
             path = pathlib.Path(self.savedata.file_system.get())
             subdirectory = pathlib.Path(self.savedata.subdirectory.get())
             self.file_path = os.path.join(path, subdirectory)

@@ -121,7 +121,7 @@ else:
     from bluesky import plans as bp  # noqa: F401
 
 # Experiment specific logic, device and plan loading. # Create the devices.
-make_devices(clear=False, file="save_data_device.yml", device_manager=instrument)
+make_devices(clear=False, file="config_devices.yml", device_manager=instrument)
 make_devices(clear=False, file="devices.yml", device_manager=instrument)
 
 
@@ -174,14 +174,15 @@ from .plans import *
 # from mic_common.utils.dm_utils import *
 
 
-## QServer functions
-def get_save_data_path():
-    savedata = oregistry.find("savedata", allow_none=True)
-    if savedata is None:
-        return None
-    return savedata.file_system.get()
+# ## QServer functions
+# def get_save_data_path():
+#     savedata = oregistry.find("savedata", allow_none=True)
+#     if savedata is None:
+#         return None
+#     return savedata.file_system.get()
 
 from .utils.experiment_utils import load_experiment
+from .utils.acquire_time import set_acquire_time
 
 # redefining logger to fix the issues that arise when we use the DM
 logger = logging.getLogger(__name__)

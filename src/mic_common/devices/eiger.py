@@ -157,7 +157,7 @@ class Trigger(TriggerBase):
 
         if self.trigger_mode == "Flyscan":
             logger.debug("Reverting eiger to internal triggering")
-            self.setup_internal_trigger()
+            self.setup_software_trigger()
 
 
 class EigerCam(EigerDetectorCam):
@@ -233,9 +233,11 @@ class Eiger(Trigger, DetectorBase):
 
     def save_images_on(self):
         self.hdf1.enable.set("Enable").wait(timeout=10)
+        self.hdf1.auto_save.set("Yes").wait()
 
     def save_images_off(self):
         self.hdf1.enable.set("Disable").wait(timeout=10)
+        self.hdf1.auto_save.set("No").wait()
 
     def auto_save_on(self):
         self.hdf1.auto_save.put("1")
@@ -263,7 +265,7 @@ class Eiger(Trigger, DetectorBase):
 
 
 
-    def plot_select(self, stats):
+    def select_rois(self, stats):
         """
         Selects which stats will be plotted. All are being read.
 
@@ -275,13 +277,22 @@ class Eiger(Trigger, DetectorBase):
             List with the stats numbers to be plotted.
         """
 
+        self.read_attrs = []
+
         for i in range(1, 5+1):
+            if i in stats:
+                self.read_attrs.append(f'stats{i}')
+                self.read_attrs.append(f'stats{i}.total')
             getattr(self, f"stats{i}").total.kind = (
                 "hinted" if i in stats else "normal"
             )
             getattr(self, f"stats{i}").enable.put(
                 1 if i in stats else 0
             )
+
+    def set_acquire_time(self, acq_time):
+        self.cam.acquire_time.set(acq_time).wait()
+        self.cam.acquire_period.set(acq_time).wait()
 
     def set_plugins(self, state=1):
 

@@ -11,6 +11,8 @@ from apstools.synApps import SaveData
 
 from mic_common.utils.device_utils import value_setter
 
+from isn.utils.run_engine import RE
+
 logger = logging.getLogger(__name__)
 logger.info(__file__)
 
@@ -33,7 +35,10 @@ class SaveDataMic(SaveData):
     def generate_det_path(self, det_name):
         base_path = self.file_system.get()
         subdirectory = self.subdirectory.get()
-        scan_number = self.next_scan_number.get()
+        try:
+            scan_number = RE.md['scan_id']+1
+        except:
+            scan_number = self.next_scan_number.get()
         det_path = os.path.join(base_path, 
                                 subdirectory,
                                 'Raw', 

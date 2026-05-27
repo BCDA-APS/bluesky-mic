@@ -50,7 +50,7 @@ BEC:
 ### Each callback should apply its configuration from here.
 NEXUS_DATA_FILES:
     ENABLE: true
-    FILE_EXTENSION: hdf
+    FILE_EXTENSION: h5
 
 SPEC_DATA_FILES:
     ENABLE: false

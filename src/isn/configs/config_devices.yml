@@ -1,0 +1,16 @@
+# These devices must be loaded before any other devices, as they are used by other devices. 
+
+mic_common.devices.save_data.SaveDataMic:
+- name: savedata
+  prefix: 19idSFT:saveData_
+  labels: ["data"]
+
+isn.devices.softgluezynq.SoftGlueZynq:
+- name: softglue
+  prefix: acq_isn
+  # labels: ["baseline"]
+
+isn.devices.if_cap_tracker.IfCapTracker:
+- name: if_cap_tracker
+  prefix: "acq_isn"
+  labels: ["baseline"]

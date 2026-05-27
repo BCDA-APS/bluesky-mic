@@ -69,14 +69,18 @@ def flyscan(
         #Note, this should probably be before the fly sequence
 
         if x_npts is None:
-            x_npts_ = int(((x_max - x_min) / dx)+1)
+            x_npts_ = abs(int(((x_max - x_min) / dx)+1))
             dx_ = dx
         else:
+            x_npts_ = x_npts
             dx_ = (x_max - x_min) * 1e-3 / (max(x_npts_,2) - 1)
 
         if y_npts is None:
             y_npts_ = int(((y_max - y_min) / dy)+1)
             #In y, we only care about max, min and npts.
+
+        eta = (x_npts_ * y_npts_ * acquire_time / 1000 / F) / 60 #time in minutes
+        print(f'\n Starting flyscan. ETA {np.round(eta, 2)} minutes')
         
         logger.info(f"Starting a {x_npts_, y_npts_} flyscan. Type Ctrl+C twice to stop scan. \n Preparing stages and detectors...")
 
@@ -171,7 +175,6 @@ def flyscan(
         yield from bps.checkpoint()
 
         # We determine how much z needs to tweak per x tweak in order to keep the sample into focus
-        # For safety, we limit the step to 10x that of x.
 
         if x_npts_>0:
             _z_tweak_value = (dx_ * np.sin(-1*np.radians(theta)))*1e-3
@@ -249,8 +252,12 @@ def flyscan(
         # # Then we move x:
         # _x = sample.x.user_readback.get()
         if x_npts_>0:
-            step_x = x_min * 1e-3 - _x_tweak_value
+            x_min_angled = (x_min * np.cos(-1*np.radians(theta)))
+            # print(f'x_min_angled = {x_min_angled}')
+            step_x = x_min_angled*1e-3 - _x_tweak_value
+            # print(f'step_x={step_x}')
             _starting_x = x0 + step_x
+            # print(f'{_starting_x=}')
             yield from mv(sample.x, _starting_x)
 
             logger.debug(f"Samply X stage moved to {_starting_x*1e3:0.3e} um.")
@@ -296,7 +303,9 @@ def flyscan(
         # We are changing to the new structure in which we have as many position files as detector files
         socketserver.setup_flyscan_mode(hdf_images=interferometry_per_line)
         socketserver.stage()
+        yield from bps.sleep(1)
         socketserver.trigger()
+        yield from bps.sleep(1)
 
         # --- Arm detectors --- #
 
@@ -344,6 +353,19 @@ def flyscan(
 
         yield from abs_set(eshutter, "close", wait=True)
 
+        # --- Filling up DMA for socket server acquisition --- #
+
+        logger.debug("Flushing the DMA")
+
+        for i in range(11):
+            softglue.scal_to_stream_1.flush.put("1!")
+            yield from sleep(0.1)
+
+        socketserver.unstage()
+        
+
+        logger.debug("Returning to original positions.")
+
         # --- Return sample to initial positions ---
 
         yield from softglue.move_y_analog(45)
@@ -360,19 +382,6 @@ def flyscan(
             detector.unstage()
             detector.hdf1.unstage()
 
-
-        # --- Filling up DMA for socket server acquisition --- #
-
-        logger.debug("Flushing the DMA")
-
-        for i in range(11):
-            softglue.scal_to_stream_1.flush.put("1!")
-            yield from sleep(0.1)
-
-        socketserver.unstage()
-        
-
-        logger.debug("Returning to original positions.")
 
         # --- Softglue cleanup ---
 

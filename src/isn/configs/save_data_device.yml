@@ -1,4 +1,0 @@
-mic_common.devices.save_data.SaveDataMic:
-- name: savedata
-  prefix: 19idSFT:saveData_
-  labels: ["data"]

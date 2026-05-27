@@ -36,7 +36,7 @@ from mic_common.utils.writeDetH5 import write_det_h5
 # MAX_IMAGES = 12216
 MAX_IMAGES = 524288
 MAX_ROIS = 8
-DELAY = 0.05
+DELAY = 0.15
 
 
 class Trigger(TriggerBase):
@@ -162,6 +162,7 @@ class Trigger(TriggerBase):
 
         # if self._flysetup or self._softsetup:
         if self.trigger_mode in ("Flyscan", "Software"):
+            self.cam.erase.set(1).wait()
             logger.debug("Enabling acquisition")
             self._acquisition_signal.set(1).wait(timeout=10)
             sleep(0.1)
@@ -172,6 +173,7 @@ class Trigger(TriggerBase):
 
         super().unstage()
         self.cam.acquire.set(0).wait(timeout=10)
+        self.cam.erase.set(1).wait()
 
         # if self._flysetup:
         if self.trigger_mode == "Flyscan":
@@ -445,11 +447,16 @@ class VortexXspress37(Trigger, DetectorBase):
         """Stop detector"""
         self.cam.acquire.set(0).wait(timeout=10)
 
-    # def save_images_on(self):
-    #     self.hdf1.enable.set("Enable").wait(timeout=10)
+    def save_images_on(self):
+        self.hdf1.enable.set("Enable").wait(timeout=10)
+        self.hdf1.auto_save.set("Yes").wait(timeout=10)
+        self.save_images = True
+        # self.save_image_flag = True
 
     def save_images_off(self):
         self.hdf1.enable.set("Disable").wait(timeout=10)
+        self.hdf1.auto_save.set("No").wait(timeout=10)
+        self.save_images = False
 
     # def auto_save_on(self):
     #     self.hdf1.auto_save.put(1)
@@ -543,6 +550,7 @@ class VortexXspress37(Trigger, DetectorBase):
         self._read_rois = list(rois)
 
     def select_rois(self, rois):
+        self.read_rois = []
         for i in range(1, MAX_ROIS + 1):
             k = (
                 "hinted"
@@ -605,11 +613,16 @@ class VortexXspress37(Trigger, DetectorBase):
 
         return Path(full_path), Path(relative_path)
 
-    @property
-    def save_image_flag(self):
-        _hdf1_auto = True if self.hdf1.autosave.get() == "on" else False
-        _hdf1_on = True if self.hdf1.enable.get() == "Enable" else False
-        return _hdf1_on or _hdf1_auto
+    # @property
+    # def save_image_flag(self):
+    #     _hdf1_auto = True if self.hdf1.autosave.get() == "on" else False
+    #     _hdf1_on = True if self.hdf1.enable.get() == "Enable" else False
+    #     return _hdf1_on or _hdf1_auto
+    
+
+    def set_acquire_time(self, acq_time):
+        self.cam.acquire_time.set(acq_time).wait()
+
 
     def set_plugins(self, state="Enable"):
         # TODO: cleaner way to do this?

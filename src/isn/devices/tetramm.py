@@ -68,9 +68,11 @@ class MyTetrAMM(TetrAMM):
         self._fast_trigger = True
 
     def setup_internal_trigger(self):
+        self.stage_sigs = {}
         self.stage_sigs["acquire"] = 0
         self.stage_sigs["acquire_mode"] = "Single"
         self._fast_trigger = False
+        self._flysetup = False
 
     def setup_flyscan_mode(self, num_images, acq_time, hdf_images):
         self.stage_sigs["trigger_mode"] = 2 # Ext. bulb
@@ -117,6 +119,9 @@ class MyTetrAMM(TetrAMM):
         # self.hdf1.enable.set('Disable')
         super().unstage()
 
+        if self._flysetup:
+            self.setup_internal_trigger()
+
     def plot_currents(self, currents: list):
         current_dic = {
             1: self.current1.mean_value,
@@ -130,6 +135,9 @@ class MyTetrAMM(TetrAMM):
                 current_dic[i].kind = "hinted"
             else:
                 current_dic[i].kind = "normal"
+
+    def set_acquire_time(self, acq_time):
+        pass
 
     def write_master_h5(
         self,

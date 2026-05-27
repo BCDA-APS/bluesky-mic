@@ -1,5 +1,10 @@
 # # # Guarneri-style device YAML configuration
 
+isn.devices.bleps.Bleps:
+- name: bleps
+  prefix: "19ID:BLEPS:"
+  labels: ["baseline"]
+
 isn.devices.hhl_mirrors.HHL_Mirrors:
 - name: hhl_mirrors
   prefix: 19idMR
@@ -21,11 +26,11 @@ isn.devices.sample.Sample:
   micronix_prefix: "19idMMC:"
   labels: ["baseline"]
 
+# isn.devices.micronix.Micronix:
+# - name: micronix
+#   prefix: "19idMMC:"
+#   concurrent: True
 
-isn.devices.softgluezynq.SoftGlueZynq:
-- name: softglue
-  prefix: acq_isn
-  # labels: ["baseline"]
 
 isn.devices.bda.BDA:
 - name: bda_vert
@@ -37,6 +42,7 @@ isn.devices.bda.BDA:
   prefix: 19idBDA
   axis: H
   labels: ["baseline"]
+
 
 isn.devices.diamond_window.Diamond_Window:
 - name: diamond
@@ -72,11 +78,11 @@ isn.devices.bpm.MyBPM:
   horizontal_motor_prefix: "19idBDA:m6"
   labels: ["baseline"]
 
-- name: bpm_d
-  quadem_prefix: "19idBPMD:T4U:"
-  vertical_motor_prefix: "19idBDA:m13"
-  horizontal_motor_prefix: "19idBDA:m14"
-  labels: ["baseline"]
+# - name: bpm_d
+#   quadem_prefix: "19idBPMD:T4U:"
+#   vertical_motor_prefix: "19idBDA:m13"
+#   horizontal_motor_prefix: "19idBDA:m14"
+#   labels: ["baseline"]
 
 # apstools.devices.aps_machine.ApsMachineParametersDevice:
 # - name: ring
@@ -139,20 +145,19 @@ isn.devices.flag.Flag:
   motor_prefix: "19idBDA:m7"
   in_position: -8
   out_position: 0
-  labels: ["baseline"]
 
 
-- name: flag_e1
-  flag_prefix: "19ide1:"
-  motor_prefix: "19idMMC:m6"
-  in_position: 0
-  out_position: 20
+# - name: flag_e1
+#   flag_prefix: "19ide1:"
+#   motor_prefix: "19idMMC:m6"
+#   in_position: 0
+#   out_position: 20
 
-- name: flag_e2
-  flag_prefix: "19ide2:"
-  motor_prefix: "19idMMC:m5"
-  in_position: -20
-  out_position: 0
+# - name: flag_e2
+#   flag_prefix: "19ide2:"
+#   motor_prefix: "19idMMC:m5"
+#   in_position: -20
+#   out_position: 0
 
 - name: xeye
   flag_prefix: "19idXEYE:"
@@ -199,8 +204,42 @@ isn.devices.labjack.IsnLabJackT8:
   prefix: "19idKB:LJT8:1:"
 
 
+# ### Strain devices ###
+
+# isn.devices.strain.RP100:
+# - name: rp100
+#   prefix: "19idUSER:D1:"
+#   labels: ['baseline']
+
+# isn.devices.strain.MP240:
+# - name: mp240
+#   prefix: "19idUSER:"
+
+# isn.devices.strain.LCRMeter:
+# - name: lcrmeter
+#   prefix: "19idUSER:"
+
+# isn.devices.strain.DualCapacitanceSensor:
+# - name: strain_cap
+#   prefix: "19idUSER:"
+#   settle_time: 1.5
+#   labels: ['baseline']
 
 
+# # ### High-pressure devices ###
+
+# isn.devices.ge_controller.GEController:
+# - name: compress
+#   prefix: "19idUSER:PC1:"
+#   readback_pv: "Pressure_RBV"
+#   setpoint_pv: "Setpoint"
+#   tolerance: 0.01
+
+# - name: decompress
+#   prefix: "19idUSER:PC2:"
+#   readback_pv: "Pressure_RBV"
+#   setpoint_pv: "Setpoint"
+#   tolerance: 0.01
 
 
 
