@@ -169,6 +169,12 @@ class Sample(Device):
     y = FormattedComponent(ServoMotor, "{aero_prefix}"+"m3")
     z = FormattedComponent(EpicsMotorWithTweak, "{aero_prefix}"+"m1")
 
+    # Thermocouple readbacks
+    temp_x = FormattedComponent(EpicsSignalRO, "{rtd_prefix}"+"AI0.VAL")
+    temp_y = FormattedComponent(EpicsSignalRO, "{rtd_prefix}"+"AI1.VAL")
+    temp_z = FormattedComponent(EpicsSignalRO, "{rtd_prefix}"+"AI2.VAL")
+    temp_theta = FormattedComponent(EpicsSignalRO, "{rtd_prefix}"+"AI3.VAL")
+
     fine_y = FormattedComponent(EpicsMotor, "{aero_prefix}"+"SM1")
 
     analog_on = FormattedComponent(EpicsSignal, "{aero_prefix}"+"userStringSeq2.PROC")
@@ -196,9 +202,10 @@ class Sample(Device):
     y_initial = Component(Signal, name='y_initial', kind='config', value=0.0)
     z_initial = Component(Signal, name='z_initial', kind='config', value=0.0)
 
-    def __init__(self, aero_prefix, micronix_prefix, *args, **kwargs):
+    def __init__(self, aero_prefix, micronix_prefix, rtd_prefix, *args, **kwargs):
         self.aero_prefix = aero_prefix
         self.micronix_prefix = micronix_prefix
+        self.rtd_prefix = rtd_prefix
         self._initial_position_captured = False
         super().__init__(*args, **kwargs)
     

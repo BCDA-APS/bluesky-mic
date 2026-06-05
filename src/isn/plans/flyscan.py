@@ -16,6 +16,7 @@ logger = logging.getLogger(__name__)
 logger.info(__file__)
 
 softglue = oregistry["softglue"]
+softglue2 = oregistry["softglue2"]
 sample = oregistry["sample"]
 socketserver = oregistry["socketserver"]
 savedata = oregistry["savedata"]
@@ -126,6 +127,8 @@ def flyscan(
         softglue.stop()
         softglue.reset()
         softglue.clear_output_fields()
+        softglue2.clear_output_fields()
+
 
         # --- Defining user clock (ckUser))--- #
 
@@ -138,6 +141,7 @@ def flyscan(
         # user_clock_N = int(1e7 / interferometer_frequency)
         # yield from mv(softglue.div_by_n_3.n, user_clock_N)
         softglue.div_by_n_3.n.put(user_clock_N)
+        softglue2.div_by_n_3.n.put(user_clock_N)
 
         logger.debug(f"Interferometry reading set at {1/(interferometry_period*1e-3) :0.3e} Hz")
 
@@ -148,16 +152,17 @@ def flyscan(
         trigger_N = acquire_period * 1e4
         # yield from mv(softglue.div_by_n_2.n, trigger_N)
         softglue.div_by_n_2.n.put(trigger_N)
+        softglue2.div_by_n_2.n.put(trigger_N)
 
         # --- Setting up gated trigger --- #
 
         yield from bps.checkpoint()
 
         yield from mv(
-            softglue.gate_delay_1.in_signal,
-            "ckIM",
-            softglue.gate_delay_1.width,
-            acquire_time * 1e4,
+            softglue.gate_delay_1.in_signal, "ckIM",
+            softglue.gate_delay_1.width, acquire_time * 1e4,
+            softglue2.gate_delay_1.in_signal, "ckIM",
+            softglue2.gate_delay_1.width, acquire_time * 1e4,
         )
 
         # --- Defining waveform clock --- #
@@ -338,6 +343,7 @@ def flyscan(
         for detector in detectors:
             # To follow correct bluesky procedure, we need to change towards using Prepare instead of stage. We should stage before the open run document is generated
             softglue.enable_detector_trigger(detector.name)
+            softglue2.enable_detector_trigger(detector.name)
             detector.setup_flyscan_mode(
                 num_images=total_images,
                 acq_time=acquire_time * 1e-3,

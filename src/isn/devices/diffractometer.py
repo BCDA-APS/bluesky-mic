@@ -6,7 +6,7 @@ from ophyd import SoftPositioner
 from .robot import RobotArmPositioner
 
 
-class RobotArmDiffractometer(hklpy2.DiffractometerBase):
+class RobotArmDiffractometer(hklpy2.diffract.DiffractometerBase):
     """ISN Robot Arm as Diffractometer."""
 
     _real = "mu eta chi phi yaw pitch".split()

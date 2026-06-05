@@ -24,6 +24,7 @@ isn.devices.sample.Sample:
 - name: sample
   aero_prefix: "19idAERO:"
   micronix_prefix: "19idMMC:"
+  rtd_prefix: "19idTC:ADAM:"
   labels: ["baseline"]
 
 # isn.devices.micronix.Micronix:
@@ -78,15 +79,15 @@ isn.devices.bpm.MyBPM:
   horizontal_motor_prefix: "19idBDA:m6"
   labels: ["baseline"]
 
-# - name: bpm_d
-#   quadem_prefix: "19idBPMD:T4U:"
-#   vertical_motor_prefix: "19idBDA:m13"
-#   horizontal_motor_prefix: "19idBDA:m14"
-#   labels: ["baseline"]
+- name: bpm_d
+  quadem_prefix: "19idBPMD:T4U:"
+  vertical_motor_prefix: "19idBDA:m13"
+  horizontal_motor_prefix: "19idBDA:m14"
+  labels: ["baseline"]
 
-# apstools.devices.aps_machine.ApsMachineParametersDevice:
-# - name: ring
-#   labels: ["baseline"]
+apstools.devices.aps_machine.ApsMachineParametersDevice:
+- name: ring
+  labels: ["baseline"]
 
 apstools.devices.shutters.ApsPssShutter:
 - name: eshutter
@@ -147,17 +148,17 @@ isn.devices.flag.Flag:
   out_position: 0
 
 
-# - name: flag_e1
-#   flag_prefix: "19ide1:"
-#   motor_prefix: "19idMMC:m6"
-#   in_position: 0
-#   out_position: 20
+- name: flag_e1
+  flag_prefix: "19ide1:"
+  motor_prefix: "19idMMC:m6"
+  in_position: -20
+  out_position: 0
 
-# - name: flag_e2
-#   flag_prefix: "19ide2:"
-#   motor_prefix: "19idMMC:m5"
-#   in_position: -20
-#   out_position: 0
+- name: flag_e2
+  flag_prefix: "19ide2:"
+  motor_prefix: "19idMMC:m5"
+  in_position: -20
+  out_position: 0
 
 - name: xeye
   flag_prefix: "19idXEYE:"

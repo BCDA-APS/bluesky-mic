@@ -5,9 +5,14 @@ mic_common.devices.save_data.SaveDataMic:
   prefix: 19idSFT:saveData_
   labels: ["data"]
 
-isn.devices.softgluezynq.SoftGlueZynq:
+isn.devices.softgluezynq.Dtacq:
 - name: softglue
   prefix: acq_isn
+  # labels: ["baseline"]
+
+isn.devices.softgluezynq.SoftGlueZynq:
+- name: softglue2
+  prefix: 19idMZ1
   # labels: ["baseline"]
 
 isn.devices.if_cap_tracker.IfCapTracker:

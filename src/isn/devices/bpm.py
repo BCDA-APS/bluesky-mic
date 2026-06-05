@@ -28,8 +28,6 @@ class MyBPM(Device):
     #     )
 
     _default_read_attrs = (
-        "vert",
-        "hor",
         "current1",
         "current2",
         "current3",
@@ -38,13 +36,15 @@ class MyBPM(Device):
         "y",
     )
 
-    vert = FormattedComponent(EpicsMotor, "{vertical_motor_prefix}")
-    hor = FormattedComponent(EpicsMotor, "{horizontal_motor_prefix}")
+    vert = FormattedComponent(EpicsMotor, "{vertical_motor_prefix}", name="bpm_vert_motor")
+    hor = FormattedComponent(EpicsMotor, "{horizontal_motor_prefix}", name="bpm_hor_motor")
 
-    current1 = FormattedComponent(EpicsSignalRO, "{quadem_prefix}Current1Ave")
-    current2 = FormattedComponent(EpicsSignalRO, "{quadem_prefix}Current2Ave")
-    current3 = FormattedComponent(EpicsSignalRO, "{quadem_prefix}Current3Ave")
-    current4 = FormattedComponent(EpicsSignalRO, "{quadem_prefix}Current4Ave")
+    current1 = FormattedComponent(EpicsSignalRO, "{quadem_prefix}Current1:MeanValue_RBV")
+    current2 = FormattedComponent(EpicsSignalRO, "{quadem_prefix}Current2:MeanValue_RBV")
+    current3 = FormattedComponent(EpicsSignalRO, "{quadem_prefix}Current3:MeanValue_RBV")
+    current4 = FormattedComponent(EpicsSignalRO, "{quadem_prefix}Current4:MeanValue_RBV")
+
+    total = FormattedComponent(EpicsSignalRO, "{quadem_prefix}SumAll:MeanValue_RBV")
 
     x = FormattedComponent(EpicsSignalRO, "{quadem_prefix}PositionXAve")
     y = FormattedComponent(EpicsSignalRO, "{quadem_prefix}PositionYAve")

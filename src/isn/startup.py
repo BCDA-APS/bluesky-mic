@@ -127,11 +127,14 @@ make_devices(clear=False, file="devices.yml", device_manager=instrument)
 
 # Assign softglue detector key map
 det_keymap = iconfig.get("SOFTGLUE_OUTPUTS")
+det_keymap2 = iconfig.get("SOFTGLUE2_OUTPUTS")
 try:
     softglue = oregistry.find("softglue")
     softglue.det_keymap = det_keymap
+    softglue2 = oregistry.find("softglue2")
+    softglue2.det_keymap = det_keymap
 except:
-    logger.info("Softglue not found, detector key map not generated.")
+    logger.info("Softglue keymaps not found, detector key map not generated.")
 
 
 # Diffractometer utilities:
@@ -141,6 +144,7 @@ sim_psic = hklpy2.creator(
     reals="mu eta chi phi yaw pitch".split(),
 )
 sim_psic.core.mode="lifting_detector_mu"
+sim_psic._ophyd_labels_.discard("diffractometer") # fixes labeling issue that affects wa magic
 
 psic = oregistry['psic']
 psic.wait_for_connection()
@@ -196,3 +200,7 @@ from mictools.plot_data import *
 from mictools.roi_utils import Roi
 
 logger.info('Startup done.')
+
+logger.info('Loading last used experiment. Load new experiment if needed.')
+
+load_experiment()

@@ -180,3 +180,6 @@ dev_*
 # Beamline specific PVs
 *.xml
 *.json
+
+# Claude Code
+.claude/

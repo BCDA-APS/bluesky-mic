@@ -35,7 +35,7 @@ from mic_common.utils.writeDetH5 import write_det_h5
 
 # MAX_IMAGES = 12216
 MAX_IMAGES = 524288
-MAX_ROIS = 8
+MAX_ROIS = 48
 DELAY = 0.15
 
 
@@ -162,7 +162,8 @@ class Trigger(TriggerBase):
 
         # if self._flysetup or self._softsetup:
         if self.trigger_mode in ("Flyscan", "Software"):
-            self.cam.erase.set(1).wait()
+            # self.cam.erase.set(1).wait()
+            self.cam.erase.put(1)
             logger.debug("Enabling acquisition")
             self._acquisition_signal.set(1).wait(timeout=10)
             sleep(0.1)
@@ -276,6 +277,12 @@ class ROIStatN(Device):
 
     reset_button = Component(EpicsSignal, "Reset", kind="omitted")
 
+## Saving to do later the 48 rois dynamic device components
+# def _rois(num=48):
+#     defn = OrderedDict()
+#     for i in range(1, num + 1):
+#         defn[f"fi{i}"] = (ROIStatN, f"{i}:")
+#     return defn
 
 class VortexROIStatPlugin(ROIStatPlugin):
     _default_read_attrs = tuple(f"roi{i}" for i in range(1, MAX_ROIS + 1))
@@ -289,6 +296,51 @@ class VortexROIStatPlugin(ROIStatPlugin):
     roi6 = Component(ROIStatN, "6:")
     roi7 = Component(ROIStatN, "7:")
     roi8 = Component(ROIStatN, "8:")
+
+    roi9 = Component(ROIStatN, "9:")
+    roi10 = Component(ROIStatN, "10:")
+    roi11 = Component(ROIStatN, "11:")
+    roi12 = Component(ROIStatN, "12:")
+    roi13 = Component(ROIStatN, "13:")
+    roi14 = Component(ROIStatN, "14:")
+    roi15 = Component(ROIStatN, "15:")
+    roi16 = Component(ROIStatN, "16:")
+
+    roi17 = Component(ROIStatN, "17:")
+    roi18 = Component(ROIStatN, "18:")
+    roi19 = Component(ROIStatN, "19:")
+    roi20 = Component(ROIStatN, "20:")
+    roi21 = Component(ROIStatN, "21:")
+    roi22 = Component(ROIStatN, "22:")
+    roi23 = Component(ROIStatN, "23:")
+    roi24 = Component(ROIStatN, "24:")
+
+    roi25 = Component(ROIStatN, "25:")
+    roi26 = Component(ROIStatN, "26:")
+    roi27 = Component(ROIStatN, "27:")
+    roi28 = Component(ROIStatN, "28:")
+    roi29 = Component(ROIStatN, "29:")
+    roi30 = Component(ROIStatN, "30:")
+    roi31 = Component(ROIStatN, "31:")
+    roi32 = Component(ROIStatN, "32:")
+
+    roi33 = Component(ROIStatN, "33:")
+    roi34 = Component(ROIStatN, "34:")
+    roi35 = Component(ROIStatN, "35:")
+    roi36 = Component(ROIStatN, "36:")
+    roi37 = Component(ROIStatN, "37:")
+    roi38 = Component(ROIStatN, "38:")
+    roi39 = Component(ROIStatN, "39:")
+    roi40 = Component(ROIStatN, "40:")
+
+    roi41 = Component(ROIStatN, "41:")
+    roi42 = Component(ROIStatN, "42:")
+    roi43 = Component(ROIStatN, "43:")
+    roi44 = Component(ROIStatN, "44:")
+    roi45 = Component(ROIStatN, "45:")
+    roi46 = Component(ROIStatN, "46:")
+    roi47 = Component(ROIStatN, "47:")
+    roi48 = Component(ROIStatN, "48:")
 
 
 class VortexSCA(AttributePlugin):
@@ -561,6 +613,10 @@ class VortexXspress37(Trigger, DetectorBase):
             )
 
             getattr(self.total, f"roi{i}").kind = k
+
+            for j in range(1, 8):
+                roi = getattr(self, f'stats{j}.roi{i}')
+                roi.use.put(1 if i in rois else 0)
 
             if k == "hinted" and i not in self.read_rois:
                 self.read_rois.append(i)

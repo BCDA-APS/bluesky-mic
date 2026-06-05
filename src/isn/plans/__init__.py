@@ -8,6 +8,10 @@ from .flyscan import flyscan
 # from .flyscan_v2 import flyscan as flyscan_v2
 # from .flyscan import flyscan as flyscan_test
 from .scan_piezos import scan_piezo
+from .center_maximum import cen
+from .center_maximum import maxi
+from .count_abs_time import count_abs_time  # noqa: F401
+from .count_abs_time import LiveAbsTimePlot  # noqa: F401
 # from .nexus_gen import nexus_gen
 # from .test_logger import test_logger
 # from .flyscan_eigerOnly import flyscan

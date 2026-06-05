@@ -132,12 +132,6 @@ def _interferometer_tracker(if_tracker, num=6):
 class SoftGlueZynq(Device):
     _status_type = DeviceStatus
 
-    _default_read_attrs = (
-        "if_tracker_1",
-        "if_tracker_2",
-        "if_tracker_3",
-    )
-
     ### Components
 
     io = DynamicDeviceComponent(_io_fields())
@@ -174,6 +168,45 @@ class SoftGlueZynq(Device):
 
     scal_to_stream_1 = Component(ScalToStream, ":SG:scalToStream-1")
 
+    # Detector output mapping
+    det_keymap = None
+
+    ### Functions
+
+    def enable_detector_trigger(self, detector_name, det_keymap=None):
+        if det_keymap is None:
+            det_keymap = self.det_keymap
+            logger.debug(f"Using default softglue detector key mapping: {det_keymap}")
+
+        try:
+            trigger_output = det_keymap[detector_name.upper()]
+        except:
+            logger.debug(f"{detector_name} is not configured for TTL triggering.")
+            return
+        output_field = getattr(self.io, f"fo{trigger_output}")
+        output_field.put("trigger")
+
+    def clear_output_fields(self):
+        for i in np.arange(1, 9, 1):
+            output_field = getattr(self.io, f"fo{str(int(i))}")
+            output_field.put("0")
+
+
+class Dtacq(SoftGlueZynq):
+
+    _default_read_attrs = (
+        "if_tracker_1",
+        "if_tracker_2",
+        "if_tracker_3",
+    )
+
+    # DMA components
+    dma = DynamicDeviceComponent(_dma_fields())
+
+    if_tracker_1 = DynamicDeviceComponent(_interferometer_tracker(1))
+    if_tracker_2 = DynamicDeviceComponent(_interferometer_tracker(2))
+    if_tracker_3 = DynamicDeviceComponent(_interferometer_tracker(3, num=3))
+
     # Ram memory components for fly scanning
     mem_address = Component(EpicsSignal, ":SG:mem_ADDRA")
     mem_data = Component(EpicsSignal, ":SG:mem_DINA")
@@ -191,16 +224,6 @@ class SoftGlueZynq(Device):
 
     threshold_pos = Component(EpicsSignal, ":SG:threshTrig-1_POSTHR")
     threshold_neg = Component(EpicsSignal, ":SG:threshTrig-1_NEGTHR")
-
-    # DMA components
-    dma = DynamicDeviceComponent(_dma_fields())
-
-    if_tracker_1 = DynamicDeviceComponent(_interferometer_tracker(1))
-    if_tracker_2 = DynamicDeviceComponent(_interferometer_tracker(2))
-    if_tracker_3 = DynamicDeviceComponent(_interferometer_tracker(3, num=3))
-
-    # Detector output mapping
-    det_keymap = None
 
     ### Functions
 
@@ -395,21 +418,3 @@ class SoftGlueZynq(Device):
         yield from mv(self.dac1_init, "1!")
         yield from mv(self.dac1_val, y_bits)
         yield from mv(self.dac1_write, "1!")
-
-    def enable_detector_trigger(self, detector_name, det_keymap=None):
-        if det_keymap is None:
-            det_keymap = self.det_keymap
-            logger.debug(f"Using default softglue detector key mapping: {det_keymap}")
-
-        try:
-            trigger_output = det_keymap[detector_name.upper()]
-        except:
-            logger.debug(f"{detector_name} is not configured for TTL triggering.")
-            return
-        output_field = getattr(self.io, f"fo{trigger_output}")
-        output_field.put("trigger")
-
-    def clear_output_fields(self):
-        for i in np.arange(1, 9, 1):
-            output_field = getattr(self.io, f"fo{str(int(i))}")
-            output_field.put("0")
