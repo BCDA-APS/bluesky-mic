@@ -27,6 +27,8 @@ class s8bmbXspress3Base(Device):
     num_images = Component(EpicsSignal, "NumImages")
     acquire_time = Component(EpicsSignal, "AcquireTime")
     soft_trigger = Component(EpicsSignal, "SoftTrigger")
+    erase_on_start = Component(EpicsSignal, "EraseOnStart")
+    #enable_pvs = Component(EpicsSignal, "8bmbXP3:Pva1:EnableCallbacks")
     array_size: int = 4096
 
     def __init__(self, *args, **kwargs):
@@ -58,10 +60,11 @@ class Xspress3(Device):
         try:
             # Lets stage the det1 
             self.cam.stage_sigs.clear()
-            self.cam.stage_sigs["acquire"] = 0
+            # self.cam.stage_sigs["acquire"] = 0
             self.cam.stage_sigs["trigger_mode"] = 3 # 3: TTL Veto only, 7: Software+Internal
             self.cam.stage_sigs["num_images"] = num_pulses
-            self.cam.stage_sigs['acquire_time'] = dwell_time / 1000
+            self.cam.stage_sigs["erase_on_start"] = 1
+            self.cam.stage_sigs['acquire_time'] = dwell_time
 
             self.fileplugin.config_file_writer(num_pulses, upper_det_foldername=False, **kwargs)
             self.fileplugin.stage_sigs.pop("parent.cam.array_callbacks", None)
@@ -77,6 +80,7 @@ class Xspress3(Device):
             self.cam.stage_sigs["acquire"] = 0
             self.cam.stage_sigs["trigger_mode"] = 7 # 3: TTL Veto only, 1: Internal, 7: Software+Internal
             self.cam.stage_sigs["num_images"] = num_pulses
+            self.cam.stage_sigs["erase_on_start"] = 0
             self.cam.stage_sigs['acquire_time'] = dwell_time
             
             self.fileplugin.config_file_writer(num_pulses, upper_det_foldername=False, **kwargs)

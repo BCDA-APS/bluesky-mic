@@ -19,6 +19,7 @@ class SIS3820(Device):
     acquiring = Component(EpicsSignal, ":Acquiring")
     current_channel = Component(EpicsSignal, ":CurrentChannel")
     elapsed_real = Component(EpicsSignal, ":ElapsedReal")
+    preset_real = Component(EpicsSignal, ":PresetReal")
     prescale = Component(EpicsSignal, ":Prescale")
     trigger_mode = Component(EpicsSignal, ":ChannelAdvance")
     software_trigger = Component(EpicsSignal, ":SoftwareChannelAdvance")
@@ -55,6 +56,7 @@ class SIS3820(Device):
         self.stage_sigs["stop_all"] = 1
         self.stage_sigs["num_ch_used"] = num_pulses
         self.stage_sigs["trigger_mode"] = trigger_mode
+        self.stage_sigs["preset_real"] = 0
         if update_prescale:
             if stepsize is not None and motor_resolution is not None:
                 prescale = self.calculate_prescale(stepsize, motor_resolution)

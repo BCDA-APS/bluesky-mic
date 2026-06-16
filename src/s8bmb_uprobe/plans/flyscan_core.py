@@ -11,7 +11,7 @@ common operations.
 import bluesky.plan_stubs as bps
 from apsbits.core.instrument_init import oregistry
 from apstools.plans import run_blocking_function
-from s8bmb_uprobe.plans.toggle_usercalc import enable_usercalc, disable_usercalc
+# from s8bmb_uprobe.plans.toggle_usercalc import enable_usercalc, disable_usercalc
 from mic_common.utils.validation import validate_scan_parameters, validate_device_connections
 from s8bmb_uprobe.utils.fly import (
     reorder_devices,
@@ -24,7 +24,7 @@ from s8bmb_uprobe.utils.nexus_bps_func import save_ophyd_value
 from mic_common.utils.timer_decorator import loop_timer_context
 import logging
 import numpy as np
-
+import time
 logger = logging.getLogger(__name__)
 
 
@@ -134,9 +134,11 @@ def _fly2d_scanrecord(
     fly_dwell = oregistry["fly_dwell"]
     sample = oregistry["sample"]
     savedata = oregistry["savedata"]
+    detproxy = oregistry['detproxy']
+    fly_drive = oregistry['fly_drive']
 
     """Disable the usercalc that used in scan record"""
-    yield from disable_usercalc()
+    # yield from disable_usercalc()
 
     """Check input parameters and detector status"""
     logger.info("Validating scan parameters and detector status")
@@ -154,7 +156,7 @@ def _fly2d_scanrecord(
     yield from bps.mv(sample.x, x_center)
     yield from bps.mv(sample.y, y_center)
     
-    yield from scanrecord.fly.stage2Dfly(devices, sample, width, stepsize_x, height, stepsize_y)
+    yield from scanrecord.fly.stage2Dfly(devices, sample, fly_drive, detproxy, width, stepsize_x, height, stepsize_y)
     yield from bps.checkpoint()
 
     """Assign the per-pixel dwell time"""
@@ -177,14 +179,18 @@ def _fly2d_scanrecord(
         if det.name == "xp3":
             xrf = det
             xrf.config_flyscan(num_pulses=num_pulses, 
-                                dwell_time=dwell_ms/1000)
+                                dwell_time=round(dwell_ms/1000, 3))
+            # xrf.cam.acquire.put(1)
+            # xrf.fileplugin.capture.put(1)
             xrf.stage()
+            yield from bps.sleep(0.5)
         elif det.name == "sis3820":
             sis3820 = det
             sis3820.config_flyscan(num_pulses=num_pulses, 
                                     stepsize=stepsize_x, 
                                     motor_resolution=sample.x.resolution.get())
             sis3820.stage()
+            yield from bps.sleep(0.5)
 
     yield from bps.checkpoint()
     logger.info("Scanrecord setup complete")
@@ -192,12 +198,10 @@ def _fly2d_scanrecord(
     """Start executing scan"""
     yield from scanrecord.fly.execute2Dfly(scan_name=fname, sample=None)
 
-    """Enable the usercalc that used in scan record"""
-    yield from enable_usercalc()
-
     yield from scanrecord.fly.unstage2Dfly()
     for d in devices:
         d.unstage()
+        yield from bps.sleep(0.2)
 
     sample.x.set_speed()
 

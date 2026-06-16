@@ -17,7 +17,7 @@ class FlyScanRecord(Device):
         self.outer.pause = self.pause
         self.outer.resume = self.resume
 
-    def stage2Dfly(self, devices,sample, width, stepsize_x, height, stepsize_y):
+    def stage2Dfly(self, devices, sample, fly_drive, detproxy, width, stepsize_x, height, stepsize_y):
         try:
             yield from self.unstage2Dfly()
             logger.info("Unstage scanrecord if it is already staged")
@@ -29,16 +29,20 @@ class FlyScanRecord(Device):
         inner_triggers = []
         outer_triggers = []
         for det in devices:
-            if det.name == "xp3":
-                outer_triggers.append(det.fileplugin.capture.pvname.replace("_RBV", ""))
-                outer_triggers.append(det.cam.acquire.pvname.replace("_RBV", ""))
-            elif det.name == "sis3820":
+            # if det.name == "xp3":
+            #     outer_triggers.append(det.fileplugin.capture.pvname.replace("_RBV", ""))
+            #     outer_triggers.append(det.cam.acquire.pvname.replace("_RBV", ""))
+            if det.name == "sis3820":
+                # inner_triggers.append(detproxy.pvname)
                 inner_triggers.append(det.erase_start.pvname)
 
+        outer_triggers.append(detproxy.pvname)
         outer_triggers.append(self.inner.execute_scan.pvname)
         num_det_triggers = 4
         outer_triggers += [''] * (num_det_triggers - len(outer_triggers))
         inner_triggers += [''] * (num_det_triggers - len(inner_triggers))
+        inner_ref = 1
+        outer_ref = 1
 
         self.outer.config(
             positioner_setpoint=sample.y.user_setpoint.pvname,
@@ -48,17 +52,19 @@ class FlyScanRecord(Device):
             width=round(height, 2),
             stepsize=round(stepsize_y, 2),
             trigger_pvs=outer_triggers,
-            bspv="",
+            bspv='',
+            # reference_detector=outer_ref,
         )
 
         self.inner.config(
-            positioner_setpoint=f"{sample.x.user_setpoint.pvname}",
+            positioner_setpoint=f"{fly_drive.pvname}",
             positioner_readback=sample.x.user_readback.pvname,
             scanmode=2,  # 0: "LINEAR", 1: "TABLE", 2: "FLY"
             center=round(sample.x.position, 2),
             width=round(width, 2),
             stepsize=round(stepsize_x, 2),
             trigger_pvs=inner_triggers,
+            # reference_detector=inner_ref,
         )
 
         self.inner.stage()
@@ -75,7 +81,7 @@ class FlyScanRecord(Device):
             logger.info("Outer scanrecord is already staged, unstaging ... ...")
             self.outer.unstage()
             yield from bps.sleep(0.1)
-
+            
     def execute2Dfly(self, scan_name="", sample=None, print_outter_msg=True):
         yield from execute_scan_2d(
             self.inner, self.outer, sample=sample, scan_name=scan_name, print_outter_msg=print_outter_msg

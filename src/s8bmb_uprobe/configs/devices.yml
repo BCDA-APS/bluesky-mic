@@ -26,6 +26,16 @@ ophyd.EpicsSignal:
   read_pv: 8bmbsft:userCalc10Enable.VAL
   labels: ["usercalc"]  
 
+- name: fly_drive
+  write_pv: 8bmbsft:ExtrauserCalc1.A
+  read_pv: 8bmbsft:ExtrauserCalc1.A
+  labels: ["usercalc"]
+
+- name: detproxy
+  write_pv: 8bmbsft:DetProxyF
+  read_pv: 8bmbsft:DetProxyF
+  labels: ["busy"]  
+
 - name: fly_dwell
   write_pv: 8bmb:Flyscans:Setup:DwellTime
   read_pv: 8bmb:Flyscans:Setup:DwellTime
@@ -50,6 +60,8 @@ s8bmb_uprobe.devices.xspress3.Xspress3:
 - name: xp3
   prefix: 8bmbXP3
   labels: ["xp3"]
+
+
 
 # mic_common.devices.xmap.XMAP:
 # - name: xmap

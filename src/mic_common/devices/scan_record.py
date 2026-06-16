@@ -57,6 +57,7 @@ class NewScanRecord(SscanRecord):
         trigger_pvs: list = None,
         trigger_values: list = None,
         detector_delay: float = None,
+        reference_detector: int = 1,
     ):
         """Stage the corresponding signals for scanrecord configuration
 
@@ -102,6 +103,9 @@ class NewScanRecord(SscanRecord):
             if detector_delay is not None:
                 self.stage_sigs["detector_delay"] = detector_delay
 
+            if reference_detector is not None:
+                self.stage_sigs["reference_detector"] = reference_detector
+
         else:
             logger.error(f"Scan record {self.prefix} is not connected")
 
@@ -127,6 +131,7 @@ class ScanRecord(SscanRecord):
     # number_points_rbv = Component(EpicsSignal, ".CPT")
     start_position = Component(EpicsSignal, ".P1SP")
     end_position = Component(EpicsSignal, ".P1EP")
+    reference_detector = Component(EpicsSignal, ".REFD")
 
     detTrigger_1_old = ''
     detTrigger_2_old = ''

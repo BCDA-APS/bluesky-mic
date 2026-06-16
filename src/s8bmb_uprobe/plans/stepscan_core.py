@@ -42,7 +42,7 @@ from ..utils.fly import DetectorFileSignal
 import numpy as np
 from ..utils.step import setup_detectors_and_fileio
 from ..plans.toggle_usercalc import enable_usercalc, disable_usercalc
-
+import time
 iconfig = get_config()
 logger = logging.getLogger(__name__)
 
@@ -191,6 +191,7 @@ def _step2d_scanrecord(
     """Enable the usercalc that used in scan record"""
     yield from enable_usercalc()
 
+    time.sleep(0.5)
     yield from scanrecord.step.unstage2Dstep()
     for d in devices:
         if d.name == "xp3":
