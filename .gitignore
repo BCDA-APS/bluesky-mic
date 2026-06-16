@@ -172,6 +172,7 @@ dev_*
 .logs/
 .logs_s2ide/
 .logs_s2idd/
+.logs_bnp/
 .logs_isn/
 *.dat
 *.hdf

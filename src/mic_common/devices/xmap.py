@@ -17,6 +17,7 @@ from mic_common.devices.ad_fileplugin import DetNetCDF
 from mic_common.devices.save_data import SaveDataMic
 import numpy as np
 import logging
+import time
 
 logger = logging.getLogger(__name__)
 
@@ -51,24 +52,6 @@ class XMAPBase(Device):
     def calc_num_capture(self, num_pulses: int):
         """Calculate the number of capture based on number of scan points."""
         self.num_capture = int(np.ceil(num_pulses / self.buffer_size))
-
-    # def config_flyscan(self, num_pts):
-    #     """Configure XMAP for fly scan."""
-    #     self.stage_sigs.clear()
-    #     self.stage_sigs["stop_all"] = 1
-    #     self.stage_sigs["collection_mode"] = 1  # "MCA MAPPING"
-    #     self.stage_sigs["pixels_per_run"] = num_pts
-
-    # def config_stepscan(self, dwell_ms):
-    #     """Configure XMAP for step scan."""
-    #     dwell_sec = dwell_ms / 1000
-    #     self.stage_sigs.clear()
-    #     self.stage_sigs["stop_all"] = 1
-    #     self.stage_sigs["collection_mode"] = 0  # "MCA MAPPING"
-    #     self.stage_sigs["preset_mode"] = 1
-    #     self.stage_sigs["preset_real_time"] = dwell_sec
-    #     self.stage_sigs["status_rate"] = 8  # 0.2 second
-    #     self.stage_sigs["read_rate"] = 0    # Passive
 
     def config(self, 
         num_pulses: int = None,
@@ -158,3 +141,28 @@ class XMAP(Device):
             if self.fileplugin._staged == Staged.yes:
                 self.fileplugin.unstage()
 
+    def unhang(self, retries: int = 1, delay_s: float = 0.1) -> dict[str, object]:
+        attempts = max(1, int(retries))
+        results: list[dict[str, object]] = []
+        for attempt in range(1, attempts + 1):
+            try:
+                self.cam.stop_all.put(1)
+                self.fileplugin.capture.put(0)
+                results.append({"attempt": attempt, "success": True})
+                if attempt < attempts and delay_s > 0:
+                    time.sleep(delay_s)
+            except Exception as exc:
+                logger.exception("Failed to unhang XMAP on attempt %s", attempt)
+                results.append({"attempt": attempt, "success": False, "error": str(exc)})
+                return {
+                    "device": self.name,
+                    "success": False,
+                    "retries": attempts,
+                    "attempts": results,
+                }
+        return {
+            "device": self.name,
+            "success": True,
+            "retries": attempts,
+            "attempts": results,
+        }

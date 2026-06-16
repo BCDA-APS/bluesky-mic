@@ -6,7 +6,7 @@ ICONFIG_VERSION: 2.0.1
 # Add additional configuration for use with your instrument.
 
 ### The databroker catalog name. (legacy use only)
-DATABROKER_CATALOG: temp
+DATABROKER_CATALOG: &databroker_catalog bnp
 ### Tiled server profile and path name: (overrides DATABROKER_CATALOG key)
 #TILED_PROFILE_NAME: raw
 # Use TILED_PATH_NAME according to local tiled server configuration
@@ -58,14 +58,26 @@ SPEC_DATA_FILES:
     ENABLE: false
     FILE_EXTENSION: dat
 
-STORAGE:
-  MICDATA_MOUNTPATH: "/mnt/micdata1/"
-  XMAP_MOUNTPATH: "W:"
-
-FILE_DELIMITER: "bnp"
-SCAN_OVERHEAD: 0.3
 XMAP:
     BUFFER: 124
+    DET_FOLDERNAME: "flyXRF"
+    MOUNT_PATH: "W:"
+
+EIGER:
+    DET_FOLDERNAME: "ptycho"
+    MOUNT_PATH: "/net/micdata/data1"
+
+XP3:
+    DET_FOLDERNAME: "flyXRF"
+    MOUNT_PATH: "/net/micdata/data1"
+
+SAVE_DATA:
+    MOUNT_PATH: "//micdata/data1/"
+
+STORAGE:
+    MICDATA_MOUNTPATH: "/mnt/micdata1/"
+    AUTO_MOUNTPATH: "/net/micdata/data1/"
+    FILE_DELIMITER: "bnp"
 
 ### APS Data Management
 ### Learn environment variables for Data Management from this file:

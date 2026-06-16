@@ -67,6 +67,7 @@ XSPRESS3:
 
 STORAGE:
   MICDATA_MOUNTPATH: "/mnt/micdata1/"
+  AUTO_MOUNTPATH: "/net/micdata/data1/"
   FILE_DELIMITER: "8bm"
   
 ### APS Data Management

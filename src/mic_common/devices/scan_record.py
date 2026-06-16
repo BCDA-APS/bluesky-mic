@@ -23,10 +23,11 @@ logger.info(__file__)
 
 
 class NewScanRecord(SscanRecord):
+    p1pa = Component(EpicsSignal, ".P1PA")
+    
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.P1PA = PV(f"{self.prefix}.P1PA")
         self.P2PA = PV(f"{self.prefix}.P2PA")
         # Wrap stage_sigs with LoggingDict to log all assignments
         original_stage_sigs = self.stage_sigs
@@ -37,10 +38,15 @@ class NewScanRecord(SscanRecord):
         for i, t_pv in enumerate(trigger_pvs):
             self.stage_sigs[f"triggers.t{i+1}.trigger_pv"] = t_pv
 
-    def stage_detValues(self, trigger_values):
-        """Stage detector values for the scan record."""
-        for i, t_value in enumerate(trigger_values):
-            self.stage_sigs[f"triggers.t{i+1}.trigger_value"] = t_value
+    def unstage(self):
+        """Unstage the device but avoid restoring file_path and file_name from stage_sigs.
+
+        Uses the unstage_with_skip utility to prevent certain fields from being
+        restored during unstage.
+        """
+        fields_to_skip = ["positioners.p1.step_size", "positioners.p1.width"]
+        unstage_with_skip(self, fields_to_skip)
+        return super().unstage()
 
     def config(
         self,
@@ -53,11 +59,10 @@ class NewScanRecord(SscanRecord):
         stepsize: float = 0,
         bspv: str = None,
         aspv: str = None,
-        num_points: int = None,
         trigger_pvs: list = None,
-        trigger_values: list = None,
-        detector_delay: float = None,
-        reference_detector: int = 1,
+        setpoint_list: list = None,
+        num_points: int = None,
+
     ):
         """Stage the corresponding signals for scanrecord configuration
 
@@ -77,34 +82,38 @@ class NewScanRecord(SscanRecord):
         """
         if self.connected:
             self.stage_sigs.clear()
+            if bspv is not None:
+                self.stage_sigs["bspv"] = bspv
             self.stage_sigs["positioners.p1.setpoint_pv"] = positioner_setpoint
             self.stage_sigs["positioners.p1.readback_pv"] = positioner_readback
             self.stage_sigs["positioners.p1.mode"] = scanmode
             self.stage_sigs["positioners.p1.abs_rel"] = rel_abs_motion
-            self.stage_sigs["positioners.p1.center"] = center
-            self.stage_sigs["positioners.p1.width"] = width
-            self.stage_sigs["positioners.p1.step_size"] = stepsize
+
+            if scanmode == 1:
+                self.stage_sigs["p1pa"] = setpoint_list
+            else:
+                self.stage_sigs["positioners.p1.center"] = center
+                self.stage_sigs["positioners.p1.width"] = width
+                self.stage_sigs["positioners.p1.step_size"] = stepsize
 
             if aspv is not None:
                 self.stage_sigs["aspv"] = aspv
 
-            if bspv is not None:
-                self.stage_sigs["bspv"] = bspv
-
             if num_points is not None:
                 self.stage_sigs["number_points"] = num_points
-                
+            # self.positioners.p1.step_size.put(stepsize)
+
             if trigger_pvs is not None:
                 self.stage_detTriggers(trigger_pvs)
 
-            if trigger_values is not None:
-                self.stage_detValues(trigger_values)
+            # if trigger_values is not None:
+            #     self.stage_detValues(trigger_values)
 
-            if detector_delay is not None:
-                self.stage_sigs["detector_delay"] = detector_delay
+            # if detector_delay is not None:
+            #     self.stage_sigs["detector_delay"] = detector_delay
 
-            if reference_detector is not None:
-                self.stage_sigs["reference_detector"] = reference_detector
+            # if reference_detector is not None:
+            #     self.stage_sigs["reference_detector"] = reference_detector
 
         else:
             logger.error(f"Scan record {self.prefix} is not connected")

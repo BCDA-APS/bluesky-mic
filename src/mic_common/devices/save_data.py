@@ -18,35 +18,39 @@ logger.info(__file__)
 class SaveDataMic(SaveData):
     """SaveData device for MIC instrument."""
 
-    next_file_name = ""
-    current_file_name = ""
+    next_file_name: str = ""
+    current_file_name: str = ""
+    micdata_mountpath: str = ""
+    auto_mountpath: str = ""
+    storage_path: str = ""
 
     def __init__(self, *args, **kwargs):
         """Initialize SaveDataMic."""
         super().__init__(*args, **kwargs)
-        # self.update_next_file_name()
+        try:
+            self.update_next_file_name()
+        except Exception as e: 
+            logger.error(f"Fail to update next file name")
         logger.info(f"Next mda file is: {self.next_file_name}")
 
     def update_next_file_name(self):
         """Update the next file name based on scan number."""
         next_scan_number = str(self.get().next_scan_number).zfill(4)
         current_scan_number = str(self.get().next_scan_number - 1).zfill(4)
-        self.current_file_name = f"{self.get().base_name}{current_scan_number}.mda"
-        self.next_file_name = f"{self.get().base_name}{next_scan_number}.mda"
+        base_name = self.get().base_name
+        self.current_file_name = f"{base_name}{current_scan_number}.mda"
+        self.next_file_name = f"{base_name}{next_scan_number}.mda"
 
     def generate_det_path(self, det_name):
-        base_path = self.file_system.get()
-        det_path = os.path.join(base_path, det_name.upper())
+        base_path = self.get_auto_storage_path()
+        det_path = os.path.join(base_path, det_name)
         logger.info(f"Setting up {det_name} to have data saved at {det_path}")
-        if not os.path.exists(det_path):
-            try:
-                os.makedirs(det_path)
-                logger.info(f"Directory '{det_path}' created for {det_name}.")
-            except Exception as e:
-                logger.error(
-                    f"Failed to create directory '{det_path}' for {det_name}: {e}"
-                )
-                raise e
+        try:
+            os.makedirs(det_path, exist_ok=True)
+            logger.info(f"Directory '{det_path}' created for {det_name}.")
+        except Exception as e:
+            logger.error(f"Failed to create directory '{det_path}' for {det_name}: {e}")
+            raise e
         return det_path
     
     def advance_scan_number(self):
@@ -59,6 +63,18 @@ class SaveDataMic(SaveData):
         current_scan_number = str(self.get().next_scan_number - 1).zfill(4)
         self.current_file_name = f"{self.get().base_name}{current_scan_number}.mda"
         logger.info(f"Current mda file is: {self.current_file_name}")
+
+    def get_storage_path(self):
+        basepath = os.path.join(self.file_system.get(), self.subdirectory.get())
+        storage_path = basepath.replace(self.micdata_mountpath, self.storage_path)
+        storage_path = os.path.join(storage_path, '..')
+        return storage_path
+
+    def get_auto_storage_path(self):
+        basepath = os.path.join(self.file_system.get(), self.subdirectory.get())
+        storage_path = basepath.replace(self.micdata_mountpath, self.auto_mountpath)
+        storage_path = os.path.join(storage_path, '..')
+        return storage_path
 
     @value_setter("file_system")
     def set_file_system(self, path):

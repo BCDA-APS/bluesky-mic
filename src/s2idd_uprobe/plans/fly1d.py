@@ -38,8 +38,7 @@ import logging
 
 logger = logging.getLogger(__name__)
 
-savedata = oregistry["savedata"]
-sample = oregistry["sample"]
+
 
 def fly1d(
     samplename="smp1",
@@ -80,6 +79,11 @@ def fly1d(
     preamp1_on : bool, optional
         Whether to enable preamp1. Default is False.
     """
+
+    """Load ophyd objects"""
+    savedata = oregistry["savedata"]
+    sample = oregistry["sample"]
+
 
     validate_scan_parameters(width=width, stepsize_x=stepsize_x, dwell_ms=dwell_ms)
     x_center = x_center if x_center is not None else (round(sample.x.position - width / 2, 2))

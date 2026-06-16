@@ -8,7 +8,33 @@ import logging
 logger = logging.getLogger(__name__)
 
 
-class DeltaTauPiezoBase(PVPositioner):
+class DeltaTauPVPositionerBase(PVPositioner):
+    """
+    Base PVPositioner with optional suppression of RunEngine-style stop calls.
+
+    Bluesky pause currently stops all moved PVPositioners with ``success=True``.
+    For Delta Tau fly motion we sometimes want to suppress the stop-signal write
+    on those pause-driven stops while preserving explicit failure/abort stops.
+    """
+
+    suppress_re_stop = False
+
+    def set_re_stop_suppressed(self, suppressed: bool = True):
+        self.suppress_re_stop = bool(suppressed)
+
+    def stop(self, *, success=False):
+        if self.suppress_re_stop and success:
+            logger.warning(
+                "Suppressing RE stop for %s success=%s stop_signal=%s",
+                self.name,
+                success,
+                getattr(getattr(self, "stop_signal", None), "pvname", None),
+            )
+            return
+        return super().stop(success=success)
+
+
+class DeltaTauPiezoBase(DeltaTauPVPositionerBase):
     """
     Base for Delta Tau piezo axes with custom move: re-command the move every
     1 second until setpoint and readback agree within tolerance (handles
@@ -19,8 +45,9 @@ class DeltaTauPiezoBase(PVPositioner):
 
     RETRY_INTERVAL = 1.0   # seconds to wait before re-commanding move
     TOTAL_TIMEOUT = 60.0   # max seconds before giving up
-    POLL_DT = 0.02         # seconds between done checks
+    POLL_DT = 0.1         # seconds between done checks
     tolerance = 0.01       # |setpoint - readback| must be <= this to be "done"
+    settle_time = 0.2      # When move is done, wait for this long before returning
 
     def move(self, position, **kwargs):
         status = Status(self)
@@ -34,10 +61,15 @@ class DeltaTauPiezoBase(PVPositioner):
 
     def _is_done(self):
         """Consider move done when setpoint and readback agree within tolerance."""
-        return abs(self.setpoint.get() - self.readback.get()) <= self.tolerance
+        if abs(self.setpoint.get() - self.readback.get()) <= self.tolerance:
+            time.sleep(self.settle_time)
+            return True
+        return False
 
     def _move_with_retry(self, position, status):
         start = time.monotonic()
+        self.setpoint.put(position)
+        logger.info(f"{self.name}: moving to {position}")
         while time.monotonic() - start < self.TOTAL_TIMEOUT:
             if self.done.get() == 0:
                 self.setpoint.put(position)
@@ -46,13 +78,13 @@ class DeltaTauPiezoBase(PVPositioner):
                 logger.warning(f"{self.name}: busy, skipping move to {position}")
             deadline = time.monotonic() + self.RETRY_INTERVAL
             while time.monotonic() < deadline:
+                time.sleep(self.POLL_DT)
                 if status.done:
                     # RunEngine set status via set_exception(RequestAbort) on abort
                     return
                 if self._is_done():
                     status.set_finished()
                     return
-                time.sleep(self.POLL_DT)
             # 1 sec elapsed and not done — re-command and loop
         status.set_exception(TimeoutError(
             f"{self.name}: move to {position} did not complete within "

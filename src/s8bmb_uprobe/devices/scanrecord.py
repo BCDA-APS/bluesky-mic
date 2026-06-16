@@ -1,7 +1,7 @@
 from mic_common.devices.scan_record import NewScanRecord
 from mic_common.devices.save_data import SaveDataMic
 from mic_common.utils.scan_monitor import execute_scan_2d, execute_scan_1d, execute_snake_2d
-from ophyd import Component, Device
+from ophyd import Component, Device, EpicsSignal
 from ophyd.device import Staged
 import bluesky.plan_stubs as bps
 import logging
@@ -11,6 +11,9 @@ logger = logging.getLogger(__name__)
 class FlyScanRecord(Device):
     inner = Component(NewScanRecord, ":FscanH", kind="config", labels=("scanrecord", "inner"))
     outer = Component(NewScanRecord, ":Fscan1", kind="config", labels=("scanrecord", "outer"))
+    abort_signal = Component(EpicsSignal, ":FAbortScans.PROC")
+    pause_signal = Component(EpicsSignal, ":FscanPause.VAL")
+    wait = Component(EpicsSignal, ":Fscan1.WAIT")
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -33,10 +36,10 @@ class FlyScanRecord(Device):
             #     outer_triggers.append(det.fileplugin.capture.pvname.replace("_RBV", ""))
             #     outer_triggers.append(det.cam.acquire.pvname.replace("_RBV", ""))
             if det.name == "sis3820":
-                # inner_triggers.append(detproxy.pvname)
+                inner_triggers.append(detproxy.pvname)
                 inner_triggers.append(det.erase_start.pvname)
 
-        outer_triggers.append(detproxy.pvname)
+        # outer_triggers.append(detproxy.pvname)
         outer_triggers.append(self.inner.execute_scan.pvname)
         num_det_triggers = 4
         outer_triggers += [''] * (num_det_triggers - len(outer_triggers))
@@ -84,11 +87,11 @@ class FlyScanRecord(Device):
             
     def execute2Dfly(self, scan_name="", sample=None, print_outter_msg=True):
         yield from execute_scan_2d(
-            self.inner, self.outer, sample=sample, scan_name=scan_name, print_outter_msg=print_outter_msg
+            self.inner, self.outer, self.abort_signal, sample=sample, scan_name=scan_name, print_outter_msg=print_outter_msg
         )
     def executeSnake2Dfly(self, scan_name="", sample=None, print_outter_msg=True):
         yield from execute_snake_2d(
-            self.inner, self.outer, sample=sample, scan_name=scan_name, print_outter_msg=print_outter_msg
+            self.inner, self.outer, self.abort_signal, sample=sample, scan_name=scan_name, print_outter_msg=print_outter_msg
         )   
 
 class StepScanRecord(Device):

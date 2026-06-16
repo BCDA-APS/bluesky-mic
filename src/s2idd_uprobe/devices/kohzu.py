@@ -7,10 +7,14 @@ from mic_common.utils.device_utils import mode_setter
 from mic_common.utils.device_utils import value_setter
 from ophyd import Component
 from ophyd import Device
-from ophyd import EpicsSignal
+from ophyd import EpicsSignal, EpicsSignalRO
+from bnp.devices.deltaTau import DeltaTauPiezoBase
+import logging
+
+logger = logging.getLogger(__name__)    
 
 
-class KohzuMono(Device):
+class KohzuMono(DeltaTauPiezoBase):
     """
     KohzuMono device for controlling monochromator energy and mode in Bluesky workflows.
 
@@ -18,29 +22,40 @@ class KohzuMono(Device):
     methods for controlling energy, mode, and related PVs for the id2_d instrument.
     """
 
-    energy = Component(EpicsSignal, "BraggEAO")
-    energy_rbv = Component(EpicsSignal, "BraggERdbkAO")
+    user_setpoint = Component(EpicsSignal, "BraggEAO.VAL")
+    user_readback = Component(EpicsSignalRO, "BraggERdbkAO")
+    setpoint = Component(EpicsSignal, "BraggEAO.VAL")
+    readback = Component(EpicsSignalRO, "BraggERdbkAO")
     mode = Component(EpicsSignal, "KohzuModeBO")
-    mode2 = Component(EpicsSignal, "KohzuMode2MO")
-    move = Component(EpicsSignal, "KohzuPutBO")
-    moving = Component(EpicsSignal, "KohzuMoving")
+    done = Component(EpicsSignalRO, "KohzuMoving")
+    speed_control = Component(EpicsSignal, "KohzuSpeedCtrl")
+    POLL_DT = 0.3         # seconds between done checks
+    tolerance = 0.0003
+    
 
-    @value_setter("energy")
-    def set_energy(energy: float) -> None:
-        """Set the energy value for the monochromator."""
-        pass
+    def _is_done(self):
+        # Example: require both tolerance and hardware done signal
+        pos_done = abs(self.setpoint.get() - self.readback.get()) <= self.tolerance
+        logger.debug(f"pos_done: {pos_done}, setpoint: {self.setpoint.get()}, readback: {self.readback.get()}")
+        return pos_done
 
-    @value_setter("move")
-    def set_move(move: float) -> None:
-        """Set the move command for the monochromator."""
-        pass
+    def enable_speed_control(self):
+        """Enable the speed control for the monochromator."""
+        yield from bps.mv(self.speed_control, 1)
+    
+    def disable_speed_control(self):
+        """Disable the speed control for the monochromator."""
+        yield from bps.mv(self.speed_control, 0)
+    
+    def set_auto_mode(self):
+        """Set the mode for the monochromator."""
+        yield from bps.mv(self.mode, 1)
+    
+    def set_manual_mode(self):
+        """Set the mode for the monochromator."""
+        yield from bps.mv(self.mode, 0)
 
-    @mode_setter("mode")
+    @value_setter("mode")
     def set_mode(mode: str) -> None:
         """Set the mode for the monochromator."""
-        pass
-
-    @mode_setter("mode2")
-    def set_mode2(mode2: str) -> None:
-        """Set the secondary mode for the monochromator."""
         pass

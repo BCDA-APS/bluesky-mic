@@ -79,6 +79,7 @@ try:
     sd = oregistry["savedata"]
     sd.micdata_mountpath = iconfig.get("SAVE_DATA")["MOUNT_PATH"]
     sd.storage_path = iconfig.get("STORAGE")["MICDATA_MOUNTPATH"]
+    sd.auto_mountpath = iconfig.get("STORAGE")["AUTO_MOUNTPATH"]
 except KeyError:
     logger.info("savedata not found, skipping")
 

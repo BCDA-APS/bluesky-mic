@@ -1,5 +1,9 @@
 # Guarneri-style device YAML configuration
 
+apstools.devices.aps_machine.ApsMachineParametersDevice:
+- name: ring
+  labels: ["storebeam"]
+
 s2idd_uprobe.devices.scanrecord.CombinedScanRecord:
 - name: scanrecord
   # prefix: 2iddfS1
@@ -21,18 +25,23 @@ s2idd_uprobe.devices.motor.Motor:
   prefix: 2idd:m44
   labels: ["motor"]
 
+s2idd_uprobe.devices.motor.Motor:
+- name: osa_y
+  prefix: 2idd:m12
+  labels: ["motor"]
+
 ophyd.EpicsSignal:
 - name: fscanh_samx
-  write_pv: 2iddfS1:ExtrauserCalc13.A
-  read_pv: 2iddfS1:ExtrauserCalc13.A
+  write_pv: 2idd:ExtrauserCalc1.A
+  read_pv: 2idd:ExtrauserCalc1.A
   labels: ["usercalc"]
 - name: fscanh_dwell
   write_pv: 2idd:Flyscans:Setup:DwellTime
   read_pv: 2idd:Flyscans:Setup:DwellTime
   labels: ["usercalc"]
-- name: fly_calc
-  write_pv: 2iddfS1:userCalcEnable.VAL
-  read_pv: 2iddfS1:userCalcEnable.VAL
+- name: fly_calc10
+  write_pv: 2idd:userCalc10Enable
+  read_pv: 2idd:userCalc10Enable
   labels: ["usercalc"]
 - name: usercalc_samx_speed
   write_pv: 2iddfS1:userCalc8Enable
@@ -46,6 +55,10 @@ ophyd.EpicsSignal:
   write_pv: 2idd:scaler1.CNT
   read_pv: 2idd:scaler1.CNT
   labels: ["signal"]
+- name: solarsim_shutter
+  write_pv: 2idsft:u1:Bd8
+  read_pv: 2idsft:u1:Bd8
+  labels: ['signal']
 
 mic_common.devices.sis3820.SIS3820:
 - name: sis3820
@@ -66,3 +79,8 @@ s2idd_uprobe.devices.tetramm.MicTetrAMM:
 - name: tmm1
   prefix: 2iddtmm1
   labels: ["tetramm"]
+
+# s2idd_uprobe.user.keithley2400_moxa.Keithley2400:
+# - name: keithley
+#   prefix: ""
+#   labels: ["keithley"]

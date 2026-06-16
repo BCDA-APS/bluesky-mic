@@ -4,13 +4,10 @@
 # - { creator: ophyd.sim.motor, name: sim_motor }
 # - { creator: ophyd.sim.noisy_det, name: sim_det }
 
-# mic_common.devices.scan_record.NewScanRecord:
-# - name: fscan_inner
-#   prefix: 9idbBNP:scan1
-#   labels: ["scanrecord"]
-# - name: fscan_outer
-#   prefix: 9idbBNP:scan2
-#   labels: ["scanrecord"]
+
+apstools.devices.aps_machine.ApsMachineParametersDevice:
+- name: ring
+  labels: ["storebeam"]
 
 bnp.devices.scanrecord.FlyScanRecord:
 - name: scanrecord
@@ -21,6 +18,16 @@ bnp.devices.sample.Sample:
 - name: sample
   prefix: 9idbTAU
   labels: ["sample"]
+
+bnp.devices.sample.SampleCoorOffset:
+- name: sample_coor_offset
+  prefix: 9idbTAU
+  labels: ["sample_coor_offset"]
+
+bnp.devices.bda.BDA:
+- name: bda
+  prefix: 9idbTAU:UA
+  labels: ["bda"]
 
 mic_common.devices.save_data.SaveDataMic:
 - name: savedata
@@ -37,10 +44,15 @@ mic_common.devices.xmap.XMAP:
   prefix: 9idbXMAP
   labels: ["xmap"]
 
-bnp.devices.xspress3.Xspress3:
+# mic_common.devices.eiger500k.Eiger2ID:
+# - name: eiger
+#   prefix: 2iddEGR
+#   labels: ["eiger2id"]
+
+bnp.devices.xspress3.BNPXspress3:
 - name: xp3
   prefix: bnpXP3
-  labels: ["xsp3"]
+  labels: ["xp3"]
 
 ophyd.EpicsSignal:
 - name: fly_dwell
@@ -59,5 +71,4 @@ ophyd.EpicsSignal:
 #   write_pv: 9idbTAU:SM:Ps:Busy
 #   read_pv: 9idbTAU:SM:Ps:Busy
 #   labels: ["signal"]
-
 

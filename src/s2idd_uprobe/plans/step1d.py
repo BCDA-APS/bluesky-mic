@@ -17,24 +17,26 @@ import numpy as np
 import logging
 from mic_common.utils.timer_decorator import loop_timer_context
 from s2idd_uprobe.utils.param_capture import capture_params
-from s2idd_uprobe.utils.nexus_bps_func import save_ophyd_value
+# from s2idd_uprobe.utils.nexus_bps_func import save_ophyd_value
 
 logger = logging.getLogger(__name__)
 
 
-samx = oregistry["samx"]
-samy = oregistry["samy"]
-samz = oregistry["samz"]
+# samx = oregistry["samx"]
+# samy = oregistry["samy"]
+# samz = oregistry["samz"]
+sample = oregistry["sample"]
 savedata = oregistry["savedata"]
+flycalc = oregistry['fly_calc10']
 
 
 def get_positioner(positioner):
     if positioner == "samx":
-        return samx
+        return sample.x
     elif positioner == "samy":
-        return samy
+        return sample.y
     elif positioner == "samz":
-        return samz
+        return sample.z
     else:
         raise ValueError(f"Positioner {positioner} not supported")
 
@@ -54,8 +56,12 @@ def step1d(
     """Capture the input plan parameters"""
     plan_args = capture_params(step1d, **locals())
 
-    """Disable usercalc"""
-    yield from disable_usercalc()
+    # """Disable usercalc"""
+    # yield from disable_usercalc()
+     """Disable the usercalc that used in scan record"""
+    # yield from disable_usercalc()
+    if flycalc.value == 0:
+        yield from bps.mv(flycalc, 1)
 
     """Get the positioner ophyd object"""
     pos_ophyd = get_positioner(positioner)
@@ -71,8 +77,9 @@ def step1d(
     pos_arr = np.arange(center - length / 2, center + length / 2, stepsize)
     yield from bps.mv(pos_ophyd, pos_arr[0])
     if positioner == "samx":
-        x_motor_retrace = pos_ophyd.get_max_velocity()
-        yield from bps.mv(pos_ophyd.velocity, x_motor_retrace)
+        sample.x.set_speed(sample.x.get_max_velocity())
+        # x_motor_retrace = pos_ophyd.get_max_velocity()
+        # yield from bps.mv(pos_ophyd.velocity, x_motor_retrace)
 
     """Setup detectors and file I/O"""
     total_pts = len(pos_arr)

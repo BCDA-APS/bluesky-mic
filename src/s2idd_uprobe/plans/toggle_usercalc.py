@@ -19,15 +19,19 @@ logger = logging.getLogger(__name__)
 logger.info(__file__)
 
 
-usercalcs = {
-    "fly_calc": oregistry["fly_calc"],
-}
-
 
 def disable_usercalc():
     """
     Disable the selected usercalc found in the iconfig.yml
     """
+
+    usercalcs = {
+        "fly_calc10": oregistry["fly_calc10"],
+        # "fly_calc2": oregistry["fly_calc2"],
+        # "fly_calc3": oregistry["fly_calc3"],
+        # "fly_calc4": oregistry["fly_calc4"],
+    }
+
     for usercalc_name, usercalc_pv in usercalcs.items():
         # signal = EpicsSignal(usercalc_pv, name=usercalc_name)
         logger.info(f"Disabling {usercalc_name}: {usercalc_pv.pvname}")
@@ -38,6 +42,14 @@ def enable_usercalc():
     """
     Enable the selected usercalc found in the iconfig.yml
     """
+
+    usercalcs = {
+        "fly_calc10": oregistry["fly_calc10"],
+        # "fly_calc2": oregistry["fly_calc2"],
+        # "fly_calc3": oregistry["fly_calc3"],
+        # "fly_calc4": oregistry["fly_calc4"],
+    }
+
     for usercalc_name, usercalc_pv in usercalcs.items():
         # signal = EpicsSignal(usercalc_pv, name=usercalc_name)
         logger.info(f"Enabling {usercalc_name}: {usercalc_pv.pvname}")

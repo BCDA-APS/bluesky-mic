@@ -29,8 +29,9 @@ STARTUP_COMMAND="${PROCESS} --config=${QS_CONFIG_YML} --user-group-permissions=$
 # internal configuration below
 
 # echo "PROCESS=${PROCESS}"
-if [ ! -f $(which "${PROCESS}") ]; then
-    echo "PROCESS '${PROCESS}': file not found. CONDA_PREFIX='${CONDA_PREFIX}'"
+PROCESS_PATH=$(command -v "${PROCESS}" 2>/dev/null)
+if [ -z "${PROCESS_PATH}" ] || [ ! -x "${PROCESS_PATH}" ]; then
+    echo "PROCESS '${PROCESS}': command not found. CONDA_PREFIX='${CONDA_PREFIX}'"
     exit 1
 fi
 
@@ -41,7 +42,7 @@ fi
 
 if [ "${DATABROKER_CATALOG}" == "" ]; then
     if [ -f "${ICONFIG_YML}" ]; then
-        DATABROKER_CATALOG=$(grep DATABROKER_CATALOG "${ICONFIG_YML}" | awk '{print $NF}')
+        DATABROKER_CATALOG=$(awk '/^DATABROKER_CATALOG:/ {print $NF; exit}' "${ICONFIG_YML}")
         # echo "Using catalog ${DATABROKER_CATALOG}"
     fi
 fi

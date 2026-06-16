@@ -1,0 +1,138 @@
+plans:
+  fly2d_scanrecord:
+    baseline:
+      - ring
+      - sample
+      - scanrecord_fly
+      - kohzu_mono
+      - sis3820
+    conditional_detectors:
+      xrf_on: xrf
+      preamp1_on: tmm1
+
+  fly3d_xanes_scanrecord:
+    baseline:
+      - ring
+      - sample
+      - scanrecord_fly
+      - kohzu_mono
+      - sis3820
+    conditional_detectors:
+      xrf_on: xrf
+      preamp1_on: tmm1
+
+  step1d_scanrecord:
+    baseline:
+      - ring
+      - sample
+      - scanrecord_step
+      - kohzu_mono
+      - scaler_count
+    conditional_detectors:
+      xrf_on: xrf
+      preamp1_on: tmm1
+
+  xanes_1d_linear:
+    baseline:
+      - ring
+      - sample
+      - scanrecord_step
+      - kohzu_mono
+      - scaler_count
+    conditional_detectors:
+      xrf_on: xrf
+      preamp1_on: tmm1
+
+  xanes_1d_nonlinear_step:
+    baseline:
+      - ring
+      - sample
+      - scanrecord_step
+      - kohzu_mono
+      - scaler_count
+    conditional_detectors:
+      xrf_on: xrf
+      preamp1_on: tmm1
+
+devices:
+  ring:
+    category: storebeam
+    include:
+      - current
+      - operating_mode
+      - shutter_status
+
+  sample:
+    category: motion
+    include:
+      - x.user_setpoint
+      - x.user_readback
+      - x.motor_is_moving
+      - y.user_setpoint
+      - y.user_readback
+      - y.motor_is_moving
+      - z.user_setpoint
+      - z.user_readback
+      - z.motor_is_moving
+
+  scanrecord_fly:
+    category: scanrecord
+    include:
+      - inner.number_points
+      - inner.current_point
+      - inner.execute_scan
+      - inner.scan_phase
+      - outer.number_points
+      - outer.current_point
+      - outer.execute_scan
+      - outer.scan_phase
+      - pause_signal
+      - wait
+
+  scanrecord_step:
+    category: scanrecord
+    include:
+      - inner.number_points
+      - inner.current_point
+      - inner.execute_scan
+      - inner.scan_phase
+      - inner.scan_busy
+
+  kohzu_mono:
+    category: motion
+    include:
+      - user_setpoint
+      - user_readback
+      - motor_is_moving
+
+  sis3820:
+    category: detector
+    include:
+      - acquiring
+      - acquire_mode
+      - count_on_start
+      - current_channel
+      - num_ch_used
+      - elapsed_real
+
+  scaler_count:
+    category: signal
+
+  xrf:
+    category: detector
+    include:
+      - cam.acquire
+      - cam.erase_start
+      - fileplugin.capture
+      - fileplugin.write_file
+      - fileplugin.file_name
+      - fileplugin.num_capture
+
+  tmm1:
+    category: detector
+    include:
+      - cam.acquire
+      - fileplugin.capture
+      - fileplugin.write_file
+      - fileplugin.file_name
+      - fileplugin.num_capture

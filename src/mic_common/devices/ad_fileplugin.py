@@ -61,33 +61,18 @@ class DetBase:
         fileplugin_path_new = fileplugin_path_split[0] + self.delimiter + det_path_split[-1]
         return fileplugin_path_new
 
-    def generate_det_filepath(self, upper_det_foldername=True):
+    def generate_det_filepath(self, upper_det_foldername = False):
         """
         Generate the file path and or create the directory
         for the EPICS AreaDetector filewriter.
         """
-        basepath = self.savedata.file_system.get()
-        basepath = basepath.replace("//micdata/data1/", self.micdata_mountpath)
-        if upper_det_foldername:
-            det_path = os.path.join(basepath, self.det_foldername.upper())
-        else:
-            det_path = os.path.join(basepath, self.det_foldername)
-        logger.info(f"Setting up {self.det_foldername} to have data saved at {det_path}")
-        if not os.path.exists(det_path) and "W:" not in det_path:
-            try:
-                os.makedirs(det_path, exist_ok=True)
-                logger.info(f"Directory '{det_path}' created for {self.det_foldername}.")
-                return det_path
-            except Exception as e:
-                logger.error(
-                    f"Failed to create directory '{det_path}' for {self.det_foldername}: {e}"
-                )
-                raise e
-        if det_path.startswith("W") and "W:" not in det_path:
-            det_path.replace("W", "W:")
-            return det_path
+        try:
+            det_path = self.savedata.generate_det_path(self.det_foldername)
+        except Exception as e:
+            logger.error(f"Failed to generate det path for {self.det_foldername}: {e}")
+            raise e
+        return det_path 
 
-        return det_path
 
     def config_file_writer(
         self,
@@ -139,7 +124,7 @@ class DetHDF5(DetBase, HDF5Plugin):
     def __init__(self, *args, **kwargs):
         """Initialize DetHDF5."""
         super().__init__(*args, **kwargs)
-        self.capture.put(0)
+        # self.capture.put(0)
 
 
 class DetNetCDF(DetBase, NetCDFPlugin):
@@ -148,4 +133,4 @@ class DetNetCDF(DetBase, NetCDFPlugin):
     def __init__(self, *args, **kwargs):
         """Initialize DetNetCDF."""
         super().__init__(*args, **kwargs)
-        self.capture.put(0)
+        # self.capture.put(0)
