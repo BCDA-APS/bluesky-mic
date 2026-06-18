@@ -24,8 +24,6 @@ s2idd_uprobe.devices.motor.Motor:
 - name: zp_z
   prefix: 2idd:m44
   labels: ["motor"]
-
-s2idd_uprobe.devices.motor.Motor:
 - name: osa_y
   prefix: 2idd:m12
   labels: ["motor"]
@@ -75,10 +73,10 @@ mic_common.devices.xmap.XMAP:
   prefix: 2iddXMAP
   labels: ["xmap"]
 
-s2idd_uprobe.devices.tetramm.MicTetrAMM:
-- name: tmm1
-  prefix: 2iddtmm1
-  labels: ["tetramm"]
+# s2idd_uprobe.devices.tetramm.MicTetrAMM:
+# - name: tmm1
+#   prefix: 2iddtmm1
+#   labels: ["tetramm"]
 
 # s2idd_uprobe.user.keithley2400_moxa.Keithley2400:
 # - name: keithley

@@ -1,9 +1,9 @@
 # Configuration file example for the ptycho-xrf workflow
 
 workflow : xrf
-experimentName :  2025-2_Kim
+experimentName :  blueskydm
 fit : roi,nnls,matrix
-filePath : 2idd_0430.mda
+filePath : 2idd_0009.mda
 # dataDir : None
 # nthreads : all
 quantifyWith : None

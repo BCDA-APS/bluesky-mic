@@ -76,6 +76,7 @@ class ScanMonitor:
         self.name = name
         self.execute_done = False
         self.outer_idle = False
+        self.has_outer_loop = False
 
     def pause(self):
         if self._pause_signal is not None and not self.pause_sent:
@@ -130,7 +131,10 @@ class ScanMonitor:
         return self.st
 
     def _finish_if_ready(self):
-        if self.scan_active and self.execute_done and self.outer_idle:
+        # 1D scans have no outer loop, so nothing ever sets ``outer_idle``;
+        # only gate on it when an outer loop is actually being monitored.
+        outer_ok = self.outer_idle or not self.has_outer_loop
+        if self.scan_active and self.execute_done and outer_ok:
             self.scan_active = False
             self.counter_active = False
             self.st.set_finished()
@@ -303,6 +307,7 @@ def execute_scan_2d(inner_scan, outter_scan, abort_signal, sample=None, print_ou
         name=f"{outter_scan.name}_monitor",
     )
     watcher.outter_print_msg = print_outter_msg
+    watcher.has_outer_loop = True
 
     logger.info("Done setting up scan, about to start scan")
     logger.info("Start executing scan")

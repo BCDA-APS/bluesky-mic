@@ -1,5 +1,6 @@
 from dm.proc_web_service.api.workflowProcApi import WorkflowProcApi
 from dm.common.utility.configurationManager import ConfigurationManager
+from dm import DmException
 from typing import Any
 import logging
 

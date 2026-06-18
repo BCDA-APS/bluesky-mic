@@ -150,6 +150,7 @@ if iconfig.get("KEITHLEY", {}).get("ENABLE", False):
 from .plans.fly2d_scanrecord import fly2d_scanrecord, fly3d_xanes_scanrecord
 from .plans.step1d_scanrecord import step1d_scanrecord, xanes_1d_linear, xanes_1d_nonlinear_step
 from .plans.timer import savedata, timer
+from .plans.movement import move_sample, move_zp_z
 from .plans.helper_funcs import set_samx_speed #, mov_osa_y, osa_in, osa_out, solarsim_on, solarsim_off
 # # from .plans.step2d import step2d
 # # from .plans.step1d import step1d

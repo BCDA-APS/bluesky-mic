@@ -24944,25 +24944,6 @@ existing_devices:
     is_movable: true
     is_readable: true
     module: ophyd.signal
-  tmm1:
-    classname: MicTetrAMM
-    components:
-      cam:
-        classname: MicTetrAMMBase
-        is_flyable: false
-        is_movable: false
-        is_readable: true
-        module: s2idd_uprobe.devices.tetramm
-      fileplugin:
-        classname: DetHDF5
-        is_flyable: false
-        is_movable: false
-        is_readable: true
-        module: mic_common.devices.ad_fileplugin
-    is_flyable: false
-    is_movable: false
-    is_readable: true
-    module: s2idd_uprobe.devices.tetramm
   usercalc_samx_speed:
     classname: EpicsSignal
     is_flyable: false
@@ -25079,6 +25060,139 @@ existing_devices:
     is_movable: false
     is_readable: true
     module: mic_common.devices.xmap
+  zp_z:
+    classname: Motor
+    components:
+      acceleration:
+        classname: EpicsSignal
+        is_flyable: false
+        is_movable: true
+        is_readable: true
+        module: ophyd.signal
+      direction_of_travel:
+        classname: EpicsSignal
+        is_flyable: false
+        is_movable: true
+        is_readable: true
+        module: ophyd.signal
+      high_limit_switch:
+        classname: EpicsSignalRO
+        is_flyable: false
+        is_movable: true
+        is_readable: true
+        module: ophyd.signal
+      high_limit_travel:
+        classname: EpicsSignal
+        is_flyable: false
+        is_movable: true
+        is_readable: true
+        module: ophyd.signal
+      home_forward:
+        classname: EpicsSignal
+        is_flyable: false
+        is_movable: true
+        is_readable: true
+        module: ophyd.signal
+      home_reverse:
+        classname: EpicsSignal
+        is_flyable: false
+        is_movable: true
+        is_readable: true
+        module: ophyd.signal
+      low_limit_switch:
+        classname: EpicsSignalRO
+        is_flyable: false
+        is_movable: true
+        is_readable: true
+        module: ophyd.signal
+      low_limit_travel:
+        classname: EpicsSignal
+        is_flyable: false
+        is_movable: true
+        is_readable: true
+        module: ophyd.signal
+      max_velocity:
+        classname: EpicsSignal
+        is_flyable: false
+        is_movable: true
+        is_readable: true
+        module: ophyd.signal
+      motor_done_move:
+        classname: EpicsSignalRO
+        is_flyable: false
+        is_movable: true
+        is_readable: true
+        module: ophyd.signal
+      motor_egu:
+        classname: EpicsSignal
+        is_flyable: false
+        is_movable: true
+        is_readable: true
+        module: ophyd.signal
+      motor_is_moving:
+        classname: EpicsSignalRO
+        is_flyable: false
+        is_movable: true
+        is_readable: true
+        module: ophyd.signal
+      motor_stop:
+        classname: EpicsSignal
+        is_flyable: false
+        is_movable: true
+        is_readable: true
+        module: ophyd.signal
+      offset_freeze_switch:
+        classname: EpicsSignal
+        is_flyable: false
+        is_movable: true
+        is_readable: true
+        module: ophyd.signal
+      resolution:
+        classname: EpicsSignal
+        is_flyable: false
+        is_movable: true
+        is_readable: true
+        module: ophyd.signal
+      set_use_switch:
+        classname: EpicsSignal
+        is_flyable: false
+        is_movable: true
+        is_readable: true
+        module: ophyd.signal
+      user_offset:
+        classname: EpicsSignal
+        is_flyable: false
+        is_movable: true
+        is_readable: true
+        module: ophyd.signal
+      user_offset_dir:
+        classname: EpicsSignal
+        is_flyable: false
+        is_movable: true
+        is_readable: true
+        module: ophyd.signal
+      user_readback:
+        classname: EpicsSignalRO
+        is_flyable: false
+        is_movable: true
+        is_readable: true
+        module: ophyd.signal
+      user_setpoint:
+        classname: EpicsSignal
+        is_flyable: false
+        is_movable: true
+        is_readable: true
+        module: ophyd.signal
+      velocity:
+        classname: EpicsSignal
+        is_flyable: false
+        is_movable: true
+        is_readable: true
+        module: ophyd.signal
+    is_flyable: false
+    is_movable: true
+    is_readable: true
+    module: s2idd_uprobe.devices.motor
 existing_plans:
   fly2d_scanrecord:
     description: 2D Bluesky plan that drives the x- and y- sample motors in fly mode
@@ -25337,6 +25451,36 @@ existing_plans:
         name: POSITIONAL_OR_KEYWORD
         value: 1
       name: preamp1_on
+    properties:
+      is_generator: true
+  move_sample:
+    module: s2idd_uprobe.plans.movement
+    name: move_sample
+    parameters:
+    - annotation:
+        type: '''str'''
+      kind:
+        name: POSITIONAL_OR_KEYWORD
+        value: 1
+      name: axis
+    - annotation:
+        type: '''float'''
+      kind:
+        name: POSITIONAL_OR_KEYWORD
+        value: 1
+      name: position
+    properties:
+      is_generator: true
+  move_zp_z:
+    module: s2idd_uprobe.plans.movement
+    name: move_zp_z
+    parameters:
+    - annotation:
+        type: '''float'''
+      kind:
+        name: POSITIONAL_OR_KEYWORD
+        value: 1
+      name: position
     properties:
       is_generator: true
   set_samx_speed:
