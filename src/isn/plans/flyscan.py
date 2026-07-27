@@ -19,8 +19,10 @@ softglue = oregistry["softglue"]
 softglue2 = oregistry["softglue2"]
 sample = oregistry["sample"]
 socketserver = oregistry["socketserver"]
+socketserver2 = oregistry["socketserver2"]
 savedata = oregistry["savedata"]
 eshutter = oregistry["eshutter"]
+fast_shutter = oregistry["fast_shutter"]
 
 iconfig = get_config()
 # softglue_outputs = iconfig.get("SOFTGLUE_OUTPUTS")
@@ -37,7 +39,7 @@ def flyscan(
     dy: float = 0.05, # in um, defaults to 50 nm
     y_npts: int | None = None,
     acquire_time: float = 50,  # in ms
-    det_dead: float = 1,  # in ms (detector dead time)
+    det_dead: float = 0.1,  # in ms (detector dead time)
     F: float = 0.9,  # Fraction of wave in straight line 0-1
     interferometer_per_pixel: int = 5, # Number of interferometry counts per image
     # interferometer_frequency: int = 1000,  # in Hz
@@ -124,11 +126,22 @@ def flyscan(
 
         logger.debug("Performing softglue cleaning.")
 
+        # --- Coupling softglue boards --- #
+
+        # softglue.io.fo5.put('enable')
+        # softglue.io.fo6.put('enable1')
+        # softglue.io.fo7.put('reset')
+        # softglue.io.fo8.put('ck1MHz')
+
+        # softglue2.io.fi9.put('enable')
+        # softglue2.io.fi10.put('enable1')
+        # softglue2.io.fi11.put('reset')
+        # softglue2.io.fi12.put('ck1MHz2')
+
         softglue.stop()
         softglue.reset()
-        softglue.clear_output_fields()
+        softglue.clear_output_fields(exception=[5, 6, 7, 8])
         softglue2.clear_output_fields()
-
 
         # --- Defining user clock (ckUser))--- #
 
@@ -141,7 +154,6 @@ def flyscan(
         # user_clock_N = int(1e7 / interferometer_frequency)
         # yield from mv(softglue.div_by_n_3.n, user_clock_N)
         softglue.div_by_n_3.n.put(user_clock_N)
-        softglue2.div_by_n_3.n.put(user_clock_N)
 
         logger.debug(f"Interferometry reading set at {1/(interferometry_period*1e-3) :0.3e} Hz")
 
@@ -163,6 +175,21 @@ def flyscan(
             softglue.gate_delay_1.width, acquire_time * 1e4,
             softglue2.gate_delay_1.in_signal, "ckIM",
             softglue2.gate_delay_1.width, acquire_time * 1e4,
+        )
+
+        # --- Setting up 2nd Softglue User Clock and Clear signals --- #
+
+        det_dead_sections = int(det_dead/5)
+
+        yield from mv(
+            softglue2.gate_delay_2.in_signal, "ckIM",
+            softglue2.gate_delay_2.out_signal, "ckUser",
+            softglue2.gate_delay_2.width, det_dead_sections * 1e4,
+            softglue2.gate_delay_2.delay, (acquire_time+1*det_dead_sections) * 1e4,
+            softglue2.gate_delay_3.in_signal, "ckIM",
+            softglue2.gate_delay_3.out_signal, "clear",
+            softglue2.gate_delay_3.width, det_dead_sections * 1e4,
+            softglue2.gate_delay_3.delay, (acquire_time+3*det_dead_sections) * 1e4,
         )
 
         # --- Defining waveform clock --- #
@@ -334,6 +361,12 @@ def flyscan(
         socketserver.trigger()
         yield from bps.sleep(1)
 
+        socketserver2.setup_flyscan_mode(hdf_images=interferometry_per_line)
+        socketserver2.stage()
+        yield from bps.sleep(1)
+        socketserver2.trigger()
+        yield from bps.sleep(1)
+
         # --- Arm detectors --- #
 
         yield from bps.checkpoint()
@@ -351,6 +384,25 @@ def flyscan(
             )
             detector.stage()
 
+        # # --- Coupling softglue boards --- #
+
+        # softglue.io.fo5.put('enable')
+        # softglue.io.fo6.put('enable1')
+        # softglue.io.fo7.put('reset')
+        # softglue.io.fo8.put('ck1MHz')
+
+        # softglue2.io.fi9.put('enable')
+        # softglue2.io.fi10.put('enable1')
+        # softglue2.io.fi11.put('reset')
+        # softglue2.io.fi12.put('ck1MHz2')
+
+        # --- Clearing 2nd softglue dma --- #
+
+        yield from mv(softglue2.dma.enable, 1)
+        yield from mv(softglue2.dma.clear_button, 1)
+        yield from mv(softglue2.dma.clear_buffer, 1)
+        yield from sleep(1)
+
         # --- Open shutter --- #
 
         yield from bps.open_run(md={"plan_args": plan_args})
@@ -362,6 +414,10 @@ def flyscan(
         yield from abs_set(eshutter, "open", wait=True)
 
         yield from bps.sleep(3)
+
+        fast_shutter.open()
+
+        yield from bps.sleep(0.1)
 
         # --- Start softglue --- #
 
@@ -381,6 +437,8 @@ def flyscan(
 
         yield from abs_set(eshutter, "close", wait=True)
 
+        fast_shutter.close()
+
         # --- Filling up DMA for socket server acquisition --- #
 
         logger.debug("Flushing the DMA")
@@ -389,7 +447,16 @@ def flyscan(
             softglue.scal_to_stream_1.flush.put("1!")
             yield from sleep(0.1)
 
+        # We leave sufficient time for the socket server to finish acquiring the last images before unstaging it
+        yield from sleep(2)
+
         socketserver.unstage()
+
+        for _ in range(11):
+            softglue2.scal_to_stream_1.flush.put("1!")
+            yield from sleep(0.1)
+
+        socketserver2.unstage()
         
 
         logger.debug("Returning to original positions.")
@@ -420,7 +487,7 @@ def flyscan(
         softglue.up_down_counter_1.load.put("1!")
         softglue.stop()
         softglue.reset()
-        softglue.clear_output_fields()
+        softglue.clear_output_fields(exception=[5, 6, 7, 8])
         # Redundant cleanup to ensure softglue is stopped and cleared.
 
         logger.debug("Performing softglue cleanup.")
@@ -428,4 +495,3 @@ def flyscan(
         yield from bps.close_run()
 
     yield from bpp.finalize_wrapper(fly(), cleanup())
-    # yield from fly()

@@ -122,9 +122,6 @@ else:
 
 # Experiment specific logic, device and plan loading. # Create the devices.
 make_devices(clear=False, file="config_devices.yml", device_manager=instrument)
-make_devices(clear=False, file="devices.yml", device_manager=instrument)
-
-
 # Assign softglue detector key map
 det_keymap = iconfig.get("SOFTGLUE_OUTPUTS")
 det_keymap2 = iconfig.get("SOFTGLUE2_OUTPUTS")
@@ -132,9 +129,21 @@ try:
     softglue = oregistry.find("softglue")
     softglue.det_keymap = det_keymap
     softglue2 = oregistry.find("softglue2")
-    softglue2.det_keymap = det_keymap
+    softglue2.det_keymap = det_keymap2
 except:
     logger.info("Softglue keymaps not found, detector key map not generated.")
+
+
+make_devices(clear=False, file="devices.yml", device_manager=instrument)
+
+# Assign shared-mount storage roots for Windows-hosted detector IOCs (e.g. Andor).
+win_storage = iconfig.get("WINDOWS_STORAGE", {})
+try:
+    from mic_common.devices.andor_fileplugin import WindowsHDF5
+    WindowsHDF5.linux_root = win_storage.get("LINUX_ROOT", "")
+    WindowsHDF5.windows_root = win_storage.get("WINDOWS_ROOT", "")
+except Exception:
+    logger.info("WINDOWS_STORAGE not configured; WindowsHDF5 roots left unset.")
 
 
 # Diffractometer utilities:
@@ -185,8 +194,27 @@ from .plans import *
 #         return None
 #     return savedata.file_system.get()
 
+
+## Suspenders and preprocessors
+
+
+from isn.suspenders.suspender import suspender, e_suspender
+# Suspender for Front End Shutter
+RE.install_suspender(suspender)
+# # Suspender for End Station Shutter
+# RE.install_suspender(e_suspender)
+logger.info('Suspenders installed. Remove if necessary.')
+
+from isn.utils.fast_shutter import fast_shutter_control
+RE.preprocessors.append(fast_shutter_control)
+logger.info('Fast Shutter enabled. Disable if necessary.')
+
+## Mictools functionality for simple integration with data processing
+
 from .utils.experiment_utils import load_experiment
 from .utils.acquire_time import set_acquire_time
+from .utils.hutch_light import light_switch
+from .utils.wax import wax
 
 # redefining logger to fix the issues that arise when we use the DM
 logger = logging.getLogger(__name__)

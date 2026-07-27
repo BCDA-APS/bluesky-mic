@@ -25,6 +25,7 @@ isn.devices.sample.Sample:
   aero_prefix: "19idAERO:"
   micronix_prefix: "19idMMC:"
   rtd_prefix: "19idTC:ADAM:"
+  vacuum_prefix: "19idVAC:"
   labels: ["baseline"]
 
 # isn.devices.micronix.Micronix:
@@ -79,7 +80,7 @@ isn.devices.bpm.MyBPM:
   horizontal_motor_prefix: "19idBDA:m6"
   labels: ["baseline"]
 
-- name: bpm_d
+- name: bpm_dtrigger
   quadem_prefix: "19idBPMD:T4U:"
   vertical_motor_prefix: "19idBDA:m13"
   horizontal_motor_prefix: "19idBDA:m14"
@@ -121,7 +122,7 @@ isn.devices.undulators.UndulatorPair:
 isn.devices.diffractometer.RobotArmDiffractometer:
 - name: psic
   prefix: ""
-#   # labels: ["baseline"]
+  labels: ["baseline"]
 
 isn.devices.kb.KB:
 - name: kb
@@ -171,6 +172,11 @@ isn.devices.ivm.Ivm:
   prefix: "19idIVM:"
   labels: ["baseline"]
 
+isn.devices.cryo.Cryo:
+- name: cryo
+  prefix: "19idACS:"
+  labels: ["baseline"]
+
 mic_common.devices.eiger.Eiger:
 - name: ptycho
   prefix: "19idPTYCHO:"
@@ -185,9 +191,20 @@ isn.devices.me7.VortexXspress37:
   prefix: "19idME7:"
   labels: ["detector"]
 
+- name: rayspec
+  prefix: "19idRAYSPEC:"
+  labels: ["detector"]
+
 isn.devices.socketserver.SocketServer:
 - name: socketserver
   prefix: "19idSGSocket:"
+
+- name: socketserver2
+  prefix: "19idSGSocket2:"
+
+isn.devices.andor.Andor:
+- name: andor
+  prefix: "XEOLANDOR:"
 
 isn.devices.hutch.HutchTemp:
 - name: hutch_temp
@@ -196,13 +213,18 @@ isn.devices.hutch.HutchTemp:
 isn.devices.filters.APSFilter:
 - name: filters
   prefix: "19idBC:filter:"
+
 isn.devices.rayspec.Rayspec:
-- name: rayspec
+- name: rayspec_base
   prefix: "19idACS:"
 
 isn.devices.labjack.IsnLabJackT8:
 - name: labjack_kb
   prefix: "19idKB:LJT8:1:"
+
+isn.devices.fast_shutter.FastShutter:
+- name: fast_shutter
+  prefix: ""
 
 
 # ### Strain devices ###

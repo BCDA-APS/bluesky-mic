@@ -132,6 +132,9 @@ def _interferometer_tracker(if_tracker, num=6):
 class SoftGlueZynq(Device):
     _status_type = DeviceStatus
 
+    # DMA components
+    dma = DynamicDeviceComponent(_dma_fields())
+
     ### Components
 
     io = DynamicDeviceComponent(_io_fields())
@@ -161,6 +164,10 @@ class SoftGlueZynq(Device):
     up_down_counter_2 = Component(UpDownCounter, ":SG:UpDnCntr-2_")
 
     gate_delay_1 = Component(GateDelay, ":SG:GateDly-1")
+    gate_delay_2 = Component(GateDelay, ":SG:GateDly-2")
+    gate_delay_3 = Component(GateDelay, ":SG:GateDly-3")
+    gate_delay_4 = Component(GateDelay, ":SG:GateDly-4")
+
 
     pulse_train = Component(PulseTrain, ":SG:plsTrn-1")
 
@@ -172,6 +179,14 @@ class SoftGlueZynq(Device):
     det_keymap = None
 
     ### Functions
+
+    def reset(self):
+        # Repeated it on purpose to clear ScalToStream 1 FIFO CT
+        # self.buffer_1.in_signal.put("1!")
+        # self.buffer_1.in_signal.put("1!")
+        self.buffer_1.in_signal.set("1!").wait()
+        self.buffer_1.in_signal.set("1!").wait()
+
 
     def enable_detector_trigger(self, detector_name, det_keymap=None):
         if det_keymap is None:
@@ -186,10 +201,15 @@ class SoftGlueZynq(Device):
         output_field = getattr(self.io, f"fo{trigger_output}")
         output_field.put("trigger")
 
-    def clear_output_fields(self):
-        for i in np.arange(1, 9, 1):
+    def clear_output_fields(self, exception=[]):
+        for i in [j for j in np.arange(1, 9, 1) if j not in exception]:
             output_field = getattr(self.io, f"fo{str(int(i))}")
             output_field.put("0")
+
+
+class SoftGlueZynqWithFastShutter(SoftGlueZynq):
+
+    pass
 
 
 class Dtacq(SoftGlueZynq):
@@ -200,8 +220,8 @@ class Dtacq(SoftGlueZynq):
         "if_tracker_3",
     )
 
-    # DMA components
-    dma = DynamicDeviceComponent(_dma_fields())
+    # # DMA components
+    # dma = DynamicDeviceComponent(_dma_fields())
 
     if_tracker_1 = DynamicDeviceComponent(_interferometer_tracker(1))
     if_tracker_2 = DynamicDeviceComponent(_interferometer_tracker(2))
@@ -279,13 +299,6 @@ class Dtacq(SoftGlueZynq):
     def resume(self):
         # self.and_1.in_2.put("1")
         self.and_1.in_2.set("1").wait()
-
-    def reset(self):
-        # Repeated it on purpose to clear ScalToStream 1 FIFO CT
-        # self.buffer_1.in_signal.put("1!")
-        # self.buffer_1.in_signal.put("1!")
-        self.buffer_1.in_signal.set("1!").wait()
-        self.buffer_1.in_signal.set("1!").wait()
 
     def reset_interferometers(self):
         yield from mv(self.buffer_2.in_signal, "1!")

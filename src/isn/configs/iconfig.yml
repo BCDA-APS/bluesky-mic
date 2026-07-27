@@ -59,13 +59,22 @@ SPEC_DATA_FILES:
 STORAGE:
   PATH: "/gdata/dm/19ID"
 
+### Storage roots for detectors whose IOC runs on a Windows host (e.g. Andor).
+### The shared micdata mount as seen from each machine: Bluesky (Linux) creates
+### the scan folder via LINUX_ROOT, and the IOC writes to the same folder via
+### WINDOWS_ROOT. Everything below the root (subdirectory/Raw/Scan_XXXX/DET) is
+### identical on both; only the root and the path separator differ.
+WINDOWS_STORAGE:
+  LINUX_ROOT: "/net/micdata/data1/isn"
+  WINDOWS_ROOT: 'Y:\isn'
+
 SOFTGLUE_OUTPUTS:
     PTYCHO: 1
     XRD: 2
     ME7: 3
     # RAYSPEC: 4
-    TETRAMM3: 4
-    TETRAMM1: 5
+    ANDOR: 4
+    TETRAMM1: 8
 
 SOFTGLUE2_OUTPUTS:
     # PTYCHO: 1
@@ -74,6 +83,7 @@ SOFTGLUE2_OUTPUTS:
     # # RAYSPEC: 4
     # TETRAMM3: 4
     # TETRAMM1: 5
+    FAST_SHUTTER: 12
 
 FILE_DELIMITER: "19ID"
 SCAN_OVERHEAD: 0.3

@@ -1,3 +1,5 @@
+import logging
+
 from ophyd import Component
 from ophyd import FormattedComponent
 from ophyd import Device
@@ -13,7 +15,7 @@ from ophyd.pseudopos import real_position_argument
 
 import numpy as np
 
-from time import sleep
+from time import sleep, time as _time
 from threading import Thread
 
 from apstools.devices.motor_mixins import EpicsMotorServoMixin
@@ -24,6 +26,9 @@ from ophyd.utils import InvalidState
 
 from apsbits.core.instrument_init import oregistry
 
+logger = logging.getLogger(__name__)
+logger.info(__file__)
+
 if_cap_tracker = oregistry['if_cap_tracker']
 
 class ServoMotor(EpicsMotorServoMixin, EpicsMotor):
@@ -31,12 +36,32 @@ class ServoMotor(EpicsMotorServoMixin, EpicsMotor):
     @property
     def enabled(self):
         return self.servo.get() in ("Enable")
-    
+
     def enable(self):
         self.servo.put("Enable")
 
     def disable(self):
         self.servo.put("Disable")
+
+    def set(self, value, **kwargs):
+        if not self.enabled:
+            self.enable()
+        return super().set(value, **kwargs)
+
+
+class FineYMotor(EpicsMotor):
+    """EpicsMotor for fine_y that disables sample.y before moving.
+
+    sample.y (ServoMotor) and fine_y share the same physical axis.
+    The servo must be off during fine_y motion to avoid the two
+    controllers fighting each other.
+    """
+
+    def set(self, value, **kwargs):
+        y_motor = self.parent.y
+        if y_motor.enabled:
+            y_motor.disable()
+        return super().set(value, **kwargs)
 
 
 class EpicsMotorWithTweak(EpicsMotor):
@@ -68,11 +93,88 @@ class CorTheta(Device):
         self._status_obj = Status(self)
         self._status_obj.set_finished()  # start in a done state
 
+    # @property
+    # def position(self):
+    #     """Current theta angle, proxied from the real motor readback."""
+    #     return self.parent.theta.user_readback.get()
+
+    # def read(self):
+    #     """Return current position so bluesky relative-move wrappers work."""
+    #     return {self.name: {'value': self.position, 'timestamp': _time()}}
+
     def set(self, theta_position):
         self._status_obj = Status(self)
         thread = Thread(target=self._move, args=(theta_position,), daemon=True)
         thread.start()
         return self._status_obj
+
+    def _calc_corrected_position(self):
+
+        sample = self.parent
+
+        # Internal helper to calculate the required correction
+
+        # 1. Read new cap values (already in mm via IfCapTracker.read())
+        if_cap_tracker.trigger().wait()
+        new_readings = if_cap_tracker.read()
+
+        for key in new_readings.keys():
+            new_readings[key]['value'] = 0
+
+        for _ in range(100):
+            if_cap_tracker.trigger().wait()
+            data = if_cap_tracker.read()
+            for key in new_readings.keys():
+                new_readings[key]['value'] += data[key]['value']
+
+        for key in new_readings.keys():
+            new_readings[key]['value'] /= 100
+
+
+        logger.info("New capacitance sensor readings (mm):")
+        for key, value in new_readings.items():
+            logger.info(f"  {key}: {value['value']}")
+
+        # 3. Compute deltas for the first 3 sensors
+        c1 = new_readings['if_cap_tracker_caps_cap1']['value'] - sample.cap1.get()
+        c2 = new_readings['if_cap_tracker_caps_cap2']['value'] - sample.cap2.get()
+        c3 = new_readings['if_cap_tracker_caps_cap3']['value'] - sample.cap3.get()
+        c5 = new_readings['if_cap_tracker_caps_cap5']['value'] - sample.cap5.get()
+        c6 = new_readings['if_cap_tracker_caps_cap6']['value'] - sample.cap6.get()
+        c7 = new_readings['if_cap_tracker_caps_cap7']['value'] - sample.cap7.get()
+
+        Dyscf = 127.291
+
+        logger.info(f"Capacitance sensor deltas (mm): c1={c1}, c2={c2}, c3={c3}")
+
+        # 4. Compute Dx and Dz
+        angles_rad = [np.radians(a) for a in self._CAP_ANGLES_DEG]
+
+        x_runout = -1*((-c1 * np.cos(angles_rad[0])
+                        -c2 * np.cos(angles_rad[1])
+                        -c3 * np.cos(angles_rad[2])) / 3)
+
+        x_wobble = -1*((c7 - c5) * Dyscf/71)
+
+        logger.info(f"X stage corrections (mm): Runout={x_runout}, Wobble={x_wobble}")
+
+        z_runout = -1*((-c1 * np.sin(angles_rad[0])
+                        -c2 * np.sin(angles_rad[1])
+                        -c3 * np.sin(angles_rad[2])) / 3)
+
+        z_wobble = -1*((c6-(c5 + c7)/2) * Dyscf/35.5)
+
+        logger.info(f"Z stage corrections (mm): Runout={z_runout}, Wobble={z_wobble}")
+
+        Dx = x_runout + x_wobble
+        
+        Dz = z_runout + z_wobble
+        
+        logger.info(f"Calculated corrections (mm): Dx={Dx}, Dz={Dz}")
+
+        return Dx, Dz
+
+
 
     def _move(self, theta_position):
         try:
@@ -87,43 +189,24 @@ class CorTheta(Device):
             # 1. Move theta and wait for completion
             status_wait(sample.theta.set(theta_position))
 
-            # 2. Read new cap values (already in mm via IfCapTracker.read())
-            if_cap_tracker.trigger().wait()
-            new_readings = if_cap_tracker.read()
+            # We repeat the measurement three times as sometimes the first reading is not correct.
+            Dx, Dz = self._calc_corrected_position()
+            Dx, Dz = self._calc_corrected_position()
+            Dx, Dz = self._calc_corrected_position()
 
-            print("New capacitance sensor readings (mm):")
-            for key, value in new_readings.items():
-                print(f"  {key}: {value['value']}")
+            # 3. Capture current X, Z positions and calculate absolute position.
 
-            # 3. Compute deltas for the first 3 sensors
-            c1 = new_readings['if_cap_tracker_caps_cap1']['value'] - sample.cap1.get()
-            c2 = new_readings['if_cap_tracker_caps_cap2']['value'] - sample.cap2.get()
-            c3 = new_readings['if_cap_tracker_caps_cap3']['value'] - sample.cap3.get()
-            c5 = new_readings['if_cap_tracker_caps_cap5']['value'] - sample.cap5.get()
-            c6 = new_readings['if_cap_tracker_caps_cap6']['value'] - sample.cap6.get()
-            c7 = new_readings['if_cap_tracker_caps_cap7']['value'] - sample.cap7.get()
+            Xi = sample.x_initial.get()
+            Zi = sample.z_initial.get()
 
-            Dyscf = 127.291
-
-            print(f"Capacitance sensor deltas (mm): c1={c1}, c2={c2}, c3={c3}")
-
-            # 4. Compute Dx and Dz
-            angles_rad = [np.radians(a) for a in self._CAP_ANGLES_DEG]
-            Dx = (-c1 * np.cos(angles_rad[0])
-                  - c2 * np.cos(angles_rad[1])
-                  - c3 * np.cos(angles_rad[2])) / 3 + (c7 - c5) * Dyscf/71
-            
-            Dz = (-c1 * np.sin(angles_rad[0])
-                  - c2 * np.sin(angles_rad[1])
-                  - c3 * np.sin(angles_rad[2])) / 3 - (c6) * Dyscf/35.5
-            
-            print(f"Calculated corrections (mm): Dx={Dx}, Dz={Dz}")
+            Xf = Xi + Dx
+            Zf = Zi + Dz
 
             # 5. Move x by Dx (relative), wait
-            status_wait(sample.x.set(sample.x.user_readback.get() + Dx))
+            status_wait(sample.x.set(Xf))
 
             # 6. Move z by Dz (relative), wait
-            status_wait(sample.z.set(sample.z.user_readback.get() + Dz))
+            status_wait(sample.z.set(Zf))
 
             # 7. Mark the outer status done
             self._finish_status()
@@ -175,7 +258,9 @@ class Sample(Device):
     temp_z = FormattedComponent(EpicsSignalRO, "{rtd_prefix}"+"AI2.VAL")
     temp_theta = FormattedComponent(EpicsSignalRO, "{rtd_prefix}"+"AI3.VAL")
 
-    fine_y = FormattedComponent(EpicsMotor, "{aero_prefix}"+"SM1")
+    vacuum = FormattedComponent(EpicsSignalRO, "{vacuum_prefix}"+"cc10_vs:sc1.VAL")
+
+    fine_y = FormattedComponent(FineYMotor, "{aero_prefix}"+"SM1")
 
     analog_on = FormattedComponent(EpicsSignal, "{aero_prefix}"+"userStringSeq2.PROC")
     analog_off = FormattedComponent(EpicsSignal, "{aero_prefix}"+"userStringSeq1.PROC")
@@ -202,10 +287,11 @@ class Sample(Device):
     y_initial = Component(Signal, name='y_initial', kind='config', value=0.0)
     z_initial = Component(Signal, name='z_initial', kind='config', value=0.0)
 
-    def __init__(self, aero_prefix, micronix_prefix, rtd_prefix, *args, **kwargs):
+    def __init__(self, aero_prefix, micronix_prefix, rtd_prefix, vacuum_prefix, *args, **kwargs):
         self.aero_prefix = aero_prefix
         self.micronix_prefix = micronix_prefix
         self.rtd_prefix = rtd_prefix
+        self.vacuum_prefix = vacuum_prefix
         self._initial_position_captured = False
         super().__init__(*args, **kwargs)
     
@@ -240,6 +326,19 @@ class Sample(Device):
         # --- capacitance sensors ---
         if_cap_tracker.trigger().wait()
         readings = if_cap_tracker.read()
+
+        for key in readings.keys():
+            readings[key]['value'] = 0
+
+        for _ in range(100):
+            if_cap_tracker.trigger().wait()
+            data = if_cap_tracker.read()
+            for key in readings.keys():
+                readings[key]['value'] += data[key]['value']
+
+        for key in readings.keys():
+            readings[key]['value'] /= 100
+
         for i in range(1, 8):
             key = f'if_cap_tracker_caps_cap{i}'
             getattr(self, f'cap{i}').put(readings[key]['value'])

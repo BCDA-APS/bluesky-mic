@@ -564,8 +564,8 @@ class VortexXspress37(Trigger, DetectorBase):
         # self.setup_manual_trigger()
         # self.save_images_off()
         # self.auto_save_off()
-        self.read_rois = [1]
-        self.plot_roi1()
+        # self.read_rois = [1]
+        # self.plot_roi1()
 
         self.stage_sigs.pop("cam.image_mode")
         self.cam.stage_sigs["erase_on_start"] = "No"
@@ -576,6 +576,7 @@ class VortexXspress37(Trigger, DetectorBase):
                 obj.stage_sigs["blocking_callbacks"] = "No"
 
         self.setup_software_trigger()
+        # self.select_rois([1])
 
     @property
     def read_rois(self):

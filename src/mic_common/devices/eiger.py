@@ -232,12 +232,16 @@ class Eiger(Trigger, DetectorBase):
         self.cam.acquire.set(0).wait(timeout=10)
 
     def save_images_on(self):
-        self.hdf1.enable.set("Enable").wait(timeout=10)
-        self.hdf1.auto_save.set("Yes").wait()
+        # self.hdf1.enable.set("Enable").wait(timeout=10)
+        # self.hdf1.auto_save.set("Yes").wait()
+        self.hdf1.stage_sigs['enable'] = 1
+        self.hdf1.stage_sigs['auto_save'] = 1
 
     def save_images_off(self):
-        self.hdf1.enable.set("Disable").wait(timeout=10)
-        self.hdf1.auto_save.set("No").wait()
+        # self.hdf1.enable.set("Disable").wait(timeout=10)
+        # self.hdf1.auto_save.set("No").wait()
+        self.hdf1.stage_sigs['enable'] = 0
+        self.hdf1.stage_sigs['auto_save'] = 0
 
     def auto_save_on(self):
         self.hdf1.auto_save.put("1")

@@ -56,6 +56,42 @@ class SaveDataMic(SaveData):
                 raise e
         return det_path
     
+    def generate_det_path_windows(self, det_name, linux_root, windows_root):
+        """Generate the detector save path for a Windows-hosted IOC.
+
+        Unlike ``generate_det_path``, the base path is not ``file_system`` (a
+        gdata drive the Windows machine cannot mount) but the shared micdata
+        mount, which both machines can see at different roots. The scan folder is
+        created via the Linux view (``linux_root``) and the equivalent Windows
+        path (rooted at ``windows_root``, using backslash separators) is returned
+        so it can be written to the IOC's ``file_path`` PV.
+        """
+        subdirectory = self.subdirectory.get()
+        try:
+            scan_number = RE.md['scan_id']+1
+        except:
+            scan_number = self.next_scan_number.get()
+        rel_path = os.path.join(subdirectory,
+                                'Raw',
+                                f'Scan_{scan_number:04d}',
+                                det_name.upper())
+        linux_path = os.path.join(linux_root, rel_path)
+        logger.info(f"Setting up {det_name} to have data saved at {linux_path}")
+        if not os.path.exists(linux_path):
+            try:
+                os.makedirs(linux_path)
+                logger.info(f"Directory '{linux_path}' created for {det_name}.")
+            except Exception as e:
+                logger.error(
+                    f"Failed to create directory '{linux_path}' for {det_name}: {e}"
+                )
+                raise e
+        windows_path = os.path.join(windows_root, rel_path).replace("/", "\\")
+        if not windows_path.endswith("\\"):
+            windows_path += "\\"
+        logger.info(f"Windows path for {det_name}: {windows_path}")
+        return windows_path
+
     def advance_scan_number(self):
         current_scan_number = self.next_scan_number.get()
         self.next_scan_number.put(current_scan_number+1)
