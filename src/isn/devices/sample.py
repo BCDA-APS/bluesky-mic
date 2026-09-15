@@ -14,7 +14,9 @@ from ophyd.pseudopos import pseudo_position_argument
 from ophyd.pseudopos import real_position_argument
 
 import numpy as np
+import yaml
 
+from pathlib import Path
 from time import sleep, time as _time
 from threading import Thread
 
@@ -93,14 +95,24 @@ class CorTheta(Device):
         self._status_obj = Status(self)
         self._status_obj.set_finished()  # start in a done state
 
-    # @property
-    # def position(self):
-    #     """Current theta angle, proxied from the real motor readback."""
-    #     return self.parent.theta.user_readback.get()
+    @property
+    def position(self):
+        """Current theta angle, proxied from the real motor readback."""
+        return self.parent.theta.user_readback.get()
 
-    # def read(self):
-    #     """Return current position so bluesky relative-move wrappers work."""
-    #     return {self.name: {'value': self.position, 'timestamp': _time()}}
+    def read(self):
+        """Return current position so bluesky relative-move wrappers work."""
+        return {self.name: {'value': self.position, 'timestamp': _time()}}
+
+    def describe(self):
+        """Match read() so the event model descriptor has a key for this device."""
+        return {
+            self.name: {
+                'source': self.parent.theta.user_readback.pvname,
+                'dtype': 'number',
+                'shape': [],
+            }
+        }
 
     def set(self, theta_position):
         self._status_obj = Status(self)
@@ -181,10 +193,11 @@ class CorTheta(Device):
             sample = self.parent
 
             if not sample._initial_position_captured:
-                raise RuntimeError(
-                    "sample.capture_initial_position() must be called before "
-                    "using sample.cor_theta."
-                )
+                if not sample.restore_from_yaml():
+                    raise RuntimeError(
+                        "sample.capture_initial_position() must be called before "
+                        "using sample.cor_theta. No YAML sidecar was found to restore from."
+                    )
 
             # 1. Move theta and wait for completion
             status_wait(sample.theta.set(theta_position))
@@ -227,24 +240,6 @@ class CorTheta(Device):
         self._finish_status()
 
 
-# class MicronixStage(PseudoPositioner):
-
-#     xp = Component(EpicsMotor, ":m2")
-#     zp = Component(EpicsMotor, ":m3")
-#     thetap = Component(EpicsMotor, ":m4")
-
-#     _real = ["xp", "zp", "thetap"]
-#     _pseudo = ["x", "z", "theta"]
-
-#     def __init__(self, *args, **kwargs):
-#         super().__init__(*args, **kwargs)
-#         self.theta_offset = 0
-
-#     def calc_wx
-
-#     @pseudo_position_argument
-#     def forward(self, pseudo_pos):
-
 
 class Sample(Device):
 
@@ -267,7 +262,7 @@ class Sample(Device):
     query = FormattedComponent(EpicsSignal, "{aero_prefix}"+"userStringSeq3.PROC")
     query_output = FormattedComponent(EpicsSignalRO, "{aero_prefix}"+"pi:c0:asyn.TINP")
 
-    theta = FormattedComponent(EpicsMotor, "{micronix_prefix}"+"m4") #TODO: We need to create an offsetable component that we can use to calibrate sample to sample the real theta position.
+    theta = FormattedComponent(EpicsMotor, "{micronix_prefix}"+"m1") #TODO: We need to create an offsetable component that we can use to calibrate sample to sample the real theta position.
     mic_x = FormattedComponent(EpicsMotor, "{micronix_prefix}"+"m3")
     mic_z = FormattedComponent(EpicsMotor, "{micronix_prefix}"+"m2")
 
@@ -348,6 +343,45 @@ class Sample(Device):
         self.y_initial.put(self.y.user_readback.get())
         self.z_initial.put(self.z.user_readback.get())
         self._initial_position_captured = True
+
+        # --- persist to YAML sidecar for session restoration ---
+        self._save_cor_yaml()
+
+    def _cor_yaml_path(self):
+        from mictools.config import get_analysis_path
+        return Path(get_analysis_path(create=True)) / "cor_positions.yaml"
+
+    def _save_cor_yaml(self):
+        data = {
+            **{f"cap{i}": float(getattr(self, f"cap{i}").get()) for i in range(1, 8)},
+            "x_initial": float(self.x_initial.get()),
+            "y_initial": float(self.y_initial.get()),
+            "z_initial": float(self.z_initial.get()),
+        }
+        path = self._cor_yaml_path()
+        with open(path, "w") as f:
+            yaml.dump(data, f)
+        logger.info("COR positions saved to %s", path)
+
+    def restore_from_yaml(self):
+        """Restore initial capacitance and stage positions from the YAML sidecar.
+
+        Returns True if the sidecar was found and loaded, False if it does not exist.
+        """
+        from mictools.config import get_analysis_path
+        path = Path(get_analysis_path()) / "cor_positions.yaml"
+        if not path.exists():
+            return False
+        with open(path) as f:
+            data = yaml.safe_load(f)
+        for i in range(1, 8):
+            getattr(self, f"cap{i}").put(data[f"cap{i}"])
+        self.x_initial.put(data["x_initial"])
+        self.y_initial.put(data["y_initial"])
+        self.z_initial.put(data["z_initial"])
+        self._initial_position_captured = True
+        logger.info("COR positions restored from %s", path)
+        return True
 
     def compensating_z(self, x_step):
         '''Returns the amount the z stage would need to compensate for an x_step to keep the sample in focus.'''

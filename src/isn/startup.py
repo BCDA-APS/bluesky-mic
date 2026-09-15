@@ -135,6 +135,7 @@ except:
 
 
 make_devices(clear=False, file="devices.yml", device_manager=instrument)
+make_devices(clear=False, file="derived_devices.yml", device_manager=instrument)
 
 # Assign shared-mount storage roots for Windows-hosted detector IOCs (e.g. Andor).
 win_storage = iconfig.get("WINDOWS_STORAGE", {})

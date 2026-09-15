@@ -107,6 +107,7 @@ class Trigger(TriggerBase):
 
         #Guarantee we are not collecting
         self.cam.acquire.put(0)
+        self.cam.array_counter.set(0).wait()
         
         super().stage()
 

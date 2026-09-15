@@ -7,7 +7,7 @@ mic_common.devices.save_data.SaveDataMic:
 
 isn.devices.softgluezynq.Dtacq:
 - name: softglue
-  prefix: acq_isn
+  prefix: isnACQ
   # labels: ["baseline"]
 
 isn.devices.softgluezynq.SoftGlueZynq:
@@ -17,5 +17,5 @@ isn.devices.softgluezynq.SoftGlueZynq:
 
 isn.devices.if_cap_tracker.IfCapTracker:
 - name: if_cap_tracker
-  prefix: "acq_isn"
+  prefix: "isnACQ"
   labels: ["baseline"]

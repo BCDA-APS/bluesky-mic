@@ -185,7 +185,9 @@ class SoftGlueZynq(Device):
         # self.buffer_1.in_signal.put("1!")
         # self.buffer_1.in_signal.put("1!")
         self.buffer_1.in_signal.set("1!").wait()
+        time.sleep(0.1)
         self.buffer_1.in_signal.set("1!").wait()
+        time.sleep(0.1)
 
 
     def enable_detector_trigger(self, detector_name, det_keymap=None):

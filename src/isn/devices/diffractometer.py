@@ -5,6 +5,10 @@ from ophyd import SoftPositioner
 
 from .robot import RobotArmPositioner
 
+# from apsbits.core.instrument_init import oregistry
+
+# sample = oregistry['sample']
+
 
 class RobotArmDiffractometer(hklpy2.diffract.DiffractometerBase):
     """ISN Robot Arm as Diffractometer."""
@@ -16,7 +20,8 @@ class RobotArmDiffractometer(hklpy2.diffract.DiffractometerBase):
     l = Cpt(hklpy2.diffract.Hklpy2PseudoAxis, "", kind="hinted")
 
     # EPICS simulator PVs used, comments show beamline PVs to be used.
-    mu = Cpt(EpicsMotor, "19idMMC:m4", kind="hinted")  # 19idMMC:m4
+    mu = Cpt(EpicsMotor, "19idMMC:m1", kind="hinted")  # 19idMMC:m1
+    # mu = sample.cor_theta
     eta = Cpt(SoftPositioner, kind="hinted", limits=(-180, 180), init_pos=0)
     chi = Cpt(SoftPositioner, kind="hinted", limits=(-180, 180), init_pos=0)
     phi = Cpt(SoftPositioner, kind="hinted", limits=(-180, 180), init_pos=0)
