@@ -1,8 +1,11 @@
-"""Data Management Module.
+"""Legacy Data Management device module.
 
 This module configures the data management workflow for the instrument,
 including setting up the data management workflow connector, experiment signal,
 and related configuration.
+
+This module is kept for older DM_WorkflowConnector-based code paths. New DM
+workflow submission code should use the ``mic_common.dm`` package instead.
 """
 
 import logging

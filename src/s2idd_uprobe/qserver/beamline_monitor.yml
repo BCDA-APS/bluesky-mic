@@ -105,6 +105,12 @@ devices:
       - user_readback
       - motor_is_moving
 
+  zp_z:
+    category: motion
+    include:
+      - user_setpoint
+      - user_readback
+
   sis3820:
     category: detector
     include:
@@ -116,6 +122,9 @@ devices:
       - elapsed_real
 
   scaler_count:
+    category: signal
+
+  fscanh_dwell:
     category: signal
 
   xrf:

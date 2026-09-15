@@ -11,12 +11,15 @@ __all__ = """
 """.split()
 
 import logging
-import numpy as np
-import bluesky.preprocessors as bpp
+
 import bluesky.plan_stubs as bps
+import bluesky.preprocessors as bpp
+import numpy as np
+from apsbits.core.instrument_init import oregistry
+
+from mic_common.dm.plans import submit_xrf_dm_job_plan
 from mic_common.utils.param_capture import capture_params
 from s2idd_uprobe.plans.flyscan_core import _fly2d_scanrecord
-from apsbits.core.instrument_init import oregistry
 
 logger = logging.getLogger(__name__)
 savedata = oregistry["savedata"]
@@ -24,6 +27,7 @@ sample = oregistry["sample"]
 mono = oregistry['kohzu_mono']
 # scanrecord = oregistry["scanrecord"]
 # savedata = scanrecord.savedata
+
 
 def fly2d_scanrecord(
     samplename: str = "smp1",
@@ -39,6 +43,11 @@ def fly2d_scanrecord(
     energy_keV: float = None,
     xrf_on: bool = True,
     preamp1_on: bool = False,
+    dm_analysis_machine: str = None,
+    dm_experiment_name: str = None,
+    dm_download: str = None,
+    dm_verbose: bool = False,
+    wait_for_dm_sec: int = 2,
 ):
     """2D Bluesky plan that drives the x- and y- sample motors in fly mode using ScanRecord
 
@@ -74,19 +83,31 @@ def fly2d_scanrecord(
         Whether to enable the x-ray fluorescence detector. Default is True. 
     preamp1_on:
         Whether to enable preamp1. Preamp1 is used to record metadata. Default is True. 
+    dm_analysis_machine:
+        The machine name for DM analysis. If not provided, it will not run DM for XRF processing.
+        The available machines are: xfm3, mona3, mona4.
+    dm_experiment_name:
+        The experiment name for DM analysis. Required when DM submission is requested.
+    dm_download:
+        Download path for DM output. If not provided, use savedata.get_auto_storage_path()/img.dat.
+        Path example: /net/micdata/data1/2idd/2026-1/blueskydm/img.dat
+    dm_verbose:
+        Whether to log the submitted DM job metadata. Default is False.
+    wait_for_dm_sec:
+        The time to wait for DM job submission in seconds. Default is 2 seconds.
     """
 
 
-    
+
     """Capture the input plan parameters"""
     # Use the current motor positions if not provided
     x_center = round(sample.x.position, 2) if x_center is None else x_center
     y_center = round(sample.y.position, 2) if y_center is None else y_center
     sample_z = round(sample.z.position, 2) if sample_z is None else sample_z
     energy_keV = round(mono.readback.get(), 4) if energy_keV is None else energy_keV
-
     plan_args = capture_params(fly2d_scanrecord, **locals())
     scan_id = None
+
     try:
         scan_id = savedata.next_scan_number.get()
     except Exception as e:
@@ -100,6 +121,30 @@ def fly2d_scanrecord(
         yield from _fly2d_scanrecord(**plan_args)
 
     yield from _fly2d()
+
+    savedata.update_current_file_name()
+    mda_file = savedata.current_file_name
+    dm_requested = any(
+        value is not None
+        for value in (
+            dm_analysis_machine,
+            dm_experiment_name,
+        )
+    )
+    if dm_requested:
+        logger.info("DM submission requested for XRF processing")
+        yield from bps.sleep(wait_for_dm_sec)
+        logger.info(
+            f"Submitting DM job for XRF processing: machine={dm_analysis_machine}, experiment={dm_experiment_name}, download={dm_download}"
+        )
+        yield from submit_xrf_dm_job_plan(
+            mda_file,
+            dm_analysis_machine,
+            dm_experiment_name,
+            download=dm_download,
+            savedata=savedata,
+            verbose=dm_verbose,
+        )
 
 
 def fly3d_xanes_scanrecord(
@@ -188,4 +233,3 @@ def fly3d_xanes_scanrecord(
         yield from bps.sleep(1)
 
     
-

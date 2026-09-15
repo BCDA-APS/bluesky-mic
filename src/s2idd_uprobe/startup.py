@@ -61,6 +61,22 @@ oregistry.clear()
 # Configure the session with callbacks, devices, and plans.
 dm_setup(iconfig.get("DM_SETUP_FILE"))
 
+try:
+    from mic_common.dm.agent import get_dm_agent
+    from mic_common.dm.workflow_configs import load_dm_workflow_args
+
+    dm_agent = get_dm_agent()
+    dm_agent.set_experiment_type_name(iconfig.get("DM_EXPERIMENT_TYPE_NAME"))
+    xrf_dm_args = load_dm_workflow_args(
+        instrument_path / "configs" / "xrf_workflow.yml"
+    )
+    dm_agent.set_workflow_args("xrf", xrf_dm_args)
+    logger.info("DM agent initialized for this session")
+except Exception:
+    dm_agent = None
+    logger.exception("Failed to initialize DM agent")
+
+
 # Command-line tools, such as %wa, %ct, ...
 register_bluesky_magics()
 
@@ -152,15 +168,19 @@ from .plans.step1d_scanrecord import step1d_scanrecord, xanes_1d_linear, xanes_1
 from .plans.timer import savedata, timer
 from .plans.movement import move_sample, move_zp_z
 from .plans.helper_funcs import set_samx_speed #, mov_osa_y, osa_in, osa_out, solarsim_on, solarsim_off
+# from .plans.osa_scan import osa_xeye_grid_scan
 # # from .plans.step2d import step2d
 # # from .plans.step1d import step1d
 
 ## QServer functions
+from .qserver.helper_funcs import create_dm_experiment
 from .qserver.helper_funcs import get_global_health_snapshot
 from .qserver.helper_funcs import get_named_monitor_snapshot
 from .qserver.helper_funcs import get_plan_monitor_snapshot
 from .qserver.helper_funcs import recover_detector
-from .qserver.helper_funcs import get_save_data_path
+from .qserver.helper_funcs import get_save_data_path, get_current_mda_file
+from .qserver.helper_funcs import start_dm_daq
+from .qserver.xeye_osa import acquire_xeye_image
 
 try:
     logger.info("Generating beamline monitor PVs")

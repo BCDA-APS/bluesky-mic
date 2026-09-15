@@ -1,5 +1,5 @@
 from s2idd_uprobe.devices.motor import Motor
-from ophyd import Component, Device, EpicsSignal
+from ophyd import Component, Device
 
 
 class Sample(Device):

@@ -24,9 +24,6 @@ s2idd_uprobe.devices.motor.Motor:
 - name: zp_z
   prefix: 2idd:m44
   labels: ["motor"]
-- name: osa_y
-  prefix: 2idd:m12
-  labels: ["motor"]
 
 ophyd.EpicsSignal:
 - name: fscanh_samx
@@ -63,10 +60,15 @@ mic_common.devices.sis3820.SIS3820:
   prefix: 2idd:3820
   labels: ["sis3820"]
 
-s2idd_uprobe.devices.kohzu.KohzuMono:
+s2idd_uprobe.devices.optics.KohzuMono:
 - name: kohzu_mono
   prefix: "2ida2:"
   labels: ["mono"]
+
+s2idd_uprobe.devices.optics.OSA:
+- name: osa
+  prefix: 2idd
+  labels: ["motor", "osa"]
 
 mic_common.devices.xmap.XMAP:
 - name: xrf

@@ -1,0 +1,23 @@
+# Configuration file example for the ptycho-xrf workflow
+
+workflow : xrf
+experimentName :  blueskydm
+fit : roi,nnls,matrix
+filePath : 2idd_0009.mda
+# dataDir : None
+# nthreads : all
+quantifyWith : None
+detectors : 0
+generateAvgH5 : False
+addv9Layout : False
+addExchange : False
+exportCSV : False
+updateTheta : None
+updateAmps : None
+updateQuantAmps : None
+quickAndDirty : False
+optimizeFitOverrideParams : None
+optimizer : None
+analysisMachine : polaris
+demand : True
+xrfOutput : /net/micdata/data1/2idd/

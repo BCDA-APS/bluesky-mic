@@ -1,6 +1,6 @@
-"""KohzuMono device module for Bluesky workflows.
+"""Optics device module for Bluesky workflows.
 
-This module provides the KohzuMono class for controlling monochromator energy and mode.
+This module provides classes for controlling beamline optics devices.
 """
 
 from mic_common.utils.device_utils import mode_setter
@@ -9,6 +9,7 @@ from ophyd import Component
 from ophyd import Device
 from ophyd import EpicsSignal, EpicsSignalRO
 from bnp.devices.deltaTau import DeltaTauPiezoBase
+from s2idd_uprobe.devices.motor import Motor
 import logging
 
 logger = logging.getLogger(__name__)    
@@ -18,7 +19,7 @@ class KohzuMono(DeltaTauPiezoBase):
     """
     KohzuMono device for controlling monochromator energy and mode in Bluesky workflows.
 
-    This module defines the KohzuMono class, which extends ophyd.Device and provides
+    This class extends ophyd.Device and provides
     methods for controlling energy, mode, and related PVs for the id2_d instrument.
     """
 
@@ -59,3 +60,10 @@ class KohzuMono(DeltaTauPiezoBase):
     def set_mode(mode: str) -> None:
         """Set the mode for the monochromator."""
         pass
+
+
+class OSA(Device):
+    """OSA device for controlling the OSA motor in Bluesky workflows."""
+
+    x = Component(Motor, ":m11", kind="config", labels=("motor", "osax"))
+    y = Component(Motor, ":m12", kind="config", labels=("motor", "osay"))

@@ -3,11 +3,12 @@ __all__ = """
 """.split()
 
 import logging
+
 import bluesky.plan_stubs as bps
 from apsbits.core.instrument_init import oregistry
 
 logger = logging.getLogger(__name__)
-osa_y = oregistry["osa_y"]
+osa = oregistry["osa"]
 solarsim_shutter = oregistry['solarsim_shutter']
 sample = oregistry['sample']
 
@@ -24,23 +25,23 @@ def set_samx_speed(speed: float = 500):
     logger.info(f"Set x motor speed to {sample.x.velocity.get()} mm/s")
 
 def mov_osa_y(position: float):
-    """Move the osa_y motor to the specified position"""
-    logger.info(f"Moving osa_y to {position} mm")
-    yield from bps.mv(osa_y, position)
-    logger.info(f"Moved osa_y to {osa_y.position} mm")
+    """Move the OSA y motor to the specified position."""
+    logger.info(f"Moving osa.y to {position} mm")
+    yield from bps.mv(osa.y, position)
+    logger.info(f"Moved osa.y to {osa.y.position} mm")
 
 def osa_in(position: float = 0):
-    """Move the osa_y motor to the specified position"""
-    logger.info(f"Moving osa_y in position")
-    yield from bps.mv(osa_y, position)
-    logger.info(f"Moved osa_y to {osa_y.position} mm")
+    """Move the OSA y motor to the in position."""
+    logger.info("Moving osa.y in position")
+    yield from bps.mv(osa.y, position)
+    logger.info(f"Moved osa.y to {osa.y.position} mm")
     yield from bps.sleep(0.2)
 
 def osa_out(position: float = 8):
-    """Move the osa_y motor to the specified position"""
-    logger.info(f"Moving osa_y out position")
-    yield from bps.mv(osa_y, position)
-    logger.info(f"Moved osa_y to {osa_y.position} mm")
+    """Move the OSA y motor to the out position."""
+    logger.info("Moving osa.y out position")
+    yield from bps.mv(osa.y, position)
+    logger.info(f"Moved osa.y to {osa.y.position} mm")
     yield from bps.sleep(0.2)
 
 def solarsim_on():
