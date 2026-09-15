@@ -33,7 +33,6 @@ from .mic_ad_mixins import MicHDF5
 from .mic_ad_mixins import VortexDetectorCam
 from mic_common.utils.writeDetH5 import write_det_h5
 
-# MAX_IMAGES = 12216
 MAX_IMAGES = 524288
 MAX_ROIS = 48
 DELAY = 0.15
@@ -576,7 +575,7 @@ class VortexXspress37(Trigger, DetectorBase):
                 obj.stage_sigs["blocking_callbacks"] = "No"
 
         self.setup_software_trigger()
-        # self.select_rois([1])
+        self.select_rois([1])
 
     @property
     def read_rois(self):
@@ -682,64 +681,23 @@ class VortexXspress37(Trigger, DetectorBase):
 
 
     def set_plugins(self, state="Enable"):
-        # TODO: cleaner way to do this?
-
-        _plugins = (
-            "19idME7:Proc1:EnableCallbacks",
-            "19idME7:ROIStat1:EnableCallbacks",
-            "19idME7:ROI1:EnableCallbacks",
-            "19idME7:ROISUM1:EnableCallbacks",
-            "19idME7:C1SCA:EnableCallbacks",
-            "19idME7:C1SCA:TS:EnableCallbacks",
-            "19idME7:MCA1:EnableCallbacks",
-            "19idME7:MCASUM1:EnableCallbacks",
-            "19idME7:MCA1ROI:EnableCallbacks",
-            "19idME7:ROI2:EnableCallbacks",
-            "19idME7:ROISUM2:EnableCallbacks",
-            "19idME7:C2SCA:EnableCallbacks",
-            "19idME7:C2SCA:TS:EnableCallbacks",
-            "19idME7:MCA2:EnableCallbacks",
-            "19idME7:MCASUM2:EnableCallbacks",
-            "19idME7:MCA2ROI:EnableCallbacks",
-            "19idME7:ROI3:EnableCallbacks",
-            "19idME7:ROISUM3:EnableCallbacks",
-            "19idME7:C3SCA:EnableCallbacks",
-            "19idME7:C3SCA:TS:EnableCallbacks",
-            "19idME7:MCA3:EnableCallbacks",
-            "19idME7:MCASUM3:EnableCallbacks",
-            "19idME7:MCA3ROI:EnableCallbacks",
-            "19idME7:ROI4:EnableCallbacks",
-            "19idME7:ROISUM4:EnableCallbacks",
-            "19idME7:C4SCA:EnableCallbacks",
-            "19idME7:C4SCA:TS:EnableCallbacks",
-            "19idME7:MCA4:EnableCallbacks",
-            "19idME7:MCASUM4:EnableCallbacks",
-            "19idME7:MCA4ROI:EnableCallbacks",
-            "19idME7:ROI5:EnableCallbacks",
-            "19idME7:ROISUM5:EnableCallbacks",
-            "19idME7:C5SCA:EnableCallbacks",
-            "19idME7:C5SCA:TS:EnableCallbacks",
-            "19idME7:MCA5:EnableCallbacks",
-            "19idME7:MCASUM5:EnableCallbacks",
-            "19idME7:MCA5ROI:EnableCallbacks",
-            "19idME7:ROI6:EnableCallbacks",
-            "19idME7:ROISUM6:EnableCallbacks",
-            "19idME7:C6SCA:EnableCallbacks",
-            "19idME7:C6SCA:TS:EnableCallbacks",
-            "19idME7:MCA6:EnableCallbacks",
-            "19idME7:MCASUM6:EnableCallbacks",
-            "19idME7:MCA6ROI:EnableCallbacks",
-            "19idME7:ROI7:EnableCallbacks",
-            "19idME7:ROISUM7:EnableCallbacks",
-            "19idME7:C7SCA:EnableCallbacks",
-            "19idME7:C7SCA:TS:EnableCallbacks",
-            "19idME7:MCA7:EnableCallbacks",
-            "19idME7:MCASUM7:EnableCallbacks",
-            "19idME7:MCA7ROI:EnableCallbacks",
-        )
-
-        for plugin in _plugins:
-            caput(plugin, state)
+        prefix = self.prefix
+        pvs = [
+            f"{prefix}Proc1:EnableCallbacks",
+            f"{prefix}ROIStat1:EnableCallbacks",
+        ]
+        for i in range(1, self.num_channels + 1):
+            pvs += [
+                f"{prefix}ROI{i}:EnableCallbacks",
+                f"{prefix}ROISUM{i}:EnableCallbacks",
+                f"{prefix}C{i}SCA:EnableCallbacks",
+                f"{prefix}C{i}SCA:TS:EnableCallbacks",
+                f"{prefix}MCA{i}:EnableCallbacks",
+                f"{prefix}MCASUM{i}:EnableCallbacks",
+                f"{prefix}MCA{i}ROI:EnableCallbacks",
+            ]
+        for pv in pvs:
+            caput(pv, state)
 
     def write_master_h5(
         self,
@@ -786,3 +744,61 @@ class VortexXspress37(Trigger, DetectorBase):
             det_key=det_key,
             det_attrs_values=attrs_values,
         )
+
+
+class Me7Xspress3(VortexXspress37):
+    """7-channel Xspress3 detector at 19idME7."""
+    pass
+
+
+class RayspecXspress3(VortexXspress37):
+    """12-channel Xspress3 detector at 19idRAYSPEC."""
+
+    _default_read_attrs = (
+        "hdf1",
+        "stats1", "stats2", "stats3", "stats4",
+        "stats5", "stats6", "stats7", "stats8",
+        "stats9", "stats10", "stats11", "stats12",
+        "sca1", "sca2", "sca3", "sca4",
+        "sca5", "sca6", "sca7", "sca8",
+        "sca9", "sca10", "sca11", "sca12",
+        "total",
+    )
+
+    # Additional channels beyond the 7 defined in the base class
+    chan8  = ADComponent(ROIPlugin, "ROI8:")
+    chan9  = ADComponent(ROIPlugin, "ROI9:")
+    chan10 = ADComponent(ROIPlugin, "ROI10:")
+    chan11 = ADComponent(ROIPlugin, "ROI11:")
+    chan12 = ADComponent(ROIPlugin, "ROI12:")
+
+    stats8  = ADComponent(VortexROIStatPlugin, "MCA8ROI:")
+    stats9  = ADComponent(VortexROIStatPlugin, "MCA9ROI:")
+    stats10 = ADComponent(VortexROIStatPlugin, "MCA10ROI:")
+    stats11 = ADComponent(VortexROIStatPlugin, "MCA11ROI:")
+    stats12 = ADComponent(VortexROIStatPlugin, "MCA12ROI:")
+
+    sca8  = ADComponent(VortexSCA, "C8SCA:")
+    sca9  = ADComponent(VortexSCA, "C9SCA:")
+    sca10 = ADComponent(VortexSCA, "C10SCA:")
+    sca11 = ADComponent(VortexSCA, "C11SCA:")
+    sca12 = ADComponent(VortexSCA, "C12SCA:")
+
+    def set_plugins(self, state="Enable"):
+            prefix = self.prefix
+            pvs = [
+                f"{prefix}Proc1:EnableCallbacks",
+                # f"{prefix}ROIStat1:EnableCallbacks",
+            ]
+            for i in range(1, self.num_channels + 1):
+                pvs += [
+                    f"{prefix}ROI{i}:EnableCallbacks",
+                    f"{prefix}ROISUM{i}:EnableCallbacks",
+                    f"{prefix}C{i}SCA:EnableCallbacks",
+                    f"{prefix}C{i}SCA:TS:EnableCallbacks",
+                    f"{prefix}MCA{i}:EnableCallbacks",
+                    f"{prefix}MCASUM{i}:EnableCallbacks",
+                    f"{prefix}MCA{i}ROI:EnableCallbacks",
+                ]
+            for pv in pvs:
+                caput(pv, state)
