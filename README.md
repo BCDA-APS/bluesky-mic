@@ -12,6 +12,12 @@ cd bluesky_mic
 **Install DM via conda**
 `conda install apsu::aps-dm-api`
 
+To update the DM API in the `bsbits` environment:
+
+```bash
+conda update -n bsbits -c aps-anl-tag aps-dm-api
+```
+
 
 **Install the existing BITS instruments**
 
