@@ -138,6 +138,7 @@ from .plans.coarse_fine_scanrecord import coarse_fine_scanrecord
 
 
 ## QServer functions
+from .qserver.beamline_monitor import configure_detector_recovery_policy
 from .qserver.helper_funcs import get_save_data_path
 from .qserver.helper_funcs import get_global_health_snapshot
 from .qserver.helper_funcs import get_plan_monitor_snapshot
@@ -145,6 +146,11 @@ from .qserver.helper_funcs import recover_detector, recover_y_piezo
 from .qserver.helper_funcs import syncXYZ
 from .qserver.helper_funcs import syncXYZ_transform
 
+configure_detector_recovery_policy(
+    ignore_ring_current=iconfig.get("BEAMLINE_MONITOR", {})
+    .get("DETECTOR_RECOVERY", {})
+    .get("IGNORE_RING_CURRENT", False)
+)
 
 try:
     logger.info("Generating beamline monitor PVs")

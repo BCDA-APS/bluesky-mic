@@ -71,6 +71,10 @@ XP3:
     DET_FOLDERNAME: "flyXRF"
     MOUNT_PATH: "/net/micdata/data1"
 
+BEAMLINE_MONITOR:
+    DETECTOR_RECOVERY:
+        IGNORE_RING_CURRENT: true
+
 SAVE_DATA:
     MOUNT_PATH: "//micdata/data1/"
 

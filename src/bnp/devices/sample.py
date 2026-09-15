@@ -1,5 +1,6 @@
 from bnp.devices.deltaTau import DeltaTauPiezoBase
 from bnp.devices.deltaTau import DeltaTauPVPositionerBase
+from bnp.devices.deltaTau import DeltaTauRetryPositionerBase
 from ophyd import Component, Device, EpicsSignal, EpicsSignalRO
 
 
@@ -39,13 +40,14 @@ class DeltaTauStepperY(DeltaTauPVPositionerBase):
     setpoint = Component(EpicsSignal, 'SY:RqsPos')
     readback = Component(EpicsSignalRO, 'SY:ActPos')
 
-class DeltaTauStepperZ(DeltaTauPVPositionerBase):
+class DeltaTauStepperZ(DeltaTauRetryPositionerBase):
+    tolerance = 0.1
     done = Component(EpicsSignalRO, 'Ps:RunPrg')
     stop_signal = Component(EpicsSignal, 'Ps:Abort')
     setpoint = Component(EpicsSignal, 'SZ:RqsPos')
     readback = Component(EpicsSignalRO, 'SZ:ActPos')
 
-class DeltaTauStepperTheta(DeltaTauPVPositionerBase):
+class DeltaTauStepperTheta(DeltaTauRetryPositionerBase):
     done = Component(EpicsSignalRO, 'Ps:RunPrg')
     stop_signal = Component(EpicsSignal, 'Ps:Abort')
     setpoint = Component(EpicsSignal, 'ST:RqsPos')
@@ -71,7 +73,7 @@ class CombinationMotorY(Device):
     piezo = Component(DeltaTauPiezoY, ':SY:', kind='config', labels=('motor', ))
     motion = Component(EpicsSignal, ':SY:Ps:Motion', kind='config', labels=('motor', ))
     piezo_value = Component(EpicsSignalRO, ':M7010.VAL', kind='config', labels=('motor', ))
-    piezo_max_value = 31000
+    piezo_max_value = 30000
 
     def set_re_stop_suppressed(self, suppressed: bool = True):
         self.stepper.set_re_stop_suppressed(suppressed)

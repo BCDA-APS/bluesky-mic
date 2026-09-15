@@ -5,6 +5,7 @@ plans:
       - scanrecord
       - fly_dwell
       - ring
+      - sis3820
     conditional_detectors:
       xmap_on: xmap
       xp3_on: xp3
@@ -16,6 +17,7 @@ plans:
       - scanrecord
       - fly_dwell
       - ring
+      - sis3820
     conditional_detectors:
       xmap_on: xmap
       xp3_on: xp3
@@ -70,6 +72,16 @@ devices:
 
   fly_dwell:
     category: signal
+
+  sis3820:
+    category: detector
+    include:
+      - acquiring
+      - current_channel
+      - elapsed_real
+      - num_ch_used
+      - stop_all
+      - erase_start
 
   xmap:
     category: detector

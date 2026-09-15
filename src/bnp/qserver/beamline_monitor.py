@@ -27,8 +27,20 @@ from mic_common.utils.beamline_monitor_snapshot import get_plan_monitor_snapshot
 _DEFAULT_MANIFEST_PATH = Path(__file__).with_name("beamline_monitor.json")
 _DETECTOR_TIMEOUT_FACTOR = 3.0
 _SAMPLE_POSITION_TOLERANCE = 0.1
+_IGNORE_RING_CURRENT_FOR_DETECTOR_RECOVERY = False
 
 logger = logging.getLogger(__name__)
+
+
+def configure_detector_recovery_policy(*, ignore_ring_current: bool = False) -> None:
+    """Configure debug options for detector hung/recovery decisions."""
+
+    global _IGNORE_RING_CURRENT_FOR_DETECTOR_RECOVERY
+
+    _IGNORE_RING_CURRENT_FOR_DETECTOR_RECOVERY = bool(ignore_ring_current)
+    if _IGNORE_RING_CURRENT_FOR_DETECTOR_RECOVERY:
+        logger.warning("Detector recovery debug mode enabled: ignoring ring current")
+
 
 class BNPMonitorPolicy(BeamlineMonitorPolicy):
     def _infer_device_role(self, device_name: str, device: Mapping[str, Any]) -> str:
@@ -42,7 +54,16 @@ class BNPMonitorPolicy(BeamlineMonitorPolicy):
             return "device"
         if has_any_pv(pvs, "outer.current_point", "outer.number_points", "outer.scan_phase", "pause_signal", "scan_pause"):
             return "scanrecord"
-        if has_any_pv(pvs, "cam.acquire", "fileplugin.capture", "capture", "acquire", "fileplugin.file_name", "file_name"):
+        if has_any_pv(
+            pvs,
+            "acquiring",
+            "cam.acquire",
+            "fileplugin.capture",
+            "capture",
+            "acquire",
+            "fileplugin.file_name",
+            "file_name",
+        ):
             return "detector"
         if has_any_pv(pvs, "current", "operating_mode") and "ring" in device_name.lower():
             return "ring"
@@ -244,31 +265,36 @@ class BNPMonitorPolicy(BeamlineMonitorPolicy):
             ignore_outer_wait=ignore_outer_wait,
         ) or not self._scan_phase_waiting_for_detectors(snapshot):
             return False
-        ring_current = self._ring_current(snapshot)
-        if ring_current is None or ring_current <= 0:
-            return False
+        if not _IGNORE_RING_CURRENT_FOR_DETECTOR_RECOVERY:
+            ring_current = self._ring_current(snapshot)
+            if ring_current is None or ring_current <= 0:
+                return False
         if device_name == "xmap":
             acquiring = truthy_pv(find_matching_pv(pvs, "fileplugin.capture")) or truthy_pv(
                 find_matching_pv(pvs, "fileplugin.write_file", "write_status")
             )
+            activity = find_matching_pv(pvs, "fileplugin.capture", "capture")
+        elif device_name == "sis3820":
+            activity = find_matching_pv(pvs, "acquiring")
+            acquiring = truthy_pv(activity)
         else:
             acquiring = truthy_pv(find_matching_pv(pvs, "cam.acquire", "acquire")) or truthy_pv(
                 find_matching_pv(pvs, "fileplugin.capture", "capture")
             )
+            activity = find_matching_pv(pvs, "fileplugin.capture", "capture", "cam.acquire", "acquire")
         if not acquiring:
             return False
         dwell_seconds = self._fly_dwell_seconds(snapshot)
         inner_point_count = self._scanrecord_float(snapshot, "inner.number_points")
         if dwell_seconds is None or dwell_seconds <= 0 or inner_point_count is None or inner_point_count <= 0:
             return False
-        capture = find_matching_pv(pvs, "fileplugin.capture", "capture")
-        if not isinstance(capture, Mapping):
+        if not isinstance(activity, Mapping):
             return False
         now_ts = parse_timestamp(snapshot.get("timestamp"))
-        capture_ts = parse_timestamp(capture.get("timestamp"))
-        if now_ts is None or capture_ts is None:
+        activity_ts = parse_timestamp(activity.get("timestamp"))
+        if now_ts is None or activity_ts is None:
             return False
-        age = (now_ts - capture_ts).total_seconds()
+        age = (now_ts - activity_ts).total_seconds()
         timeout_seconds = _DETECTOR_TIMEOUT_FACTOR * inner_point_count * dwell_seconds
         return age > timeout_seconds
 
@@ -371,8 +397,13 @@ class BNPMonitorPolicy(BeamlineMonitorPolicy):
             parts = []
             if truthy_pv(find_matching_pv(pvs, "fileplugin.capture", "capture")):
                 parts.append("capturing")
+            if truthy_pv(find_matching_pv(pvs, "acquiring")):
+                parts.append("acquiring")
             if truthy_pv(find_matching_pv(pvs, "cam.acquire", "acquire")):
                 parts.append("acquiring")
+            current_channel = pv_value_by_aliases(pvs, "current_channel")
+            if current_channel not in (None, ""):
+                parts.append(f"channel={current_channel}")
             num_capture = pv_value_by_aliases(pvs, "fileplugin.num_capture", "num_capture")
             if num_capture not in (None, ""):
                 parts.append(f"num_capture={num_capture}")
@@ -470,6 +501,8 @@ class BNPMonitorPolicy(BeamlineMonitorPolicy):
                 continue
             if truthy_pv(find_matching_pv(pvs, "fileplugin.capture", "capture")):
                 return f"{device_name} capturing"
+            if truthy_pv(find_matching_pv(pvs, "acquiring")):
+                return f"{device_name} acquiring"
             if truthy_pv(find_matching_pv(pvs, "cam.acquire", "acquire")):
                 return f"{device_name} acquiring"
             write_status = pv_value_by_aliases(pvs, "fileplugin.write_file", "write_status")

@@ -184,6 +184,8 @@ def recover_detector(
 ) -> dict[str, object]:
     """Invoke detector-specific unhang logic in the worker environment."""
 
+    print(f"Recovering detector {device_name} with {retries} retries")
+
     device = oregistry.find(device_name, allow_none=True)
     if device is None:
         return {

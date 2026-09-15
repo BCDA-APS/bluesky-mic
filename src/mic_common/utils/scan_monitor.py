@@ -53,6 +53,7 @@ class ScanMonitor:
         execute_signal=None,
         pause_signal=None,
         abort_signal=None,
+        recover_y_piezo=False,
         name="scan_monitor",
     ):
         """Initialize ScanMonitor.
@@ -73,10 +74,13 @@ class ScanMonitor:
         self._execute_signal = execute_signal
         self._pause_signal = pause_signal
         self._abort_signal = abort_signal
+        self._recover_y_piezo = bool(recover_y_piezo)
         self.name = name
         self.execute_done = False
         self.outer_idle = False
         self.has_outer_loop = False
+        self.inner_scan_active = False
+        self.y_piezo_recovered_for_inner_scan = False
 
     def pause(self):
         if self._pause_signal is not None and not self.pause_sent:
@@ -126,6 +130,8 @@ class ScanMonitor:
         self.current_line = 0
         self.execute_done = False
         self.outer_idle = False
+        self.inner_scan_active = False
+        self.y_piezo_recovered_for_inner_scan = False
 
         self._execute_signal.put(1)
         return self.st
@@ -212,14 +218,26 @@ class ScanMonitor:
             value (int): Current execution value.
             **kwargs: Additional keyword arguments.
         """
-        if self.scan_active and old_value == 1 and value == 0:
+        if self.scan_active and self._value_matches(old_value, 1) and self._value_matches(value, 0):
             self.execute_done = True
             self._finish_if_ready()
+
+    def watch_inner_execute_scan(self, old_value, value, **kwargs):
+        """Center sample y piezo after an inner 1D scan finishes, if needed."""
+        if not self.scan_active:
+            return
+
+        if self._value_matches(value, 1):
+            self.inner_scan_active = True
+            self.y_piezo_recovered_for_inner_scan = False
+        elif self._value_matches(old_value, 1) and self._value_matches(value, 0):
+            self.inner_scan_active = False
+            self.recover_y_piezo_if_needed(reason="inner execute_scan finished")
 
     def watch_faze_outer(self, old_value, value, **kwargs):
         """Monitor outer scan phase and mark completion once it returns to IDLE."""
         if self.scan_active:
-            self.outer_idle = value == 0
+            self.outer_idle = self._scan_phase_is_idle(value)
             self._finish_if_ready()
 
     def watch_faze_inner(self, old_value, value, **kwargs):
@@ -235,21 +253,87 @@ class ScanMonitor:
 
         if self.sample is not None:
             if self.counter_active:
-                if value==7:
+                if not self._scan_phase_is_idle(value):
+                    self.inner_scan_active = True
+                    self.y_piezo_recovered_for_inner_scan = False
+                elif self.inner_scan_active:
+                    self.inner_scan_active = False
+                    self.recover_y_piezo_if_needed(reason="inner scan phase idle")
+
+                adjust_sample_x_speed = self._can_adjust_sample_x_speed()
+                if self._value_matches(value, 7) and adjust_sample_x_speed:
                     if self.sample.x.velocity.get() != self.sample.x.scan_speed:
                         self.sample.x.set_speed(self.sample.x.scan_speed)
                         if self.verbose:
                             logger.debug(f"set samx speed to {self.sample.x.scan_speed}")
                         time.sleep(0.2)
-                elif value==5:
+                elif self._value_matches(value, 5) and hasattr(self.sample.x, "motor_is_moving"):
                     if self.verbose:
                         logger.debug(f"is samx moving: {self.sample.x.motor_is_moving.get()}")
-                else:
+                elif adjust_sample_x_speed:
                     if self.sample.x.velocity.get() != self.sample.x.max_velocity.get():
                         self.sample.x.set_speed(self.sample.x.max_velocity.get())
                         if self.verbose:
                             logger.debug(f"set samx speed to {self.sample.x.max_velocity.get()}")
                         time.sleep(0.2)
+
+    def _can_adjust_sample_x_speed(self):
+        if self.sample is None or not hasattr(self.sample, "x"):
+            return False
+        return all(
+            hasattr(self.sample.x, attr)
+            for attr in ("velocity", "scan_speed", "max_velocity", "set_speed")
+        )
+
+    @staticmethod
+    def _value_matches(value, target):
+        try:
+            return float(value) == float(target)
+        except Exception:
+            return str(value).strip().lower() == str(target).strip().lower()
+
+    def _scan_phase_is_idle(self, value):
+        if self._value_matches(value, 0):
+            return True
+        return str(value).strip().lower() in {"idle", "done"}
+
+    def recover_y_piezo_if_needed(self, reason="inner scan finished"):
+        """Center the sample y piezo once per inner scan when the piezo is over limit."""
+        if not self._recover_y_piezo or self.sample is None:
+            return
+        if self.y_piezo_recovered_for_inner_scan:
+            return
+
+        try:
+            piezo_value = abs(float(self.sample.y.piezo_value.get()))
+            piezo_max_value = float(self.sample.y.piezo_max_value)
+            logger.info(
+                "sample.y piezo recovery check after %s: absolute y_piezo_value=%s, y_piezo_max=%s",
+                reason,
+                piezo_value,
+                piezo_max_value,
+            )
+        except Exception as exc:
+            logger.warning(f"Could not check sample.y piezo recovery limit: {exc}")
+            self.y_piezo_recovered_for_inner_scan = True
+            return
+
+        if piezo_value <= piezo_max_value:
+            self.y_piezo_recovered_for_inner_scan = True
+            return
+
+        try:
+            logger.warning(
+                "Centering sample.y.piezo after %s; y_piezo_value=%s exceeds y_piezo_max=%s",
+                reason,
+                piezo_value,
+                piezo_max_value,
+            )
+            self.sample.y.piezo.center.put(1)
+        except Exception:
+            logger.exception("Failed to center sample.y.piezo after %s", reason)
+        finally:
+            self.y_piezo_recovered_for_inner_scan = True
 
 # Usage
 def execute_scan_1d(scan1, scan_name="", abort_signal=None, verbose=False):
@@ -285,7 +369,16 @@ def execute_scan_1d(scan1, scan_name="", abort_signal=None, verbose=False):
     logger.info("Done executing scan")
 
 
-def execute_scan_2d(inner_scan, outter_scan, abort_signal, sample=None, print_outter_msg=False, scan_name="", verbose=False):
+def execute_scan_2d(
+    inner_scan,
+    outter_scan,
+    abort_signal,
+    sample=None,
+    print_outter_msg=False,
+    scan_name="",
+    verbose=False,
+    recover_y_piezo=False,
+):
     """Execute a 2D scan with monitoring.
 
     Parameters:
@@ -294,6 +387,8 @@ def execute_scan_2d(inner_scan, outter_scan, abort_signal, sample=None, print_ou
         print_outter_msg (bool): Whether to print outer loop messages.
         scan_name (str): Name of the scan.
         adjust_samx_speed (bool): Whether to adjust samx speed during the scan.
+        recover_y_piezo (bool): Center sample.y.piezo after each inner scan if
+            sample.y.piezo_value exceeds sample.y.piezo_max_value.
     """
     watcher = ScanMonitor(
         numpts_x=inner_scan.number_points.value,
@@ -304,6 +399,7 @@ def execute_scan_2d(inner_scan, outter_scan, abort_signal, sample=None, print_ou
         execute_signal=outter_scan.execute_scan,
         pause_signal=outter_scan.wait,
         abort_signal=abort_signal,
+        recover_y_piezo=recover_y_piezo,
         name=f"{outter_scan.name}_monitor",
     )
     watcher.outter_print_msg = print_outter_msg
@@ -315,6 +411,7 @@ def execute_scan_2d(inner_scan, outter_scan, abort_signal, sample=None, print_ou
     outter_scan.execute_scan.subscribe(watcher.watch_execute_scan)  # Subscribe to the scan
     outter_scan.current_point.subscribe(watcher.watch_counter_outter)
     outter_scan.scan_phase.subscribe(watcher.watch_faze_outer)
+    inner_scan.execute_scan.subscribe(watcher.watch_inner_execute_scan)
     inner_scan.current_point.subscribe(watcher.watch_counter_inner)
     inner_scan.scan_phase.subscribe(watcher.watch_faze_inner)
 
@@ -329,6 +426,7 @@ def execute_scan_2d(inner_scan, outter_scan, abort_signal, sample=None, print_ou
     finally:
         inner_scan.current_point.unsubscribe_all()
         inner_scan.scan_phase.unsubscribe_all()
+        inner_scan.execute_scan.unsubscribe_all()
         outter_scan.current_point.unsubscribe_all()
         outter_scan.scan_phase.unsubscribe_all()
         outter_scan.execute_scan.unsubscribe_all()

@@ -34,9 +34,9 @@ class DeltaTauPVPositionerBase(PVPositioner):
         return super().stop(success=success)
 
 
-class DeltaTauPiezoBase(DeltaTauPVPositionerBase):
+class DeltaTauRetryPositionerBase(DeltaTauPVPositionerBase):
     """
-    Base for Delta Tau piezo axes with custom move: re-command the move every
+    Base for Delta Tau axes with custom move: re-command the move every
     1 second until setpoint and readback agree within tolerance (handles
     controllers that need repeated triggers). "Done" is determined by
     setpoint vs readback, not the hardware done signal.
@@ -90,3 +90,7 @@ class DeltaTauPiezoBase(DeltaTauPVPositionerBase):
             f"{self.name}: move to {position} did not complete within "
             f"{self.TOTAL_TIMEOUT} s"
         ))
+
+
+class DeltaTauPiezoBase(DeltaTauRetryPositionerBase):
+    """Compatibility name for Delta Tau piezo axes using retry/readback moves."""

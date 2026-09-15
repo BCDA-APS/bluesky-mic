@@ -142,12 +142,13 @@ class FlyScanRecord(Device):
             self.outer.unstage()
             yield from bps.sleep(0.1)
 
-    def execute2Dfly(self, scan_name="", sample=None, print_outter_msg=True):
+    def execute2Dfly(self, scan_name="", sample=None, print_outter_msg=True, recover_y_piezo=False):
         yield from execute_scan_2d(
             self.inner, 
             self.outer, 
             self.abort_signal, 
             sample=sample, 
             scan_name=scan_name, 
-            print_outter_msg=print_outter_msg
+            print_outter_msg=print_outter_msg,
+            recover_y_piezo=recover_y_piezo,
         )

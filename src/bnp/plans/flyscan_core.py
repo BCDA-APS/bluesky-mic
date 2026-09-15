@@ -78,8 +78,16 @@ def _move_with_timeout(device, target, *, timeout=10, retries=3, retry_delay=0.5
 def piezo_centering():
     logger.info(f"Centering piezo motors")
     yield from bps.mv(sample.y.piezo.center, 1)
+    yield from bps.sleep(2)
     yield from bps.mv(sample.x.piezo.center, 1)
-    yield from bps.sleep(5)
+    yield from bps.sleep(2)
+
+    y_piezo_value = abs(float(sample.y.piezo_value.get()))
+    if y_piezo_value > sample.y.piezo_max_value:
+        logger.warning(
+            f"Y piezo value {y_piezo_value} exceeds max {sample.y.piezo_max_value}; waiting for it to settle"
+        )
+  
 
 
 def _fly2d_scanrecord(
@@ -117,7 +125,7 @@ def _fly2d_scanrecord(
         sample_x = x_center if x_center is not None else (round(sample.x.piezo.position, 2))
         sample_y = y_center if y_center is not None else (round(sample.y.piezo.position, 2))
         if abs(sample.theta.position - theta) > 0.02:
-            yield from _move_with_timeout(sample.theta, theta, timeout=10, retries=4, atol=0.02)
+            yield from bps.mv(sample.theta, theta)
         yield from bps.mv(sample.z, sample_z)
         yield from bps.mv(sample.x.piezo, sample_x)
         yield from bps.mv(sample.y.piezo, sample_y)
@@ -148,25 +156,26 @@ def _fly2d_scanrecord(
         """Start executing scan"""
         yield from piezo_centering()
         yield from piezo_centering()
-        
+
         logger.info(f"Opening BDA")
-        yield from _move_with_timeout(bda.x, bda_position, timeout=10, retries=4, atol=0.02)
+        yield from bps.mv(bda.x, bda_position)
         sample.x.motion.put(3)
         logger.info(f"Putting sample x motor to fly scan mode")
         fname = savedata.next_file_name
-        yield from scanrecord.execute2Dfly(scan_name=fname)
+        yield from scanrecord.execute2Dfly(scan_name=fname, sample=sample, recover_y_piezo=True)
 
         yield from scanrecord.unstage2Dfly()
 
         logger.info(f"Closing BDA")
         bda_block = bda_position + 1500 # 1500 um
-        yield from _move_with_timeout(bda.x, bda_block, timeout=10, retries=4, atol=0.02)
+        yield from bps.mv(bda.x, bda_block)
         sample.x.motion.put(3)  # 1: CombinedStep; 4: FlyScan; 3: FineScan
         yield from bps.sleep(1)
         sample.x.motion.put(1)
         logger.info(f"Putting sample x motor to combined mode")
         yield from bps.mv(sample.y.piezo.center, 1)
         logger.info(f"Centering Y-piezo motors after scan")
+
     finally:
         ## unstage detectors
         for det in devices:
