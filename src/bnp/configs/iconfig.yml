@@ -86,6 +86,8 @@ STORAGE:
 ### APS Data Management
 ### Learn environment variables for Data Management from this file:
 DM_SETUP_FILE: "/home/dm_idd_bnp/etc/dm.setup.sh"
+DM_EXPERIMENT_TYPE_NAME: "2IDD-BNP"
+DM_XRF_WAITLIST_FILE_PATTERN: "{prefix}_{scan_number}_*.nc"
 
 # ----------------------------------
 

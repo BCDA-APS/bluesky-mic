@@ -1,0 +1,57 @@
+# Argument config for the DM "xrf-maps" workflow (XRF-Maps analysis).
+#
+# IMPORTANT:
+#   * The DM workflow NAME is "xrf-maps" -- pass that as `workflow_name` to
+#     DMAgent.start_processing_job(); it is NOT an argument, so it does not
+#     belong in this file.
+#   * This whole file is loaded (load_config_yaml) and passed verbatim as the
+#     DM `args` dict, so every active key below MUST be a valid argument of the
+#     registered workflow. Keys/values were verified against the live proc
+#     service: `dm-get-workflow --owner user2idd --workflow xrf-maps`.
+#   * Optional args are commented out; uncomment to override the workflow
+#     default. Leave them commented to use the workflow's own default.
+
+# --- Required ---
+experimentName: Ralle_DM_test          # DM experiment name (sets storage/output root)
+filePath: bnp_fly0004.mda            # input .mda file (or comma-separated list)
+macros: "A: Analyze datasets using ROI and NNLS"                          # Analyze datasets using ROI and NNLS"
+# fit: roi                           # roi, roi_plus, nnls, tails, matrix
+
+# --- Execution target ---
+analysisMachine: xfm3              # choices: polaris, mona3, mona4, xfm3 (default: xfm3)
+priority: high                     # high|low|debug. polaris: high->demand, low->prod
+                                   #   (this replaces the old `demand: True`)
+
+# --- Detector selection ---
+detectorRange: "0:0"                     # subset of 0,1,2,3
+# detectorRange: "0:3"             # alternative to detectors, e.g. 0:3 -> 0,1,2,3
+
+# --- Output copy-back ---
+download: /net/micdata/data1/bnp/2026-2/Ralle_DM_test/img.dat  # local dir to copy result files into
+
+# --- Optional file wait list ---
+# Comma-separated additional files to wait for before processing, such as
+# fly-scan NetCDF files. Uncomment and replace with the files for the test.
+# waitlist: bnp_fly0004_0.nc,bnp_fly0004_1.nc
+
+# --- Optional processing flags (defaults shown) ---
+# nthreads: 8                      # default: all system threads
+# quantifyWith: maps_standardinfo.txt
+# quantifyFit: roi,nnls            # re-quantify without re-fitting
+# generateAvgH5: false
+# addV9Layout: false               # NOTE capital V (was addv9Layout)
+# addExchange: false
+# exportCsv: false                 # NOTE lowercase sv (was exportCSV)
+# updateTheta: "<theta_pv_string>"
+# updateAmps: "<us_amp>,<ds_amp>"
+# updateQuantAmps: "<us_amp>,<ds_amp>"
+# quickAndDirty: false
+
+# --- Optimizer / override-params fitting (defaults shown) ---
+# optimizeFitOverrideParams: "1"   # 0..5 (see workflow help)
+# optimizeFitRoutine: general      # general|hybrid
+# optimizerAlgorithm: LN_SBPLX     # NLopt algo (was `optimizer`; NOT lmfit/mpfit)
+# optimizerXTols: 1.0e-10
+# optimizerNumIter: 20000
+# optimizerUseWeights: true
+# optimizeRois: false

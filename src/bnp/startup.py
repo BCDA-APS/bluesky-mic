@@ -61,6 +61,30 @@ oregistry.clear()
 # Configure the session with callbacks, devices, and plans.
 dm_setup(iconfig.get("DM_SETUP_FILE"))
 
+# Initialize the shared DM workflow client and register BNP workflow defaults.
+# The experiment type is optional here because XRF job submission does not use
+# it; it is only needed when creating a DM experiment.
+try:
+    from mic_common.dm.agent import get_dm_agent
+    from mic_common.dm.workflow_configs import load_dm_workflow_args
+
+    dm_agent = get_dm_agent()
+    dm_experiment_type = iconfig.get("DM_EXPERIMENT_TYPE_NAME")
+    if dm_experiment_type:
+        dm_agent.set_experiment_type_name(dm_experiment_type)
+
+    xrf_dm_args = load_dm_workflow_args(
+        instrument_path / "configs" / "xrf_workflow.yml"
+    )
+    dm_agent.set_workflow_args("xrf", xrf_dm_args)
+    waitlist_pattern = iconfig.get("DM_XRF_WAITLIST_FILE_PATTERN")
+    if waitlist_pattern:
+        dm_agent.set_waitlist_pattern("xrf", waitlist_pattern)
+    logger.info("DM agent initialized for this session")
+except Exception:
+    dm_agent = None
+    logger.exception("Failed to initialize DM agent")
+
 # Command-line tools, such as %wa, %ct, ...
 register_bluesky_magics()
 

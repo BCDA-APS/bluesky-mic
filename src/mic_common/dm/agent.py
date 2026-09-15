@@ -63,6 +63,7 @@ class DMAgent:
     def __init__(self):
         """Create a DM workflow processing API client from the configured login."""
         self.workflow_args: dict[str, dict[str, Any]] = {}
+        self.waitlist_patterns: dict[str, str] = {}
         self.experiment_type_name: str | None = None
         self.config_manager = _call_preserving_root_logging(
             ConfigurationManager.getInstance
@@ -93,6 +94,19 @@ class DMAgent:
     def set_workflow_args(self, name: str, args: dict[str, Any]) -> None:
         """Store default argument values for a workflow alias."""
         self.workflow_args[name] = dict(args)
+
+    def set_waitlist_pattern(self, name: str, pattern: str) -> None:
+        """Store a default file-waitlist pattern for a workflow alias."""
+        if not isinstance(pattern, str) or not pattern.strip():
+            raise ValueError("DM waitlist pattern must be a non-empty string.")
+        self.waitlist_patterns[name] = pattern
+
+    def get_waitlist_pattern(self, name: str) -> str:
+        """Return the default file-waitlist pattern for a workflow alias."""
+        try:
+            return self.waitlist_patterns[name]
+        except KeyError as exc:
+            raise KeyError(f"No DM waitlist pattern configured for {name!r}") from exc
 
     def set_experiment_type_name(self, type_name: str) -> None:
         """Store the default DM experiment type name for this session."""
@@ -264,11 +278,16 @@ class DMAgent:
             )
 
     def start_processing_job(
-        self, workflow_name: str, args: dict[str, Any]
+        self,
+        workflow_name: str,
+        args: dict[str, Any],
+        *,
+        validate_workflow_args: bool = True,
     ) -> dict[str, Any]:
         """Start a processing job for a workflow with given args."""
         job = {}
-        self.validate_args(workflow_name, args)
+        if validate_workflow_args:
+            self.validate_args(workflow_name, args)
         try:
             job_obj = self._call_preserving_root_logging(
                 self.workflow_api.startProcessingJob,
