@@ -144,6 +144,7 @@ def fly2d_scanrecord(
             download=dm_download,
             savedata=savedata,
             verbose=dm_verbose,
+            check_file_readiness=True,
         )
 
 

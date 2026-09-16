@@ -15,7 +15,7 @@
 experimentName: blueskydm          # DM experiment name (sets storage/output root)
 filePath: 2idd_0009.mda            # input .mda file (or comma-separated list)
 macros: "A: Analyze datasets using ROI and NNLS"                          # Analyze datasets using ROI and NNLS"
-# fit: roi                           # roi, roi_plus, nnls, tails, matrix
+fit: roi                           # roi, roi_plus, nnls, tails, matrix
 
 # --- Execution target ---
 analysisMachine: polaris              # choices: polaris, mona3, mona4, xfm3 (default: xfm3)
@@ -27,7 +27,7 @@ detectorRange: "0:0"                     # subset of 0,1,2,3
 # detectorRange: "0:3"             # alternative to detectors, e.g. 0:3 -> 0,1,2,3
 
 # --- Output copy-back ---
-download: /net/micdata/data1/2idd/2026-1/blueskydm/img.dat  # local dir to copy result files into
+download: /net/micdata/data1/2idd/2026-1/blueskydm/img.dat/analysis  # local dir to copy result files into
 
 # --- Optional processing flags (defaults shown) ---
 # nthreads: 8                      # default: all system threads

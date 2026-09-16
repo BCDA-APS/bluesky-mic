@@ -12,8 +12,11 @@ logger = logging.getLogger(__name__)
 
 def build_default_xrf_download_path(savedata) -> str:
     """Build the default XRF DM download path from a SaveData-like object."""
-    return os.path.join(savedata.get_auto_storage_path(), "img.dat")
+    return os.path.join(savedata.get_auto_storage_path(), "img.dat/dm")
 
+def build_default_xrf_waitlist_dir(savedata) -> str:
+    """Build the default XRF DM waitlist directory from a SaveData-like object."""
+    return os.path.join(savedata.get_auto_storage_path(), "flyXRF")
 
 def build_xrf_waitlist(
     file_path: str,

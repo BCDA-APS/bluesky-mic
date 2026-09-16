@@ -71,6 +71,9 @@ try:
         instrument_path / "configs" / "xrf_workflow.yml"
     )
     dm_agent.set_workflow_args("xrf", xrf_dm_args)
+    waitlist_pattern = iconfig.get("DM_XRF_WAITLIST_FILE_PATTERN")
+    if waitlist_pattern:
+        dm_agent.set_waitlist_pattern("xrf", waitlist_pattern)
     logger.info("DM agent initialized for this session")
 except Exception:
     dm_agent = None

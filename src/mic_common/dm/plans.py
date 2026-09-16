@@ -5,7 +5,7 @@ from typing import Any
 from bluesky import plan_stubs as bps
 
 from .validation import validate_xrf_dm_inputs
-from .workflows import build_default_xrf_download_path
+from .workflows import build_default_xrf_download_path, build_default_xrf_waitlist_dir
 from .workflows import submit_xrf_dm_job
 
 
@@ -28,6 +28,9 @@ def submit_xrf_dm_job_plan(
         download = build_default_xrf_download_path(savedata)
 
     validate_xrf_dm_inputs(analysis_machine, experiment_name, download)
+
+    if waitlist_folder is None and savedata is not None:
+        waitlist_folder = build_default_xrf_waitlist_dir(savedata)
 
     yield from bps.null()
     return submit_xrf_dm_job(

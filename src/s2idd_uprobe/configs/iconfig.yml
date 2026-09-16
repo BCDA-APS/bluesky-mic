@@ -11,6 +11,7 @@ DATABROKER_CATALOG: &databroker_catalog temp
 ### APS Data Management
 DM_SETUP_FILE: "/home/dm_idd_uprobe/etc/dm.setup.sh"
 DM_EXPERIMENT_TYPE_NAME: "2IDD-UPROBE"
+DM_XRF_WAITLIST_FILE_PATTERN: "{stem}_*.nc"
 
 ### RunEngine configuration
 RUN_ENGINE:
