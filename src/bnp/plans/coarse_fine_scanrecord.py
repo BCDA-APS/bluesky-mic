@@ -8,6 +8,7 @@ from mic_vis.bnp.img_processing import get_coordinate
 
 from .fly2d_scanrecord import fly2d_scanrecord
 from bnp.utils.coarse_fine import wait_for_coarse_h5
+from mic_common.dm.workflows import build_default_xrf_download_path
 
 logger = logging.getLogger(__name__)
 savedata = oregistry["savedata"]
@@ -39,11 +40,15 @@ def coarse_fine_scanrecord(
     n_std: float = 2.0,
     n_cluster: int = 2,
     sel_cluster: int = 1,
-    file_wait_timeout: float = 30.0,
+    kmean_fixed_y: bool = False,
+    file_wait_timeout: float = 60.0,
     xmap_on: bool = True,
     xp3_on: bool = False,
     eiger_on: bool = False,
     ptycho_exp_factor: float = 1,
+    dm_analysis_machine: str = None,
+    dm_experiment_name: str = None,
+    dm_download: str = None,
 ):
     """This plan runs a coarse fly2d scan, compute a fine center, then run a fine fly2d scan
 
@@ -100,8 +105,10 @@ def coarse_fine_scanrecord(
         The number of clusters to use for the fine scan center computation. Default: 2. 
     sel_cluster: 
         The cluster to use for the fine scan center computation. Recommended value is n_cluster - 1, which is the cluster with the highest intensity. 
+    kmean_fixed_y: 
+        Whether to use fixed y-coordinates for k-means clustering. Default: False.
     file_wait_timeout: 
-        The timeout for waiting for the coarse scan h5 file. Default: 30.0. 
+        The timeout for waiting for the coarse scan h5 file. Default: 60.0. 
     xmap_on: 
         Whether to enable the xmap detector. Default: True. 
     xp3_on: 
@@ -110,6 +117,13 @@ def coarse_fine_scanrecord(
         Whether to enable the eiger detector. Default: False. 
     ptycho_exp_factor: 
         The exposure factor for the ptycho detector. Default: 1. 
+    dm_analysis_machine:
+        The machine name for DM analysis. If not provided, DM XRF processing is not run.
+    dm_experiment_name:
+        The DM experiment name. Required when DM submission is requested.
+    dm_download:
+        Directory where DM writes processed files. If omitted, the default
+        path is derived from savedata.
 
     """
 
@@ -141,24 +155,71 @@ def coarse_fine_scanrecord(
         xp3_on=xp3_on,
         eiger_on=eiger_on,
         ptycho_exp_factor=ptycho_exp_factor,
+        dm_analysis_machine=dm_analysis_machine,
+        dm_experiment_name=dm_experiment_name,
+        dm_download=dm_download,
     )
 
     base_dir = Path(str(savedata.get_auto_storage_path()))
-    coarse_h5_path = wait_for_coarse_h5(base_dir, coarse_scan_name, timeout=file_wait_timeout)
+    dm_requested = any(
+        value is not None
+        for value in (dm_analysis_machine, dm_experiment_name)
+    )
+    coarse_output_dir = base_dir
+    if dm_requested:
+        coarse_output_dir = (
+            Path(dm_download)
+            if dm_download is not None
+            else Path(build_default_xrf_download_path(savedata))
+        )
+    logger.info("Looking for coarse HDF5 output in '%s'", coarse_output_dir)
+    try:
+        coarse_h5_path = wait_for_coarse_h5(
+            coarse_output_dir,
+            coarse_scan_name,
+            timeout=file_wait_timeout,
+            stable_reads_required=10,
+        )
+    except Exception:
+        logger.exception(
+            "Could not obtain a stable coarse HDF5 file for '%s'; "
+            "skipping fine scan",
+            coarse_scan_name,
+        )
+        return
+
     img_proc_dir = base_dir / "img_proc"
     img_proc_dir.mkdir(exist_ok=True)
     figpath = img_proc_dir / f"{coarse_scan_name}_coarse_roi.png"
-    fine_x, fine_y = get_coordinate(
-        coarse_h5_path,
-        elm=elm,
-        mask_elm=mask_elm or None,
-        use_mask=use_mask,
-        n_std=n_std,
-        n_cluster=n_cluster,
-        sel_cluster=sel_cluster,
-        figpath=figpath
-    )
+
+    try:
+        fine_x, fine_y = get_coordinate(
+            coarse_h5_path,
+            elm=elm,
+            mask_elm=mask_elm or None,
+            use_mask=use_mask,
+            n_std=n_std,
+            n_cluster=n_cluster,
+            sel_cluster=sel_cluster,
+            figpath=figpath,
+        )
+    except Exception:
+        logger.exception(
+            "Could not retrieve coarse coordinates from '%s'; "
+            "skipping fine scan",
+            coarse_h5_path,
+        )
+        logger.error(
+            "Skipping fine scan for '%s': coarse coordinates could not be retrieved",
+            samplename,
+        )
+        return
+
     logger.info("Starting fine scan for '%s' at x=%.2f y=%.2f", samplename, fine_x, fine_y)
+
+    if kmean_fixed_y:
+        logger.info("Using fixed y-coordinates, same as the y-coordinates of the coarse scan")
+        fine_y = y_center
 
     yield from fly2d_scanrecord(
         samplename=samplename,
@@ -177,4 +238,7 @@ def coarse_fine_scanrecord(
         xp3_on=xp3_on,
         eiger_on=eiger_on,
         ptycho_exp_factor=ptycho_exp_factor,
+        dm_analysis_machine=dm_analysis_machine,
+        dm_experiment_name=dm_experiment_name,
+        dm_download=dm_download,
     )

@@ -14,8 +14,8 @@
 # --- Required ---
 experimentName: Ralle_DM_test          # DM experiment name (sets storage/output root)
 filePath: bnp_fly0004.mda            # input .mda file (or comma-separated list)
-macros: "A: Analyze datasets using ROI and NNLS"                          # Analyze datasets using ROI and NNLS"
-# fit: roi                           # roi, roi_plus, nnls, tails, matrix
+macros: "A: Analyze datasets using ROI and NNLS"     # Analyze datasets using ROI and NNLS"
+fit: roi                           # roi, roi_plus, nnls, tails, matrix
 
 # --- Execution target ---
 analysisMachine: xfm3              # choices: polaris, mona3, mona4, xfm3 (default: xfm3)
@@ -23,7 +23,7 @@ priority: high                     # high|low|debug. polaris: high->demand, low-
                                    #   (this replaces the old `demand: True`)
 
 # --- Detector selection ---
-detectorRange: "0:0"                     # subset of 0,1,2,3
+detectorRange: "0:6"                     # subset of 0,1,2,3
 # detectorRange: "0:3"             # alternative to detectors, e.g. 0:3 -> 0,1,2,3
 
 # --- Output copy-back ---
@@ -38,8 +38,8 @@ download: /net/micdata/data1/bnp/2026-2/Ralle_DM_test/img.dat  # local dir to co
 # nthreads: 8                      # default: all system threads
 # quantifyWith: maps_standardinfo.txt
 # quantifyFit: roi,nnls            # re-quantify without re-fitting
-# generateAvgH5: false
-# addV9Layout: false               # NOTE capital V (was addv9Layout)
+generateAvgH5: true
+addV9Layout: true               # NOTE capital V (was addv9Layout)
 # addExchange: false
 # exportCsv: false                 # NOTE lowercase sv (was exportCSV)
 # updateTheta: "<theta_pv_string>"

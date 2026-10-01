@@ -58,7 +58,7 @@ def step1d(
 
     # """Disable usercalc"""
     # yield from disable_usercalc()
-     """Disable the usercalc that used in scan record"""
+    """Disable the usercalc that used in scan record"""
     # yield from disable_usercalc()
     if flycalc.value == 0:
         yield from bps.mv(flycalc, 1)

@@ -69,6 +69,25 @@ existing_devices:
     is_movable: false
     is_readable: true
     module: bnp.devices.bda
+  eiger:
+    classname: Eiger2ID
+    components:
+      cam:
+        classname: EigerBase
+        is_flyable: false
+        is_movable: false
+        is_readable: true
+        module: mic_common.devices.eiger500k
+      fileplugin:
+        classname: DetHDF5
+        is_flyable: false
+        is_movable: false
+        is_readable: true
+        module: mic_common.devices.ad_fileplugin
+    is_flyable: false
+    is_movable: false
+    is_readable: true
+    module: mic_common.devices.eiger500k
   fly_dwell:
     classname: EpicsSignal
     is_flyable: false
@@ -1230,10 +1249,19 @@ existing_plans:
         value: 1
       name: sel_cluster
     - annotation:
+        type: bool
+      default: 'False'
+      description: 'Whether to use fixed y-coordinates for k-means clustering. Default:
+        False.'
+      kind:
+        name: POSITIONAL_OR_KEYWORD
+        value: 1
+      name: kmean_fixed_y
+    - annotation:
         type: float
-      default: '30.0'
+      default: '60.0'
       description: 'The timeout for waiting for the coarse scan h5 file. Default:
-        30.0. '
+        60.0. '
       kind:
         name: POSITIONAL_OR_KEYWORD
         value: 1
@@ -1265,11 +1293,38 @@ existing_plans:
     - annotation:
         type: float
       default: '1'
-      description: 'The exposure factor for the ptycho detector. Default: 1.'
+      description: 'The exposure factor for the ptycho detector. Default: 1. '
       kind:
         name: POSITIONAL_OR_KEYWORD
         value: 1
       name: ptycho_exp_factor
+    - annotation:
+        type: str
+      default: None
+      description: The machine name for DM analysis. If not provided, DM XRF processing
+        is not run.
+      kind:
+        name: POSITIONAL_OR_KEYWORD
+        value: 1
+      name: dm_analysis_machine
+    - annotation:
+        type: str
+      default: None
+      description: The DM experiment name. Required when DM submission is requested.
+      kind:
+        name: POSITIONAL_OR_KEYWORD
+        value: 1
+      name: dm_experiment_name
+    - annotation:
+        type: str
+      default: None
+      description: 'Directory where DM writes processed files. If omitted, the default
+
+        path is derived from savedata.'
+      kind:
+        name: POSITIONAL_OR_KEYWORD
+        value: 1
+      name: dm_download
     properties:
       is_generator: true
   fly2d_scanrecord:
@@ -1411,10 +1466,63 @@ existing_plans:
     - annotation:
         type: float
       default: '1'
-      description: The exposure factor for the Ptycho measurement. Default is 1.
+      description: 'The exposure factor for the Ptycho measurement. Default is 1. '
       kind:
         name: POSITIONAL_OR_KEYWORD
         value: 1
       name: ptycho_exp_factor
+    - annotation:
+        type: int
+      default: '2'
+      description: 'Eiger trigger mode: 3 for External Enable or 2 for External Series.
+
+        Default is 2 (External Series).'
+      kind:
+        name: POSITIONAL_OR_KEYWORD
+        value: 1
+      name: eiger_trigger_mode
+    - annotation:
+        type: str
+      default: None
+      description: The machine name for DM analysis. If not provided, DM XRF processing
+        is not run.
+      kind:
+        name: POSITIONAL_OR_KEYWORD
+        value: 1
+      name: dm_analysis_machine
+    - annotation:
+        type: str
+      default: None
+      description: The DM experiment name. Required when DM submission is requested.
+      kind:
+        name: POSITIONAL_OR_KEYWORD
+        value: 1
+      name: dm_experiment_name
+    - annotation:
+        type: str
+      default: None
+      description: Download path for DM output. If not provided, a path is built from
+        savedata.
+      kind:
+        name: POSITIONAL_OR_KEYWORD
+        value: 1
+      name: dm_download
+    - annotation:
+        type: bool
+      default: 'False'
+      description: Whether to log the submitted DM job metadata. Default is False.
+      kind:
+        name: POSITIONAL_OR_KEYWORD
+        value: 1
+      name: dm_verbose
+    - annotation:
+        type: int
+      default: '2'
+      description: The time to wait for DM job submission in seconds. Default is 2
+        seconds.
+      kind:
+        name: POSITIONAL_OR_KEYWORD
+        value: 1
+      name: wait_for_dm_sec
     properties:
       is_generator: true

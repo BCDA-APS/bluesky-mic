@@ -35,17 +35,51 @@ class EigerBase(EigerDetectorCam):
         self, 
         num_pulses: int,
         dwell_time: float, # unit in seconds
-        trigger_mode: int = 2, # 2: "external series"
-        num_triggers: int = 1, # number of triggers
+        trigger_mode: int = 2,
+        num_triggers: int | None = None, # number of triggers
         **kwargs):
 
+        """Configure the Eiger camera for a fly scan.
+
+        Parameters
+        ----------
+        trigger_mode:
+            Eiger trigger mode. ``3`` is External Enable and ``2`` is
+            External Series. The default is ``2`` (External Series).
+        """
         self.stage_sigs.clear()
         self.stage_sigs['acquire'] = 0
-        self.stage_sigs['trigger_mode'] = trigger_mode
-        self.stage_sigs['acquire_time'] = dwell_time
-        self.stage_sigs['acquire_period'] = dwell_time
-        self.stage_sigs['num_images'] = num_pulses
-        self.stage_sigs['num_triggers'] = num_triggers
+        if trigger_mode == 3:  # External Enable
+            num_images = 1
+            configured_num_triggers = (
+                num_pulses if num_triggers is None else num_triggers
+            )
+        elif trigger_mode == 2:  # External Series
+            num_images = num_pulses
+            configured_num_triggers = (
+                1 if num_triggers is None else num_triggers
+            )
+        else:
+            raise ValueError(
+                f"Unsupported Eiger trigger mode {trigger_mode}; "
+                "use 3 (External Enable) or 2 (External Series)."
+            )
+
+        # The Eiger IOC has mode-dependent ordering constraints:
+        #
+        # * External Enable requires NumImages=1 before selecting mode 3.
+        # * External Series must be selected as mode 2 before increasing
+        #   NumImages above 1 when coming from External Enable.
+        if trigger_mode == 3:
+            self.stage_sigs['num_images'] = num_images
+            self.stage_sigs['num_triggers'] = configured_num_triggers
+            self.stage_sigs['trigger_mode'] = trigger_mode
+        else:  # External Series
+            self.stage_sigs['trigger_mode'] = trigger_mode
+            self.stage_sigs['num_images'] = num_images
+            self.stage_sigs['num_triggers'] = configured_num_triggers
+            self.stage_sigs['acquire_time'] = dwell_time
+            self.stage_sigs['acquire_period'] = dwell_time
         
 
 class Eiger2ID(Device):
@@ -78,17 +112,21 @@ class Eiger2ID(Device):
             raise e
 
     def unstage(self):
-        """Unstage the Eiger2ID device."""
-        # Check if device is already staged and unstage if necessary
-        if self._staged == Staged.yes:
-            logger.info("Eiger2ID is unstaged, unstaging ... ...")
-            return super().unstage()
-        elif self._staged == Staged.partially:
-            logger.info("Eiger2ID is partially staged, unstaging cam and fileplugin separately...")
-            if self.cam._staged == Staged.yes:
-                self.cam.unstage()
-            if self.fileplugin._staged == Staged.yes:
-                self.fileplugin.unstage()
+        """Unstage the Eiger2ID device, including partially staged children."""
+        if (
+            self._staged == Staged.no
+            and self.cam._staged == Staged.no
+            and self.fileplugin._staged == Staged.no
+        ):
+            return []
+
+        logger.info(
+            "Unstaging Eiger2ID (state=%s, cam=%s, fileplugin=%s)",
+            self._staged,
+            self.cam._staged,
+            self.fileplugin._staged,
+        )
+        return super().unstage()
 
     def unhang(self, retries: int = 1, delay_s: float = 0.1) -> dict[str, object]:
         attempts = max(1, int(retries))

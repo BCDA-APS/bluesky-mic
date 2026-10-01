@@ -11,7 +11,9 @@ __all__ = """
 """.split()
 
 import logging
+import bluesky.plan_stubs as bps
 import bluesky.preprocessors as bpp
+from mic_common.dm.plans import submit_xrf_dm_job_plan
 from mic_common.utils.param_capture import capture_params
 from bnp.plans.flyscan_core import _fly2d_scanrecord
 from apsbits.core.instrument_init import oregistry
@@ -38,6 +40,12 @@ def fly2d_scanrecord(
     xp3_on: bool = False,
     eiger_on: bool = False,
     ptycho_exp_factor: float = 1,
+    eiger_trigger_mode: int = 2,
+    dm_analysis_machine: str = None,
+    dm_experiment_name: str = None,
+    dm_download: str = None,
+    dm_verbose: bool = False,
+    wait_for_dm_sec: int = 2,
 ):
     """2D Bluesky plan that uses ScanRecord to perform a 2D scan.
 
@@ -79,6 +87,19 @@ def fly2d_scanrecord(
         Whether to enable the Eiger detector for Ptycho. Default is False. 
     ptycho_exp_factor:
         The exposure factor for the Ptycho measurement. Default is 1. 
+    eiger_trigger_mode:
+        Eiger trigger mode: 3 for External Enable or 2 for External Series.
+        Default is 2 (External Series).
+    dm_analysis_machine:
+        The machine name for DM analysis. If not provided, DM XRF processing is not run.
+    dm_experiment_name:
+        The DM experiment name. Required when DM submission is requested.
+    dm_download:
+        Download path for DM output. If not provided, a path is built from savedata.
+    dm_verbose:
+        Whether to log the submitted DM job metadata. Default is False.
+    wait_for_dm_sec:
+        The time to wait for DM job submission in seconds. Default is 2 seconds.
     """
 
     """Capture the input plan parameters"""
@@ -105,3 +126,30 @@ def fly2d_scanrecord(
 
     yield from _fly2d()
 
+    savedata.update_current_file_name()
+    mda_file = savedata.current_file_name
+    dm_requested = any(
+        value is not None
+        for value in (
+            dm_analysis_machine,
+            dm_experiment_name,
+        )
+    )
+    if dm_requested:
+        logger.info("DM submission requested for XRF processing")
+        yield from bps.sleep(wait_for_dm_sec)
+        logger.info(
+            "Submitting DM job for XRF processing: machine=%s, experiment=%s, download=%s",
+            dm_analysis_machine,
+            dm_experiment_name,
+            dm_download,
+        )
+        yield from submit_xrf_dm_job_plan(
+            mda_file,
+            dm_analysis_machine,
+            dm_experiment_name,
+            download=dm_download,
+            savedata=savedata,
+            verbose=dm_verbose,
+            check_file_readiness=True,
+        )

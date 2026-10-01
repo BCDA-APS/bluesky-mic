@@ -44,10 +44,10 @@ mic_common.devices.xmap.XMAP:
   prefix: 9idbXMAP
   labels: ["xmap"]
 
-# mic_common.devices.eiger500k.Eiger2ID:
-# - name: eiger
-#   prefix: 2iddEGR
-#   labels: ["eiger2id"]
+mic_common.devices.eiger500k.Eiger2ID:
+- name: eiger
+  prefix: 2iddEGR
+  labels: ["eiger2id"]
 
 bnp.devices.xspress3.BNPXspress3:
 - name: xp3

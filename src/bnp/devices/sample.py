@@ -41,13 +41,14 @@ class DeltaTauStepperY(DeltaTauPVPositionerBase):
     readback = Component(EpicsSignalRO, 'SY:ActPos')
 
 class DeltaTauStepperZ(DeltaTauRetryPositionerBase):
-    tolerance = 0.1
+    tolerance = 0.2
     done = Component(EpicsSignalRO, 'Ps:RunPrg')
     stop_signal = Component(EpicsSignal, 'Ps:Abort')
     setpoint = Component(EpicsSignal, 'SZ:RqsPos')
     readback = Component(EpicsSignalRO, 'SZ:ActPos')
 
 class DeltaTauStepperTheta(DeltaTauRetryPositionerBase):
+    tolerance = 0.1
     done = Component(EpicsSignalRO, 'Ps:RunPrg')
     stop_signal = Component(EpicsSignal, 'Ps:Abort')
     setpoint = Component(EpicsSignal, 'ST:RqsPos')

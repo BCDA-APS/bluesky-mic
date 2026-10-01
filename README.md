@@ -15,7 +15,7 @@ cd bluesky_mic
 To update the DM API in the `bsbits` environment:
 
 ```bash
-conda update -n bsbits -c aps-anl-tag aps-dm-api
+conda update -n bsbits -c apsu aps-dm-api
 ```
 
 

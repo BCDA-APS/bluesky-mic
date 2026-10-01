@@ -71,6 +71,7 @@ def syncXYZ() -> list[float] | None:
             round(float(sample.x.piezo.position), 2),
             round(float(sample.y.piezo.position), 2),
             round(float(sample.z.position), 2),
+            round(float(sample.theta.position), 2)
         ]
     except Exception:
         logger.exception("Failed to read sample XYZ positions")
@@ -83,13 +84,20 @@ def syncXYZ_transform(
     z: float | None = None,
     theta: float | None = None,
     tolerance: float = 0.02,
+    require_theta_zero: bool = True,
 ) -> dict[str, float] | None:
-    """Transform theta-0 sample coordinates into scan coordinates at ``theta``."""
+    """Transform sample coordinates into scan coordinates at ``theta``.
+
+    When ``require_theta_zero`` is true, only coordinates read from or
+    synchronized at theta zero may be transformed.
+    """
 
     sample = _get_sample()
     if sample is None:
         logger.warning("sample device is not available")
         return None
+
+    logger.info(f"Transforming sample coordinates: x={x}, y={y}, z={z}, theta={theta}")
 
     try:
         x_value = round(float(sample.x.piezo.position), 2) if x is None else float(x)
@@ -97,7 +105,7 @@ def syncXYZ_transform(
         z_value = round(float(sample.z.position), 2) if z is None else float(z)
         current_theta = round(float(sample.theta.position), 2)
         target_theta = current_theta if theta is None else float(theta)
-        if abs(round(current_theta, 2)) > tolerance:
+        if require_theta_zero and abs(round(current_theta, 2)) > tolerance:
             logger.warning("Theta is not 0, cannot transform sample XYZ coordinates")
             return None
         return coordinate_transform(target_theta, x_value, y_value, z_value, **_get_transform_offsets())

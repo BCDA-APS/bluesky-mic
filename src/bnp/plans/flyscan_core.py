@@ -105,6 +105,7 @@ def _fly2d_scanrecord(
     xp3_on=False,
     eiger_on=False,
     ptycho_exp_factor=1,
+    eiger_trigger_mode=2,
     **kwargs,
 ):
     devices = []
@@ -150,7 +151,14 @@ def _fly2d_scanrecord(
         """Initialize detectors with desired pts, exposure time and file writer """
         numpts_x = scanrecord.inner.number_points.value
         num_pulses = numpts_x
-        setup_detectors_and_fileio(devices, num_pulses=num_pulses, dwell_time=dwell_ms, stepsize=stepsize_x, ptycho_exp_factor=ptycho_exp_factor)
+        setup_detectors_and_fileio(
+            devices,
+            num_pulses=num_pulses,
+            dwell_time=dwell_ms,
+            stepsize=stepsize_x,
+            ptycho_exp_factor=ptycho_exp_factor,
+            eiger_trigger_mode=eiger_trigger_mode,
+        )
         yield from bps.checkpoint()
 
         """Start executing scan"""
@@ -164,18 +172,6 @@ def _fly2d_scanrecord(
         fname = savedata.next_file_name
         yield from scanrecord.execute2Dfly(scan_name=fname, sample=sample, recover_y_piezo=True)
 
-        yield from scanrecord.unstage2Dfly()
-
-        logger.info(f"Closing BDA")
-        bda_block = bda_position + 1500 # 1500 um
-        yield from bps.mv(bda.x, bda_block)
-        sample.x.motion.put(3)  # 1: CombinedStep; 4: FlyScan; 3: FineScan
-        yield from bps.sleep(1)
-        sample.x.motion.put(1)
-        logger.info(f"Putting sample x motor to combined mode")
-        yield from bps.mv(sample.y.piezo.center, 1)
-        logger.info(f"Centering Y-piezo motors after scan")
-
     finally:
         ## unstage detectors
         for det in devices:
@@ -185,9 +181,27 @@ def _fly2d_scanrecord(
                 logger.warning(f"Failed to unstage detector {getattr(det, 'name', det)} during cleanup: {exc}")
         try:
             yield from scanrecord.unstage2Dfly()
+        except Exception as exc:
+            logger.warning(f"Failed to unstage scan record during cleanup: {exc}")
+
+        try:
+            logger.info("Closing BDA")
+            bda_block = bda_position + 1500  # 1500 um
+            yield from bps.mv(bda.x, bda_block)
+            sample.x.motion.put(3)  # 1: CombinedStep; 4: FlyScan; 3: FineScan
+            yield from bps.sleep(1)
+        except Exception as exc:
+            logger.warning(f"Failed to close BDA during cleanup: {exc}")
         finally:
             sample.x.motion.put(1)
-            logger.info(f"Putting sample x motor to combined mode")
-            if suppression_applied:
-                sample.set_re_stop_suppressed(False)
-                logger.warning("Disabled RE stop suppression for BNP sample motors after fly2d_scanrecord")
+            logger.info("Putting sample x motor to combined mode")
+
+        try:
+            yield from bps.mv(sample.y.piezo.center, 1)
+            logger.info("Centering Y-piezo motors after scan")
+        except Exception as exc:
+            logger.warning(f"Failed to center Y-piezo during cleanup: {exc}")
+
+        if suppression_applied:
+            sample.set_re_stop_suppressed(False)
+            logger.warning("Disabled RE stop suppression for BNP sample motors after fly2d_scanrecord")

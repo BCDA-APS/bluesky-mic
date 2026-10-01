@@ -9,6 +9,7 @@ def setup_detectors_and_fileio(
         stepsize: float = None, 
         motor_resolution: float = None,
         ptycho_exp_factor: float = 1,
+        eiger_trigger_mode: int = 2,
         **kwargs
 ):
     """
@@ -26,6 +27,9 @@ def setup_detectors_and_fileio(
         Step size for the scan in x direction
     motor_resolution : float
         Motor resolution for the scan
+    eiger_trigger_mode : int
+        Eiger trigger mode: 3 for External Enable or 2 for External
+        Series. Default is 2.
     """
 
 
@@ -41,11 +45,14 @@ def setup_detectors_and_fileio(
                 logger.error(f"Error configuring fileplugin for fly scan: {e}")
                 raise e
         else:
-            det.config_flyscan(
-                num_pulses=num_pulses,
-                dwell_time=det_dwell_time,
-                stepsize=stepsize,
-                motor_resolution=motor_resolution,
-            )
+            config_kwargs = {
+                "num_pulses": num_pulses,
+                "dwell_time": det_dwell_time,
+                "stepsize": stepsize,
+                "motor_resolution": motor_resolution,
+            }
+            if det.name == "eiger":
+                config_kwargs["trigger_mode"] = eiger_trigger_mode
+            det.config_flyscan(**config_kwargs)
 
         det.stage()

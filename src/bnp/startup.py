@@ -162,6 +162,7 @@ from .plans.coarse_fine_scanrecord import coarse_fine_scanrecord
 
 
 ## QServer functions
+from mic_common.dm.qserver import create_dm_experiment, start_dm_daq
 from .qserver.beamline_monitor import configure_detector_recovery_policy
 from .qserver.helper_funcs import get_save_data_path
 from .qserver.helper_funcs import get_global_health_snapshot

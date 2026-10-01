@@ -36,8 +36,13 @@ def wait_for_coarse_h5(
     *,
     timeout: float = 30.0,
     poll_interval: float = 1.0,
+    stable_reads_required: int = 10,
 ) -> Path:
-    """Wait until the expected coarse HDF5 file exists and stabilizes."""
+    """Wait until the expected coarse HDF5 file exists and stabilizes.
+
+    The file must have the same nonzero size for ``stable_reads_required``
+    consecutive polls before it is returned.
+    """
 
     deadline = time.monotonic() + timeout
     last_size: int | None = None
@@ -51,7 +56,7 @@ def wait_for_coarse_h5(
             size = candidate.stat().st_size
             if size > 0 and size == last_size:
                 stable_reads += 1
-                if stable_reads >= 2:
+                if stable_reads >= stable_reads_required:
                     return candidate
             else:
                 stable_reads = 0

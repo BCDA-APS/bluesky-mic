@@ -73,7 +73,7 @@ XP3:
 
 BEAMLINE_MONITOR:
     DETECTOR_RECOVERY:
-        IGNORE_RING_CURRENT: true
+        IGNORE_RING_CURRENT: false 
 
 SAVE_DATA:
     MOUNT_PATH: "//micdata/data1/"
