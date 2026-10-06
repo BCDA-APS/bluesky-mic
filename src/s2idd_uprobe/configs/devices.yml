@@ -60,7 +60,7 @@ mic_common.devices.sis3820.SIS3820:
   prefix: 2idd:3820
   labels: ["sis3820"]
 
-s2idd_uprobe.devices.optics.KohzuMono:
+mic_common.devices.optics.Mono2ID:
 - name: kohzu_mono
   prefix: "2ida2:"
   labels: ["mono"]

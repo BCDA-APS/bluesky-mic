@@ -22,6 +22,23 @@ import time
 logger = logging.getLogger(__name__)
 
 
+class XMAPNetCDF(DetNetCDF):
+    """XMAP netCDF plugin with special file-path handling.
+
+    The XMAP IOC accepts the file path, but its readback behavior can make
+    Ophyd's staged ``file_path`` signal status fail intermittently.  Write
+    the path directly and leave it out of the staging signals while retaining
+    the normal staging behavior for all other file-plugin signals.
+    """
+
+    def config_file_writer(self, *args, **kwargs):
+        super().config_file_writer(*args, **kwargs)
+
+        file_path = self.stage_sigs.pop("file_path", None)
+        if file_path is not None:
+            self.file_path.put(file_path, wait=True)
+
+
 class XMAPBase(Device):
     """4-element XMAP device for X-ray spectroscopy."""
 
@@ -58,7 +75,7 @@ class XMAPBase(Device):
         collection_mode: int = 0,   # 1: "MCA MAPPING", 0: "MCA SPECTRA"
         preset_mode: int = 1,       # 1: "Real time", 2: "Live time"
         status_rate: int = 8,         # 0: Passive, 8: 0.2 second
-        read_rate: int = 0,           # 0: Passive
+        read_rate: int = 8,           # 0: Passive, 8: 0.2 second
         ):
 
         """Configure XMAP for data collection."""
@@ -81,7 +98,7 @@ class XMAP(Device):
     """4-element XMAP device for X-ray spectroscopy."""
 
     cam = Component(XMAPBase, "", kind="config", labels=("xmap", "cam"))
-    fileplugin = Component(DetNetCDF, ":netCDF1:", kind="config", labels=("xmap", "fileplugin"))
+    fileplugin = Component(XMAPNetCDF, ":netCDF1:", kind="config", labels=("xmap", "fileplugin"))
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -113,7 +130,7 @@ class XMAP(Device):
                         collection_mode: int = 0, 
                         preset_mode: int = 1,
                         status_rate: int = 8,
-                        read_rate: int = 0,
+                        read_rate: int = 8,
                         **kwargs):
         """Configure XMAP for step scan."""
         self.unstage()
@@ -129,16 +146,17 @@ class XMAP(Device):
 
     def unstage(self):
         """Unstage the XMAP device."""
-        # Check if device is already staged and unstage if necessary
+        # A failed stage can leave a child staged even when the parent is
+        # marked as not staged or only partially staged.  Clean up the
+        # children explicitly so a later scan starts from a known state.
         if self._staged == Staged.yes:
-            logger.info("XMAP is already staged, unstaging ... ...")
+            logger.info("XMAP is staged, unstaging ... ...")
             return super().unstage()
-        elif self._staged == Staged.partially:
-            logger.info("XMAP is partially staged, unstaging cam and fileplugin separately...")
-            if self.cam._staged == Staged.yes:
-                self.cam.unstage()
-            if self.fileplugin._staged == Staged.yes:
-                self.fileplugin.unstage()
+
+        logger.info("Cleaning up partially staged XMAP children ...")
+        for child in (self.fileplugin, self.cam):
+            if child._staged != Staged.no:
+                child.unstage()
 
     def unhang(self, retries: int = 1, delay_s: float = 0.1) -> dict[str, object]:
         attempts = max(1, int(retries))

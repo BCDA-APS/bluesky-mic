@@ -156,6 +156,7 @@ if iconfig.get("NEXUS_DATA_FILES", {}).get("ENABLE", False):
 # # #from .plans.fly2d import fly2d
 from .plans.fly2d_scanrecord import fly2d_scanrecord
 from .plans.coarse_fine_scanrecord import coarse_fine_scanrecord
+from .plans.xanes import xanes_1d
 # # from .plans.step1d_scanrecord import step1d_scanrecord
 # # # from .plans.step2d import step2d
 # # # from .plans.step1d import step1d

@@ -69,31 +69,61 @@ existing_devices:
     is_movable: false
     is_readable: true
     module: bnp.devices.bda
-  eiger:
-    classname: Eiger2ID
-    components:
-      cam:
-        classname: EigerBase
-        is_flyable: false
-        is_movable: false
-        is_readable: true
-        module: mic_common.devices.eiger500k
-      fileplugin:
-        classname: DetHDF5
-        is_flyable: false
-        is_movable: false
-        is_readable: true
-        module: mic_common.devices.ad_fileplugin
-    is_flyable: false
-    is_movable: false
-    is_readable: true
-    module: mic_common.devices.eiger500k
   fly_dwell:
     classname: EpicsSignal
     is_flyable: false
     is_movable: true
     is_readable: true
     module: ophyd.signal
+  kohzu_mono:
+    classname: Mono2ID
+    components:
+      done:
+        classname: EpicsSignalRO
+        is_flyable: false
+        is_movable: true
+        is_readable: true
+        module: ophyd.signal
+      mode:
+        classname: EpicsSignal
+        is_flyable: false
+        is_movable: true
+        is_readable: true
+        module: ophyd.signal
+      readback:
+        classname: EpicsSignalRO
+        is_flyable: false
+        is_movable: true
+        is_readable: true
+        module: ophyd.signal
+      setpoint:
+        classname: EpicsSignal
+        is_flyable: false
+        is_movable: true
+        is_readable: true
+        module: ophyd.signal
+      speed_control:
+        classname: EpicsSignal
+        is_flyable: false
+        is_movable: true
+        is_readable: true
+        module: ophyd.signal
+      user_readback:
+        classname: EpicsSignalRO
+        is_flyable: false
+        is_movable: true
+        is_readable: true
+        module: ophyd.signal
+      user_setpoint:
+        classname: EpicsSignal
+        is_flyable: false
+        is_movable: true
+        is_readable: true
+        module: ophyd.signal
+    is_flyable: false
+    is_movable: true
+    is_readable: true
+    module: mic_common.devices.optics
   ring:
     classname: ApsMachineParametersDevice
     components:
@@ -636,6 +666,109 @@ existing_devices:
     is_movable: false
     is_readable: true
     module: mic_common.devices.save_data
+  savedata_xanes:
+    classname: SaveDataMic
+    components:
+      base_name:
+        classname: EpicsSignal
+        is_flyable: false
+        is_movable: true
+        is_readable: true
+        module: ophyd.signal
+      comment1:
+        classname: EpicsSignal
+        is_flyable: false
+        is_movable: true
+        is_readable: true
+        module: ophyd.signal
+      comment2:
+        classname: EpicsSignal
+        is_flyable: false
+        is_movable: true
+        is_readable: true
+        module: ophyd.signal
+      file_system:
+        classname: EpicsSignal
+        is_flyable: false
+        is_movable: true
+        is_readable: true
+        module: ophyd.signal
+      full_name:
+        classname: EpicsSignalRO
+        is_flyable: false
+        is_movable: true
+        is_readable: true
+        module: ophyd.signal
+      full_path_name:
+        classname: EpicsSignalRO
+        is_flyable: false
+        is_movable: true
+        is_readable: true
+        module: ophyd.signal
+      max_retries:
+        classname: EpicsSignal
+        is_flyable: false
+        is_movable: true
+        is_readable: true
+        module: ophyd.signal
+      message:
+        classname: EpicsSignalRO
+        is_flyable: false
+        is_movable: true
+        is_readable: true
+        module: ophyd.signal
+      next_scan_number:
+        classname: EpicsSignal
+        is_flyable: false
+        is_movable: true
+        is_readable: true
+        module: ophyd.signal
+      retry_wait_s:
+        classname: EpicsSignal
+        is_flyable: false
+        is_movable: true
+        is_readable: true
+        module: ophyd.signal
+      status:
+        classname: EpicsSignalRO
+        is_flyable: false
+        is_movable: true
+        is_readable: true
+        module: ophyd.signal
+      subdirectory:
+        classname: EpicsSignal
+        is_flyable: false
+        is_movable: true
+        is_readable: true
+        module: ophyd.signal
+      write_1D_each_point:
+        classname: EpicsSignal
+        is_flyable: false
+        is_movable: true
+        is_readable: true
+        module: ophyd.signal
+      write_count_abandoned:
+        classname: EpicsSignalRO
+        is_flyable: false
+        is_movable: true
+        is_readable: true
+        module: ophyd.signal
+      write_count_current:
+        classname: EpicsSignalRO
+        is_flyable: false
+        is_movable: true
+        is_readable: true
+        module: ophyd.signal
+      write_count_total:
+        classname: EpicsSignalRO
+        is_flyable: false
+        is_movable: true
+        is_readable: true
+        module: ophyd.signal
+    is_flyable: false
+    is_movable: false
+    is_readable: true
+    module: mic_common.devices.save_data
   scanrecord:
     classname: FlyScanRecord
     components:
@@ -910,6 +1043,122 @@ existing_devices:
     is_movable: false
     is_readable: true
     module: mic_common.devices.sis3820
+  xane_scanrecord:
+    classname: StepScanRecord
+    components:
+      abort_signal:
+        classname: EpicsSignal
+        is_flyable: false
+        is_movable: true
+        is_readable: true
+        module: ophyd.signal
+      inner:
+        classname: BNPScanRecord
+        components:
+          abs_rel:
+            classname: EpicsSignal
+            is_flyable: false
+            is_movable: true
+            is_readable: true
+            module: ophyd.signal
+          beforeScan:
+            classname: EpicsSignal
+            is_flyable: false
+            is_movable: true
+            is_readable: true
+            module: ophyd.signal
+          center:
+            classname: EpicsSignal
+            is_flyable: false
+            is_movable: true
+            is_readable: true
+            module: ophyd.signal
+          current_point:
+            classname: EpicsSignalRO
+            is_flyable: false
+            is_movable: true
+            is_readable: true
+            module: ophyd.signal
+          det1:
+            classname: EpicsSignal
+            is_flyable: false
+            is_movable: true
+            is_readable: true
+            module: ophyd.signal
+          det2:
+            classname: EpicsSignal
+            is_flyable: false
+            is_movable: true
+            is_readable: true
+            module: ophyd.signal
+          det3:
+            classname: EpicsSignal
+            is_flyable: false
+            is_movable: true
+            is_readable: true
+            module: ophyd.signal
+          det4:
+            classname: EpicsSignal
+            is_flyable: false
+            is_movable: true
+            is_readable: true
+            module: ophyd.signal
+          execute_scan:
+            classname: EpicsSignal
+            is_flyable: false
+            is_movable: true
+            is_readable: true
+            module: ophyd.signal
+          mode:
+            classname: EpicsSignal
+            is_flyable: false
+            is_movable: true
+            is_readable: true
+            module: ophyd.signal
+          number_points:
+            classname: EpicsSignal
+            is_flyable: false
+            is_movable: true
+            is_readable: true
+            module: ophyd.signal
+          scan_phase:
+            classname: EpicsSignal
+            is_flyable: false
+            is_movable: true
+            is_readable: true
+            module: ophyd.signal
+          step_size:
+            classname: EpicsSignal
+            is_flyable: false
+            is_movable: true
+            is_readable: true
+            module: ophyd.signal
+          wait:
+            classname: EpicsSignal
+            is_flyable: false
+            is_movable: true
+            is_readable: true
+            module: ophyd.signal
+          width:
+            classname: EpicsSignal
+            is_flyable: false
+            is_movable: true
+            is_readable: true
+            module: ophyd.signal
+        is_flyable: false
+        is_movable: false
+        is_readable: true
+        module: bnp.devices.scanrecord
+      pause_signal:
+        classname: EpicsSignal
+        is_flyable: false
+        is_movable: true
+        is_readable: true
+        module: ophyd.signal
+    is_flyable: false
+    is_movable: false
+    is_readable: true
+    module: bnp.devices.scanrecord
   xmap:
     classname: XMAP
     components:
@@ -1011,34 +1260,15 @@ existing_devices:
         is_readable: true
         module: mic_common.devices.xmap
       fileplugin:
-        classname: DetNetCDF
+        classname: XMAPNetCDF
         is_flyable: false
         is_movable: false
         is_readable: true
-        module: mic_common.devices.ad_fileplugin
+        module: mic_common.devices.xmap
     is_flyable: false
     is_movable: false
     is_readable: true
     module: mic_common.devices.xmap
-  xp3:
-    classname: BNPXspress3
-    components:
-      cam:
-        classname: Xspress3Base
-        is_flyable: false
-        is_movable: false
-        is_readable: true
-        module: bnp.devices.xspress3
-      fileplugin:
-        classname: DetHDF5
-        is_flyable: false
-        is_movable: false
-        is_readable: true
-        module: mic_common.devices.ad_fileplugin
-    is_flyable: false
-    is_movable: false
-    is_readable: true
-    module: bnp.devices.xspress3
 existing_plans:
   coarse_fine_scanrecord:
     description: This plan runs a coarse fly2d scan, compute a fine center, then run
@@ -1431,6 +1661,15 @@ existing_plans:
     - annotation:
         type: float
       default: None
+      description: The energy of the X-ray beam in keV. If not provided, the current
+        energy
+      kind:
+        name: POSITIONAL_OR_KEYWORD
+        value: 1
+      name: energy
+    - annotation:
+        type: float
+      default: None
       description: 'The open BDA position in millimeters, which will let beam through.
         Default: None. '
       kind:
@@ -1524,5 +1763,81 @@ existing_plans:
         name: POSITIONAL_OR_KEYWORD
         value: 1
       name: wait_for_dm_sec
+    properties:
+      is_generator: true
+  xanes_1d:
+    description: Run one archived-style BNP XANES step scan.
+    module: bnp.plans.xanes
+    name: xanes_1d
+    parameters:
+    - annotation:
+        type: str
+      default: '''smp1'''
+      kind:
+        name: POSITIONAL_OR_KEYWORD
+        value: 1
+      name: samplename
+    - annotation:
+        type: str
+      default: ''''''
+      kind:
+        name: POSITIONAL_OR_KEYWORD
+        value: 1
+      name: user_comments
+    - annotation:
+        type: float
+      default: None
+      description: Sample x/y positions in the same units as the sample piezo devices.
+      kind:
+        name: POSITIONAL_OR_KEYWORD
+        value: 1
+      name: x_center
+    - annotation:
+        type: float
+      default: None
+      description: Sample x/y positions in the same units as the sample piezo devices.
+      kind:
+        name: POSITIONAL_OR_KEYWORD
+        value: 1
+      name: y_center
+    - annotation:
+        type: float
+      default: None
+      description: Sample z position.
+      kind:
+        name: POSITIONAL_OR_KEYWORD
+        value: 1
+      name: sample_z
+    - annotation:
+        type: float
+      default: '0'
+      description: Total scan width in keV; this is ``9idbXMAP:scan1.P1WD``.
+      kind:
+        name: POSITIONAL_OR_KEYWORD
+        value: 1
+      name: energy_width_keV
+    - annotation:
+        type: float
+      default: '0'
+      description: Energy step in keV; this is ``9idbXMAP:scan1.P1SI``.
+      kind:
+        name: POSITIONAL_OR_KEYWORD
+        value: 1
+      name: energy_step_keV
+    - annotation:
+        type: float
+      default: '0'
+      description: XMAP real-time preset in seconds; this is ``9idbXMAP:PresetReal``.
+      kind:
+        name: POSITIONAL_OR_KEYWORD
+        value: 1
+      name: dwell_s
+    - annotation:
+        type: float
+      default: None
+      kind:
+        name: POSITIONAL_OR_KEYWORD
+        value: 1
+      name: bda_position
     properties:
       is_generator: true

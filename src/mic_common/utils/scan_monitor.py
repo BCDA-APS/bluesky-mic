@@ -336,7 +336,13 @@ class ScanMonitor:
             self.y_piezo_recovered_for_inner_scan = True
 
 # Usage
-def execute_scan_1d(scan1, scan_name="", abort_signal=None, verbose=False):
+def execute_scan_1d(
+    scan1,
+    scan_name="",
+    abort_signal=None,
+    pause_signal=None,
+    verbose=False,
+):
     """Execute a 1D scan with monitoring.
 
     Parameters:
@@ -347,16 +353,21 @@ def execute_scan_1d(scan1, scan_name="", abort_signal=None, verbose=False):
         numpts_x=scan1.number_points.value,
         scan_name=scan_name.zfill(SCANNUM_DIGITS),
         execute_signal=scan1.execute_scan,
-        pause_signal=scan1.wait,
+        pause_signal=scan1.wait if pause_signal is None else pause_signal,
         abort_signal=abort_signal,
         name=f"{scan1.name}_monitor",
     )
+    # For 1D scans, require both EXSC=0 and FAZE=IDLE before completing the
+    # status.  FAZE is monitored through the same outer-phase handler used by
+    # 2D scans; no outer loop is otherwise involved here.
+    watcher.has_outer_loop = True
 
     logger.info("Done setting up scan, about to start scan")
     logger.info("Start executing scan")
 
     scan1.execute_scan.subscribe(watcher.watch_execute_scan)  # Subscribe to the scan
     scan1.current_point.subscribe(watcher.watch_counter_inner)
+    scan1.scan_phase.subscribe(watcher.watch_faze_outer)
 
     try:
         yield from bps.trigger(watcher, wait=True)
@@ -366,6 +377,7 @@ def execute_scan_1d(scan1, scan_name="", abort_signal=None, verbose=False):
     finally:
         scan1.current_point.unsubscribe_all()
         scan1.execute_scan.unsubscribe_all()
+        scan1.scan_phase.unsubscribe_all()
     logger.info("Done executing scan")
 
 

@@ -22,6 +22,7 @@ logger = logging.getLogger(__name__)
 savedata = oregistry["savedata"]
 sample = oregistry["sample"]
 bda = oregistry["bda"]
+kohzu_mono = oregistry["kohzu_mono"]
 
 def fly2d_scanrecord(
     samplename: str = "smp1",
@@ -35,6 +36,7 @@ def fly2d_scanrecord(
     dwell_ms: float = 0,
     sample_z: float = None,
     theta: float = None,
+    energy: float = None,
     bda_position: float = None,
     xmap_on: bool = True,
     xp3_on: bool = False,
@@ -77,6 +79,8 @@ def fly2d_scanrecord(
     theta:
         The sample theta position in degrees. If not provided, the current sample theta 
         position will be maintained. Default: None. 
+    energy:
+        The energy of the X-ray beam in keV. If not provided, the current energy
     bda_position:
         The open BDA position in millimeters, which will let beam through. Default: None. 
     xmap_on:
@@ -108,6 +112,7 @@ def fly2d_scanrecord(
     y_center = round(sample.y.piezo.position, 2) if y_center is None else y_center
     sample_z = round(sample.z.position, 2) if sample_z is None else sample_z
     theta = round(sample.theta.position, 2) if theta is None else theta
+    energy = round(kohzu_mono.position, 4) if energy is None else energy
     bda_position = round(bda.x.position, 2) if bda_position is None else bda_position
 
     plan_args = capture_params(fly2d_scanrecord, **locals())

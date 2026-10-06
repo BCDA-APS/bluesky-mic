@@ -1,4 +1,4 @@
-from mic_common.devices.scan_record import NewScanRecord
+# from mic_common.devices.scan_record import NewScanRecord
 from mic_common.devices.save_data import SaveDataMic
 from mic_common.utils.device_utils import LoggingStageSigs, unstage_with_skip
 from mic_common.utils.scan_monitor import execute_scan_2d, execute_scan_1d
@@ -8,7 +8,6 @@ import bluesky.plan_stubs as bps
 import logging
 
 logger = logging.getLogger(__name__)
-
 
 class BNPScanRecord(Device):
 
@@ -56,17 +55,61 @@ class BNPScanRecord(Device):
     ):
         if self.connected:
             self.stage_sigs.clear()
-            self.stage_sigs["center"] = center
-            self.stage_sigs["width"] = width
-            self.stage_sigs["step_size"] = step_size
-            self.stage_sigs["mode"] = mode
-            self.stage_sigs["abs_rel"] = abs_rel
+            settings = {
+                "center": center,
+                "width": width,
+                "step_size": step_size,
+                "mode": mode,
+                "abs_rel": abs_rel,
+                "beforeScan": beforeScan,
+            }
+            for signal_name, value in settings.items():
+                if value is not None:
+                    self.stage_sigs[signal_name] = value
             if trigger_pvs is not None:
                 self.stage_detTriggers(trigger_pvs)
-            if beforeScan is not None:
-                self.stage_sigs["beforeScan"] = beforeScan
+
         else:
             logger.error(f"Scan record {self.prefix} is not connected")
+
+
+class StepScanRecord(Device):
+    """Scan record wrapper used for BNP/XANES step scans."""
+
+    inner = Component(BNPScanRecord, ":scan1", kind="config", labels=("inner",))
+    abort_signal = Component(EpicsSignal, ":AbortScans.PROC")
+    pause_signal = Component(EpicsSignal, ":scan1.WAIT")
+
+    def stage_xanes(self, width, step_size):
+        try:
+            yield from self.unstage_xanes()
+            logger.info("Unstage scanrecord if it is already staged")
+        except Exception as e:
+            logger.warning(f"Error unstaging scanrecord if it is already staged: {e}")
+
+        self.inner.config(
+            width=width,
+            step_size=step_size,
+            mode=0,  # 0: "LINEAR", 1: "TABLE", 2: "FLY"
+            abs_rel=0,  # 0: "ABSOLUTE", 1: "RELATIVE"
+        )
+        self.inner.stage()
+
+    def unstage_xanes(self):
+        if self.inner._staged == Staged.yes or self.outer._staged == Staged.partially:
+            logger.info("Inner scanrecord is already staged, unstaging ... ...")
+            self.inner.unstage()
+            yield from bps.sleep(0.1)
+
+    def execute1Dstep(self, scan_name=""):
+        """Execute the XANES scan with progress monitoring and abort support."""
+        yield from execute_scan_1d(
+            self.inner,
+            scan_name=scan_name,
+            abort_signal=self.abort_signal,
+            pause_signal=self.pause_signal,
+        )
+
 
 class FlyScanRecord(Device):
     inner = Component(BNPScanRecord, ":scan1", kind="config", labels=("scanrecord", "inner"))

@@ -35,15 +35,17 @@ def setup_detectors_and_fileio(
 
     for det in devices:
         det_dwell_time = (dwell_time / ptycho_exp_factor if det.name == "eiger" else dwell_time) / 1000 # convert to seconds
-        if det.name == "xmap":
-            det.unstage()
-            # update num_capture for xmap fileplugin    
-            det.cam.calc_num_capture(num_pulses)
-            try:
-                det.fileplugin.config_file_writer(det.cam.num_capture, **kwargs)
-            except Exception as e:
-                logger.error(f"Error configuring fileplugin for fly scan: {e}")
-                raise e
+        # if det.name == "xmap":
+        #     det.unstage()
+        #     # update num_capture for xmap fileplugin    
+        #     det.cam.calc_num_capture(num_pulses)
+        #     try:
+        #         det.fileplugin.config_file_writer(det.cam.num_capture, **kwargs)
+        #     except Exception as e:
+        #         logger.error(f"Error configuring fileplugin for fly scan: {e}")
+        #         raise e
+        if det.name == 'xmap':
+            det.config_flyscan(num_pulses=num_pulses, collection_mode=1)
         else:
             config_kwargs = {
                 "num_pulses": num_pulses,

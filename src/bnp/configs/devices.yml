@@ -14,6 +14,11 @@ bnp.devices.scanrecord.FlyScanRecord:
   prefix: 9idbBNP
   labels: ["scanrecord"]
 
+bnp.devices.scanrecord.StepScanRecord:
+- name: xane_scanrecord
+  prefix: 9idbXMAP
+  labels: ["xane_scanrecord"]
+
 bnp.devices.sample.Sample:
 - name: sample
   prefix: 9idbTAU
@@ -29,10 +34,18 @@ bnp.devices.bda.BDA:
   prefix: 9idbTAU:UA
   labels: ["bda"]
 
+mic_common.devices.optics.Mono2ID:
+- name: kohzu_mono
+  prefix: "2ida2:"
+  labels: ["mono"]
+
 mic_common.devices.save_data.SaveDataMic:
 - name: savedata
   prefix: "9idbBNP:saveData_"
   labels: ["savedata"]
+- name: savedata_xanes
+  prefix: "9idbXMAP:saveData_"
+  labels: ["savedata_xanes"]
 
 mic_common.devices.sis3820.SIS3820:
 - name: sis3820
@@ -44,15 +57,15 @@ mic_common.devices.xmap.XMAP:
   prefix: 9idbXMAP
   labels: ["xmap"]
 
-mic_common.devices.eiger500k.Eiger2ID:
-- name: eiger
-  prefix: 2iddEGR
-  labels: ["eiger2id"]
+# mic_common.devices.eiger500k.Eiger2ID:
+# - name: eiger
+#   prefix: 2iddEGR
+#   labels: ["eiger2id"]
 
-bnp.devices.xspress3.BNPXspress3:
-- name: xp3
-  prefix: bnpXP3
-  labels: ["xp3"]
+# bnp.devices.xspress3.BNPXspress3:
+# - name: xp3
+#   prefix: bnpXP3
+#   labels: ["xp3"]
 
 ophyd.EpicsSignal:
 - name: fly_dwell
@@ -71,4 +84,3 @@ ophyd.EpicsSignal:
 #   write_pv: 9idbTAU:SM:Ps:Busy
 #   read_pv: 9idbTAU:SM:Ps:Busy
 #   labels: ["signal"]
-

@@ -20,6 +20,7 @@ sample = oregistry["sample"]
 fly_dwell = oregistry["fly_dwell"]
 savedata = oregistry["savedata"]
 bda = oregistry["bda"]
+kohzu_mono = oregistry["kohzu_mono"]
 
 
 def _move_with_timeout(device, target, *, timeout=10, retries=3, retry_delay=0.5, atol=0.001):
@@ -100,6 +101,7 @@ def _fly2d_scanrecord(
     dwell_ms=0,
     sample_z=None,
     theta=None,
+    energy=None,
     bda_position=None,
     xmap_on=True,
     xp3_on=False,
@@ -125,8 +127,19 @@ def _fly2d_scanrecord(
         sample_z = sample_z if sample_z is not None else (round(sample.z.position, 2))
         sample_x = x_center if x_center is not None else (round(sample.x.piezo.position, 2))
         sample_y = y_center if y_center is not None else (round(sample.y.piezo.position, 2))
+        energy = energy if energy is not None else (round(kohzu_mono.position, 4))
+
         if abs(sample.theta.position - theta) > 0.02:
             yield from bps.mv(sample.theta, theta)
+
+        if abs(kohzu_mono.position - energy) > 0.0002:
+            logger.info(f"Moving Kohzu monochromator to {energy} keV")
+            if kohzu_mono.mode.get() == 0:  # 1 is auto, 0 is manual
+                logger.warning("Kohzu monochromator is in manual mode. Switching to auto mode for fly2d_scanrecord.")
+                yield from bps.mv(kohzu_mono.mode, 1)
+                yield from bps.sleep(1)
+            yield from bps.mv(kohzu_mono, energy, wait=True)
+        
         yield from bps.mv(sample.z, sample_z)
         yield from bps.mv(sample.x.piezo, sample_x)
         yield from bps.mv(sample.y.piezo, sample_y)
