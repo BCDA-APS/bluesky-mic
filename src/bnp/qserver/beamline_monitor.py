@@ -26,8 +26,16 @@ from mic_common.utils.beamline_monitor_snapshot import get_plan_monitor_snapshot
 
 _DEFAULT_MANIFEST_PATH = Path(__file__).with_name("beamline_monitor.json")
 _DETECTOR_TIMEOUT_FACTOR = 3.0
+# Extra time allowed for detector/file-plugin shutdown and delayed monitor
+# updates before an active detector is classified as hung.
+_DETECTOR_HANG_TOLERANCE_SECONDS = 30.0
+_DETECTOR_HANG_CONFIRMATIONS = 3
 _SAMPLE_POSITION_TOLERANCE = 0.1
 _IGNORE_RING_CURRENT_FOR_DETECTOR_RECOVERY = False
+
+# Monitor snapshots are constructed independently, so retain only the small
+# amount of state needed to require consecutive hang observations.
+_DETECTOR_HANG_EVIDENCE: dict[str, tuple[object, int]] = {}
 
 logger = logging.getLogger(__name__)
 
@@ -189,6 +197,13 @@ class BNPMonitorPolicy(BeamlineMonitorPolicy):
         except Exception:
             return None
 
+    def _scanrecord_execute_active(self, snapshot: Mapping[str, Any], alias: str) -> bool:
+        value = pv_value_by_aliases(self._scanrecord_pvs(snapshot) or {}, alias)
+        try:
+            return float(value) == 1.0
+        except Exception:
+            return str(value).strip().lower() in {"1", "go", "run", "running", "active"}
+
     def _sample_pvs(self, snapshot: Mapping[str, Any]) -> Mapping[str, Any] | None:
         devices = snapshot.get("devices")
         if not isinstance(devices, Mapping):
@@ -229,7 +244,9 @@ class BNPMonitorPolicy(BeamlineMonitorPolicy):
         pvs = scanrecord.get("pvs")
         if not isinstance(pvs, Mapping):
             return False
-        waiting_phases = {"WAIT:DETCTRS", "WAIT:AFTER_SCAN"}
+        # WAIT:AFTER_SCAN is normal finalization, during which file plugins can
+        # remain active briefly after the scan record has completed.
+        waiting_phases = {"WAIT:DETCTRS"}
         for key in ("inner.scan_phase", "outer.scan_phase", "inner_phase", "outer_phase"):
             phase = pv_value(find_matching_pv(pvs, key))
             if isinstance(phase, str) and phase.strip() in waiting_phases:
@@ -265,38 +282,70 @@ class BNPMonitorPolicy(BeamlineMonitorPolicy):
             ignore_outer_wait=ignore_outer_wait,
         ) or not self._scan_phase_waiting_for_detectors(snapshot):
             return False
+        # Never classify detector activity as a hang after the outer scan has
+        # completed.  This also prevents detector cleanup from being treated
+        # as a reason to recover/replay the scan.
+        if not self._scanrecord_execute_active(snapshot, "outer.execute_scan"):
+            _DETECTOR_HANG_EVIDENCE.pop(device_name, None)
+            return False
         if not _IGNORE_RING_CURRENT_FOR_DETECTOR_RECOVERY:
             ring_current = self._ring_current(snapshot)
             if ring_current is None or ring_current <= 0:
                 return False
         if device_name == "xmap":
-            acquiring = truthy_pv(find_matching_pv(pvs, "fileplugin.capture")) or truthy_pv(
-                find_matching_pv(pvs, "fileplugin.write_file", "write_status")
-            )
-            activity = find_matching_pv(pvs, "fileplugin.capture", "capture")
+            activity_pvs = [
+                find_matching_pv(pvs, "fileplugin.capture", "capture"),
+                find_matching_pv(pvs, "fileplugin.write_file", "write_status"),
+            ]
+        elif device_name == "eiger":
+            # Eiger camera acquisition can remain active briefly during normal
+            # shutdown. Use file-plugin capture as the scan-output indicator,
+            # while recovery still stops both the camera and file plugin.
+            activity_pvs = [find_matching_pv(pvs, "fileplugin.capture", "capture")]
         elif device_name == "sis3820":
-            activity = find_matching_pv(pvs, "acquiring")
-            acquiring = truthy_pv(activity)
+            activity_pvs = [find_matching_pv(pvs, "acquiring")]
         else:
-            acquiring = truthy_pv(find_matching_pv(pvs, "cam.acquire", "acquire")) or truthy_pv(
-                find_matching_pv(pvs, "fileplugin.capture", "capture")
-            )
-            activity = find_matching_pv(pvs, "fileplugin.capture", "capture", "cam.acquire", "acquire")
-        if not acquiring:
+            activity_pvs = [
+                find_matching_pv(pvs, "cam.acquire", "acquire"),
+                find_matching_pv(pvs, "fileplugin.capture", "capture"),
+            ]
+
+        active_pvs = [pv for pv in activity_pvs if truthy_pv(pv)]
+        if not active_pvs:
+            _DETECTOR_HANG_EVIDENCE.pop(device_name, None)
             return False
         dwell_seconds = self._fly_dwell_seconds(snapshot)
         inner_point_count = self._scanrecord_float(snapshot, "inner.number_points")
         if dwell_seconds is None or dwell_seconds <= 0 or inner_point_count is None or inner_point_count <= 0:
             return False
-        if not isinstance(activity, Mapping):
+        activity_timestamps = [
+            parse_timestamp(activity.get("timestamp"))
+            for activity in active_pvs
+            if isinstance(activity, Mapping)
+        ]
+        activity_timestamps = [timestamp for timestamp in activity_timestamps if timestamp is not None]
+        if not activity_timestamps:
             return False
         now_ts = parse_timestamp(snapshot.get("timestamp"))
-        activity_ts = parse_timestamp(activity.get("timestamp"))
-        if now_ts is None or activity_ts is None:
+        if now_ts is None:
             return False
+        activity_ts = max(activity_timestamps)
         age = (now_ts - activity_ts).total_seconds()
-        timeout_seconds = _DETECTOR_TIMEOUT_FACTOR * inner_point_count * dwell_seconds
-        return age > timeout_seconds
+        timeout_seconds = (
+            _DETECTOR_TIMEOUT_FACTOR * inner_point_count * dwell_seconds
+            + _DETECTOR_HANG_TOLERANCE_SECONDS
+        )
+        evidence_key = f"{device_name}:{activity_ts.isoformat()}"
+        previous_key, confirmations = _DETECTOR_HANG_EVIDENCE.get(device_name, (None, 0))
+        if age <= timeout_seconds:
+            _DETECTOR_HANG_EVIDENCE.pop(device_name, None)
+            return False
+        if previous_key == evidence_key:
+            confirmations += 1
+        else:
+            confirmations = 1
+        _DETECTOR_HANG_EVIDENCE[device_name] = (evidence_key, confirmations)
+        return confirmations >= _DETECTOR_HANG_CONFIRMATIONS
 
     def enrich_device(self, device_name: str, device: Mapping[str, Any], snapshot: Mapping[str, Any]) -> dict[str, Any]:
         enriched = dict(device)
@@ -305,8 +354,12 @@ class BNPMonitorPolicy(BeamlineMonitorPolicy):
         detector_hung = role == "detector" and self._detector_hung(device_name, snapshot)
         enriched["role"] = role
         enriched["state"] = "recovering" if recovering else "hung" if detector_hung else "normal"
-        enriched["health"] = self._evaluate_device_health(device_name, device, snapshot, role, recovering=recovering)
-        enriched["summary"] = self._summarize_device(device_name, device, snapshot, role, recovering=recovering)
+        enriched["health"] = self._evaluate_device_health(
+            device_name, device, snapshot, role, recovering=recovering, detector_hung=detector_hung
+        )
+        enriched["summary"] = self._summarize_device(
+            device_name, device, snapshot, role, recovering=recovering, detector_hung=detector_hung
+        )
         enriched["actions"] = self._device_actions(device_name, role, recovering=recovering)
         return enriched
 
@@ -318,6 +371,7 @@ class BNPMonitorPolicy(BeamlineMonitorPolicy):
         role: str,
         *,
         recovering: bool = False,
+        detector_hung: bool | None = None,
     ) -> str:
         pvs = device.get("pvs")
         if not isinstance(pvs, Mapping) or not pvs:
@@ -338,7 +392,8 @@ class BNPMonitorPolicy(BeamlineMonitorPolicy):
         if role == "motion" and self._sample_hung_axes(snapshot, device_name):
             return "error"
         if role == "detector":
-            detector_hung = self._detector_hung(device_name, snapshot)
+            if detector_hung is None:
+                detector_hung = self._detector_hung(device_name, snapshot)
             if detector_hung:
                 return "error"
         connected = 0
@@ -368,6 +423,7 @@ class BNPMonitorPolicy(BeamlineMonitorPolicy):
         role: str,
         *,
         recovering: bool = False,
+        detector_hung: bool | None = None,
     ) -> str:
         pvs = device.get("pvs")
         if not isinstance(pvs, Mapping):
@@ -391,7 +447,8 @@ class BNPMonitorPolicy(BeamlineMonitorPolicy):
                 return f"Progress {current}/{total}" + (f" | phase {phase}" if phase not in (None, "") else "")
             return "Waiting for scan record progress"
         if role == "detector":
-            detector_hung = self._detector_hung(device_name, snapshot)
+            if detector_hung is None:
+                detector_hung = self._detector_hung(device_name, snapshot)
             if detector_hung:
                 return "Detector hangs"
             parts = []

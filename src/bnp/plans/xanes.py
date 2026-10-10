@@ -11,7 +11,7 @@ from bnp.plans.flyscan_core import piezo_centering
 
 logger = logging.getLogger(__name__)
 
-xane_scanrecord = oregistry["xane_scanrecord"]
+xanes_scanrecord = oregistry["xanes_scanrecord"]
 xmap = oregistry["xmap"]
 savedata = oregistry["savedata"]
 savedata_xanes = oregistry["savedata_xanes"]
@@ -63,13 +63,13 @@ def _xanes_1d(
         yield from piezo_centering()
         yield from bps.checkpoint()
 
-        yield from xane_scanrecord.stage_xanes(energy_width_keV, energy_step_keV)
+        yield from xanes_scanrecord.stage_xanes(energy_width_keV, energy_step_keV, kohzu_mono.setpoint.pvname)
         xmap.config_stepscan(dwell_time=dwell_s * 1000)  #dwell_time is in ms for XMAP
         xmap.stage()
         yield from bps.mv(bda.x, bda_position)
         yield from bps.sleep(1)
 
-        yield from xane_scanrecord.execute1Dstep(scan_name=savedata_xanes.next_file_name)
+        yield from xanes_scanrecord.execute1Dstep(scan_name=savedata_xanes.next_file_name)
         
     finally:
         # Match flyscan_core: block the BDA after every scan, including errors.
@@ -79,7 +79,7 @@ def _xanes_1d(
             logger.warning(f"Error unstaging XMAP after XANES scan: {e}")
 
         try:
-            xane_scanrecord.unstage_xanes()
+            xanes_scanrecord.unstage_xanes()
         except Exception as e:
             logger.warning(f"Error unstaging XANES scanrecord after XANES scan: {e}")
 

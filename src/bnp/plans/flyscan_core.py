@@ -122,8 +122,8 @@ def _fly2d_scanrecord(
         validate_scan_parameters(stepsize_x=stepsize_x, stepsize_y=stepsize_y, width=width, height=height)
 
         """To move sample motors we need to be in combine motion"""
-        sample.x.motion.put(1)  # 1: CombinedStep; 4: FlyScan; 3: FineScan
-        sample.y.motion.put(1)  # 1: CombinedStep; 4: FlyScan; 3: FineScan
+        yield from bps.mv(sample.x.motion, 1)  # 1: CombinedStep; 4: FlyScan; 3: FineScan
+        yield from bps.mv(sample.y.motion, 1)  # 1: CombinedStep; 4: FlyScan; 3: FineScan
         sample_z = sample_z if sample_z is not None else (round(sample.z.position, 2))
         sample_x = x_center if x_center is not None else (round(sample.x.piezo.position, 2))
         sample_y = y_center if y_center is not None else (round(sample.y.piezo.position, 2))
@@ -184,6 +184,9 @@ def _fly2d_scanrecord(
         logger.info(f"Putting sample x motor to fly scan mode")
         fname = savedata.next_file_name
         yield from scanrecord.execute2Dfly(scan_name=fname, sample=sample, recover_y_piezo=True)
+        # Establish a rewind point after the scan has completed so a late
+        # pause during cleanup cannot replay the finished outer scan.
+        yield from bps.checkpoint()
 
     finally:
         ## unstage detectors
@@ -201,8 +204,8 @@ def _fly2d_scanrecord(
             logger.info("Closing BDA")
             bda_block = bda_position + 1500  # 1500 um
             yield from bps.mv(bda.x, bda_block)
-            sample.x.motion.put(3)  # 1: CombinedStep; 4: FlyScan; 3: FineScan
-            yield from bps.sleep(1)
+            # sample.x.motion.put(3)  # 1: CombinedStep; 4: FlyScan; 3: FineScan
+            # yield from bps.sleep(1)
         except Exception as exc:
             logger.warning(f"Failed to close BDA during cleanup: {exc}")
         finally:
@@ -210,8 +213,8 @@ def _fly2d_scanrecord(
             logger.info("Putting sample x motor to combined mode")
 
         try:
-            yield from bps.mv(sample.y.piezo.center, 1)
-            logger.info("Centering Y-piezo motors after scan")
+            """Start executing scan"""
+            yield from piezo_centering()
         except Exception as exc:
             logger.warning(f"Failed to center Y-piezo during cleanup: {exc}")
 

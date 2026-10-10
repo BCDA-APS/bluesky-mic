@@ -303,6 +303,12 @@ class ScanMonitor:
             return
         if self.y_piezo_recovered_for_inner_scan:
             return
+        if self.current_line >= self.numpts_y - 1:
+            logger.info(
+                "Skipping y-piezo recovery on final outer line; cleanup will center it"
+            )
+            self.y_piezo_recovered_for_inner_scan = True
+            return
 
         try:
             piezo_value = abs(float(self.sample.y.piezo_value.get()))
