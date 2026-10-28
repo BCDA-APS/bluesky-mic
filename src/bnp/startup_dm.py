@@ -54,3 +54,18 @@ __all__ = [
     "start_dm_daq",
     "xrf_dm_args",
 ]
+
+""" examples to submit an XRF DM job
+
+from bnp.startup_dm import *
+from mic_common.dm.workflows import submit_xrf_dm_job
+
+xrf_dm_args['experimentName'] = '2026-3_Luo'
+xrf_dm_args['analysisMachine'] = 'xfm3'
+xrf_dm_args['filePath'] = 'bnp_fly0047.mda'
+xrf_dm_args['download'] = '/net/micdata/data1/bnp/2026-3/Luo/img.dat/dm'
+
+dm_agent.start_processing_job('xrf-maps', xrf_dm_args, validate_workflow_args=False)
+
+"""
+```
