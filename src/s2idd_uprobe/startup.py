@@ -166,11 +166,14 @@ if iconfig.get("KEITHLEY", {}).get("ENABLE", False):
 # from .plans.test_nexus import test_nexus
 # from .plans.fly1d import fly1d
 # from .plans.fly2d import fly2d
-from .plans.fly2d_scanrecord import fly2d_scanrecord, fly3d_xanes_scanrecord
-from .plans.step1d_scanrecord import step1d_scanrecord, xanes_1d_linear, xanes_1d_nonlinear_step
-from .plans.timer import savedata, timer
-from .plans.movement import move_sample, move_zp_z
-from .plans.helper_funcs import set_samx_speed #, mov_osa_y, osa_in, osa_out, solarsim_on, solarsim_off
+
+# from .plans.fly2d_scanrecord import fly3d_xanes_scanrecord
+from .plans.fly2d_scanrecord import fly2d_scanrecord
+from .plans.step1d_scanrecord import step1d_scanrecord, xanes_1d_linear
+from .plans.movement import move_osa_absolute, read_osa_position
+# from .plans.timer import timer
+# from .plans.movement import move_sample, move_zp_z
+# from .plans.helper_funcs import set_samx_speed #, mov_osa_y, osa_in, osa_out, solarsim_on, solarsim_off
 # from .plans.osa_scan import osa_xeye_grid_scan
 # # from .plans.step2d import step2d
 # # from .plans.step1d import step1d
@@ -180,9 +183,10 @@ from mic_common.dm.qserver import create_dm_experiment, start_dm_daq
 from .qserver.helper_funcs import get_global_health_snapshot
 from .qserver.helper_funcs import get_named_monitor_snapshot
 from .qserver.helper_funcs import get_plan_monitor_snapshot
-from .qserver.helper_funcs import recover_detector
+from .qserver.helper_funcs import recover_detector, syncXYZ
 from .qserver.helper_funcs import get_save_data_path, get_current_mda_file
 from .qserver.xeye_osa import acquire_xeye_image
+
 
 try:
     logger.info("Generating beamline monitor PVs")

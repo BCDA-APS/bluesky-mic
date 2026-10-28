@@ -19,7 +19,7 @@ existing_devices:
     is_readable: true
     module: ophyd.signal
   kohzu_mono:
-    classname: KohzuMono
+    classname: Mono2ID
     components:
       done:
         classname: EpicsSignalRO
@@ -66,7 +66,7 @@ existing_devices:
     is_flyable: false
     is_movable: true
     is_readable: true
-    module: s2idd_uprobe.devices.optics
+    module: mic_common.devices.optics
   osa:
     classname: OSA
     components:
@@ -25191,11 +25191,11 @@ existing_devices:
         is_readable: true
         module: mic_common.devices.xmap
       fileplugin:
-        classname: DetNetCDF
+        classname: XMAPNetCDF
         is_flyable: false
         is_movable: false
         is_readable: true
-        module: mic_common.devices.ad_fileplugin
+        module: mic_common.devices.xmap
     is_flyable: false
     is_movable: false
     is_readable: true
@@ -25503,187 +25503,23 @@ existing_plans:
       name: wait_for_dm_sec
     properties:
       is_generator: true
-  fly3d_xanes_scanrecord:
-    description: 3D fly scan plan that first go to a desired energy, then drives the
-      x-, y- motors in fly mode using ScanRecord
-    module: s2idd_uprobe.plans.fly2d_scanrecord
-    name: fly3d_xanes_scanrecord
-    parameters:
-    - annotation:
-        type: str
-      default: '''smp1'''
-      description: 'The name of the sample for file naming. Default: "smp1". '
-      kind:
-        name: POSITIONAL_OR_KEYWORD
-        value: 1
-      name: samplename
-    - annotation:
-        type: str
-      default: ''''''
-      description: 'User comments to be recorded with the scan data. Default is "". '
-      kind:
-        name: POSITIONAL_OR_KEYWORD
-        value: 1
-      name: user_comments
-    - annotation:
-        type: float
-      default: None
-      description: 'The starting energy of the scan in keV. '
-      kind:
-        name: POSITIONAL_OR_KEYWORD
-        value: 1
-      name: energy_start
-    - annotation:
-        type: float
-      default: None
-      description: 'The ending energy of the scan in keV. '
-      kind:
-        name: POSITIONAL_OR_KEYWORD
-        value: 1
-      name: energy_end
-    - annotation:
-        type: float
-      default: None
-      description: 'The step size (energy resolution) in the x-direction in keV. '
-      kind:
-        name: POSITIONAL_OR_KEYWORD
-        value: 1
-      name: energy_step
-    - annotation:
-        type: float
-      default: '0'
-      description: 'The total width of the scan area in microns. Default: 0. '
-      kind:
-        name: POSITIONAL_OR_KEYWORD
-        value: 1
-      name: width
-    - annotation:
-        type: float
-      default: None
-      description: "The center position of the scan in the x-direction in microns.\
-        \ If not provided, \nthe current x-motor position will be used as the center.\
-        \ Default: None. "
-      kind:
-        name: POSITIONAL_OR_KEYWORD
-        value: 1
-      name: x_center
-    - annotation:
-        type: float
-      default: '0'
-      description: 'The step size (spatial resolution) in the x-direction in microns.
-        Default: 0. '
-      kind:
-        name: POSITIONAL_OR_KEYWORD
-        value: 1
-      name: stepsize_x
-    - annotation:
-        type: float
-      default: '0'
-      description: 'The total height of the scan area in microns. Default: 0. '
-      kind:
-        name: POSITIONAL_OR_KEYWORD
-        value: 1
-      name: height
-    - annotation:
-        type: float
-      default: None
-      description: "The center position of the scan in the y-direction in microns.\
-        \ If not provided, \nthe current y-motor position will be used as the center.\
-        \ Default: None. "
-      kind:
-        name: POSITIONAL_OR_KEYWORD
-        value: 1
-      name: y_center
-    - annotation:
-        type: float
-      default: '0'
-      description: 'The step size (spatial resolution) in the y-direction in microns.
-        Default: 0. '
-      kind:
-        name: POSITIONAL_OR_KEYWORD
-        value: 1
-      name: stepsize_y
-    - annotation:
-        type: float
-      default: '0'
-      description: 'The dwell time per step in milliseconds. Default: 0. '
-      kind:
-        name: POSITIONAL_OR_KEYWORD
-        value: 1
-      name: dwell_ms
-    - annotation:
-        type: float
-      default: None
-      description: "The sample z position in millimeters. If not provided, the current\
-        \ sample z \nposition will be maintained. Default: None. "
-      kind:
-        name: POSITIONAL_OR_KEYWORD
-        value: 1
-      name: sample_z
-    - annotation:
-        type: bool
-      default: 'True'
-      description: 'Whether to enable the x-ray fluorescence detector. Default is
-        True. '
-      kind:
-        name: POSITIONAL_OR_KEYWORD
-        value: 1
-      name: xrf_on
-    - annotation:
-        type: bool
-      default: 'False'
-      description: Whether to enable preamp1. Preamp1 is used to record metadata.
-        Default is True.
-      kind:
-        name: POSITIONAL_OR_KEYWORD
-        value: 1
-      name: preamp1_on
-    properties:
-      is_generator: true
-  move_sample:
+  move_osa_absolute:
+    description: Move the OSA to an absolute position (x, y) in mm.
     module: s2idd_uprobe.plans.movement
-    name: move_sample
-    parameters:
-    - annotation:
-        type: '''str'''
-      kind:
-        name: POSITIONAL_OR_KEYWORD
-        value: 1
-      name: axis
-    - annotation:
-        type: '''float'''
-      kind:
-        name: POSITIONAL_OR_KEYWORD
-        value: 1
-      name: position
-    properties:
-      is_generator: true
-  move_zp_z:
-    module: s2idd_uprobe.plans.movement
-    name: move_zp_z
+    name: move_osa_absolute
     parameters:
     - annotation:
         type: '''float'''
       kind:
         name: POSITIONAL_OR_KEYWORD
         value: 1
-      name: position
-    properties:
-      is_generator: true
-  set_samx_speed:
-    description: Set the x motor speed
-    module: s2idd_uprobe.plans.helper_funcs
-    name: set_samx_speed
-    parameters:
+      name: x_mm
     - annotation:
-        type: float
-      default: '500'
-      description: 'The speed of the x motor in mm/s. Default: 500 which is the max
-        speed'
+        type: '''float'''
       kind:
         name: POSITIONAL_OR_KEYWORD
         value: 1
-      name: speed
+      name: y_mm
     properties:
       is_generator: true
   step1d_scanrecord:
@@ -25757,21 +25593,21 @@ existing_plans:
     - annotation:
         type: float
       default: None
-      description: 'The sample x position in millimeters. If not provided, the current
-        sample x position will be maintained. Default: None. Type: float'
+      description: 'The x position of the scan center in microns. If not provided,
+        the current sample x position will be maintained. Default: None. Type: float'
       kind:
         name: POSITIONAL_OR_KEYWORD
         value: 1
-      name: sample_x
+      name: x_center
     - annotation:
         type: float
       default: None
-      description: 'The sample y position in millimeters. If not provided, the current
-        sample y position will be maintained. Default: None. Type: float'
+      description: 'The y position of the scan center in microns. If not provided,
+        the current sample y position will be maintained. Default: None. Type: float'
       kind:
         name: POSITIONAL_OR_KEYWORD
         value: 1
-      name: sample_y
+      name: y_center
     - annotation:
         type: float
       default: None
@@ -25824,29 +25660,6 @@ existing_plans:
         name: POSITIONAL_OR_KEYWORD
         value: 1
       name: table_mode
-    properties:
-      is_generator: true
-  timer:
-    description: A timer plan that waits for a specified time.
-    module: s2idd_uprobe.plans.timer
-    name: timer
-    parameters:
-    - annotation:
-        type: float
-      default: '2'
-      description: 'The time to wait in minutes. Default is 1 minute. Type: float'
-      kind:
-        name: POSITIONAL_OR_KEYWORD
-        value: 1
-      name: sleep_time_minutes
-    - annotation:
-        type: float
-      default: '0.1'
-      description: 'The time frequency to report the remaining time. Type: float'
-      kind:
-        name: POSITIONAL_OR_KEYWORD
-        value: 1
-      name: update_every_minutes
     properties:
       is_generator: true
   xanes_1d_linear:
@@ -25910,124 +25723,21 @@ existing_plans:
     - annotation:
         type: float
       default: None
-      description: 'The sample x position in millimeters. If not provided, the current
-        sample x position will be maintained. Default: None. Type: float'
+      description: 'The x position of the scan center in microns. If not provided,
+        the current sample x position will be maintained. Default: None. Type: float'
       kind:
         name: POSITIONAL_OR_KEYWORD
         value: 1
-      name: sample_x
+      name: x_center
     - annotation:
         type: float
       default: None
-      description: 'The sample y position in millimeters. If not provided, the current
-        sample y position will be maintained. Default: None. Type: float'
+      description: 'The y position of the scan center in microns. If not provided,
+        the current sample y position will be maintained. Default: None. Type: float'
       kind:
         name: POSITIONAL_OR_KEYWORD
         value: 1
-      name: sample_y
-    - annotation:
-        type: float
-      default: None
-      description: 'The sample z position in millimeters. If not provided, the current
-        sample z position will be maintained. Default: None. Type: float'
-      kind:
-        name: POSITIONAL_OR_KEYWORD
-        value: 1
-      name: sample_z
-    - annotation:
-        type: float
-      default: None
-      description: 'The energy in keV. If not provided, the current energy will be
-        maintained. Default: None. Type: float'
-      kind:
-        name: POSITIONAL_OR_KEYWORD
-        value: 1
-      name: energy
-    - annotation:
-        type: bool
-      default: 'True'
-      description: 'Whether to enable the x-ray fluorescence detector. Default is
-        True. Type: bool'
-      kind:
-        name: POSITIONAL_OR_KEYWORD
-        value: 1
-      name: xrf_on
-    - annotation:
-        type: bool
-      default: 'False'
-      description: 'Whether to enable preamp1. Preamp1 is used to record metadata.
-        Default is True. Type: bool'
-      kind:
-        name: POSITIONAL_OR_KEYWORD
-        value: 1
-      name: preamp1_on
-    properties:
-      is_generator: true
-  xanes_1d_nonlinear_step:
-    description: 1D Bluesky plan that drives the energy in step mode using ScanRecord
-    module: s2idd_uprobe.plans.step1d_scanrecord
-    name: xanes_1d_nonlinear_step
-    parameters:
-    - annotation:
-        type: str
-      default: '''smp1'''
-      description: 'The name of the sample for file naming. Default: "smp1". Type:
-        str'
-      kind:
-        name: POSITIONAL_OR_KEYWORD
-        value: 1
-      name: samplename
-    - annotation:
-        type: str
-      default: ''''''
-      description: 'User comments to be recorded with the scan data. Default is "".
-        Type: str'
-      kind:
-        name: POSITIONAL_OR_KEYWORD
-        value: 1
-      name: user_comments
-    - annotation:
-        type: list
-      default: '[]'
-      description: 'The energy list in eV. Default: []'
-      kind:
-        name: POSITIONAL_OR_KEYWORD
-        value: 1
-      name: energy_list_eV
-    - annotation:
-        type: list
-      default: '[]'
-      description: 'The step size list in eV. Default: []'
-      kind:
-        name: POSITIONAL_OR_KEYWORD
-        value: 1
-      name: stepsize_list_eV
-    - annotation:
-        type: float
-      default: '0'
-      description: 'The dwell time per step in milliseconds. Default: 0. Type: float'
-      kind:
-        name: POSITIONAL_OR_KEYWORD
-        value: 1
-      name: dwell_ms
-    - annotation:
-        type: float
-      default: None
-      description: 'The sample x position in millimeters. If not provided, the current
-        sample x position will be maintained. Default: None. Type: float'
-      kind:
-        name: POSITIONAL_OR_KEYWORD
-        value: 1
-      name: sample_x
-    - annotation:
-        type: float
-      default: None
-      description: 'The sample y position in millimeters. If not provided, the current
-        sample y position will be maintained. Default: None. Type: float'
-      kind:
-        name: POSITIONAL_OR_KEYWORD
-        value: 1
-      name: sample_y
+      name: y_center
     - annotation:
         type: float
       default: None
@@ -26037,15 +25747,6 @@ existing_plans:
         name: POSITIONAL_OR_KEYWORD
         value: 1
       name: sample_z
-    - annotation:
-        type: float
-      default: None
-      description: 'The energy in keV. If not provided, the current energy will be
-        maintained. Default: None. Type: float'
-      kind:
-        name: POSITIONAL_OR_KEYWORD
-        value: 1
-      name: energy
     - annotation:
         type: bool
       default: 'True'

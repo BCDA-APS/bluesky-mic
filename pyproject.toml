@@ -53,6 +53,7 @@ file = "LICENSE"
 [project.optional-dependencies]
 dev = [ "build", "isort", "mypy", "pre-commit", "pytest", "ruff",]
 doc = [ "babel", "ipykernel", "jinja2", "markupsafe", "myst_parser", "nbsphinx", "pydata-sphinx-theme", "pygments-ipython-console", "pygments", "sphinx-design", "sphinx-tabs", "sphinx",]
+optimization = [ "blop[ax,cpu]",]
 all = [ "mic_instrument[dev,doc]",]
 
 [project.urls]

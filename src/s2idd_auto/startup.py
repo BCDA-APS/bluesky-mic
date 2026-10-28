@@ -1,0 +1,233 @@
+"""
+Start Bluesky Data Acquisition sessions of all kinds.
+
+Includes:
+
+* Python script
+* IPython console
+* Jupyter notebook
+* Bluesky queueserver
+"""
+
+# Standard Library Imports
+import logging
+from pathlib import Path
+
+# Core Functions
+from apsbits.core.best_effort_init import init_bec_peaks
+from apsbits.core.catalog_init import init_catalog
+from apsbits.core.instrument_init import init_instrument
+from apsbits.core.instrument_init import make_devices
+from apsbits.core.run_engine_init import init_RE
+
+# Utility functions
+from apstools.utils.aps_data_management import dm_setup
+from apsbits.utils.aps_functions import host_on_aps_subnet
+
+# Configuration functions
+from apsbits.utils.config_loaders import load_config
+from apsbits.utils.helper_functions import register_bluesky_magics
+from apsbits.utils.helper_functions import running_in_queueserver
+from apsbits.utils.logging_setup import configure_logging
+
+# Utility functions from apstools and bluesky
+from apstools.utils import listobjects, listplans
+from bluesky import plan_stubs as bps
+from bluesky import plans as bp
+from mic_common.utils.beamline_monitor_manifest import generate_beamline_monitor_manifest
+from s2idd_auto.blop_runtime import set_catalog
+
+# Configuration block
+# Get the path to the instrument package
+# Load configuration to be used by the instrument.
+instrument_path = Path(__file__).parent
+iconfig_path = instrument_path / "configs" / "iconfig.yml"
+iconfig = load_config(iconfig_path)
+
+# Additional logging configuration
+# only needed if using different logging setup
+# from the one in the apsbits package
+extra_logging_configs_path = instrument_path / "configs" / "extra_logging.yml"
+configure_logging(extra_logging_configs_path=extra_logging_configs_path)
+
+logger = logging.getLogger(__name__)
+logger.info("Starting Instrument with iconfig: %s", iconfig_path)
+
+# initialize instrument
+instrument, oregistry = init_instrument("guarneri")
+
+# Discard oregistry items loaded above.
+oregistry.clear()
+
+# Configure the session with callbacks, devices, and plans.
+dm_setup(iconfig.get("DM_SETUP_FILE"))
+
+# try:
+#     from mic_common.dm.agent import get_dm_agent
+#     from mic_common.dm.workflow_configs import load_dm_workflow_args
+
+#     dm_agent = get_dm_agent()
+#     dm_agent.set_experiment_type_name(iconfig.get("DM_EXPERIMENT_TYPE_NAME"))
+#     xrf_dm_args = load_dm_workflow_args(
+#         instrument_path / "configs" / "xrf_workflow.yml"
+#     )
+#     dm_agent.set_workflow_args("xrf", xrf_dm_args)
+#     waitlist_pattern = iconfig.get("DM_XRF_WAITLIST_FILE_PATTERN")
+#     if waitlist_pattern:
+#         dm_agent.set_waitlist_pattern("xrf", waitlist_pattern)
+#     logger.info("DM agent initialized for this session")
+# except Exception:
+#     dm_agent = None
+#     logger.exception("Failed to initialize DM agent")
+
+
+# Command-line tools, such as %wa, %ct, ...
+register_bluesky_magics()
+
+# Bluesky initialization block
+bec, peaks = init_bec_peaks(iconfig)
+cat = init_catalog(iconfig)
+RE, sd = init_RE(iconfig, subscribers=[bec, cat])
+set_catalog(cat)
+
+# Experiment specific logic, device and plan loading. # Create the devices.
+make_devices(clear=False, file="devices.yml", device_manager=instrument)
+
+try:
+    scanrecord = oregistry["scanrecord"]
+    scanrecord_fly = scanrecord.fly
+    scanrecord_fly.name = "scanrecord_fly"
+    oregistry.register(scanrecord_fly, labels=["scanrecord", "fly"])
+    scanrecord_step = scanrecord.step
+    scanrecord_step.name = "scanrecord_step"
+    oregistry.register(scanrecord_step, labels=["scanrecord", "step"])
+except Exception:
+    logger.exception("Failed to register scanrecord monitor aliases")
+
+try:
+    savedata = oregistry["savedata"]
+    savedata.micdata_mountpath = iconfig.get("SAVE_DATA")["MOUNT_PATH"]
+    savedata.storage_path = iconfig.get("STORAGE")["MICDATA_MOUNTPATH"]
+    savedata.auto_mountpath = iconfig.get("STORAGE")["AUTO_MOUNTPATH"]
+except KeyError:
+    logger.info("savedata not found, skipping")
+
+try:
+    xrf = oregistry["xrf"]
+    xrf.cam.buffer_size = iconfig.get("XMAP")["BUFFER"]
+    xrf.fileplugin.micdata_mountpath = iconfig.get("XMAP")["MOUNT_PATH"]
+    xrf.fileplugin.delimiter = iconfig.get("STORAGE")["FILE_DELIMITER"]
+    xrf.fileplugin.det_foldername = iconfig.get("XMAP")["DET_FOLDERNAME"]
+    # xrf.fileplugin.savedata = oregistry["scanrecord"].savedata
+    xrf.fileplugin.savedata = oregistry["savedata"]
+except KeyError:
+    logger.info("xrf not found or xrf.fileplugin not connected or scanrecord not found, skipping")
+
+try:
+    tmm1 = oregistry["tmm1"]
+    tmm1.fileplugin.micdata_mountpath = iconfig.get("STORAGE")["MICDATA_MOUNTPATH"]
+    tmm1.fileplugin.delimiter = iconfig.get("STORAGE")["FILE_DELIMITER"]
+    tmm1.fileplugin.det_foldername = iconfig.get("TETRAMM")["DET_FOLDERNAME"]
+    # tmm1.fileplugin.savedata = oregistry["scanrecord"].savedata
+    tmm1.fileplugin.savedata = oregistry["savedata"]
+except KeyError:
+    logger.info("tmm1 not found or tmm1.fileplugin not connected or scanrecord not found, skipping")
+
+# Optional Nexus callback block
+if iconfig.get("NEXUS_DATA_FILES", {}).get("ENABLE", False):
+    from mic_common.callbacks.nexus_data_file_writer import nxwriter_init
+
+    nxwriter = nxwriter_init(RE)
+    nxwriter.name = "nxwriter"
+    oregistry.register(nxwriter, labels=["nxwriter"])
+    logger.info("Adding nxwriter to oregistry")
+    try:
+        # nxwriter.savedata = oregistry["scanrecord"].savedata
+        nxwriter.savedata = oregistry["savedata"]
+        nxwriter.micdata_mountpath = iconfig.get("STORAGE")["MICDATA_MOUNTPATH"]
+    except KeyError:
+        logger.info("savedata not found, skipping")
+
+if iconfig.get("KEITHLEY", {}).get("ENABLE", False):
+    from s2idd_uprobe.user.keithley2400_moxa import Keithley2400
+    try:
+        keithley = Keithley2400()
+        logger.info(f"Keithley 2400 opened: {keithley._opened_here}")
+        if keithley._opened_here:
+            keithley.close()
+            keithley.name = "keithley"
+            oregistry.register(keithley, labels=["keithley"])
+            logger.info("Adding keithley to oregistry")
+            from .plans.keithley_plans import jv_sweep, mppt, mspt
+
+    except KeyError:
+        logger.info("keithley not found or not opened, skipping")
+
+
+# # from .plans import *
+# from .plans.test_nexus import test_nexus
+# from .plans.fly1d import fly1d
+# from .plans.fly2d import fly2d
+from .plans.fly2d_scanrecord import fly2d_scanrecord, fly3d_xanes_scanrecord
+from .plans.step1d_scanrecord import step1d_scanrecord, xanes_1d_linear, xanes_1d_nonlinear_step
+from .plans.timer import savedata, timer
+from .plans.read_dsic_counts import read_dsic_counts
+from .plans.movement import move_osa_absolute, read_osa_position
+from .plans.helper_funcs import set_samx_speed #, mov_osa_y, osa_in, osa_out, solarsim_on, solarsim_off
+
+try:
+    from .blop import (
+        make_coarse_agent,
+        make_fine_agent,
+        make_s2idd_agent,
+        refresh_agents as _refresh_blop_agents,
+        move_to_best_optics,
+        run_blop_optimization,
+        s2idd_blop_acquire,
+    )
+    coarse_agent = make_coarse_agent()
+
+    def refresh_agents(**kwargs):
+        """Refresh the startup-created coarse agent around current positions."""
+        global coarse_agent
+        coarse_agent = _refresh_blop_agents(**kwargs)
+        return coarse_agent
+except ImportError:
+    logger.info("Blop is not installed; Blop plans are unavailable")
+# from .plans.osa_scan import osa_xeye_grid_scan
+# # from .plans.step2d import step2d
+# # from .plans.step1d import step1d
+
+## QServer functions
+from mic_common.dm.qserver import create_dm_experiment, start_dm_daq
+from .qserver.helper_funcs import get_global_health_snapshot
+from .qserver.helper_funcs import get_named_monitor_snapshot
+from .qserver.helper_funcs import get_plan_monitor_snapshot
+from .qserver.helper_funcs import recover_detector
+from .qserver.helper_funcs import get_save_data_path, get_current_mda_file
+from .qserver.xeye_osa import acquire_xeye_image
+
+from .qserver.mirror_alignment import (
+    create_coarse_agent,
+    create_fine_agent,
+    move_alignment_to_best,
+    move_coarse_best,
+    move_to_alignment_positions,
+    normalize_preamps,
+    prepare_beam_path,
+    put_pinhole_in,
+    read_alignment_state,
+    run_coarse_optimization,
+    run_fine_optimization,
+)
+
+try:
+    logger.info("Generating beamline monitor PVs")
+    beamline_monitor_manifest = generate_beamline_monitor_manifest(
+        oregistry=oregistry,
+        output_path=instrument_path / "qserver" / "beamline_monitor.json",
+        config_path=instrument_path / "qserver" / "beamline_monitor.yml",
+    )
+    logger.info("Beamline monitor PVs written to %s", beamline_monitor_manifest)
+except Exception:
+    logger.exception("Failed to generate beamline monitor PVs")

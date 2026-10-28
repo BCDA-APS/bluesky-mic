@@ -137,7 +137,7 @@ class StepScanRecord(Device):
         for key in keys_to_remove:
             scan._original_vals.pop(key, None)
 
-    def stage1Dstep(self, devices, scaler_count, positioner, width, center, stepsize_x):
+    def stage1Dstep(self, devices, scaler_count, positioner, width, center, stepsize_x, rel_abs_motion=1):
         dets_dict = {d.name: d for d in devices}
 
         xrf = dets_dict.get("xrf", None)
@@ -158,9 +158,9 @@ class StepScanRecord(Device):
         yield from self.unstage1Dstep()
         self.inner.config(
             positioner_setpoint=positioner.user_setpoint.pvname,
-            positioner_readback=positioner.user_readback.pvname,
+            positioner_readback=positioner.user_readback.pvname if positioner.name != "kohzu_mono" else '',
             scanmode=0,  # 0: "LINEAR", 1: "TABLE", 2: "FLY"
-            rel_abs_motion=1,  # 0: "ABSOLUTE", 1: "RELATIVE"
+            rel_abs_motion=rel_abs_motion,  # 0: "ABSOLUTE", 1: "RELATIVE"
             center=center,
             width=round(width, 2),
             stepsize=round(stepsize_x, 5),

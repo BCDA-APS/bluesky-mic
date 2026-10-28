@@ -1,0 +1,115 @@
+# Guarneri-style device YAML configuration
+
+apstools.devices.aps_machine.ApsMachineParametersDevice:
+- name: ring
+  labels: ["storebeam"]
+
+s2idd_uprobe.devices.scanrecord.CombinedScanRecord:
+- name: scanrecord
+  # prefix: 2iddfS1
+  prefix: 2idd
+  labels: ["scanrecord"]
+
+s2idd_uprobe.devices.sample.Sample:
+- name: sample
+  prefix: 2idd
+  labels: ["sample"]
+
+mic_common.devices.save_data.SaveDataMic:
+- name: savedata
+  prefix: "2idd:saveData_"
+  labels: ["savedata"]
+
+s2idd_uprobe.devices.motor.Motor:
+- name: zp_z
+  prefix: 2idd:m44
+  labels: ["motor"]
+
+ophyd.EpicsSignal:
+- name: fscanh_samx
+  write_pv: 2idd:ExtrauserCalc1.A
+  read_pv: 2idd:ExtrauserCalc1.A
+  labels: ["usercalc"]
+- name: fscanh_dwell
+  write_pv: 2idd:Flyscans:Setup:DwellTime
+  read_pv: 2idd:Flyscans:Setup:DwellTime
+  labels: ["usercalc"]
+- name: fly_calc10
+  write_pv: 2idd:userCalc10Enable
+  read_pv: 2idd:userCalc10Enable
+  labels: ["usercalc"]
+- name: usercalc_samx_speed
+  write_pv: 2iddfS1:userCalc8Enable
+  read_pv: 2iddfS1:userCalc8Enable
+  labels: ["usercalc"]
+- name: retrace_samx_passive
+  write_pv: 2iddfS1:userCalc8.SCAN
+  read_pv: 2iddfS1:userCalc8.SCAN
+  labels: ["usercalc"]
+- name: scaler_count
+  write_pv: 2idd:scaler1.CNT
+  read_pv: 2idd:scaler1.CNT
+  labels: ["signal"]
+- name: solarsim_shutter
+  write_pv: 2idsft:u1:Bd8
+  read_pv: 2idsft:u1:Bd8
+  labels: ['signal']
+
+mic_common.devices.sis3820.SIS3820:
+- name: sis3820
+  prefix: 2idd:3820
+  labels: ["sis3820"]
+
+mic_common.devices.optics.Mono2ID:
+- name: kohzu_mono
+  prefix: "2ida2:"
+  labels: ["mono"]
+
+s2idd_auto.devices.optics.UpstreamMirror:
+- name: m1mirror
+  prefix: 2ida1
+  labels: ["motor", "m1"]
+
+s2idd_auto.devices.optics.MonoMotors:
+- name: mono_motors
+  prefix: 2ida2
+  labels: ["motor", "mono_motors"]
+
+s2idd_auto.devices.optics.UpstreamPinhole:
+- name: upstream_pinhole
+  prefix: 2idd
+  labels: ["motor", "upstream_pinhole"]
+
+s2idd_auto.devices.optics.OSA:
+- name: osa
+  prefix: 2idd
+  labels: ["motor", "osa"]
+
+s2idd_auto.devices.sensors.JoergerScaler:
+- name: joerger_scaler
+  prefix: 2idd
+  labels: ["sensor", "scaler"]
+
+s2idd_auto.devices.sensors.Preamps:
+- name: preamps
+  prefix: 2iddfS1
+  labels: ["sensor", "preamps"]
+
+s2idd_auto.devices.bleps.BLEPS2ID:
+- name: bleps
+  prefix: 2idbleps
+
+mic_common.devices.xmap.XMAP:
+- name: xrf
+  prefix: 2iddXMAP
+  labels: ["xmap"]
+
+# s2idd_uprobe.devices.tetramm.MicTetrAMM:
+# - name: tmm1
+#   prefix: 2iddtmm1
+#   labels: ["tetramm"]
+
+# s2idd_uprobe.user.keithley2400_moxa.Keithley2400:
+# - name: keithley
+#   prefix: ""
+#   labels: ["keithley"]

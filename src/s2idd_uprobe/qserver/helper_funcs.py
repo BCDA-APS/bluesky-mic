@@ -16,6 +16,8 @@ from .recovery_state import set_detector_recovering
 
 logger = logging.getLogger(__name__)
 
+def _get_sample():
+    return oregistry.find("sample", allow_none=True)
 
 def get_save_data_path():
     savedata = oregistry.find("savedata", allow_none=True)
@@ -29,6 +31,23 @@ def get_current_mda_file():
     if savedata is None:
         return None
     return savedata.next_file_name
+
+def syncXYZ() -> list[float] | None:
+    """Return the current sample X/Y/Z positions as ``[x, y, z]``."""
+
+    sample = _get_sample()
+    if sample is None:
+        logger.warning("sample device is not available")
+        return None
+    try:
+        return [
+            round(float(sample.x.position), 2),
+            round(float(sample.y.position), 2),
+            round(float(sample.z.position), 4),
+        ]
+    except Exception:
+        logger.exception("Failed to read sample XYZ positions")
+        return None
 
 
 def get_global_health_snapshot(manifest_path: str | None = None) -> dict[str, object]:

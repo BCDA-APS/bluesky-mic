@@ -87,8 +87,8 @@ def _step1d_scanrecord(
     center: float = 0,
     stepsize_x: float = 0,
     dwell_ms: float = 0,
-    sample_x: float = None,
-    sample_y: float = None,
+    x_center: float = None,
+    y_center: float = None,
     sample_z: float = None,
     energy: float = None,
     xrf_on: bool = True,
@@ -111,10 +111,11 @@ def _step1d_scanrecord(
         raise ValueError(f"Invalid positioner name: {positioner_name}")    
 
     """Move to desired positions"""
-    yield from bps.mv(sample.x, sample_x)
-    yield from bps.mv(sample.y, sample_y)
+    yield from bps.mv(sample.x, x_center)
+    yield from bps.mv(sample.y, y_center)
     yield from bps.mv(sample.z, sample_z)
     yield from bps.mv(mono, energy)
+    center = 0
 
     """Validate / select detectors and stage scan record"""
     det_bools = [xrf_on, preamp1_on]
@@ -124,7 +125,7 @@ def _step1d_scanrecord(
         yield from scanrecord.step.stage1Dstep(devices, 
                                            scaler_count,
                                            positioner, width, 
-                                           center, stepsize_x)
+                                           center, stepsize_x, rel_abs_motion=1)
     else:
         yield from scanrecord.step.stage1Dstep_TabelMode(devices, 
                                            scaler_count,
@@ -164,8 +165,8 @@ def step1d_scanrecord(
     center: float = 0,
     stepsize_x: float = 0,
     dwell_ms: float = 0,
-    sample_x: float = None,
-    sample_y: float = None,
+    x_center: float = None,
+    y_center: float = None,
     sample_z: float = None,
     energy: float = None,
     xrf_on: bool = True,
@@ -191,10 +192,10 @@ def step1d_scanrecord(
         The step size (spatial resolution) in the x-direction in microns. Default: 0. Type: float
     dwell_ms:
         The dwell time per step in milliseconds. Default: 0. Type: float
-    sample_x:
-        The sample x position in millimeters. If not provided, the current sample x position will be maintained. Default: None. Type: float
-    sample_y:
-        The sample y position in millimeters. If not provided, the current sample y position will be maintained. Default: None. Type: float
+    x_center:
+        The x position of the scan center in microns. If not provided, the current sample x position will be maintained. Default: None. Type: float
+    y_center:
+        The y position of the scan center in microns. If not provided, the current sample y position will be maintained. Default: None. Type: float
     sample_z:
         The sample z position in millimeters. If not provided, the current sample z position will be maintained. Default: None. Type: float
     energy:
@@ -210,8 +211,8 @@ def step1d_scanrecord(
     """
 
     """Capture the input plan parameters"""
-    sample_x = round(sample.x.position, 2) if sample_x is None else sample_x
-    sample_y = round(sample.y.position, 2) if sample_y is None else sample_y
+    x_center = round(sample.x.position, 2) if x_center is None else x_center
+    y_center = round(sample.y.position, 2) if y_center is None else y_center
     sample_z = round(sample.z.position, 2) if sample_z is None else sample_z
     energy = round(mono.user_readback.get(), 4) if energy is None else energy
 
@@ -235,8 +236,8 @@ def xanes_1d_nonlinear_step(
     energy_list_eV: list = [],
     stepsize_list_eV: list = [],
     dwell_ms: float = 0,
-    sample_x: float = None,
-    sample_y: float = None,
+    x_center: float = None,
+    y_center: float = None,
     sample_z: float = None,
     energy: float = None,
     xrf_on: bool = True,
@@ -257,10 +258,10 @@ def xanes_1d_nonlinear_step(
         The step size list in eV. Default: []
     dwell_ms: float
         The dwell time per step in milliseconds. Default: 0. Type: float
-    sample_x: float
-        The sample x position in millimeters. If not provided, the current sample x position will be maintained. Default: None. Type: float
-    sample_y: float
-        The sample y position in millimeters. If not provided, the current sample y position will be maintained. Default: None. Type: float
+    x_center: float
+        The x position of the scan center in microns. If not provided, the current sample x position will be maintained. Default: None. Type: float
+    y_center: float
+        The y position of the scan center in microns. If not provided, the current sample y position will be maintained. Default: None. Type: float
     sample_z: float
         The sample z position in millimeters. If not provided, the current sample z position will be maintained. Default: None. Type: float
     energy: float
@@ -281,8 +282,8 @@ def xanes_1d_nonlinear_step(
         user_comments=user_comments,
         positioner_name=positioner_name,
         dwell_ms=dwell_ms,
-        sample_x=sample_x,
-        sample_y=sample_y,
+        x_center=x_center,
+        y_center=y_center,
         sample_z=sample_z,
         energy=energy,
         xrf_on=xrf_on,
@@ -300,10 +301,10 @@ def xanes_1d_linear(
     center_keV: float = 0,
     stepsize_keV: float = 0,
     dwell_ms: float = 0,
-    sample_x: float = None,
-    sample_y: float = None,
+    x_center: float = None,
+    y_center: float = None,
     sample_z: float = None,
-    energy: float = None,
+    # energy: float = None,
     xrf_on: bool = True,
     preamp1_on: bool = False,
 ):
@@ -324,14 +325,14 @@ def xanes_1d_linear(
         The step size (energy resolution) in the x-direction in keV. Default: 0. Type: float
     dwell_ms: float
         The dwell time per step in milliseconds. Default: 0. Type: float
-    sample_x: float
-        The sample x position in millimeters. If not provided, the current sample x position will be maintained. Default: None. Type: float
-    sample_y: float
-        The sample y position in millimeters. If not provided, the current sample y position will be maintained. Default: None. Type: float
+    x_center: float
+        The x position of the scan center in microns. If not provided, the current sample x position will be maintained. Default: None. Type: float
+    y_center: float
+        The y position of the scan center in microns. If not provided, the current sample y position will be maintained. Default: None. Type: float
     sample_z: float
         The sample z position in millimeters. If not provided, the current sample z position will be maintained. Default: None. Type: float
-    energy: float
-        The energy in keV. If not provided, the current energy will be maintained. Default: None. Type: float
+    # energy: float
+    #     The energy in keV. If not provided, the current energy will be maintained. Default: None. Type: float
     xrf_on: bool
         Whether to enable the x-ray fluorescence detector. Default is True. Type: bool
     preamp1_on: bool
@@ -342,6 +343,11 @@ def xanes_1d_linear(
     center = center_keV
     stepsize_x = stepsize_keV
 
+    if mono.mode.get() == 0: # 1 is auto, 0 is manual
+        logger.warning("Kohzu monochromator is in manual mode. Switching to auto mode for XANES scan.")
+        yield from bps.mv(mono.mode, 1)
+        yield from bps.sleep(1)
+
     yield from step1d_scanrecord(
         samplename=samplename,
         user_comments=user_comments,
@@ -350,12 +356,12 @@ def xanes_1d_linear(
         center=center,
         stepsize_x=stepsize_x,
         dwell_ms=dwell_ms,
-        sample_x=sample_x,
-        sample_y=sample_y,
+        x_center=x_center,
+        y_center=y_center,
         sample_z=sample_z,
-        energy=energy,
+        energy=center,
         xrf_on=xrf_on,
         preamp1_on=preamp1_on,
     )
 
-    yield from bps.sleep(40)
+    yield from bps.sleep(10)

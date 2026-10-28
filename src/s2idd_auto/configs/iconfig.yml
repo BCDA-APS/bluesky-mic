@@ -1,0 +1,138 @@
+# Configuration for the Bluesky instrument package.
+
+# identify the version of this iconfig.yml file
+ICONFIG_VERSION: 2.0.1
+
+# Add additional configuration for use with your instrument.
+
+### The short name for the databroker catalog.
+DATABROKER_CATALOG: &databroker_catalog temp
+
+### APS Data Management
+DM_SETUP_FILE: "/home/dm_idd_uprobe/etc/dm.setup.sh"
+DM_EXPERIMENT_TYPE_NAME: "2IDD-UPROBE"
+DM_XRF_WAITLIST_FILE_PATTERN: "{stem}_*.nc"
+
+### RunEngine configuration
+RUN_ENGINE:
+    DEFAULT_METADATA:
+        beamline_id: 2IDD
+        instrument_name: XSD 2IDD-microprobe
+        proposal_id: commissioning
+        databroker_catalog: *databroker_catalog
+
+    ### EPICS PV to use for the `scan_id`.
+    ### Default: `RE.md["scan_id"]` (not using an EPICS PV)
+    # SCAN_ID_PV: "IOC:bluesky_scan_id"
+
+    ### Where to "autosave" the RE.md dictionary.
+    ### Defaults:
+    MD_PATH: .re_md_dict.yml
+
+    ### The progress bar is nice to see,
+    ### except when it clutters the output in Jupyter notebooks.
+    ### Default: False
+    USE_PROGRESS_BAR: false
+
+### Baseline stream
+### When ENABLE=true, all ophyd objects with a "baseline" label
+### will be added to the baseline stream.
+BASELINE_LABEL:
+    ENABLE: true
+
+### Best Effort Callback Configurations
+### Defaults: all true
+### except no plots in queueserver
+BEC:
+    BASELINE: true
+    HEADING: true
+    PLOTS: false
+    TABLE: true
+
+### Support for known output file formats.
+### Uncomment to use.  If undefined, will not write that type of file.
+### Each callback should apply its configuration from here.
+NEXUS_DATA_FILES:
+    ENABLE: true
+    FILE_EXTENSION: hdf
+
+### Blop optimization defaults.
+### Add beamline-approved motor limits under DOF_BOUNDS before creating an agent.
+BLOP:
+    SETTLE_TIME: 0.1
+    # Use actual Ophyd names. Add limits only after confirming the safe
+    # commissioning range for each motor.
+    DOF_BOUNDS: {}
+    # Example entries:
+    # m1mirror_pitch: [LOW, HIGH]
+    # m1mirror_y: [LOW, HIGH]
+    # mono_motors_pitch: [LOW, HIGH]
+    # mono_motors_roll: [LOW, HIGH]
+    # Optional quantization of the allowed motor values. These are not
+    # guaranteed maximum distances between consecutive suggestions.
+    DOF_STEP_SIZES: {}
+
+SPEC_DATA_FILES:
+    ENABLE: false
+    FILE_EXTENSION: dat
+
+KEITHLEY:
+    ENABLE: false
+
+XMAP:
+    BUFFER: 124
+    DET_FOLDERNAME: "flyXRF"
+    MOUNT_PATH: "W:"
+    # MOUNT_PATH: "Z:"
+
+SAVE_DATA:
+    MOUNT_PATH: "//micdata/data1/"
+    # MOUNT_PATH: "//s2data/"
+    
+TETRAMM:
+    DET_FOLDERNAME: "tetramm"
+
+STORAGE:
+    MICDATA_MOUNTPATH: "/mnt/micdata1/"
+    AUTO_MOUNTPATH: "/net/micdata/data1/"
+    FILE_DELIMITER: "2idd"
+    # MICDATA_MOUNTPATH: "/net/s2data/"
+    # AUTO_MOUNTPATH: "/net/s2data/"
+    # FILE_DELIMITER: "2-idd"
+
+# FILE_DELIMITER: "2idd"
+# SCAN_OVERHEAD: 0.3
+# XMAP:
+#     BUFFER: 124
+
+
+# USERCALC:
+#   FSCANH_POSITIONER: "2idd:userCalc9.A"
+#   FSCANH_DWELL: "2idd:Flyscans:Setup:DwellTime"
+
+# USERCALC_DISABLE:
+#   TETRAMM1_FILENAME: "2iddfS1:userStringCalc1Enable"
+#   TETRAMM1_FILETEMPLATE: "2iddfS1:userStringCalc2Enable"
+#   TETRAMM2_FILENAME: "2iddfS1:userStringCalc4Enable"
+#   TETRAMM2_FILETEMPLATE: "2iddfS1:userStringCalc5Enable"
+#   XMAP_FILENAME: "2iddfS1:userStringCalc7Enable"
+
+
+
+# ----------------------------------
+
+OPHYD:
+    ### Control layer for ophyd to communicate with EPICS.
+    ### Default: PyEpics
+    ### Choices: "PyEpics" or "caproto"
+    CONTROL_LAYER: PyEpics
+
+    ### default timeouts (seconds)
+    TIMEOUTS:
+        # PV_READ: 10
+        # PV_CONNECTION: 10 
+        PV_READ: &TIMEOUT 5
+        PV_WRITE: *TIMEOUT
+        PV_CONNECTION: *TIMEOUT 
+
+XMODE_DEBUG_LEVEL: Plain
